@@ -1,16 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import absolute_import
-
-from subprocess import Popen, PIPE
-import platform
-import select
-import json
-import sys
-import os
-import re
-
-
 __doc__ = """
 flux_wlan_scan is a wlan scanning tool for fluxmonitor.
 
@@ -25,65 +14,13 @@ Please ensure user has such privilege to execute command in sudoer
 list and remember allow execute these command with out `PASSWORD`
 """
 
-def parse_wpa_cli_result(raw):
-    for r in raw:
-        r = r.strip()
-        if re.match(r"^[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}", r):
-            d = re.split(r'\s+', r)
-            yield {
-                "SSID": d[-1],
-                "RSSI": d[2],
-                "encrypt": d[3] != "[ESS]",
-                "security": d[3].replace("[ESS]", "")
-            }
+import json
+import sys
 
-def parse_darwin_result(row):
-    d = re.split(r'\s+', row.strip())
-
-    return {
-        "SSID": d[0],
-        "RSSI": d[2],
-        "encrypt": d[6] != "NONE",
-        "security": d[6] == "" if d[6] == "NONE" else d[6]
-    }
+from fluxmonitor.misc import scan_wifi
 
 try:
-    if platform.system().lower().startswith("linux"):
-        proc = Popen(["sudo", "-n", "wpa_cli", "scan"], stdout=PIPE, stderr=PIPE)
-        proc.wait()
-
-        if proc.poll() != 0:
-            raise RuntimeError("wpa_cli scan command fail: %s " % proc.stderr.read(), proc.poll())
-
-        proc = Popen(["sudo", "-n", "wpa_cli", "scan_result"], stdout=PIPE, stderr=PIPE)
-        proc.wait()
-        results = proc.stdout.readlines()
-
-        if proc.poll() != 0:
-            raise RuntimeError("wpa_cli scan_result command fail: %s " % proc.stderr.read(), proc.poll())
-
-        sys.stdout.write(
-            json.dumps([r for r in parse_wpa_cli_result(results)])
-        )
-
-    elif platform.system().lower().startswith("darwin"):
-        proc = Popen([
-            "/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport",
-            "-s"
-        ], stdout=PIPE)
-        proc.wait()
-
-        results = proc.stdout.readlines()
-
-        if proc.poll() != 0:
-            raise RuntimeError("airport scan fail: %s " % proc.stderr.read(), proc.poll())
-
-        sys.stdout.write(
-            json.dumps([parse_darwin_result(r) for r in results])
-        )
-    else:
-        raise RuntimeError("Wifi scann can not run on %s (not implement)" % platform.system(), 1)
-
+    sys.stdout.write(json.dumps(scan_wifi()))
     sys.exit(0)
 except RuntimeError as error:
     sys.stdout.write(
@@ -94,3 +31,4 @@ except RuntimeError as error:
         }))
 
     sys.exit(error.args[1])
+
