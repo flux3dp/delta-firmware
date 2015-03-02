@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from setuptools import setup
+from setuptools import setup, find_packages
 import os, platform
 
 VERSION = "0.0.1"
@@ -16,7 +16,7 @@ setup(
     author_email="cerberus@flux3dp.com",
     description="",
     license="?",
-    packages=["fluxmonitor"],
+    packages=find_packages(),
     scripts=["bin/fluxmonitord"],
     install_requires=install_requires,
 )
