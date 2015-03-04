@@ -17,10 +17,10 @@ list and remember allow execute these command with out `PASSWORD`
 import json
 import sys
 
-from fluxmonitor.misc import scan_wifi
+from fluxmonitor.sys.nl80211 import scan
 
 try:
-    sys.stdout.write(json.dumps(scan_wifi()))
+    sys.stdout.write(json.dumps(scan()))
     sys.exit(0)
 except RuntimeError as error:
     sys.stdout.write(

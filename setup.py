@@ -17,6 +17,6 @@ setup(
     description="",
     license="?",
     packages=find_packages(),
-    scripts=["bin/fluxmonitord", "bin/flux_wlan_scan"],
+    scripts=["bin/fluxmonitord", "bin/flux_wlan_scan", "bin/flux_wlan_config"],
     install_requires=install_requires,
 )

@@ -1,0 +1,39 @@
+#!/usr/bin/env python
+
+__doc__ = """
+Support params:
+
+No security
+# ./flux_wlan_config ssid NONE
+
+WEP
+# ./flux_wlan_config ssid WEP wep_password
+
+WPA-PSK
+# ./flux_wlan_config ssid WPA-PSK psk_key
+
+WPA2-PSK
+# ./flux_wlan_config ssid WPA2-PSK psk_key
+"""
+
+from fluxmonitor.sys import nl80211
+import sys
+
+if len(sys.argv) == 1:
+    print(__doc__)
+    sys.exit(1)
+
+# Main Part
+ssid = sys.argv[1]
+security = sys.argv[2]
+
+if security == "NONE":
+    nl80211.wlan_config({'type': '', 'ssid': ssid})
+
+elif security == "WEP":
+    nl80211.wlan_config({'type': 'WEP', 'ssid': ssid, 'wepkey': sys.argv[3]})
+
+elif security in ["WPA-PSK", "WPA2-PSK"]:
+    nl80211.wlan_config({'type': security, 'ssid': ssid, 'psk': sys.argv[3]})
+
+sys.exit(0)
