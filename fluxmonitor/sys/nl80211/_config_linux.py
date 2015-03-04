@@ -1,11 +1,22 @@
 
 from subprocess import Popen, PIPE, call
 import platform
+import logging
 import re
+
+logger = logging.getLogger(__name__)
 
 from fluxmonitor.misc import call_and_return_0_or_die
 
-__all__ = ["wlan_config"]
+__all__ = ["wlan_up", "wlan_down", "wlan_config"]
+
+def wlan_up(ifname):
+    logger.info("%s up" % ifname)
+    call_and_return_0_or_die(["sudo", "-n", "ifup", ifname])
+
+def wlan_down(ifname):
+    logger.info("%s down" % ifname)
+    call_and_return_0_or_die(["sudo", "-n", "ifup", ifname])
 
 def wlan_config(options):
     # network_type should be: "", "WEP", "WPA-PSK", "WPA2-PSK"
