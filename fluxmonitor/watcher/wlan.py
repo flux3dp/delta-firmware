@@ -1,19 +1,12 @@
 
-import tempfile
 import logging
 import socket
-import select
 import json
 import os
 
 logger = logging.getLogger(__name__)
 
-import platform
-if platform.system().lower().startswith("linux"):
-    from pyroute2 import IPRoute
-else:
-    from fluxmonitor.misc.fake import IPRoute
-
+from fluxmonitor.config import wlan_config
 from fluxmonitor.sys.net.monitor import Monitor
 from fluxmonitor.task import wlan_tasks
 from fluxmonitor.misc import AsyncSignal
@@ -21,27 +14,20 @@ from fluxmonitor.misc import AsyncSignal
 from .base import WatcherBase
 
 class WlanWatcher(WatcherBase):
-    DEFAULT_SOCKET = os.path.join(tempfile.gettempdir(), ".fluxmonitor-wlan")
-
     def __init__(self, memcache):
-        self.sig_pipe = AsyncSignal()
-        self.memcache = memcache
-        self.monitor = Monitor(self)
+        super(WlanWatcher, self).__init__(logger, memcache)
         self.status = {}
+        self.monitor = Monitor(self)
         self.on_status_changed(self.monitor.full_status())
 
         self.running = True
-        super(WlanWatcher, self).__init__()
 
     def run(self):
+        self.sock = WlanWatcherSocket(self)
+        self.rlist += [self.monitor, self.sock]
+
         self.bootstrap()
-
-        rlist, wlist, xlist = (self.sig_pipe, self.monitor, self.sock), (), ()
-        while self.running:
-            rl, wl, xl = select.select(rlist, wlist, xlist, 5.0)
-
-            if self.monitor in rl: self.monitor.on_read()
-            if self.sock in rl: self.handleCommand()
+        super(WlanWatcher, self).run()
 
     # Callback from self.monitor instance
     def on_status_changed(self, status):
@@ -57,35 +43,38 @@ class WlanWatcher(WatcherBase):
         logger.debug("Status: " + nic_status)
         self.memcache.set("nic_status", nic_status)
 
-    def bootstrap(self):
-        self.prepare_socket()
+    def is_wireless(self, ifname):
+        return ifname.startswith("wlan")
 
-    def prepare_socket(self, path=DEFAULT_SOCKET):
+    def bootstrap(self):
+        pass
+        # for ifname, status in self.status.items():
+
+
+class WlanWatcherSocket(socket.socket):
+    def __init__(self, master):
+        self.master = master
+
+        path = wlan_config['unixsocket']
         try: os.unlink(path)
         except Exception: pass
 
-        self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-        self.sock.bind(path)
+        super(WlanWatcherSocket, self).__init__(socket.AF_UNIX, socket.SOCK_DGRAM)
+        self.bind(path)
         logger.debug("wlan command socket created at: %s" % path)
 
-    def handleCommand(self):
-        payload = None
-
+    def on_read(self):
         try:
-            buf = self.sock.recv(4096)
+            buf = self.recv(4096)
             payload = json.loads(buf)
+            cmd, data = payload
         except (ValueError, TypeError) as e:
             logger.error("Can not process request: %s" % buf)
 
-        cmd = payload.pop('cmd', '')
         try:
             if cmd in wlan_tasks.public_tasks:
-                getattr(wlan_tasks, cmd)(payload)
+                getattr(wlan_tasks, cmd)(data)
             else:
                 logger.error("Can not process command: %s" % cmd)
         except Exception as error:
             logger.exception("Error while processing cmd: %s" % cmd)
-
-    def shutdown(self, log=None):
-        self.running = False
-        self.sig_pipe.send()
