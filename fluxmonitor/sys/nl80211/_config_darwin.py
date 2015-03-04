@@ -3,9 +3,10 @@ from subprocess import Popen, PIPE, call
 import platform
 import re
 
+from fluxmonitor.sys.net.monitor import Monitor
 from fluxmonitor.misc import call_and_return_0_or_die
 
-# >>>>>>>> let's hack it
+# hack it >>>>>>>>>>>>>>>>>>>>>>>>
 # We modify nl80211 for linux and it will print what it do.
 # It is useful to debug when running under mac os, because
 # it is meaningless to implement this function under mac os.
@@ -23,9 +24,9 @@ def __wpa_cli__(args):
 
 _config_linux.drop_config = __do_nothing__
 _config_linux.call_and_return_0_or_die = __wpa_cli__
-# <<<<<<<< end of hack
+# <<<<<<<<<<<<<<<<<<<<<<<< end of hack
 
-__all__ = ["wlan_up", "wlan_down", "wlan_config"]
+__all__ = ["wlan_up", "wlan_down", "wlan_config", "ping_wpa_supplicant"]
 
 def wlan_up(ifname):
     _config_linux.wlan_up(ifname)
@@ -35,3 +36,10 @@ def wlan_down(ifname):
 
 def wlan_config(options):
     _config_linux.wlan_config(options)
+
+def ping_wpa_supplicant(ifname):
+    _config_linux.ping_wpa_supplicant(ifname)
+    if ifname.startswith("wlan"):
+        return Monitor().full_status().get(ifname, {}).get('ifstatus') == 'UP'
+    else:
+        return False
