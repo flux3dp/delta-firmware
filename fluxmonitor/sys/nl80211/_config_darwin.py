@@ -26,13 +26,13 @@ _config_linux.drop_config = __do_nothing__
 _config_linux.call_and_return_0_or_die = __wpa_cli__
 # <<<<<<<<<<<<<<<<<<<<<<<< end of hack
 
-__all__ = ["wlan_up", "wlan_down", "wlan_config", "ping_wpa_supplicant"]
+__all__ = ["ifup", "ifdown", "wlan_config", "ping_wpa_supplicant"]
 
-def wlan_up(ifname):
-    _config_linux.wlan_up(ifname)
+def ifup(ifname):
+    _config_linux.ifup(ifname)
 
-def wlan_down(ifname):
-    _config_linux.wlan_down(ifname)
+def ifdown(ifname):
+    _config_linux.ifdown(ifname)
 
 def wlan_config(options):
     _config_linux.wlan_config(options)

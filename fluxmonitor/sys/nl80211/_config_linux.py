@@ -8,15 +8,25 @@ logger = logging.getLogger(__name__)
 
 from fluxmonitor.misc import call_and_return_0_or_die
 
-__all__ = ["wlan_up", "wlan_down", "wlan_config", "ping_wpa_supplicant"]
+__all__ = ["ifup", "ifdown", "wlan_config", "ping_wpa_supplicant"]
 
-def wlan_up(ifname):
+def ifup(ifname):
     logger.info("%s up" % ifname)
-    call_and_return_0_or_die(["sudo", "-n", "ifup", ifname])
+    try:
+        call_and_return_0_or_die(["sudo", "-n", "ifup", ifname])
+        return True
+    except RuntimeError as error:
+        logger.error("ifup fail: %s" % error)
+        return False
 
-def wlan_down(ifname):
+def ifdown(ifname):
     logger.info("%s down" % ifname)
-    call_and_return_0_or_die(["sudo", "-n", "ifdown", ifname])
+    try:
+        call_and_return_0_or_die(["sudo", "-n", "ifdown", ifname])
+        return True
+    except RuntimeError as error:
+        logger.error("ifdown fail: %s" % error)
+        return False
 
 def wlan_config(options):
     # network_type should be: "", "WEP", "WPA-PSK", "WPA2-PSK"
