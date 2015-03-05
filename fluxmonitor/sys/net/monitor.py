@@ -15,7 +15,7 @@ class Monitor(object):
     def fileno(self):
         return self.ipr.fileno()
 
-    # Trigger when self.ipr has data in buffer (Call by self.mater instance)
+    # Trigger when self.ipr has data in buffer (Call by event looper)
     def on_read(self):
         # Read all message and drop it. Because it is hard to analyze incomming
         # message, we will query full information and collect it instead.

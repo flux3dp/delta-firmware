@@ -51,7 +51,7 @@ class NetworkMonitorMix(object):
 
     def bootstrap_network_monitor(self, memcache):
         self.nic_status = {}
-        self._monitor = Monitor(self)
+        self._monitor = Monitor(self._on_status_changed)
         self._on_status_changed(self._monitor.full_status())
 
         self.rlist += [self._monitor]
@@ -104,6 +104,11 @@ class ControlSocketMix(object):
         for ifname in start_list: nl80211.ifup(ifname)
 
     def is_device_alive(self, ifname):
+        """Return if device is UP or not.
+
+        Note: Because wireless device require wpa_supplicant daemon. If
+        wpa_supplicant is gone, this method will return False
+        """
         if self.nic_status.get(ifname, {}).get('ifstatus') != 'UP':
             return False
 

@@ -4,16 +4,22 @@ __doc__ = """
 Support params:
 
 No security
-# ./flux_wlan_config ssid NONE
+# ./flux_wlan_config ifname NONE ssid
 
 WEP
-# ./flux_wlan_config ssid WEP wep_password
+# ./flux_wlan_config ifname WEP ssid wep_password
 
 WPA-PSK
-# ./flux_wlan_config ssid WPA-PSK psk_key
+# ./flux_wlan_config ifname WPA-PSK ssid psk_key
 
 WPA2-PSK
-# ./flux_wlan_config ssid WPA2-PSK psk_key
+# ./flux_wlan_config ifname WPA2-PSK ssid psk_key
+
+AD-HOC
+# ./flux_wlan_config ifname adhoc
+
+Retry if already have a config
+# ./flux_wlan_config ifname retry
 """
 
 from fluxmonitor.sys import nl80211
@@ -24,16 +30,25 @@ if len(sys.argv) == 1:
     sys.exit(1)
 
 # Main Part
-ssid = sys.argv[1]
-security = sys.argv[2]
+ifname = sys.argv[1]
+ntype = sys.argv[2]
+ssid = sys.argv[3] if len(sys.argv) >= 4 else None
 
-if security == "NONE":
-    nl80211.wlan_config({'type': '', 'ssid': ssid})
+if ntype.lower() == "none":
+    nl80211.wlan_config(ifname=ifname, network_type='', ssid=ssid)
 
-elif security == "WEP":
-    nl80211.wlan_config({'type': 'WEP', 'ssid': ssid, 'wepkey': sys.argv[3]})
+elif ntype == "WEP":
+    nl80211.wlan_config(ifname=ifname, network_type='WEP', ssid=ssid, wep_key=sys.argv[4])
 
-elif security in ["WPA-PSK", "WPA2-PSK"]:
-    nl80211.wlan_config({'type': security, 'ssid': ssid, 'psk': sys.argv[3]})
+elif ntype in ["WPA-PSK", "WPA2-PSK"]:
+    nl80211.wlan_config(ifname=ifname, network_type=ntype, ssid=ssid, psk=sys.argv[4])
 
+elif ntype == "retry":
+    nl80211.wlan_config_retry(ifname=ifname)
+
+elif ntype == "adhoc":
+    nl80211.wlan_adhoc(ifname=ifname)
+
+else:
+    raise RuntimeError("Unknow network type: %s" % ntype)
 sys.exit(0)
