@@ -12,7 +12,6 @@ import memcache
 
 from fluxmonitor.misc import AsyncSignal
 from fluxmonitor.watcher.network import NetworkWatcher
-from fluxmonitor.watcher.wlan import WlanWatcher
 
 class FluxMonitor(threading.Thread):
     def __init__(self):
@@ -21,7 +20,6 @@ class FluxMonitor(threading.Thread):
         self.running = True
 
         self.watchers = [
-            WlanWatcher(self.shared_mem),
             NetworkWatcher(self.shared_mem),
         ]
 

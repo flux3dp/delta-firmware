@@ -2,6 +2,6 @@
 import tempfile
 import os
 
-wlan_config = {
+network_config = {
     "unixsocket": os.path.join(tempfile.gettempdir(), ".fluxmonitor-wlan")
 }
