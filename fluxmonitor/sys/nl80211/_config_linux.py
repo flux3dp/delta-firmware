@@ -7,15 +7,19 @@ import re
 logger = logging.getLogger(__name__)
 
 from fluxmonitor.misc import call_and_return_0_or_die
-
-ADHOC_SSID = '\xe2\x86\x96\xe7\x85\x9e\xe6\xb0\xa3A\xe2\x86\x98 FLUX 3D Printer'
+from fluxmonitor.config import network_config
 
 __all__ = ["ifup", "ifdown", "wlan_config", "wlan_config_retry", "wlan_adhoc", "ping_wpa_supplicant"]
+
+ADHOC_SSID = network_config['adhoc-ssid']
+IFUP = network_config['ifup']
+IFDOWN = network_config['ifdown']
+WPA_CLI = network_config['wpa_cli']
 
 def ifup(ifname):
     logger.info("%s up" % ifname)
     try:
-        call_and_return_0_or_die(["sudo", "-n", "ifup", ifname])
+        call_and_return_0_or_die(["sudo", "-n", IFUP, ifname])
         return True
     except RuntimeError as error:
         logger.error("ifup fail: %s" % error)
@@ -24,7 +28,7 @@ def ifup(ifname):
 def ifdown(ifname):
     logger.info("%s down" % ifname)
     try:
-        call_and_return_0_or_die(["sudo", "-n", "ifdown", ifname])
+        call_and_return_0_or_die(["sudo", "-n", IFDOWN, ifname])
         return True
     except RuntimeError as error:
         logger.error("ifdown fail: %s" % error)
@@ -51,7 +55,7 @@ def wlan_config(ifname, network_type, ssid, psk=None, wep_key=None):
     drop_all_wpa_network_config(ifname)
 
     # Then create a new one
-    stdout, _ = call_and_return_0_or_die(["wpa_cli", "-i", ifname, "add_network"])
+    stdout, _ = call_and_return_0_or_die([WPA_CLI, "-i", ifname, "add_network"])
     network_id = stdout.strip().split("\n")[-1]
     if not (network_id.isdigit() and int(network_id) == 0):
         raise RuntimeError("wpa_cli return network id should be 0 but get %s" %
@@ -76,7 +80,7 @@ def wlan_config(ifname, network_type, ssid, psk=None, wep_key=None):
 
 def wlan_config_retry(ifname):
     if 0 in list_wpa_network_ids(ifname):
-        o, _ = call_and_return_0_or_die(["wpa_cli", "-i", ifname, "get_network", "0", "mode"])
+        o, _ = call_and_return_0_or_die([WPA_CLI, "-i", ifname, "get_network", "0", "mode"])
         if o.strip() != "0": raise RuntimeError("Network config not exist (wrong mode)")
 
         wpa_cli_cmd(ifname, ["select_network", "0"])
@@ -98,7 +102,7 @@ def wlan_adhoc(ifname):
     for id in network_ids:
         if id >= 1: drop_wpa_network_config(id)
 
-    stdout, _ = call_and_return_0_or_die(["wpa_cli", "add_network"])
+    stdout, _ = call_and_return_0_or_die([WPA_CLI, "add_network"])
     network_id = stdout.strip().split("\n")[-1]
 
     wpa_cli_cmd(ifname, ["-i", ifname, "set_network", network_id, "ssid", "\"%s\"" % ADHOC_SSID])
@@ -116,7 +120,7 @@ def wlan_adhoc(ifname):
 
 def ping_wpa_supplicant(ifname):
     try:
-        o, _ = call_and_return_0_or_die(["wpa_cli", "-i", ifname, "ping"])
+        o, _ = call_and_return_0_or_die([WPA_CLI, "-i", ifname, "ping"])
         return o.strip().split("\n")[1] == "PONG"
     except Exception:
         return False
@@ -124,7 +128,7 @@ def ping_wpa_supplicant(ifname):
 # Private methods
 def list_wpa_network_ids(ifname):
     stdout, _ = call_and_return_0_or_die(
-        ["wpa_cli", "-i", ifname, "list_network"])
+        [WPA_CLI, "-i", ifname, "list_network"])
 
     ids = []
     for row in stdout.split("\n"):
@@ -138,11 +142,11 @@ def drop_all_wpa_network_config(ifname):
         drop_wpa_network_config(ifname, id)
 
 def drop_wpa_network_config(ifname, network_id):
-    call_and_return_0_or_die(["wpa_cli", "-i", ifname, "remove_network", str(network_id)])
+    call_and_return_0_or_die([WPA_CLI, "-i", ifname, "remove_network", str(network_id)])
 
 def wpa_cli_cmd(ifname, args):
-    o, _ = call_and_return_0_or_die(["wpa_cli", "-i", ifname] + args)
+    o, _ = call_and_return_0_or_die([WPA_CLI, "-i", ifname] + args)
     msg = o.strip().split("\n")[-1]
     if msg != "OK":
-        raise RuntimeError("Command `%s` return %s" % (" ".join(["wpa_cli"] + args), msg))
+        raise RuntimeError("Command `%s` return %s" % (" ".join([WPA_CLI] + args), msg))
 
