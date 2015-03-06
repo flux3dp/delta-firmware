@@ -1,4 +1,5 @@
 
+from subprocess import Popen, PIPE
 from time import sleep
 import random
 import socket
@@ -84,24 +85,22 @@ class ControlSocketMix(object):
         self._ctrl_sock = WlanWatcherSocket(self)
         self.rlist += [self._ctrl_sock]
 
-    def bootstrap_nic(self, delay=0.5, forcus_restart=False):
-        """Startup nic, this method will get all device information from
+    def bootstrap_nic(self, ifname, delay=0.5, forcus_restart=False):
+        """Startup nic, this method will get device information from
         self.nic_status"""
 
-        start_list = []
-        if forcus_restart:
-            for ifname in self.nic_status.keys():
+        ifstatus = self.nic_status.get(ifname, {}).get('ifstatus')
+        if ifstatus == 'UP':
+            if forcus_restart:
                 nl80211.ifdown(ifname)
-                start_list.append(ifname)
-        else:
-            for ifname, ifstatus in self.nic_status.items():
-                if ifstatus.get('ifstatus') != 'UP':
-                    # Shut it down anyway to prevent any possible issue
-                    nl80211.ifdown(ifname)
-                    start_list.append(ifname)
+                sleep(delay)
+            else:
+                return
+        elif ifstatus != 'DOWN' or forcus_restart:
+            nl80211.ifdown(ifname)
+            sleep(delay)
 
-        sleep(delay)
-        for ifname in start_list: nl80211.ifup(ifname)
+        nl80211.ifup(ifname)
 
     def is_device_alive(self, ifname):
         """Return if device is UP or not.
@@ -150,4 +149,3 @@ class WlanWatcherSocket(socket.socket):
                 self.logger.error("Can not process command: %s" % cmd)
         except Exception as error:
             self.logger.exception("Error while processing cmd: %s" % cmd)
-

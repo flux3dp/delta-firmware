@@ -7,9 +7,11 @@ import os
 
 network_config = {
     "unixsocket": os.path.join(tempfile.gettempdir(), ".fluxmonitor-wlan"),
-    "wpa_cli": "/sbin/wpa_cli",
-    "ifup": "/sbin/ifup",
-    "ifdown": "/sbin/ifdown",
+    "wpa_supplicant": "/sbin/wpa_supplicant",
+    "ifconfig": "/sbin/ifconfig",
+    "hostapd": "/usr/sbin/hostapd",
+    "dhclient": "/sbin/dhclient",
+    "route": "/sbin/route",
     "adhoc-ssid": "\xe2\x86\x96\xe7\x85\x9e\xe6\xb0\xa3A\xe2\x86\x98 FLUX 3D Printer"
 }
 
@@ -36,4 +38,3 @@ def try_load_config():
         load_config("/etc/fluxmonitord.json")
 
 try_load_config()
-validate()
