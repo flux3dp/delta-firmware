@@ -1,6 +1,6 @@
 
 from subprocess import Popen, PIPE
-from fluxmonitor.misc import read_all, CallbackHandler
+from fluxmonitor.misc import read_all, AsyncRead
 
 __all__ = ["call_and_return_0_or_die"]
 
@@ -24,8 +24,8 @@ class Process(Popen):
         super(Process, self).__init__(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
 
         self.manager.rlist += [
-            CallbackHandler(self.stdout, self._on_stdout),
-            CallbackHandler(self.stderr, self._on_stderr)]
+            AsyncRead(self.stdout, self._on_stdout),
+            AsyncRead(self.stderr, self._on_stderr)]
 
     def _on_stdout(self, sender):
         buf = sender.obj.read(4096)
@@ -43,3 +43,5 @@ class Process(Popen):
         if self.poll() != None:
             self.manager.on_daemon_closed(self)
 
+    def __repr__(self):
+        return "<Process: %s>" % self.cmd
