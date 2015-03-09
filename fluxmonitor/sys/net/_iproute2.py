@@ -4,7 +4,9 @@ This is a fake implement for iproute2 module to debug under macos.
 Note: iproute2 is using netlink tech and it is available on linux only.
 """
 
+from time import sleep
 from errno import EAGAIN
+import threading
 import socket
 import sys
 
@@ -33,6 +35,14 @@ class IPRoute(object):
     def __init__(self):
         self.__pipe = socket.socketpair()
         self.__pipe[0].setblocking(False)
+        self.__poker = threading.Thread(target=self.__poke__)
+        self.__poker.setDaemon(True)
+        self.__poker.start()
+
+    def __poke__(self):
+        while True:
+            self.trigger_status_changed()
+            sleep(5.)
 
     def bind(self): pass
 
