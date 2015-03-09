@@ -13,37 +13,6 @@ from fluxmonitor.task import network_tasks
 
 from .base import WatcherBase
 
-class NetworkDetector(object):
-    """ try_connected() will tell you if internet access is available."""
-
-    __AVAILABLE_REMOTES = [
-        ("8.8.8.8", 53), # Google DNS
-        ("8.8.4.4", 53), # Google DNS
-        ("168.95.1.1", 53), # Hinet DNS
-        ("198.41.0.4", 53), # a.root-servers.org
-        ("192.228.79.201", 53), # b.root-servers.org
-        ("199.7.91.13", 53), # d.root-servers.org
-    ]
-
-    def __available_remote(self):
-        return random.choice(self.__AVAILABLE_REMOTES)
-
-    def try_connected(self):
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            s.settimeout(10.)
-            s.connect(self.__available_remote())
-            s.shutdown(socket.SHUT_RDWR)
-            self.memcache.set("network", "1")
-            return True
-        except Exception as error:
-            if not isinstance(self, socket.timeout):
-                self.logger.error("Try internet access error: %s" % error)
-            self.memcache.set("network", "0")
-            return False
-        finally:
-            s.close()
-
 class NetworkMonitorMix(object):
     """ NetworkMonitorMix using linux netlink to monitor network status
     change. Once the network changed, a readable signal will pass to file
@@ -74,11 +43,38 @@ class NetworkMonitorMix(object):
     def is_wireless(self, ifname):
         return ifname.startswith("wlan")
 
+    __AVAILABLE_REMOTES = [
+        ("8.8.8.8", 53), # Google DNS
+        ("8.8.4.4", 53), # Google DNS
+        ("168.95.1.1", 53), # Hinet DNS
+        ("198.41.0.4", 53), # a.root-servers.org
+        ("192.228.79.201", 53), # b.root-servers.org
+        ("199.7.91.13", 53), # d.root-servers.org
+    ]
+
+    def __available_remote(self):
+        return random.choice(self.__AVAILABLE_REMOTES)
+
+    def try_connected(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            s.settimeout(10.)
+            s.connect(self.__available_remote())
+            s.shutdown(socket.SHUT_RDWR)
+            self.memcache.set("network", "1")
+            return True
+        except Exception as error:
+            if not isinstance(self, socket.timeout):
+                self.logger.error("Try internet access error: %s" % error)
+            self.memcache.set("network", "0")
+            return False
+        finally:
+            s.close()
+
 class ControlSocketMix(object):
     """ControlSocketMix create a unixsocket (type: dgram) and listen for
-    network command. Look at `fluxmonitor.task.network_tasks` to see what
-    command you can use.
-    
+    network command.
+
     Every payload contain a json string: ["task_name", {"my_options": ""}].
     """
     def bootstrap_control_socket(self, memcache):
@@ -119,8 +115,7 @@ class ControlSocketMix(object):
 
     def is_device_carrier(self, ifname):
         """Return True if wireless is associated or cable plugged"""
-        #TODO: as you see ^_^
-        return True
+        return self.nic_status.get(ifname, {}).get("ifcarrier", None)
 
 class WlanWatcherSocket(socket.socket):
     def __init__(self, master):
