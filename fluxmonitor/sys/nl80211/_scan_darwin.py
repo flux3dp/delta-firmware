@@ -1,9 +1,9 @@
 
 from subprocess import Popen, PIPE
-import platform
 import re
 
 __all__ = ["scan"]
+
 
 def parse_darwin_result(raw):
     for r in raw:
@@ -20,9 +20,11 @@ def parse_darwin_result(raw):
                 "security": d[5] == "" if d[5] == "NONE" else d[5]
             }
 
+
 def scan():
     proc = Popen([
-        "/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport",
+        "/System/Library/PrivateFrameworks/Apple80211.framework/"
+        "Versions/Current/Resources/airport",
         "-s"
     ], stdout=PIPE)
     proc.wait()
@@ -30,7 +32,7 @@ def scan():
     results = proc.stdout.readlines()
 
     if proc.poll() != 0:
-        raise RuntimeError("airport scan fail: %s " % proc.stderr.read(), proc.poll())
+        raise RuntimeError("airport scan fail: %s " %
+                           proc.stderr.read(), proc.poll())
 
     return [r for r in parse_darwin_result(results)]
-

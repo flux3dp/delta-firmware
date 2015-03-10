@@ -1,6 +1,7 @@
 
 import os
 
+
 class AsyncSignal(object):
     def __init__(self):
         self.__w_closed = False
@@ -20,18 +21,19 @@ class AsyncSignal(object):
         self.close()
 
     def close_write(self):
-        if self.__w_closed == False:
+        if self.__w_closed is False:
             self.__w_closed = True
             os.close(self.write_fd)
 
     def close_read(self):
-        if self.__r_closed == False:
+        if self.__r_closed is False:
             self.__r_closed = True
             os.close(self.read_fd)
 
     def close(self):
         self.close_write()
         self.close_read()
+
 
 class AsyncRead(object):
     def __init__(self, file_object, callback):

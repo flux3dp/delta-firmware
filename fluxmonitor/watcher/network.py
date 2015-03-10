@@ -8,11 +8,11 @@ from .base import WatcherBase
 from ._network_helpers import NetworkMonitorMix, ConfigMix, ControlSocketMix
 from fluxmonitor.sys import nl80211
 
-debug_config = {"security": "WPA2-PSK", "ssid": "Area51", "psk": "3c0cccd4e57d3c82be1f48e298155109545b7bf08f41f76a12f34d950b3bc7af"}
-
 FLUX_ST_STARTED = "flux_started"
 
-class NetworkWatcher(WatcherBase, NetworkMonitorMix, ConfigMix, ControlSocketMix):
+
+class NetworkWatcher(WatcherBase, NetworkMonitorMix, ConfigMix,
+                     ControlSocketMix):
     # If network run as fatal mode
     _fatal = False
     # If internet accessable
@@ -34,7 +34,8 @@ class NetworkWatcher(WatcherBase, NetworkMonitorMix, ConfigMix, ControlSocketMix
         self.bootstrap_control_socket(memcache)
 
     def run(self):
-        for ifname in self.nic_status.keys(): self.bootstrap(ifname)
+        for ifname in self.nic_status.keys():
+            self.bootstrap(ifname)
         super(NetworkWatcher, self).run()
 
         for ifname, daemons in self.daemons:
@@ -59,7 +60,8 @@ class NetworkWatcher(WatcherBase, NetworkMonitorMix, ConfigMix, ControlSocketMix
 
     @connected.setter
     def connected(self, val):
-        if self._connected == val: return
+        if self._connected == val:
+            return
         self._connected = val
         self.logger.info("Internet %s" % (val and "connected" or "disconnect"))
         self.POLL_TIMEOUT = 1.0
@@ -69,7 +71,8 @@ class NetworkWatcher(WatcherBase, NetworkMonitorMix, ConfigMix, ControlSocketMix
         self.memcache.set("internet_access", val)
         self.memcache.set("internet_access_timestemp", timestemp)
 
-        if len(self.timestemps) > 10: self.fatal = True
+        if len(self.timestemps) > 10:
+            self.fatal = True
 
     @property
     def fatal(self):
@@ -77,7 +80,8 @@ class NetworkWatcher(WatcherBase, NetworkMonitorMix, ConfigMix, ControlSocketMix
 
     @fatal.setter
     def fatal(self, val):
-        if self._fatal == val: return
+        if self._fatal == val:
+            return
         self._fatal = val
 
         if val:
@@ -95,8 +99,9 @@ class NetworkWatcher(WatcherBase, NetworkMonitorMix, ConfigMix, ControlSocketMix
             self.logger.debug("Kill all daemon for %s" % ifname)
             daemons = self.daemons.pop(ifname, {})
             for name, daemon in daemons.items():
-                try: daemon.kill()
-                except Exception as e:
+                try:
+                    daemon.kill()
+                except Exception:
                     self.logger.exception()
 
         self.logger.debug("Bootstrap interface %s" % ifname)
@@ -114,19 +119,23 @@ class NetworkWatcher(WatcherBase, NetworkMonitorMix, ConfigMix, ControlSocketMix
 
         if config:
             if self.is_wireless(ifname):
-                daemon['wpa'] = nl80211.wlan_managed_daemon(self, ifname, config)
-                self.logger.debug("Set %s associate with %s" % (ifname, config['ssid']))
+                daemon['wpa'] = nl80211.wlan_managed_daemon(self, ifname,
+                                                            config)
+                self.logger.debug("Set %s associate with %s" %
+                                  (ifname, config['ssid']))
 
             if config["method"] == "dhcp":
                 daemon['dhcp'] = nl80211.dhcp_client_daemon(self, ifname)
                 self.logger.debug("Set %s with DHCP" % ifname)
             else:
                 nl80211.config_ipaddr(ifname, config)
-                self.logger.debug("Set %s with %s" % (ifname, config['ipaddr']))
+                self.logger.debug("Set %s with %s" %
+                                  (ifname, config['ipaddr']))
 
         elif self.is_wireless(ifname):
             daemon['hostapd'] = nl80211.wlan_ap_daemon(self, ifname)
-            self.logger.debug("Wireless %s not configured, start with ap mode" % ifname)
+            self.logger.debug("Wireless %s not configured, "
+                              "start with ap mode" % ifname)
 
         self.daemons[ifname] = daemon
         return FLUX_ST_STARTED
@@ -134,12 +143,15 @@ class NetworkWatcher(WatcherBase, NetworkMonitorMix, ConfigMix, ControlSocketMix
     def get_daemon_for(self, daemon):
         """return daemon's network interface name and daemon label
 
-        The first return value is network interface name like: lan0, lan1, wlan0, wlan1 etc..
-        The second return value will be daemon name define in fluxmonitor such like wpa, dhcp.
+        The first return value is network interface name like: lan0, lan1,
+        wlan0, wlan1 etc..
+        The second return value will be daemon name define in fluxmonitor
+        such like wpa, dhcp.
         If daemon is not in self.daemons, it will return 2 None
         """
         for ifname, daemons in self.daemons.items():
-            names = [name for name, instance in daemons.items() if instance == daemon]
+            names = [name for name, instance in daemons.items()
+                     if instance == daemon]
             if len(names) > 0:
                 return ifname, names[0]
 
@@ -155,8 +167,11 @@ class NetworkWatcher(WatcherBase, NetworkMonitorMix, ConfigMix, ControlSocketMix
 
             if self.nic_status[ifname]["flux_st"] == FLUX_ST_STARTED:
                 self.bootstrap(ifname, rebootstrap=True)
-                self.logger.error("'%s daemon' (%s) is unexpected terminated." % (name, process))
+                self.logger.error("'%s daemon' (%s) is unexpected "
+                                  "terminated." % (name, process))
             else:
-                self.logger.info("'%s daemon' (%s) is terminated." % (name, process))
+                self.logger.info("'%s daemon' (%s) is terminated." %
+                                 (name, process))
         else:
-            self.logger.debug("A process %s closed but not in daemon list" % process)
+            self.logger.debug("A process %s closed but not "
+                              "in daemon list" % process)

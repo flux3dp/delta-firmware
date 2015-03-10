@@ -1,5 +1,4 @@
 
-from subprocess import Popen, PIPE
 from time import sleep
 import random
 import socket
@@ -9,9 +8,7 @@ import os
 from fluxmonitor.config import network_config
 from fluxmonitor.sys.net.monitor import Monitor
 from fluxmonitor.sys import nl80211
-from fluxmonitor.task import network_tasks
 
-from .base import WatcherBase
 
 class NetworkMonitorMix(object):
     """ NetworkMonitorMix using linux netlink to monitor network status
@@ -29,7 +26,7 @@ class NetworkMonitorMix(object):
     def _on_status_changed(self, status):
         """Callback from self._monitor instance"""
         new_nic_status = {}
-        
+
         for ifname, data in status.items():
             current_status = self.nic_status.get(ifname, {})
             current_status.update(data)
@@ -44,12 +41,12 @@ class NetworkMonitorMix(object):
         return ifname.startswith("wlan")
 
     __AVAILABLE_REMOTES = [
-        ("8.8.8.8", 53), # Google DNS
-        ("8.8.4.4", 53), # Google DNS
-        ("168.95.1.1", 53), # Hinet DNS
-        ("198.41.0.4", 53), # a.root-servers.org
-        ("192.228.79.201", 53), # b.root-servers.org
-        ("199.7.91.13", 53), # d.root-servers.org
+        ("8.8.8.8", 53),  # Google DNS
+        ("8.8.4.4", 53),  # Google DNS
+        ("168.95.1.1", 53),  # Hinet DNS
+        ("198.41.0.4", 53),  # a.root-servers.org
+        ("192.228.79.201", 53),  # b.root-servers.org
+        ("199.7.91.13", 53),  # d.root-servers.org
     ]
 
     def __available_remote(self):
@@ -71,23 +68,31 @@ class NetworkMonitorMix(object):
         finally:
             s.close()
 
+
 class ConfigMix(object):
     """ConfigMix provide get/set network config"""
 
     # TODO: this is a temp implement that store config in memory
     __CONFIG = {
-        "wlan0": {"security": "WPA2-PSK", "ssid": "Area51",
-            "psk": "3c0cccd4e57d3c82be1f48e298155109545b7bf08f41f76a12f34d950b3bc7af",
-            "method": "dhcp"}
-    }
+        "wlan0": {
+            "security": "WPA2-PSK", "ssid": "Area51",
+            "psk": "3c0cccd4e57d3c82be1f48e298155109"
+                   "545b7bf08f41f76a12f34d950b3bc7af",
+            "method": "dhcp"}}
+
+    __CONFIG_KEYS = ["method", "ipaddr", "mask", "route", "ns",
+                     "ssid", "security", "wepkey", "psk"]
+
     def set_config(self, ifname, config):
-        self.__CONFIG[ifname] = new_config = {
-            k:v for k,v in config.items() if k in ["method", "ipaddr",
-                "mask", "route", "ns", "ssid", "security", "wepkey", "psk"]}
+        new_config = {k: v
+                      for k, v in config.items() if k in self.__CONFIG_KEYS}
+
+        self.__CONFIG[ifname] = new_config
         return new_config
 
     def get_config(self, ifname):
         return self.__CONFIG.get(ifname)
+
 
 class ControlSocketMix(object):
     """ControlSocketMix create a unixsocket (type: dgram) and listen for
@@ -135,30 +140,37 @@ class ControlSocketMix(object):
         """Return True if wireless is associated or cable plugged"""
         return self.nic_status.get(ifname, {}).get("ifcarrier", None)
 
+
 class WlanWatcherSocket(socket.socket):
     def __init__(self, master):
         self.master = master
 
         path = network_config['unixsocket']
-        try: os.unlink(path)
-        except Exception: pass
+        try:
+            os.unlink(path)
+        except Exception:
+            pass
 
-        super(WlanWatcherSocket, self).__init__(socket.AF_UNIX, socket.SOCK_DGRAM)
+        super(WlanWatcherSocket, self).__init__(socket.AF_UNIX,
+                                                socket.SOCK_DGRAM)
         self.bind(path)
-        self.master.logger.debug("network command socket created at: %s" % path)
+        self.master.logger.debug(
+            "network command socket created at: %s" % path)
 
     def on_read(self):
         try:
             buf = self.recv(4096)
             payload = json.loads(buf)
             cmd, data = payload
-        except (ValueError, TypeError) as e:
+        except (ValueError, TypeError):
             self.logger.error("Can not process request: %s" % buf)
 
-        if cmd == "config_network": self.config_network(data)
+        if cmd == "config_network":
+            self.config_network(data)
 
     def config_network(self, payload):
         ifname = payload.pop("ifname")
         config = self.master.set_config(ifname, payload)
-        self.master.logger.info("Update '%s' config with %s" % (ifname, config))
+        self.master.logger.info(
+            "Update '%s' config with %s" % (ifname, config))
         self.master.bootstrap(ifname, rebootstrap=True)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from setuptools import setup, find_packages
-import os, platform
+import platform
 
 VERSION = "0.0.1"
 
@@ -17,6 +17,7 @@ setup(
     description="",
     license="?",
     packages=find_packages(),
-    scripts=["bin/fluxmonitord", "bin/flux_wlan_scan", "bin/flux_network_config"],
+    scripts=["bin/fluxmonitord", "bin/flux_wlan_scan",
+        "bin/flux_network_config"],
     install_requires=install_requires,
 )

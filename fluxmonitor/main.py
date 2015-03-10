@@ -1,10 +1,7 @@
 
-from time import sleep
 import threading
 import logging
 import select
-import sys
-import os
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +9,7 @@ import memcache
 
 from fluxmonitor.misc import AsyncSignal
 from fluxmonitor.watcher.network import NetworkWatcher
+
 
 class FluxMonitor(threading.Thread):
     def __init__(self):
@@ -26,7 +24,8 @@ class FluxMonitor(threading.Thread):
         super(FluxMonitor, self).__init__()
 
     def run(self):
-        for w in self.watchers: w.start()
+        for w in self.watchers:
+            w.start()
         while self.running:
             select.select((self.signal, ), (), (), 0.5)
 
@@ -34,5 +33,6 @@ class FluxMonitor(threading.Thread):
         self.running = False
         self.signal.send()
         self.signal.close_write()
-        for w in self.watchers: w.shutdown(log)
+        for w in self.watchers:
+            w.shutdown(log)
         logger.info(log)

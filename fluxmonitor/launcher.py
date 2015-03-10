@@ -11,11 +11,13 @@ from fluxmonitor.main import FluxMonitor
 
 # TODO: temp make logger
 console = logging.StreamHandler()
-console.setFormatter(logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s'))
+LOG_FORMAT = '%(name)-12s: %(levelname)-8s %(message)s'
+console.setFormatter(logging.Formatter(LOG_FORMAT))
 console.setLevel(logging.DEBUG)
 logger = logging.getLogger('')
 logger.setLevel(logging.DEBUG)
 logger.addHandler(console)
+
 
 def main(options):
     pid_handler = open(options.pidfile, 'w', 0)
@@ -23,7 +25,8 @@ def main(options):
     try:
         fcntl.lockf(pid_handler.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
     except IOError:
-        sys.stderr.write('Can not start daemon, daemon maybe already running in somewhere?\n')
+        sys.stderr.write('Can not start daemon, daemon maybe already running '
+                         'in somewhere?\n')
         raise
 
     if options.daemon:
@@ -76,7 +79,7 @@ def main(options):
         signal.signal(signal.SIGUSR1, sigUSRn)
         signal.signal(signal.SIGUSR2, sigUSRn)
 
-    if server.start() == False:
+    if server.start() is False:
         return 1
 
     # term_watcher = server.loop.signal(signal.SIGTERM, sigTerm)
@@ -87,7 +90,8 @@ def main(options):
     if options.shell:
         import IPython
         IPython.embed()
-        server.shutdown(log="Abort from shell, press ctrl+c will kill the server directly")
+        server.shutdown(log="Abort from shell, press ctrl+c will kill the "
+                        "server directly")
         signal.signal(signal.SIGTERM, sigDbTerm)
         signal.signal(signal.SIGINT, sigDbTerm)
     else:
@@ -100,7 +104,9 @@ def main(options):
     if options.daemon:
         fcntl.lockf(pid_handler.fileno(), fcntl.LOCK_UN)
         pid_handler.close()
-        try: os.unlink(options.pidfile)
-        except Exception: pass
+        try:
+            os.unlink(options.pidfile)
+        except Exception:
+            pass
 
     return 0

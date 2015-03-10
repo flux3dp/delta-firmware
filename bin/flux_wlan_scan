@@ -21,8 +21,9 @@ from fluxmonitor.sys.nl80211 import scan
 
 if sys.argv[-1] == "h":
     def show(result):
-        if result["status"] == True:
-            sys.stdout.write("%17s %5s %23s %s\n" % ("bssid", "rssi", "security", "ssid"))
+        if result["status"]:
+            sys.stdout.write("%17s %5s %23s %s\n" %
+                             ("bssid", "rssi", "security", "ssid"))
             for row in result["data"]:
                 sys.stdout.write("%17s %5s %23s %s\n" % (
                     row["bssid"],
@@ -45,4 +46,3 @@ except RuntimeError as error:
         "exitcode": error.args[1]
     })
     sys.exit(error.args[1])
-

@@ -5,6 +5,7 @@ if platform.system().lower().startswith("linux"):
 else:
     from fluxmonitor.sys.net._iproute2 import IPRoute
 
+
 class Monitor(object):
     """Network status change monitor
 
@@ -41,14 +42,15 @@ class Monitor(object):
         for nic in self.ipr.get_links():
             info = dict(nic['attrs'])
             ifname = info.get('IFLA_IFNAME', 'lo')
-            if ifname == 'lo' or ifname.startswith("mon."): continue
+            if ifname == 'lo' or ifname.startswith("mon."):
+                continue
             ifindex = nic.get('index', -1)
             ifmac = info.get('IFLA_ADDRESS', '??')
             ifstatus = info.get('IFLA_OPERSTATE', '??')
             ifcarrier = info.get('IFLA_CARRIER', 0) == 1
 
             st = {'ifindex': ifindex, 'ifmac': ifmac, 'ifstatus': ifstatus,
-                'ifcarrier': ifcarrier, 'ipaddr': []}
+                  'ifcarrier': ifcarrier, 'ipaddr': []}
             status[ifname] = st
 
         for addr in self.ipr.get_addr():

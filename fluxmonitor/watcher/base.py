@@ -4,11 +4,15 @@ import select
 
 from fluxmonitor.misc import AsyncSignal as _AsyncSignal
 
+
 class AsyncSignal(_AsyncSignal):
-    def on_read(self): self.recv()
+    def on_read(self):
+        self.recv()
+
 
 class WatcherBase(threading.Thread):
     POLL_TIMEOUT = 5.0
+
     def __init__(self, logger, memcache):
         self.memcache = memcache
         self.logger = logger
@@ -19,13 +23,17 @@ class WatcherBase(threading.Thread):
         super(WatcherBase, self).__init__()
         self.setDaemon(True)
 
-    def each_loop(self): pass
+    def each_loop(self):
+        pass
 
     def run(self):
         self.running = True
 
         while self.running:
-            rlist, wlist, xlist = select.select(self.rlist, (), (), self.POLL_TIMEOUT)
+            rlist, wlist, xlist = select.select(self.rlist,
+                                                (),
+                                                (),
+                                                self.POLL_TIMEOUT)
             for r in rlist:
                 try:
                     r.on_read()
@@ -41,4 +49,3 @@ class WatcherBase(threading.Thread):
         self.running = False
         self.__shutdown_sig.send()
         self.logger.info("Shutdown: %s" % log)
-

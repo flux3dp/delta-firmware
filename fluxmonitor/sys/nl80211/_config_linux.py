@@ -14,16 +14,18 @@ from fluxmonitor.misc import linux_configure
 from fluxmonitor.config import network_config
 
 __all__ = ["ifup", "ifdown", "wlan_managed_daemon", "wlan_ap_daemon",
-    "dhcp_client_daemon", "config_ipaddr", "config_nameserver"]
+           "dhcp_client_daemon", "config_ipaddr", "config_nameserver"]
 
 WPA_SUPPLICANT = network_config['wpa_supplicant']
 HOSTAPD = network_config['hostapd']
 DHCLIENT = network_config['dhclient']
 
+
 def ifup(ifname):
     index = find_device_index(ifname)
     logger.info("%s up" % ifname)
     ipr.link_up(index=index)
+
 
 def ifdown(ifname):
     index = find_device_index(ifname)
@@ -35,12 +37,15 @@ def ifdown(ifname):
     logger.info("%s down" % ifname)
     ipr.link_down(index=index)
 
+
 def wlan_managed_daemon(manager, ifname, wlan_config):
     wpa_conf = tempfile.mktemp() + ".conf"
     linux_configure.wpa_supplicant_config_to_file(wpa_conf, wlan_config)
 
     return Process(manager,
-        [WPA_SUPPLICANT, "-i", ifname, "-D", "nl80211,wext", "-c", wpa_conf])
+                   [WPA_SUPPLICANT, "-i", ifname, "-D", "nl80211,wext",
+                    "-c", wpa_conf])
+
 
 def wlan_ap_daemon(manager, ifname):
     hostapd_conf = tempfile.mktemp() + ".conf"
@@ -48,8 +53,10 @@ def wlan_ap_daemon(manager, ifname):
 
     return Process(manager, [HOSTAPD, hostapd_conf])
 
+
 def dhcp_client_daemon(manager, ifname):
     return Process(manager, [DHCLIENT, "-d", ifname])
+
 
 def config_ipaddr(ifname, config):
     index = find_device_index(ifname)
@@ -67,16 +74,20 @@ def config_ipaddr(ifname, config):
     clean_route()
     ipr.route('add', gateway=route)
 
-    if ns: config_nameserver(ns)
+    if ns:
+        config_nameserver(ns)
+
 
 def config_nameserver(nameservers):
-    """Config nameserver setting, the params is a list contains multi nameserviers"""
+    """Config nameserver setting, the params is a list contains multi
+    nameserviers"""
 
     with open("/etc/resolv.conf", "w") as f:
         f.write("# This file is overwrite by fluxmonitord\n\n")
         for row in nameservers:
             f.write("nameserver %s\n" % row)
         f.close()
+
 
 # Private Methods
 def find_device_index(ifname):
@@ -85,6 +96,7 @@ def find_device_index(ifname):
         raise RuntimeError("Bad ifname %s" % ifname)
     return devices[0]
 
+
 def clean_route():
     for g in get_gateways():
         try:
@@ -92,8 +104,12 @@ def clean_route():
         except Exception:
             logger.exception("Remove route error")
 
+
 def get_ipaddresses(index):
-    return [(i['attrs'][0][1], i['prefixlen']) for i in ipr.get_addr() if i['index'] == index]
+    return [(i['attrs'][0][1], i['prefixlen'])
+            for i in ipr.get_addr()
+            if i['index'] == index]
+
 
 def get_gateways():
     routes = [dict(r["attrs"]) for r in ipr.get_routes()]

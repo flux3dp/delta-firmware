@@ -1,9 +1,12 @@
 
 from fluxmonitor.sys import nl80211
 
-def set_wlan(ifname, ssid, network_type, wepkey=None, psk=None):
-    nl80211.wlan_config(ifname=ifname, ssid=ssid, network_type=network_type,
-        wepkey=wepkey, psk=psk)
+
+def set_wlan(ifname, ssid, network_type,
+             wepkey=None, psk=None):
+    nl80211.wlan_config(ifname=ifname, ssid=ssid,
+                        network_type=network_type,
+                        wepkey=wepkey, psk=psk)
 
 
 def wlan_flameout(ifname):

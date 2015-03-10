@@ -5,19 +5,24 @@ from __future__ import absolute_import
 import argparse
 import psutil
 import sys
-import os
 
 parser = argparse.ArgumentParser(description='flux monitor deamon')
 
 # Console options
-parser.add_argument('--debug', dest='debug', action='store_const', const=True, default=False, help='Enable debug')
-parser.add_argument('--shell', dest='shell', action='store_const', const=True, default=False, help='Invoke ipython shell after deamon is started')
+parser.add_argument('--debug', dest='debug', action='store_const',
+                    const=True, default=False, help='Enable debug')
+parser.add_argument('--shell', dest='shell', action='store_const',
+                    const=True, default=False,
+                    help='Invoke ipython shell after deamon is started')
 
 # Daemon options
-parser.add_argument('--daemon', dest='daemon', action='store_const', const=True, default=False, help='Run as daemon')
-parser.add_argument('--stop', dest='stop_daemon', action='store_const', const=True, default=False, help='Stop daemon')
+parser.add_argument('--daemon', dest='daemon', action='store_const',
+                    const=True, default=False, help='Run as daemon')
+parser.add_argument('--stop', dest='stop_daemon', action='store_const',
+                    const=True, default=False, help='Stop daemon')
 
-parser.add_argument('--pid', dest='pidfile', type=str, default='fluxmonitor.pid', nargs=1, help='PID file')
+parser.add_argument('--pid', dest='pidfile', type=str,
+                    default='fluxmonitor.pid', help='PID file')
 
 options = parser.parse_args()
 
@@ -29,10 +34,10 @@ if options.stop_daemon:
     try:
         pid_handler = open(options.pidfile, 'r', 0)
         pid = int(pid_handler.read(), 10)
-        
+
         proc = psutil.Process(pid)
         proc.terminate()
-        
+
         proc.wait(5.)
         sys.exit(0)
     except psutil.TimeoutExpired as e:

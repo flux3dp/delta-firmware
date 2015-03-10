@@ -12,10 +12,12 @@ network_config = {
     "dhclient": "/sbin/dhclient"
 }
 
+
 def override_config(alt_config, current):
     for key, val in alt_config.items():
         current[key] = val
-    
+
+
 def load_config(filename):
     try:
         with open(filename, "r") as f:
@@ -25,6 +27,7 @@ def load_config(filename):
 
     except Exception as error:
         print(error)
+
 
 def try_load_config():
     if os.path.exists("fluxmonitord.json"):
