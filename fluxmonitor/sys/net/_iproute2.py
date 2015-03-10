@@ -53,7 +53,7 @@ class IPRoute(object):
         except socket.error as e:
             if not hasattr("errno", e) or e.errno != EAGAIN:
                 raise
-        return []
+        return [{}]
 
     # Simulate data source control
     def trigger_status_changed(self, ifname=None, addip=None, removeip=None, ifstate=None):

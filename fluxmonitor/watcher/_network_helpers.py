@@ -71,6 +71,24 @@ class NetworkMonitorMix(object):
         finally:
             s.close()
 
+class ConfigMix(object):
+    """ConfigMix provide get/set network config"""
+
+    # TODO: this is a temp implement that store config in memory
+    __CONFIG = {
+        "wlan0": {"security": "WPA2-PSK", "ssid": "Area51",
+            "psk": "3c0cccd4e57d3c82be1f48e298155109545b7bf08f41f76a12f34d950b3bc7af",
+            "method": "dhcp"}
+    }
+    def set_config(self, ifname, config):
+        self.__CONFIG[ifname] = new_config = {
+            k:v for k,v in config.items() if k in ["method", "ipaddr",
+                "mask", "route", "ns", "ssid", "security", "wepkey", "psk"]}
+        return new_config
+
+    def get_config(self, ifname):
+        return self.__CONFIG.get(ifname)
+
 class ControlSocketMix(object):
     """ControlSocketMix create a unixsocket (type: dgram) and listen for
     network command.
@@ -137,10 +155,10 @@ class WlanWatcherSocket(socket.socket):
         except (ValueError, TypeError) as e:
             self.logger.error("Can not process request: %s" % buf)
 
-        try:
-            if cmd in network_tasks.public_tasks:
-                getattr(network_tasks, cmd)(data)
-            else:
-                self.logger.error("Can not process command: %s" % cmd)
-        except Exception as error:
-            self.logger.exception("Error while processing cmd: %s" % cmd)
+        if cmd == "config_network": self.config_network(data)
+
+    def config_network(self, payload):
+        ifname = payload.pop("ifname")
+        config = self.master.set_config(ifname, payload)
+        self.master.logger.info("Update '%s' config with %s" % (ifname, config))
+        self.master.bootstrap(ifname, rebootstrap=True)

@@ -32,3 +32,14 @@ def wpa_supplicant_config_to_file(filepath, config):
     with open(filepath, "w") as f:
         f.write(wpa_supplicant_config_str(config))
 
+def hostapd_config_str(ifname):
+    return """# Create by fluxmonitord
+interface=%(ifname)s
+ssid=FLUX-3D-Printer
+hw_mode=g
+channel=5
+""" % {"ifname": ifname}
+
+def hostapd_config_to_file(filepath, ifname):
+    with open(filepath, "w") as f:
+        f.write(hostapd_config_str(ifname))

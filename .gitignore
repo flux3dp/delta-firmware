@@ -49,3 +49,6 @@ docs/_build/
 
 # PyBuilder
 target/
+
+#ignore process pid file
+*.pid

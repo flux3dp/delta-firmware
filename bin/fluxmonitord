@@ -17,7 +17,7 @@ parser.add_argument('--shell', dest='shell', action='store_const', const=True, d
 parser.add_argument('--daemon', dest='daemon', action='store_const', const=True, default=False, help='Run as daemon')
 parser.add_argument('--stop', dest='stop_daemon', action='store_const', const=True, default=False, help='Stop daemon')
 
-parser.add_argument('--pid', dest='pidfile', type=str, default='tmp/fluxmonitor.pid', nargs=1, help='PID file')
+parser.add_argument('--pid', dest='pidfile', type=str, default='fluxmonitor.pid', nargs=1, help='PID file')
 
 options = parser.parse_args()
 

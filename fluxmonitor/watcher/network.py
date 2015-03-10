@@ -5,26 +5,30 @@ import logging
 logger = logging.getLogger(__name__)
 
 from .base import WatcherBase
-from ._network_helpers import NetworkMonitorMix, ControlSocketMix
+from ._network_helpers import NetworkMonitorMix, ConfigMix, ControlSocketMix
 from fluxmonitor.sys import nl80211
 
 debug_config = {"security": "WPA2-PSK", "ssid": "Area51", "psk": "3c0cccd4e57d3c82be1f48e298155109545b7bf08f41f76a12f34d950b3bc7af"}
 
 FLUX_ST_STARTED = "flux_started"
 
-class NetworkWatcher(WatcherBase, NetworkMonitorMix, ControlSocketMix):
+class NetworkWatcher(WatcherBase, NetworkMonitorMix, ConfigMix, ControlSocketMix):
+    # If network run as fatal mode
+    _fatal = False
+    # If internet accessable
+    _connected = False
+    # Internet connection up/down at
+    timestemp = 0
+    # Internet connection up/down at list
+    timestemps = None
+
     def __init__(self, memcache):
         self.logger = logger
-        self.time_coefficient = 1
         self.POLL_TIMEOUT = 1.0
 
-        # Internet connection up/down at
-        self.timestemp = None
-        # Internet connection up/down at list
-        self.timestemps = []
-        self.connected = False
         super(NetworkWatcher, self).__init__(logger, memcache)
 
+        self.timestemps = []
         self.daemons = {}
         self.bootstrap_network_monitor(memcache)
         self.bootstrap_control_socket(memcache)
@@ -38,41 +42,74 @@ class NetworkWatcher(WatcherBase, NetworkMonitorMix, ControlSocketMix):
                 instance.kill()
 
     def each_loop(self):
-        if self.try_connected():
-            if not self.connected:
-                # system is just connected to Internet
-                self.reset_counter(connected=True)
-        else:
-            if self.connected:
-                # system is just disconnected from Internet
-                self.reset_counter(connected=False)
-
         self.POLL_TIMEOUT = min(self.POLL_TIMEOUT * 2, 300.)
+        self.connected = connected = self.try_connected()
 
-    def reset_counter(self, connected):
+        if not connected:
+            delta = time() - self.timestemp
+            if delta > 86400:
+                # delta too large, adjust
+                self.timestemp = time()
+            elif delta > 1800:
+                self.fatal = True
+
+    @property
+    def connected(self):
+        return self._connected
+
+    @connected.setter
+    def connected(self, val):
+        if self._connected == val: return
+        self._connected = val
+        self.logger.info("Internet %s" % (val and "connected" or "disconnect"))
         self.POLL_TIMEOUT = 1.0
-        self.connected = connected
         self.timestemp = timestemp = time()
-        self.timestemps = [t for t in self.timestemps if 600 > (timestemp - t)]
+        self.timestemps = [t for t in self.timestemps if 300 > (timestemp - t)]
         self.timestemps.append(timestemp)
+        self.memcache.set("internet_access", val)
+        self.memcache.set("internet_access_timestemp", timestemp)
 
-        if len(self.timestemps) > 10:
-            # TODO: Connection unstable
-            pass
+        if len(self.timestemps) > 10: self.fatal = True
+
+    @property
+    def fatal(self):
+        return self._fatal
+
+    @fatal.setter
+    def fatal(self, val):
+        if self._fatal == val: return
+        self._fatal = val
+
+        if val:
+            self.logger.error("Fatal mode enabled")
+        else:
+            self.logger.error("Fatal mode disabled")
+
+    def bootstrap_fatal_mode(self):
+        pass
 
     def bootstrap(self, ifname, rebootstrap=False):
+        """start network interface and apply its configurations"""
+
         if rebootstrap:
             self.logger.debug("Kill all daemon for %s" % ifname)
             daemons = self.daemons.pop(ifname, {})
             for name, daemon in daemons.items():
-                daemon.kill()
+                try: daemon.kill()
+                except Exception as e:
+                    self.logger.exception()
 
-        self.logger.debug("Bootstrap if %s" % ifname)
+        self.logger.debug("Bootstrap interface %s" % ifname)
         self.bootstrap_nic(ifname, forcus_restart=rebootstrap)
-        flux_st = self.config_device(ifname, self.get_config(ifname))
-        self.nic_status[ifname]["flux_st"] = flux_st
+
+        if self.fatal:
+            pass
+        else:
+            flux_st = self.config_device(ifname, self.get_config(ifname))
+            self.nic_status[ifname]["flux_st"] = flux_st
 
     def config_device(self, ifname, config):
+        """config network device (like ip/routing/dhcp/wifi access)"""
         daemon = {}
 
         if config:
@@ -84,8 +121,8 @@ class NetworkWatcher(WatcherBase, NetworkMonitorMix, ControlSocketMix):
                 daemon['dhcp'] = nl80211.dhcp_client_daemon(self, ifname)
                 self.logger.debug("Set %s with DHCP" % ifname)
             else:
-                nl80211.config_ipaddr(self, ifname, config)
-                self.logger.debug("Set %s with %s" % (ifname, config['address']))
+                nl80211.config_ipaddr(ifname, config)
+                self.logger.debug("Set %s with %s" % (ifname, config['ipaddr']))
 
         elif self.is_wireless(ifname):
             daemon['hostapd'] = nl80211.wlan_ap_daemon(self, ifname)
@@ -123,11 +160,3 @@ class NetworkWatcher(WatcherBase, NetworkMonitorMix, ControlSocketMix):
                 self.logger.info("'%s daemon' (%s) is terminated." % (name, process))
         else:
             self.logger.debug("A process %s closed but not in daemon list" % process)
-
-    def get_config(self, ifname):
-        # TODO: 
-        return {
-            "security": "WPA2-PSK", "ssid": "Area51",
-            "psk": "3c0cccd4e57d3c82be1f48e298155109545b7bf08f41f76a12f34d950b3bc7af",
-            "method": "dhcp"
-        }
