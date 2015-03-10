@@ -6,6 +6,12 @@ else:
     from fluxmonitor.sys.net._iproute2 import IPRoute
 
 class Monitor(object):
+    """Network status change monitor
+
+    Monitor is an event drive network status monitor, it will trigger a read
+    signal only if network has any change. This is a netlink API wrapper for
+    fluxmonitord watcher. We implement a fake netlink API for darwin."""
+
     def __init__(self, cb):
         self.callback = cb
 
@@ -19,9 +25,14 @@ class Monitor(object):
     def on_read(self):
         # Read all message and drop it. Because it is hard to analyze incomming
         # message, we will query full information and collect it instead.
-        self.ipr.get()
-        status = self.full_status()
-        self.callback(status)
+
+        for item in self.ipr.get():
+            if item.get('event') != "RTM_NEWNEIGH":
+                # Update status only if event is not RTM_NEWNEIGH or we will
+                # get many dummy messages.
+                status = self.full_status()
+                self.callback(status)
+                return
 
     # Query full network information and collect it to flux internal pattern.
     def full_status(self):
@@ -30,7 +41,7 @@ class Monitor(object):
         for nic in self.ipr.get_links():
             info = dict(nic['attrs'])
             ifname = info.get('IFLA_IFNAME', 'lo')
-            if ifname == 'lo': continue
+            if ifname == 'lo' or ifname.startswith("mon."): continue
             ifindex = nic.get('index', -1)
             ifmac = info.get('IFLA_ADDRESS', '??')
             ifstatus = info.get('IFLA_OPERSTATE', '??')
