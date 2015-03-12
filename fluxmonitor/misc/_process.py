@@ -3,7 +3,7 @@ from subprocess import Popen, PIPE
 import fcntl
 import os
 
-from fluxmonitor.misc import read_all, AsyncRead
+from fluxmonitor.misc import read_all, AsyncIO
 
 __all__ = ["call_and_return_0_or_die"]
 
@@ -34,8 +34,8 @@ class Process(Popen):
         self._make_nonblock(self.stderr)
 
         self.manager.rlist += [
-            AsyncRead(self.stdout, self._on_stdout),
-            AsyncRead(self.stderr, self._on_stderr)]
+            AsyncIO(self.stdout, self._on_stdout),
+            AsyncIO(self.stderr, self._on_stderr)]
 
     def _make_nonblock(self, file_obj):
         fd = file_obj.fileno()

@@ -43,7 +43,6 @@ run without root privilege under linux.
     def shutdown(self, log=None):
         self.running = False
         self.signal.send()
-        self.signal.close_write()
         for w in self.watchers:
             w.shutdown(log)
         logger.info(log)

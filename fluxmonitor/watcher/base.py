@@ -2,12 +2,7 @@
 import threading
 import select
 
-from fluxmonitor.misc import AsyncSignal as _AsyncSignal
-
-
-class AsyncSignal(_AsyncSignal):
-    def on_read(self):
-        self.recv()
+from fluxmonitor.misc import AsyncSignal
 
 
 class WatcherBase(threading.Thread):
