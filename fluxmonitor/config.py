@@ -9,7 +9,8 @@ network_config = {
     "unixsocket": os.path.join(tempfile.gettempdir(), ".fluxmonitor-wlan"),
     "wpa_supplicant": "/sbin/wpa_supplicant",
     "hostapd": "/usr/sbin/hostapd",
-    "dhclient": "/sbin/dhclient"
+    "dhclient": "/sbin/dhclient",
+    "dhcpd": "/usr/sbin/dhcpd"
 }
 
 
