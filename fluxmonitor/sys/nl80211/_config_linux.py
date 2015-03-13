@@ -65,7 +65,7 @@ def dhcp_server_daemon(manager, ifname):
     dhcpd_leases = tempfile.mktemp() + ".leases"
 
     linux_configure.dhcpd_config_to_file(dhcpd_conf)
-    with open(dhcpd_leases, "c"):
+    with open(dhcpd_leases, "w"):
         pass
 
     return Process(manager, [DHCPD, "-f", "-cf", dhcpd_conf, "-lf",

@@ -7,16 +7,30 @@ import fcntl
 import sys
 import os
 
+from fluxmonitor.config import general_config
 from fluxmonitor.main import FluxMonitor
 
-# TODO: temp make logger
-console = logging.StreamHandler()
-LOG_FORMAT = '%(name)-12s: %(levelname)-8s %(message)s'
-console.setFormatter(logging.Formatter(LOG_FORMAT))
-console.setLevel(logging.DEBUG)
-logger = logging.getLogger('')
-logger.setLevel(logging.DEBUG)
-logger.addHandler(console)
+def create_logger():
+    LOG_TIMEFMT = general_config["log_timefmt"]
+    LOG_FORMAT = general_config["log_syntax"]
+
+    logging.basicConfig(format=LOG_FORMAT, datefmt=LOG_TIMEFMT)
+
+    logger = logging.getLogger('')
+    if general_config.get("debug"):
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
+
+    f = open(general_config["logfile"], "a")
+    filelogger = logging.StreamHandler(stream=f)
+
+    logger.addHandler(filelogger)
+
+    if sys.stderr.isatty():
+        # Add a logger to console if not running in background
+        console = logging.StreamHandler()
+        logger.addHandler(console)
 
 
 def main(options):
@@ -62,6 +76,7 @@ def main(options):
     else:
         pid_handler.write(repr(os.getpid()))
 
+    create_logger()
     server = FluxMonitor()
 
     def sigDbTerm(watcher, revent):
