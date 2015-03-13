@@ -154,6 +154,7 @@ class WlanWatcherSocket(socket.socket):
         super(WlanWatcherSocket, self).__init__(socket.AF_UNIX,
                                                 socket.SOCK_DGRAM)
         self.bind(path)
+        os.chmod(path, 0666)
         self.master.logger.debug(
             "network command socket created at: %s" % path)
 
