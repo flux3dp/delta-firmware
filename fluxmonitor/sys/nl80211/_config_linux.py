@@ -14,11 +14,13 @@ from fluxmonitor.misc import linux_configure
 from fluxmonitor.config import network_config
 
 __all__ = ["ifup", "ifdown", "wlan_managed_daemon", "wlan_ap_daemon",
-           "dhcp_client_daemon", "config_ipaddr", "config_nameserver"]
+           "dhcp_client_daemon", "config_ipaddr", "config_nameserver",
+           "dhcp_server_daemon"]
 
 WPA_SUPPLICANT = network_config['wpa_supplicant']
 HOSTAPD = network_config['hostapd']
 DHCLIENT = network_config['dhclient']
+DHCPD = network_config['dhcpd']
 
 
 def ifup(ifname):
@@ -39,7 +41,7 @@ def ifdown(ifname):
 
 
 def wlan_managed_daemon(manager, ifname, wlan_config):
-    wpa_conf = tempfile.mktemp() + ".conf"
+    wpa_conf = tempfile.mktemp() + ".wpa.conf"
     linux_configure.wpa_supplicant_config_to_file(wpa_conf, wlan_config)
 
     return Process(manager,
@@ -48,7 +50,7 @@ def wlan_managed_daemon(manager, ifname, wlan_config):
 
 
 def wlan_ap_daemon(manager, ifname):
-    hostapd_conf = tempfile.mktemp() + ".conf"
+    hostapd_conf = tempfile.mktemp() + ".hostapd.conf"
     linux_configure.hostapd_config_to_file(hostapd_conf, ifname)
 
     return Process(manager, [HOSTAPD, hostapd_conf])
@@ -58,21 +60,34 @@ def dhcp_client_daemon(manager, ifname):
     return Process(manager, [DHCLIENT, "-d", ifname])
 
 
+def dhcp_server_daemon(manager, ifname):
+    dhcpd_conf = tempfile.mktemp() + ".dhcpd.conf"
+    dhcpd_leases = tempfile.mktemp() + ".leases"
+
+    linux_configure.dhcpd_config_to_file(dhcpd_conf)
+    with open(dhcpd_leases, "c"):
+        pass
+
+    return Process(manager, [DHCPD, "-f", "-cf", dhcpd_conf, "-lf",
+                             dhcpd_leases])
+
+
 def config_ipaddr(ifname, config):
     index = find_device_index(ifname)
 
     ipaddr = config["ipaddr"]
     mask = config["mask"]
-    route = config["route"]
+    route = config.get("route")
     ns = config.get("ns")
 
     logger.info("Add ip %s/%s for %s" % (ipaddr, mask, ifname))
     ipr.addr('add', index=index, address=ipaddr, mask=mask)
 
-    logger.info("Add gateway %s" % (route))
-
     clean_route()
-    ipr.route('add', gateway=route)
+
+    if route:
+        logger.info("Add gateway %s" % (route))
+        ipr.route('add', gateway=route)
 
     if ns:
         config_nameserver(ns)

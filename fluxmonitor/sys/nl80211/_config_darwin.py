@@ -48,7 +48,8 @@ _config_linux.get_gateways = lambda: ["192.168.123.1"]
 # <<<<<<<<<<<<<<<<<<<<<<<< end of hack
 
 __all__ = ["ifup", "ifdown", "wlan_managed_daemon", "wlan_ap_daemon",
-           "dhcp_client_daemon", "config_ipaddr", "config_nameserver"]
+           "dhcp_client_daemon", "config_ipaddr", "config_nameserver",
+           "dhcp_server_daemon"]
 
 
 def ifup(ifname):
@@ -69,6 +70,10 @@ def wlan_ap_daemon(manager, ifname):
 
 def dhcp_client_daemon(manager, ifname):
     return _config_linux.dhcp_client_daemon(manager, ifname)
+
+
+def dhcp_server_daemon(manager, ifname):
+    return _config_linux.dhcp_server_daemon(manager, ifname)
 
 
 def config_ipaddr(ifname, config):

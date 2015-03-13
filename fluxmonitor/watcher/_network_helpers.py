@@ -5,7 +5,7 @@ import socket
 import json
 import os
 
-from fluxmonitor.config import network_config
+from fluxmonitor.config import network_config, general_config
 from fluxmonitor.sys.net.monitor import Monitor
 from fluxmonitor.sys import nl80211
 
@@ -72,26 +72,37 @@ class NetworkMonitorMix(object):
 class ConfigMix(object):
     """ConfigMix provide get/set network config"""
 
-    # TODO: this is a temp implement that store config in memory
-    __CONFIG = {
-        "wlan0": {
-            "security": "WPA2-PSK", "ssid": "Area51",
-            "psk": "3c0cccd4e57d3c82be1f48e298155109"
-                   "545b7bf08f41f76a12f34d950b3bc7af",
-            "method": "dhcp"}}
-
     __CONFIG_KEYS = ["method", "ipaddr", "mask", "route", "ns",
                      "ssid", "security", "wepkey", "psk"]
+
+    def __config_path(self, ifname):
+        return os.path.join(general_config["db"], "net", ifname)
 
     def set_config(self, ifname, config):
         new_config = {k: v
                       for k, v in config.items() if k in self.__CONFIG_KEYS}
+        config_file = self.__config_path(ifname)
+        dirname = os.path.dirname(config_file)
 
-        self.__CONFIG[ifname] = new_config
+        try:
+            if not os.path.isdir(dirname):
+                os.makedirs(dirname)
+            with open(config_file, "w") as f:
+                json.dump(config, f)
+        except Exception:
+            self.logger.exception("Write network config error")
+
         return new_config
 
     def get_config(self, ifname):
-        return self.__CONFIG.get(ifname)
+        config_file = self.__config_path(ifname)
+        if os.path.exists(config_file):
+            try:
+                with open(config_file, "r") as f:
+                    return json.load(f)
+            except Exception:
+                self.logger.exception("Read network config error")
+        return None
 
 
 class ControlSocketMix(object):

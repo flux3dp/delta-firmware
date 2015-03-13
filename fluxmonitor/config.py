@@ -5,6 +5,11 @@ import os
 
 # The following is default config
 
+general_config = {
+    "db": "/var/db/fluxmonitord"
+}
+
+
 network_config = {
     "unixsocket": os.path.join(tempfile.gettempdir(), ".fluxmonitor-wlan"),
     "wpa_supplicant": "/sbin/wpa_supplicant",
@@ -25,6 +30,7 @@ def load_config(filename):
             doc = json.load(f)
 
             override_config(doc.get("network_config", {}), network_config)
+            override_config(doc.get("general_config", {}), general_config)
 
     except Exception as error:
         print(error)

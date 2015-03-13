@@ -46,3 +46,20 @@ channel=5
 def hostapd_config_to_file(filepath, ifname):
     with open(filepath, "w") as f:
         f.write(hostapd_config_str(ifname))
+
+
+def dhcpd_config_str():
+    return """# Create by fluxmonitord
+default-lease-time 600;
+max-lease-time 7200;
+log-facility local7;
+
+subnet 192.168.1.0 netmask 255.255.255.0 {
+  range 192.168.1.100 192.168.1.200;
+}
+"""
+
+
+def dhcpd_config_to_file(filepath):
+    with open(filepath, "w") as f:
+        f.write(dhcpd_config_str())

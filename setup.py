@@ -2,7 +2,9 @@
 from setuptools import setup, find_packages
 import platform
 
-VERSION = "0.0.1"
+from fluxmonitor import VERSION as _VERSION
+
+VERSION = ".".join([str(i) for i in _VERSION])
 
 install_requires = ['setuptools', 'psutil', 'python-memcached']
 
@@ -19,6 +21,6 @@ setup(
     packages=find_packages(),
     test_suite="tests.main.everything",
     scripts=["bin/fluxmonitord", "bin/flux_wlan_scan",
-        "bin/flux_network_config"],
+             "bin/flux_network_config"],
     install_requires=install_requires,
 )

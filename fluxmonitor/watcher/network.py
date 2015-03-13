@@ -35,7 +35,10 @@ class NetworkWatcher(WatcherBase, NetworkMonitorMix, ConfigMix,
 
     def run(self):
         for ifname in self.nic_status.keys():
-            self.bootstrap(ifname)
+            try:
+                self.bootstrap(ifname)
+            except Exception:
+                self.logger.exception("Error while bootstrap %s" % ifname)
         super(NetworkWatcher, self).run()
 
         for ifname, daemons in self.daemons:
@@ -125,7 +128,7 @@ class NetworkWatcher(WatcherBase, NetworkMonitorMix, ConfigMix,
                                   (ifname, config['ssid']))
 
             if config["method"] == "dhcp":
-                daemon['dhcp'] = nl80211.dhcp_client_daemon(self, ifname)
+                daemon['dhcpc'] = nl80211.dhcp_client_daemon(self, ifname)
                 self.logger.debug("Set %s with DHCP" % ifname)
             else:
                 nl80211.config_ipaddr(ifname, config)
@@ -134,6 +137,9 @@ class NetworkWatcher(WatcherBase, NetworkMonitorMix, ConfigMix,
 
         elif self.is_wireless(ifname):
             daemon['hostapd'] = nl80211.wlan_ap_daemon(self, ifname)
+            nl80211.config_ipaddr(ifname, {'ipaddr': '192.168.1.1',
+                                           'mask': 24})
+            daemon['dhcpd'] = nl80211.dhcp_server_daemon(self, ifname)
             self.logger.debug("Wireless %s not configured, "
                               "start with ap mode" % ifname)
 
