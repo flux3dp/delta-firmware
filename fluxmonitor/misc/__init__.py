@@ -1,6 +1,6 @@
 # flake8: noqa
 
-from .async_signal import AsyncSignal, AsyncIO
+from .async_signal import AsyncSignal, AsyncQueue, AsyncIO
 
 from ._read_all import read_all
 from ._process import Process, call_and_return_0_or_die

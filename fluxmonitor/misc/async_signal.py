@@ -78,11 +78,12 @@ class AsyncSignal(AsyncPipe):
         os.write(self._wfd, b" ")
 
 
-class AsyncQueue(object):
+class AsyncQueue(Queue):
     def __init__(self, maxsize=0, callback=None):
-        self.queue = Queue(maxsize)
+        Queue.__init__(self, maxsize)
         self.callback = callback
         self._rfd, self._wfd = os.pipe()
+        make_nonblock(self._rfd)
 
     def __del__(self):
         try:
@@ -98,11 +99,11 @@ class AsyncQueue(object):
             self.callback(self)
 
     def put(self, item, block=True, timeout=None):
-        self.queue.put(item, block, timeout)
+        Queue.put(self, item, block, timeout)
         os.write(self._wfd, b"\x00")
 
     def get(self, block=True, timeout=None):
-        obj = self.queue.get(block, timeout)
+        obj = Queue.get(self, block, timeout)
 
         try:
             # Clear signal IO

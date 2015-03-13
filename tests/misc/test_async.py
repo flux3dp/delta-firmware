@@ -100,6 +100,7 @@ class AsyncSingleFunctionTest(unittest.TestCase):
         self.assertEqual(q.get(), b"M2")
         rl = select((q,), (), (), 0)[0]
         self.assertEqual(rl, [])
+        self.assertEqual(q.qsize(), 1)
         q.on_read()
 
     def test_async_io(self):
