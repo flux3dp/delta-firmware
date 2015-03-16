@@ -9,27 +9,56 @@ logger = logging.getLogger(__name__)
 
 from fluxmonitor.sys.net.monitor import Monitor
 from .base import WatcherBase
+from ._network_helpers import NetworkMonitorMix
 
 DEFAULT_ADDR = "239.255.255.250"
 DEFAULT_PORT = 3310
 
 
-class UpnpWatcher(WatcherBase):
+class UpnpWatcher(WatcherBase, NetworkMonitorMix):
+    ipaddress = []
+    sock = None
+
     def __init__(self, memcache):
         super(UpnpWatcher, self).__init__(logger, memcache)
-        self.sock = UpnpSocket(self)
-        self.nw_monitor = Monitor(None)
+        self.bootstrap_network_monitor(self.memcache)
+
+    def _on_status_changed(self, status):
+        nested = [st.get('ipaddr', [])
+                  for _, st in status.items()]
+        ipaddress = list(chain(*nested))
+
+        if self.ipaddress != ipaddress:
+            self.ipaddress = ipaddress
+            self.replace_upnp_sock()
+
+    def replace_upnp_sock(self):
+        self.try_close_upnp_sock()
+        if self.ipaddress:
+            try:
+                self.sock = UpnpSocket(self)
+                self.rlist.append(self.sock)
+            except socket.error:
+                self.logger.exception("")
+
+    def try_close_upnp_sock(self):
+        if self.sock:
+            if self.sock in self.rlist:
+                self.rlist.remove(self.sock)
+                try:
+                    self.sock.close()
+                except Exception:
+                    pass
 
     def run(self):
-        self.rlist.append(self.sock)
+        self.bootstrap_network_monitor(self.memcache)
+        self.replace_upnp_sock()
         super(UpnpWatcher, self).run()
 
     def cmd_discover(self):
         """Return IP Address in array"""
-        nested = [st.get('ipaddr', [])
-                  for _, st in self.nw_monitor.full_status().items()]
         return {"model": "flux3dp:1", "id": "0xffffffff",
-                "ip": list(chain(*nested))}
+                "ip": self.ipaddress}
 
 
 class UpnpSocket(object):
@@ -60,3 +89,6 @@ class UpnpSocket(object):
         if payload.get('request') == 'discover':
             resp = json.dumps(self.server.cmd_discover())
             self.sock.sendto(resp, remote)
+
+    def close(self):
+        self.sock.close()
