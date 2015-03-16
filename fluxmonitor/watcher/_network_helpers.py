@@ -9,6 +9,8 @@ from fluxmonitor.config import network_config, general_config
 from fluxmonitor.sys.net.monitor import Monitor
 from fluxmonitor.sys import nl80211
 
+DEBUG = network_config.get("debug", False)
+
 
 class NetworkMonitorMix(object):
     """ NetworkMonitorMix using linux netlink to monitor network status
@@ -21,7 +23,7 @@ class NetworkMonitorMix(object):
         self._monitor = Monitor(self._on_status_changed)
         self._on_status_changed(self._monitor.full_status())
 
-        self.rlist += [self._monitor]
+        self.rlist.append(self._monitor)
 
     def _on_status_changed(self, status):
         """Callback from self._monitor instance"""
@@ -34,7 +36,8 @@ class NetworkMonitorMix(object):
 
         self.nic_status = new_nic_status
         nic_status = json.dumps(self.nic_status)
-        self.logger.debug("Status: " + nic_status)
+        if DEBUG:
+            self.logger.debug("Status: " + nic_status)
         self.memcache.set("nic_status", nic_status)
 
     def is_wireless(self, ifname):
@@ -113,7 +116,7 @@ class ControlSocketMix(object):
     """
     def bootstrap_control_socket(self, memcache):
         self._ctrl_sock = WlanWatcherSocket(self)
-        self.rlist += [self._ctrl_sock]
+        self.rlist.append(self._ctrl_sock)
 
     def bootstrap_nic(self, ifname, delay=0.5, forcus_restart=False):
         """Startup nic, this method will get device information from
