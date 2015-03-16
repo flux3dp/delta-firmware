@@ -58,7 +58,7 @@ class IPRoute(object):
         try:
             self.__pipe[0].recv(4096)
         except socket.error as e:
-            if not hasattr("errno", e) or e.errno != EAGAIN:
+            if not hasattr(e, "errno") or e.errno != EAGAIN:
                 raise
         return [{}]
 
