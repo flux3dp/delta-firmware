@@ -83,7 +83,9 @@ class IPRoute(object):
         return self.links
 
     def get_addr(self):
+        hn = socket.gethostname()
         return [
             {"attrs": {"IFA_LABEL": "lo"}},
-            {"attrs": {"IFA_LABEL": "wlan0", "IFA_ADDRESS": "99.99.99.99"}}
+            {"attrs": {"IFA_LABEL": "wlan0",
+                       "IFA_ADDRESS": socket.gethostbyname(hn)}}
         ]

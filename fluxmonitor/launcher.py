@@ -10,6 +10,7 @@ import os
 from fluxmonitor.config import general_config
 from fluxmonitor.main import FluxMonitor
 
+
 def create_logger():
     LOG_TIMEFMT = general_config["log_timefmt"]
     LOG_FORMAT = general_config["log_syntax"]

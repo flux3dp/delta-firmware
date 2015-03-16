@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 import memcache
 
 from fluxmonitor.misc import AsyncSignal
+from fluxmonitor.watcher.flux_upnp import UpnpWatcher
 from fluxmonitor.watcher.network import NetworkWatcher
 
 
@@ -20,6 +21,7 @@ class FluxMonitor(threading.Thread):
 
         self.watchers = [
             NetworkWatcher(self.shared_mem),
+            UpnpWatcher(self.shared_mem)
         ]
 
         super(FluxMonitor, self).__init__()

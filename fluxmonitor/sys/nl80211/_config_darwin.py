@@ -1,5 +1,8 @@
 
+from fluxmonitor.config import network_config
 from fluxmonitor.misc import Process
+
+DEBUG = network_config.get("debug", False)
 
 # hack it >>>>>>>>>>>>>>>>>>>>>>>>
 # We modify nl80211 for linux and it will print what it do.
@@ -10,31 +13,38 @@ from . import _config_linux
 
 
 def __new_caller__(args):
-    print("# %s" % " ".join(args))
+    if DEBUG:
+        print("# %s" % " ".join(args))
     return "", ""
 
 
 def __process_middle__(manager, args):
-    print("# %s" % " ".join(args))
+    if DEBUG:
+        print("# %s" % " ".join(args))
     return Process(manager, ["sleep", "60"])
 
 
 def __config_nameserver(nameservers):
-    print("# config_nameserver: %s" % nameservers)
+    if DEBUG:
+        print("# config_nameserver: %s" % nameservers)
 
 
 class FakeIPR(object):
     def link_up(self, index):
-        print("# ifup %s" % index)
+        if DEBUG:
+            print("# ifup %s" % index)
 
     def link_down(self, index):
-        print("# ifdown %s" % index)
+        if DEBUG:
+            print("# ifdown %s" % index)
 
     def addr(self, *args, **kw):
-        print("ip", args, kw)
+        if DEBUG:
+            print("ip", args, kw)
 
     def route(self, *args, **kw):
-        print("route", args, kw)
+        if DEBUG:
+            print("route", args, kw)
 
 
 _config_linux.ipr = FakeIPR()
