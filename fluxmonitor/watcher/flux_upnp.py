@@ -21,9 +21,11 @@ class UpnpWatcher(WatcherBase, NetworkMonitorMix):
 
     def __init__(self, memcache):
         super(UpnpWatcher, self).__init__(logger, memcache)
-        self.bootstrap_network_monitor(self.memcache)
 
     def _on_status_changed(self, status):
+        """Overwrite _on_status_changed witch called by `NetworkMonitorMix`
+        when network status changed
+        """
         nested = [st.get('ipaddr', [])
                   for _, st in status.items()]
         ipaddress = list(chain(*nested))
@@ -40,6 +42,7 @@ class UpnpWatcher(WatcherBase, NetworkMonitorMix):
                 self.rlist.append(self.sock)
             except socket.error:
                 self.logger.exception("")
+                self.try_close_upnp_sock()
 
     def try_close_upnp_sock(self):
         if self.sock:
@@ -49,6 +52,7 @@ class UpnpWatcher(WatcherBase, NetworkMonitorMix):
                     self.sock.close()
                 except Exception:
                     pass
+                self.sock = None
 
     def run(self):
         self.bootstrap_network_monitor(self.memcache)
