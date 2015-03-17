@@ -3,7 +3,6 @@ from errno import EAGAIN
 from time import sleep
 
 from select import select
-import threading
 import unittest
 import socket
 import os
@@ -17,20 +16,10 @@ class AsyncSingleFunctionTest(unittest.TestCase):
     def raise_exception(self, message, klass=Exception):
         raise klass(message)
 
-    def delay_write(self, target_df, delay=3.0):
-        def wrapper():
-            sleep(delay)
-            os.write(target_df, b"!")
-
-        t = threading.Thread(target=wrapper)
-        t.daemon = True
-        t.start()
-
     def test_make_nonblock(self):
         r, w = os.pipe()
         make_nonblock(r)
 
-        self.delay_write(w)
         self.assertRaises(OSError, os.read, r, 1)
         os.close(r)
         os.close(w)
