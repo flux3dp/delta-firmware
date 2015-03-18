@@ -1,50 +1,13 @@
 #!/usr/bin/env python
 
 from time import time
-import select
-import socket
-import json
+from fluxmonitor.misc.upnp_discover import UpnpDiscover
 
-from fluxmonitor.watcher.flux_upnp import DEFAULT_ADDR, DEFAULT_PORT
+discover = UpnpDiscover()
 
+def callback(discover_instance, model_id, unique_id, ipaddrs):
+    print("%-16s %-16s %s" % (model_id, unique_id, ", ".join(ipaddrs)))
 
-def select_sock(sock, timeout):
-    rl = select.select((sock, ), (), (), timeout)[0]
-    if rl:
-        for s in recive_all(sock):
-            buf, remote = s.recvfrom(4096)
-
-            try:
-                payload = json.loads(buf)
-                if payload.get("id") not in recived:
-                    recived.append(payload.get("id"))
-                    print("%s %s %s" % (payload.get("model"),
-                                        payload.get("id"),
-                                        ", ".join(payload.get("ip", [])), ))
-            except ValueError:
-                pass
-
-
-def recive_all(sock):
-    while select.select((sock, ), (), (), 0)[0]:
-        yield sock
-
-
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
-
-sock.sendto(json.dumps({"request": "discover"}), (DEFAULT_ADDR, DEFAULT_PORT))
-
-ttl = 3
-timeout = time() + 3
-recived = []
-
-
-while ttl >= 0:
-    sock.sendto(json.dumps({"request": "discover"}),
-                (DEFAULT_ADDR, DEFAULT_PORT))
-    select_sock(sock, 0.3)
-    ttl -= 1
-
-while timeout - time() > 0:
-    select_sock(sock, timeout - time())
+print("%-16s %-16s %s" % ("Model", "Serial", "IP Address"))
+print("=" * 79)
+discover.discover(callback)
