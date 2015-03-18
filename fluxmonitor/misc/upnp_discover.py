@@ -8,7 +8,8 @@ import json
 logger = logging.getLogger(__name__)
 
 
-from fluxmonitor.watcher.flux_upnp import DEFAULT_ADDR, DEFAULT_PORT
+from fluxmonitor.watcher.flux_upnp import CODE_DISCOVER, \
+    CODE_RESPONSE_DISCOVER, DEFAULT_PORT
 
 
 """Discover Flux 3D Printer
@@ -33,8 +34,7 @@ class UpnpDiscover(object):
     _last_sent = 0
     _break = True
 
-    def __init__(self, addr=DEFAULT_ADDR, port=DEFAULT_PORT):
-        self.addr = addr
+    def __init__(self, port=DEFAULT_PORT):
         self.port = port
 
     def discover(self, callback, timeout=3.0):
@@ -52,7 +52,7 @@ class UpnpDiscover(object):
                              socket.IPPROTO_UDP)
 
         try:
-            sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
             while not self._break:
                 self._send_request(sock)
@@ -70,9 +70,9 @@ class UpnpDiscover(object):
         now = time()
 
         if now - self._last_sent > 0.1:
-            sock.sendto(json.dumps({"request": "discover"}),
-                        (self.addr, self.port))
-            _last_sent = time()
+            sock.sendto(json.dumps({"code": CODE_DISCOVER}),
+                        ('255.255.255.255', self.port))
+            self._last_sent = time()
 
     def _recv_response(self, sock, found, callback):
         while self._has_response(sock):
@@ -81,7 +81,12 @@ class UpnpDiscover(object):
 
             buf, remote = sock.recvfrom(4096)
             payload = json.loads(buf)
-            unique_id = payload.get("id")
+
+            code, unique_id = payload.get("code"), payload.get("id")
+
+            if code != CODE_RESPONSE_DISCOVER:
+                continue
+
             if unique_id in found and found[unique_id] == payload:
                 # already found and does not has any update
                 continue

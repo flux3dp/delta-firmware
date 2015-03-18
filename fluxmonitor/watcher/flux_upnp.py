@@ -2,17 +2,18 @@
 from itertools import chain
 import logging
 import socket
-import struct
 import json
 
 logger = logging.getLogger(__name__)
 
-from fluxmonitor.sys.net.monitor import Monitor
 from .base import WatcherBase
 from ._network_helpers import NetworkMonitorMix
 
-DEFAULT_ADDR = "239.255.255.250"
 DEFAULT_PORT = 3310
+
+
+CODE_DISCOVER = 0x00
+CODE_RESPONSE_DISCOVER = 0x01
 
 
 class UpnpWatcher(WatcherBase, NetworkMonitorMix):
@@ -40,9 +41,12 @@ class UpnpWatcher(WatcherBase, NetworkMonitorMix):
             try:
                 self.sock = UpnpSocket(self)
                 self.rlist.append(self.sock)
+                self.logger.info("Upnp UP")
             except socket.error:
                 self.logger.exception("")
                 self.try_close_upnp_sock()
+        else:
+                self.logger.info("Upnp DOWN")
 
     def try_close_upnp_sock(self):
         if self.sock:
@@ -61,19 +65,15 @@ class UpnpWatcher(WatcherBase, NetworkMonitorMix):
 
     def cmd_discover(self):
         """Return IP Address in array"""
-        return {"model": "flux3dp:1", "id": "0xffffffff",
-                "ip": self.ipaddress}
+        return {"code": CODE_RESPONSE_DISCOVER, "model": "flux3dp:1",
+                "id": "0xffffffff", "ip": self.ipaddress}
 
 
 class UpnpSocket(object):
-    def __init__(self, server, addr=DEFAULT_ADDR, port=DEFAULT_PORT):
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM,
-                             socket.IPPROTO_UDP)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    def __init__(self, server, port=DEFAULT_PORT):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         sock.bind(("", port))
-
-        mreq = struct.pack("4sl", socket.inet_aton(addr), socket.INADDR_ANY)
-        sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
         self.sock = sock
         self.server = server
@@ -90,7 +90,7 @@ class UpnpSocket(object):
             logger.debug("Parse json error: %s" % buf)
             return
 
-        if payload.get('request') == 'discover':
+        if payload.get('code') == CODE_DISCOVER:
             resp = json.dumps(self.server.cmd_discover())
             self.sock.sendto(resp, remote)
 

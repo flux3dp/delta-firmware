@@ -7,7 +7,7 @@ import json
 
 from tests._utils.memcache import MemcacheTestClient
 
-from fluxmonitor.watcher.flux_upnp import DEFAULT_ADDR, DEFAULT_PORT
+from fluxmonitor.watcher.flux_upnp import CODE_DISCOVER, DEFAULT_PORT
 from fluxmonitor.watcher.flux_upnp import UpnpWatcher, UpnpSocket
 
 LOCAL_HOSTNAME = socket.gethostname()
@@ -47,7 +47,8 @@ class UpnpSocketCmdTest(unittest.TestCase):
         self.sock.close()
 
     def create_client(self):
-        client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+        client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        client.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         client.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
         return client
 
@@ -56,7 +57,7 @@ class UpnpSocketCmdTest(unittest.TestCase):
         while select.select((self.sock, ), (), (), 0)[0]:
             self.sock.on_read()
 
-        but, remote = None, (None, None)
+        buf, remote = None, (None, None)
 
         while remote[0] != LOCAL_IPADDR:
             if select.select((client_sock, ), (), (), 0)[0] == []:
@@ -70,7 +71,8 @@ class UpnpSocketCmdTest(unittest.TestCase):
 
     def test_cmd_discover(self):
         client = self.create_client()
-        client.sendto(json.dumps({"request": "discover"}), (DEFAULT_ADDR, DEFAULT_PORT))
+        client.sendto(json.dumps({"code": CODE_DISCOVER}),
+                      ("255.255.255.255", DEFAULT_PORT))
 
         retry = 3
         while retry > 0:
