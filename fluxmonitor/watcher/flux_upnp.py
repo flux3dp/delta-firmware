@@ -92,7 +92,7 @@ class UpnpSocket(object):
 
         if payload.get('code') == CODE_DISCOVER:
             resp = json.dumps(self.server.cmd_discover())
-            self.sock.sendto(resp, remote)
+            self.sock.sendto(resp, ("255.255.255.255", remote[1]))
 
     def close(self):
         self.sock.close()
