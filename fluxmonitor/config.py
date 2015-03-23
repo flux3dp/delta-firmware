@@ -1,7 +1,17 @@
 
-import tempfile
-import json
-import os
+import platform as _platform
+import tempfile as _tempfile
+import os as _os
+
+develope_env = "armv6l" not in _platform.uname()
+
+if _platform.system().lower().startswith("linux"):
+    platform = "linux"
+elif _platform.system().lower().startswith("darwin"):
+    platform = "darwin"
+else:
+    raise "fluxmonitor can not run under %s" % _platform.system()
+
 
 # The following is default config
 
@@ -15,11 +25,16 @@ general_config = {
 
 
 network_config = {
-    "unixsocket": os.path.join(tempfile.gettempdir(), ".fluxmonitor-wlan"),
+    "unixsocket": _os.path.join(_tempfile.gettempdir(), ".fluxmonitor-wlan"),
     "wpa_supplicant": "/sbin/wpa_supplicant",
     "hostapd": "/usr/sbin/hostapd",
     "dhclient": "/sbin/dhclient",
     "dhcpd": "/usr/sbin/dhcpd"
+}
+
+
+serial_config = {
+    "serial": "/dev/ttyAMA0"
 }
 
 
@@ -29,6 +44,7 @@ def override_config(alt_config, current):
 
 
 def load_config(filename):
+    import json
     try:
         with open(filename, "r") as f:
             doc = json.load(f)
@@ -41,11 +57,11 @@ def load_config(filename):
 
 
 def try_load_config():
-    if os.path.exists("fluxmonitord.json"):
+    if _os.path.exists("fluxmonitord.json"):
         load_config("fluxmonitord.json")
-    elif os.path.exists(os.path.expanduser("~/.fluxmonitord.json")):
-        load_config(os.path.expanduser("~/.fluxmonitord.json"))
-    elif os.path.exists("/etc/fluxmonitord.json"):
+    elif _os.path.exists(_os.path.expanduser("~/.fluxmonitord.json")):
+        load_config(_os.path.expanduser("~/.fluxmonitord.json"))
+    elif _os.path.exists("/etc/fluxmonitord.json"):
         load_config("/etc/fluxmonitord.json")
 
 try_load_config()
