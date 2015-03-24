@@ -8,3 +8,7 @@ def everything():
                                           pattern='test_*.py')
 
 
+def misc():
+    basedir = os.path.join(os.path.dirname(__file__), "misc")
+    return unittest.TestLoader().discover(basedir,
+                                          pattern='test_*.py')
