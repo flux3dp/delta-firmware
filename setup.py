@@ -18,7 +18,7 @@ setup(
     author_email="cerberus@flux3dp.com",
     description="",
     license="?",
-    packages=find_packages(),
+    packages=find_packages(exclude=["tests", "tests.*"]),
     test_suite="tests.main.everything",
     scripts=["bin/fluxmonitord",
              "bin/flux_wlan_scan", "bin/flux_network_config"],
