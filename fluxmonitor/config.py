@@ -1,6 +1,5 @@
 
 import platform as _platform
-import tempfile as _tempfile
 import os as _os
 
 develope_env = "armv6l" not in _platform.uname()
@@ -25,7 +24,7 @@ general_config = {
 
 
 network_config = {
-    "unixsocket": _os.path.join(_tempfile.gettempdir(), ".fluxmonitor-wlan"),
+    "unixsocket": "/tmp/.fluxmonitor-wlan",
     "wpa_supplicant": "/sbin/wpa_supplicant",
     "hostapd": "/usr/sbin/hostapd",
     "dhclient": "/sbin/dhclient",
