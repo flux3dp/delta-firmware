@@ -28,11 +28,6 @@ def create_logger():
 
     logger.addHandler(filelogger)
 
-    if sys.stderr.isatty():
-        # Add a logger to console if not running in background
-        console = logging.StreamHandler()
-        logger.addHandler(console)
-
 
 def main(options):
     pid_handler = open(options.pidfile, 'w', 0)

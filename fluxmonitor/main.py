@@ -10,6 +10,7 @@ import memcache
 from fluxmonitor.misc import AsyncSignal
 from fluxmonitor.watcher.flux_upnp import UpnpWatcher
 from fluxmonitor.watcher.network import NetworkWatcher
+from fluxmonitor.watcher.serial_communication import SerialCommunication
 
 
 class FluxMonitor(threading.Thread):
@@ -21,7 +22,8 @@ class FluxMonitor(threading.Thread):
 
         self.watchers = [
             NetworkWatcher(self.shared_mem),
-            UpnpWatcher(self.shared_mem)
+            UpnpWatcher(self.shared_mem),
+            SerialCommunication(self.shared_mem)
         ]
 
         super(FluxMonitor, self).__init__()
