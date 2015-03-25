@@ -24,10 +24,11 @@ def singleton(class_):
 class IPRoute(object):
     # Simulate data source
     links = [
-        {"attrs": {"IFLA_IFNAME": "lo"}},
-        {"attrs": {"IFLA_IFNAME": "wlan0",
-                   "IFLA_ADDRESS": "ff:ff:ff:ff:ff:ff",
-                   "IFLA_OPERSTATE": "DOWN"}, "index": 1}
+        {"attrs": [["IFLA_IFNAME", "lo"]]},
+        {"attrs": [["IFLA_IFNAME", "wlan0"],
+                   ["IFLA_ADDRESS", "ff:ff:ff:ff:ff:ff"],
+                   ["IFLA_OPERSTATE", "DOWN"]],
+         "index": 1}
     ]
 
     # Simulate data source
@@ -85,7 +86,8 @@ class IPRoute(object):
     def get_addr(self):
         hn = socket.gethostname()
         return [
-            {"attrs": {"IFA_LABEL": "lo"}},
-            {"attrs": {"IFA_LABEL": "wlan0",
-                       "IFA_ADDRESS": socket.gethostbyname(hn)}}
+            {"attrs": [["IFA_LABEL", "lo"]]},
+            {"attrs": [["IFA_LABEL", "wlan0"],
+                       ["IFA_ADDRESS", socket.gethostbyname(hn)]],
+             "prefixlen": 24}
         ]
