@@ -17,13 +17,17 @@ class MiscSecurityTest(unittest.TestCase):
         U.clean_db()
 
     def test_encrypt_decrypt_msg(self):
+        # Short
         m = security.encrypt_msg(b"HELLO")
         self.assertEqual(security.decrypt_msg(m), b"HELLO")
 
-    def test_encrypt_msg(self):
-        access_id = security.add_trust_publickey(U.PUBLICKEY_1)
-        m = security.encrypt_msg(b"FLUXMONITOR", access_id=access_id)
-        self.assertEqual(m, U.ENCRYPTED_1)
+        # Large
+        m = security.encrypt_msg(b"HELLO" * 1037)
+        self.assertEqual(security.decrypt_msg(m), b"HELLO" * 1037)
+
+    def test_decrypt_msg(self):
+        m = security.decrypt_msg(U.ENCRYPTED_1, pem=U.PRIVATEKEY_1)
+        self.assertEqual(m, b"FLUXMONITOR")
 
     def test_pubkey_trust(self):
         self.assertFalse(

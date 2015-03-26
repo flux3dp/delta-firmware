@@ -1,6 +1,7 @@
 
 from hashlib import md5, sha1
 from random import choice
+from io import BytesIO
 from hmac import HMAC
 from time import time
 import logging
@@ -9,6 +10,7 @@ import re
 
 logger = logging.getLogger(__name__)
 
+from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 
 from fluxmonitor.config import general_config
@@ -40,11 +42,40 @@ def encrypt_msg(message, access_id=None):
             return b""
     else:
         key = _get_private_key()
-    return key.encrypt(message, 0)[0]
 
-def decrypt_msg(message):
-    key = _get_private_key()
-    return key.decrypt(message)
+    chip = PKCS1_OAEP.new(key)
+    size = ((key.size() + 1) / 8) - 42
+    in_buf = BytesIO(message)
+    out_buf = BytesIO()
+
+    buf = in_buf.read(size)
+    while buf:
+        out_buf.write(chip.encrypt(buf))
+        buf = in_buf.read(size)
+
+    return out_buf.getvalue()
+
+def decrypt_msg(message, pem=None):
+    if pem:
+        key = RSA.importKey(pem)
+    else:
+        key = _get_private_key()
+
+    chip = PKCS1_OAEP.new(key)
+    size = (key.size() + 1) / 8
+    in_buf = BytesIO(message)
+    out_buf = BytesIO()
+
+    buf = in_buf.read(size)
+    while buf:
+        try:
+            out_buf.write(chip.decrypt(buf))
+        except ValueError:
+            import IPython
+            IPython.embed()
+        buf = in_buf.read(size)
+
+    return out_buf.getvalue()
 
 def add_trust_publickey(pem):
     key = RSA.importKey(pem)
