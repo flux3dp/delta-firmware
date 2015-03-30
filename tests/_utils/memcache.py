@@ -1,4 +1,6 @@
 
+from time import time
+
 
 class MemcacheTestClient(object):
     data = {}
@@ -7,8 +9,13 @@ class MemcacheTestClient(object):
         pass
 
     def get(self, key):
-        self.data.get(key)
+        val, ts = self.data.get(key, (None, 0))
+        if time() <= ts:
+            return val
 
-    def set(self, key, value):
-        self.data[key] = str(value)
+    def set(self, key, value, time=None):
+        self.data[key] = (str(value), time)
+        return "ok"
 
+    def delete(self, key):
+        self.data.pop(key, None)

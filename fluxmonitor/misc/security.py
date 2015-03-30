@@ -1,6 +1,7 @@
 
-from hashlib import md5, sha1
 from random import choice
+from shutil import rmtree
+from hashlib import sha1
 from io import BytesIO
 from hmac import HMAC
 from time import time
@@ -10,8 +11,10 @@ import re
 
 logger = logging.getLogger(__name__)
 
+from Crypto.Signature import PKCS1_v1_5
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
+from Crypto.Hash import SHA as CryptoSHA
 
 from fluxmonitor.config import general_config
 
@@ -26,7 +29,7 @@ def is_rsakey(pem):
     try:
         RSA.importKey(pem)
         return True
-    except TypeError, ValueError:
+    except (TypeError, ValueError, IndexError):
         return False
 
 def get_publickey():
@@ -77,9 +80,26 @@ def decrypt_msg(message, pem=None):
 
     return out_buf.getvalue()
 
+def sign(message, pem=None):
+    if pem:
+        key = RSA.importKey(pem)
+    else:
+        key = _get_private_key()
+    chip = PKCS1_v1_5.new(key)
+    return chip.sign(CryptoSHA.new(message))
+
+def verify_signature(message, signature, access_id):
+    pem = _get_remote_pubkey(access_id)
+    if pem:
+        key = RSA.importKey(pem)
+        chip = PKCS1_v1_5.new(key)
+        return chip.verify(CryptoSHA.new(message), signature)
+    else:
+        return False
+
 def add_trust_publickey(pem):
     key = RSA.importKey(pem)
-    access_id = get_pubkey_access_id(key=key)
+    access_id = get_access_id(key=key)
     filename = _get_path("pub", access_id)
 
     with open(filename, "w") as f:
@@ -92,29 +112,32 @@ def is_trusted_access_id(access_id):
 
 def is_trusted_publickey(pem):
     key = RSA.importKey(pem)
-    access_id = get_pubkey_access_id(key=key)
+    access_id = get_access_id(key=key)
     return is_trusted_access_id(access_id)
 
-def get_pubkey_access_id(pem=None, key=None):
+def get_access_id(pem=None, key=None):
     if not key:
         key = RSA.importKey(pem)
-    return md5(key.exportKey("PEM")).hexdigest()
+    return sha1(key.exportKey("PEM")).hexdigest()
 
 def has_password():
     return os.path.isfile(_get_password_filename())
 
-def set_password(memcache, password, old_password, timestemp):
-    if validate_password(memcache, old_password, timestemp):
+def set_password(memcache, password, old_password, timestemp=None):
+    if validate_password(memcache, old_password):
         salt = _create_salt(8)
         pwdhash = HMAC(salt, password, sha1).hexdigest()
         with open(_get_password_filename(), "w") as f:
             f.write(salt + ";" + pwdhash)
+        pubdir = _get_path("pub")
+        if os.path.isdir(pubdir):
+            rmtree(_get_path("pub"))
         return True
     else:
         return False
 
-def validate_password(memcache, password, timestemp):
-    if not validate_timestemp(memcache, timestemp):
+def validate_password(memcache, password, timestemp=None):
+    if timestemp and not validate_timestemp(memcache, timestemp):
         return False
     if has_password():
         with open(_get_password_filename(), "r") as f:

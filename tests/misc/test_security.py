@@ -4,17 +4,23 @@ from time import time
 import unittest
 import os
 
-from memcache import Client
 
 from fluxmonitor.misc import security
 from tests import _utils as U
+from tests._utils.memcache import MemcacheTestClient
 
 
 class MiscSecurityTest(unittest.TestCase):
-    memcache = Client(["127.0.0.1:11211"])
-
     def setUp(self):
         U.clean_db()
+        self.memcache = MemcacheTestClient()
+
+    def test_is_pubkey(self):
+        self.assertFalse(security.is_rsakey(None))
+        self.assertFalse(security.is_rsakey(""))
+        self.assertFalse(security.is_rsakey(3))
+        self.assertFalse(security.is_rsakey({}))
+        self.assertTrue(security.is_rsakey(U.PUBLICKEY_1))
 
     def test_encrypt_decrypt_msg(self):
         # Short
