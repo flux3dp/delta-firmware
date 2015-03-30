@@ -3,7 +3,7 @@ from subprocess import Popen, PIPE
 import fcntl
 import os
 
-from fluxmonitor.misc import read_all, AsyncIO
+from fluxmonitor.misc import AsyncIO
 
 __all__ = ["Process"]
 
