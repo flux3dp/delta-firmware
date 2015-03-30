@@ -5,6 +5,7 @@ from hashlib import sha1
 from io import BytesIO
 from hmac import HMAC
 from time import time
+import binascii
 import logging
 import os
 import re
@@ -23,6 +24,12 @@ STR_BASE = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 _safe_value = lambda val: re.match("^[a-zA-Z0-9]+$", val) is not None
 _create_salt = lambda size=8: "".join((choice(STR_BASE) for i in range(size)))
+
+
+def get_serial():
+    key = get_publickey()
+    dig = sha1(key).digest()[:16]
+    return binascii.b2a_hex(dig)
 
 
 def is_rsakey(pem):
@@ -93,7 +100,7 @@ def sign(message, pem=None):
     return chip.sign(CryptoSHA.new(message))
 
 
-def verify_signature(message, signature, access_id):
+def validate_signature(message, signature, access_id):
     pem = _get_remote_pubkey(access_id)
     if pem:
         key = RSA.importKey(pem)

@@ -19,12 +19,13 @@ general_config = {
     "logfile": "fluxmonitord.log",
     "log_syntax": "[%(asctime)s,%(levelname)s,%(name)s] %(message)s",
     "log_timefmt": "%Y-%m-%d %H:%M:%S",
-    "debug": True
+    "keylength": 4096,
+    "debug": False
 }
 
 
 network_config = {
-    "unixsocket": "/tmp/.fluxmonitor-wlan",
+    "unixsocket": "/tmp/.fluxmonitord-network",
     "wpa_supplicant": "/sbin/wpa_supplicant",
     "hostapd": "/usr/sbin/hostapd",
     "dhclient": "/sbin/dhclient",

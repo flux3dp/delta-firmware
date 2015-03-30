@@ -3,10 +3,8 @@ from time import time
 
 
 class MemcacheTestClient(object):
-    data = {}
-
     def __init__(self):
-        pass
+        self.data = {}
 
     def get(self, key):
         val, ts = self.data.get(key, (None, 0))
@@ -19,3 +17,6 @@ class MemcacheTestClient(object):
 
     def delete(self, key):
         self.data.pop(key, None)
+
+    def erase(self):
+        self.data = {}
