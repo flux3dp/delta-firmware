@@ -47,7 +47,7 @@ def get_publickey():
 
 def encrypt_msg(message, access_id=None):
     if access_id:
-        pem = _get_remote_pubkey(access_id)
+        pem = get_remote_pubkey(access_id)
         if pem:
             key = RSA.importKey(pem)
         else:
@@ -84,8 +84,7 @@ def decrypt_msg(message, pem=None):
         try:
             out_buf.write(chip.decrypt(buf))
         except ValueError:
-            import IPython
-            IPython.embed()
+            raise
         buf = in_buf.read(size)
 
     return out_buf.getvalue()
@@ -101,7 +100,7 @@ def sign(message, pem=None):
 
 
 def validate_signature(message, signature, access_id):
-    pem = _get_remote_pubkey(access_id)
+    pem = get_remote_pubkey(access_id)
     if pem:
         key = RSA.importKey(pem)
         chip = PKCS1_v1_5.new(key)
@@ -195,7 +194,7 @@ def _create_key(filename):
         f.write(key.exportKey('PEM'))
 
 
-def _get_remote_pubkey(access_id):
+def get_remote_pubkey(access_id):
     if _safe_value(access_id):
         fn = _get_path("pub", access_id)
         if os.path.isfile(fn):

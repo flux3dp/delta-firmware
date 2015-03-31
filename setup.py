@@ -20,7 +20,6 @@ setup(
     license="?",
     packages=find_packages(exclude=["tests", "tests.*"]),
     test_suite="tests.main.everything",
-    scripts=["bin/fluxmonitord",
-             "bin/flux_wlan_scan", "bin/flux_network_config"],
+    scripts=["bin/fluxmonitord", "bin/flux_wlan_scan"],
     install_requires=install_requires,
 )

@@ -1,7 +1,6 @@
 
+from time import time, sleep
 from itertools import chain
-from hashlib import md5
-from time import time
 import uuid as _uuid
 import binascii
 import logging
@@ -72,14 +71,14 @@ class UpnpServicesMix(object):
         resp = {"code": CODE_RESPONSE_NOPWD_ACCESS,
                 "access_id": security.get_access_id(pubkey)}
 
-        if security.has_password():
-            resp["status"] = "deny"
-        elif security.is_trusted_publickey(pubkey):
+        if security.is_trusted_publickey(pubkey):
             resp.update({
                 "status": "ok",
                 "access_id": security.get_access_id(pubkey)})
             if pubkey == self.padding_request_pubkey:
                 self.padding_request_pubkey = None
+        elif security.has_password():
+            resp["status"] = "deny"
         elif self.padding_request_pubkey:
             if pubkey == self.padding_request_pubkey:
                 resp["status"] = "padding"
@@ -133,17 +132,22 @@ class UpnpServicesMix(object):
     def cmd_change_pwd(self, payload):
         ok, access_id, message = self._parse_signed_request(payload)
         if ok:
-            passwd, old_passwd, pubkey = message.split("\x00")
+            pem = security.get_remote_pubkey(access_id)
+            passwd, old_passwd = message.split("\x00", 1)
 
-            if not security.is_rsakey(pubkey):
-                return
-
-            elif security.set_password(self.memcache, passwd, old_passwd):
-                access_id = security.get_access_id(pubkey)
+            if security.set_password(self.memcache, passwd, old_passwd):
+                security.add_trust_publickey(pem)
                 return {
                     "status": "ok", "timestemp": time(),
                     "code": CODE_RESPONSE_CHANGE_PWD,
                     "access_id": access_id}
+
+            else:
+                return {
+                    "code": CODE_RESPONSE_CHANGE_PWD,
+                    "message": "BAD_PASSWORD",
+                    "status": "error", "timestemp": time(),
+                }
 
     def cmd_set_network(self, payload):
         ok, access_id, message = self._parse_signed_request(payload)
@@ -164,7 +168,7 @@ class UpnpServicesMix(object):
                 return
 
             security = raw_opts.get("security", None)
-            if security ==  "WEP":
+            if security == "WEP":
                 options.update({
                     "ssid": raw_opts["ssid"], "security": "WEP",
                     "wepkey": raw_opts["wepkey"]})
@@ -177,15 +181,28 @@ class UpnpServicesMix(object):
             elif "ssid" in raw_opts:
                 options["ssid"] = raw_opts["ssid"]
 
-            s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-            s.connect(network_config["unixsocket"])
-
-            s.send(json.dumps(["config_network", options]))
+            # TODO Here we has an issue: server must response before change
+            # network config, we make a delay call to prevent this problem.
+            delay_config_network(json.dumps(["config_network", options]))
 
             return {
                 "status": "ok", "timestemp:": time(),
                 "code": CODE_RESPONSE_SET_NETWORK,
-                "access_id": access_id,}
+                "access_id": access_id}
+
+
+def delay_config_network(buf):
+    from threading import Thread
+
+    def execute(s, b):
+        sleep(1.0)
+        s.send(b)
+
+    sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+    sock.connect(network_config["unixsocket"])
+    t = Thread(target=execute, args=(sock, buf))
+    t.setDaemon(True)
+    t.start()
 
 
 class UpnpSocket(object):
@@ -210,7 +227,7 @@ class UpnpSocket(object):
         return self.sock.fileno()
 
     def on_read(self):
-        buf, remote = self.sock.recvfrom(1024)
+        buf, remote = self.sock.recvfrom(4096)
         if len(buf) < 22:
             return  # drop if payload length too short
 

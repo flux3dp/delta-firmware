@@ -5,11 +5,13 @@ import os
 
 from fluxmonitor.config import general_config
 
+
 def clean_db():
     for del_dir in (os.path.join(general_config["db"], "security"),
                     os.path.join(general_config["db"], "net")):
         if os.path.isdir(del_dir):
             rmtree(del_dir)
+
 
 def create_unix_socket(path):
     if os.path.exists(path):

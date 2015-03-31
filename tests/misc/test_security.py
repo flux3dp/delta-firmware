@@ -1,9 +1,6 @@
 
-from base64 import decodestring
 from time import time
 import unittest
-import os
-
 
 from fluxmonitor.misc import security
 from tests import _utils as U
@@ -68,7 +65,8 @@ class MiscSecurityTest(unittest.TestCase):
         t2 = str(time() + 0.1)
         self.assertTrue(security.set_password(self.memcache, "HELLO", "", t1))
         self.assertTrue(security.validate_password(self.memcache, "HELLO", t2))
-        self.assertFalse(security.validate_password(self.memcache, "HELLO", t2))
+        self.assertFalse(security.validate_password(self.memcache, "HELLO",
+                                                    t2))
 
         self.assertTrue(security.has_password())
 

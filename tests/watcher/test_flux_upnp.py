@@ -13,10 +13,9 @@ from tests._utils.memcache import MemcacheTestClient
 from fluxmonitor.misc import security as S
 from fluxmonitor.config import network_config
 from fluxmonitor.watcher.flux_upnp import CODE_DISCOVER, \
-    CODE_SET_NETWORK, CODE_RESPONSE_SET_NETWORK, DEFAULT_PORT
+    CODE_SET_NETWORK, DEFAULT_PORT
 
 from fluxmonitor.watcher.flux_upnp import UpnpWatcher, UpnpSocket
-from fluxmonitor.watcher._network_helpers import WlanWatcherSocket
 
 LOCAL_IPADDR = U.LOCAL_IPADDR
 
@@ -94,18 +93,16 @@ class UpnpServicesMixTest(unittest.TestCase):
         # OK
         self.m.erase()
         req = self._create_message(U.KEYPAIR3, time(),
-                                   b"new_fluxmonitor", b"fluxmonitor",
-                                   U.PUBLICKEY_3)
+                                   b"new_fluxmonitor", b"fluxmonitor")
         resp = self.w.cmd_change_pwd(req)
         self.assertEqual(resp["status"], "ok")
 
         # Fail
         self.m.erase()
         req = self._create_message(U.KEYPAIR3, time(),
-                                   b"new_fluxmonitor", b"fluxmonitor",
-                                   U.PUBLICKEY_3)
+                                   b"new_fluxmonitor", b"fluxmonitor")
         resp = self.w.cmd_change_pwd(req)
-        self.assertIsNone(resp)
+        self.assertEqual(resp.get("status"), "error")
 
     def test_cmd_set_network(self):
         S.add_trust_publickey(U.PUBLICKEY_1)
@@ -120,6 +117,7 @@ class UpnpServicesMixTest(unittest.TestCase):
         self.assertEqual(resp["status"], "ok")
 
         # ensure data sent or raise exception
+        select.select((us,), (), (), 1.)
         us.recv(4096)
 
 
@@ -160,7 +158,8 @@ class UpnpSocketTest(unittest.TestCase):
         super(UpnpSocketTest, self).__init__(*args, **kw)
 
         for hood_name in ["cmd_discover", "cmd_rsa_key", "cmd_nopwd_access",
-                          "cmd_change_pwd", "cmd_pwd_access", "cmd_set_network"]:
+                          "cmd_change_pwd", "cmd_pwd_access",
+                          "cmd_set_network"]:
             setattr(self, hood_name, self._cmd_hook)
 
     def _cmd_hook(self, payload):
