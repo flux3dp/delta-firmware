@@ -16,7 +16,7 @@ from fluxmonitor.watcher.serial_communication import SerialCommunication
 class FluxMonitor(threading.Thread):
     def __init__(self):
         self.self_test()
-        self.shared_mem = memcache.Client("127.0.0.1")
+        self.shared_mem = memcache.Client(["127.0.0.1:11211"])
         self.signal = AsyncSignal()
         self.running = True
 
