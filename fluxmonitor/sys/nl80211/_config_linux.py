@@ -1,17 +1,16 @@
 
-import platform
 import tempfile
 import logging
 
 logger = logging.getLogger(__name__)
 
-if platform.system().lower().startswith("linux"):
-    from pyroute2 import IPRoute
-    ipr = IPRoute()
-
 from fluxmonitor.misc import Process
 from fluxmonitor.misc import linux_configure
-from fluxmonitor.config import network_config
+from fluxmonitor.config import network_config, platform
+
+if platform == "linux":
+    from pyroute2 import IPRoute
+
 
 __all__ = ["ifup", "ifdown", "wlan_managed_daemon", "wlan_ap_daemon",
            "dhcp_client_daemon", "config_ipaddr", "config_nameserver",
@@ -26,11 +25,14 @@ DHCPD = network_config['dhcpd']
 def ifup(ifname):
     index = find_device_index(ifname)
     logger.info("%s up" % ifname)
+    ipr = IPRoute()
     ipr.link_up(index=index)
 
 
 def ifdown(ifname):
     index = find_device_index(ifname)
+    ipr = IPRoute()
+
     # Get all ip address and delete it
     for address, mask in get_ipaddresses(index):
         logger.info("Del ip %s/%s for %s" % (address, mask, ifname))
@@ -81,6 +83,7 @@ def config_ipaddr(ifname, config):
     ns = config.get("ns")
 
     logger.info("Add ip %s/%s for %s" % (ipaddr, mask, ifname))
+    ipr = IPRoute()
     ipr.addr('add', index=index, address=ipaddr, mask=mask)
 
     clean_route()
@@ -106,6 +109,7 @@ def config_nameserver(nameservers):
 
 # Private Methods
 def find_device_index(ifname):
+    ipr = IPRoute()
     devices = ipr.link_lookup(ifname=ifname)
     if len(devices) == 0:
         raise RuntimeError("Bad ifname %s" % ifname)
@@ -113,6 +117,7 @@ def find_device_index(ifname):
 
 
 def clean_route():
+    ipr = IPRoute()
     for g in get_gateways():
         try:
             ipr.route("delete", gateway=g)
@@ -121,11 +126,13 @@ def clean_route():
 
 
 def get_ipaddresses(index):
+    ipr = IPRoute()
     return [(i['attrs'][0][1], i['prefixlen'])
             for i in ipr.get_addr()
             if i['index'] == index]
 
 
 def get_gateways():
+    ipr = IPRoute()
     routes = [dict(r["attrs"]) for r in ipr.get_routes()]
     return [g["RTA_GATEWAY"] for g in routes if "RTA_GATEWAY" in g]
