@@ -15,9 +15,8 @@ from fluxmonitor.config import network_config
 from fluxmonitor.watcher.flux_upnp import CODE_DISCOVER, \
     CODE_SET_NETWORK, DEFAULT_PORT
 
-from fluxmonitor.watcher.flux_upnp import UpnpWatcher, UpnpSocket
 
-LOCAL_IPADDR = U.LOCAL_IPADDR
+from fluxmonitor.watcher.flux_upnp import UpnpWatcher, UpnpSocket
 
 
 class UpnpServicesMixTest(unittest.TestCase):
@@ -117,7 +116,7 @@ class UpnpServicesMixTest(unittest.TestCase):
         self.assertEqual(resp["status"], "ok")
 
         # ensure data sent or raise exception
-        select.select((us,), (), (), 1.)
+        select.select((us,), (), (), 3.)
         us.recv(4096)
 
 
@@ -157,10 +156,10 @@ class UpnpSocketTest(unittest.TestCase):
     def __init__(self, *args, **kw):
         super(UpnpSocketTest, self).__init__(*args, **kw)
 
-        for hood_name in ["cmd_discover", "cmd_rsa_key", "cmd_nopwd_access",
+        for hook_name in ["cmd_discover", "cmd_rsa_key", "cmd_nopwd_access",
                           "cmd_change_pwd", "cmd_pwd_access",
                           "cmd_set_network"]:
-            setattr(self, hood_name, self._cmd_hook)
+            setattr(self, hook_name, self._cmd_hook)
 
     def _cmd_hook(self, payload):
         return self.hook(payload)
@@ -175,17 +174,19 @@ class UpnpSocketTest(unittest.TestCase):
     def create_client(self):
         client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         client.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        client.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
         return client
 
-    def retrieve_message_from_server(self, client_sock, ttl=0):
+    def is_local_addr(self, addr):
+        return addr is None
+
+    def retrieve_message_from_server(self, client_sock):
         """Let self.sock read and process data"""
         while select.select((self.sock, ), (), (), 0)[0]:
             self.sock.on_read()
 
         buf, remote = None, (None, None)
 
-        while remote[0] != LOCAL_IPADDR:
+        while self.is_local_addr(remote[0]):
             if select.select((client_sock, ), (), (), 0)[0] == []:
                 return None, None, (None, None)
             else:
@@ -203,11 +204,13 @@ class UpnpSocketTest(unittest.TestCase):
 
             msg, sign, remote = self.retrieve_message_from_server(client)
 
-            if msg or not can_retry:
+            if msg:
                 self.assertEqual(json.loads(msg), self.RESPONSE_PAYLOAD)
-                break
             else:
-                sleep(0.1)
+                if can_retry:
+                    sleep(0.5)
+                else:
+                    raise RuntimeError("No response")
 
         client.close()
 
@@ -223,11 +226,14 @@ class UpnpSocketTest(unittest.TestCase):
 
             msg, sign, remote = self.retrieve_message_from_server(client)
 
-            if msg or not can_retry:
+            if msg:
                 S.validate_signature(msg, sign, access_id)
                 self.assertEqual(json.loads(msg), self.RESPONSE_PAYLOAD)
                 break
             else:
-                sleep(0.1)
+                if can_retry:
+                    sleep(0.1)
+                else:
+                    raise RuntimeError("No response")
 
         client.close()

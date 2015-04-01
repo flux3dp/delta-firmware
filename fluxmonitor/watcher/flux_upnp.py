@@ -126,8 +126,8 @@ class UpnpServicesMix(object):
         if security.validate_signature(message, signature, access_id):
             if security.validate_timestemp(self.memcache, timestemp):
                 return True, access_id, message
-        else:
-            return False, None, []
+
+        return False, None, []
 
     def cmd_change_pwd(self, payload):
         ok, access_id, message = self._parse_signed_request(payload)
