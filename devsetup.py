@@ -3,6 +3,8 @@
 from setuptools import setup, Extension
 from pkgutil import walk_packages
 
+from Cython.Distutils import build_ext
+
 import setup_util
 
 VERSION = setup_util.get_version()
@@ -44,10 +46,11 @@ setup(
     test_suite="tests.main.everything",
     scripts=scripts,
     install_requires=install_requires,
+    cmdclass = {'build_ext': build_ext},
     ext_modules=[
         Extension(
             'fluxmonitor.misc._security', sources=[
-                "src/misc/security.c",
+                "src/misc/security.pyx",
                 "src/misc/openssl_bridge.c"],
             extra_compile_args=["-std=c99"],
             libraries=["crypto"],

@@ -2,7 +2,6 @@
 from random import choice
 from shutil import rmtree
 from hashlib import sha1
-from io import BytesIO
 from hmac import HMAC
 from time import time
 import binascii
@@ -12,11 +11,7 @@ import re
 
 logger = logging.getLogger(__name__)
 
-from Crypto.Signature import PKCS1_v1_5
-from Crypto.Cipher import PKCS1_OAEP
-from Crypto.PublicKey import RSA
-from Crypto.Hash import SHA as CryptoSHA
-
+from ._security import RSAObject
 from fluxmonitor.config import general_config
 
 KEYLENGTH = general_config["keylength"]
@@ -27,120 +22,88 @@ _create_salt = lambda size=8: "".join((choice(STR_BASE) for i in range(size)))
 
 
 def get_serial():
-    key = get_publickey()
-    dig = sha1(key).digest()[:16]
+    pubpem = get_private_key().export_pubkey_pem()
+    dig = sha1(pubpem).digest()[:16]
     return binascii.b2a_hex(dig)
 
 
-def is_rsakey(pem):
-    try:
-        RSA.importKey(pem)
-        return True
-    except (TypeError, ValueError, IndexError):
-        return False
-
-
-def get_publickey():
-    private_key = _get_private_key()
-    return private_key.publickey().exportKey('PEM')
-
-
-def encrypt_msg(message, access_id=None):
-    if access_id:
-        pem = get_remote_pubkey(access_id)
-        if pem:
-            key = RSA.importKey(pem)
-        else:
-            return b""
-    else:
-        key = _get_private_key()
-
-    chip = PKCS1_OAEP.new(key)
-    size = ((key.size() + 1) / 8) - 42
-    in_buf = BytesIO(message)
-    out_buf = BytesIO()
-
-    buf = in_buf.read(size)
-    while buf:
-        out_buf.write(chip.encrypt(buf))
-        buf = in_buf.read(size)
-
-    return out_buf.getvalue()
-
-
-def decrypt_msg(message, pem=None):
-    if pem:
-        key = RSA.importKey(pem)
-    else:
-        key = _get_private_key()
-
-    chip = PKCS1_OAEP.new(key)
-    size = (key.size() + 1) / 8
-    in_buf = BytesIO(message)
-    out_buf = BytesIO()
-
-    buf = in_buf.read(size)
-    while buf:
+def get_private_key():
+    filename = _get_key_filename()
+    if os.path.isfile(filename):
         try:
-            out_buf.write(chip.decrypt(buf))
-        except ValueError:
-            raise
-        buf = in_buf.read(size)
+            with open(filename, "r") as f:
+                return RSAObject(pem=f.read())
+        except RuntimeError:
+            pass
 
-    return out_buf.getvalue()
+    rsaobj = RSAObject(keylength=KEYLENGTH)
+    pem = rsaobj.export_pem()
+    with open(filename, "w") as f:
+        f.write(pem)
+    logger.info("Private key created at: %s" % filename)
 
-
-def sign(message, pem=None):
-    if pem:
-        key = RSA.importKey(pem)
-    else:
-        key = _get_private_key()
-    chip = PKCS1_v1_5.new(key)
-    return chip.sign(CryptoSHA.new(message))
+    return rsaobj
 
 
-def validate_signature(message, signature, access_id):
-    pem = get_remote_pubkey(access_id)
-    if pem:
-        key = RSA.importKey(pem)
-        chip = PKCS1_v1_5.new(key)
-        return chip.verify(CryptoSHA.new(message), signature)
-    else:
+def get_keyobj(pem=None, der=None, access_id=None):
+    if access_id and _safe_value(access_id):
+        fn = _get_path("pub", access_id)
+        if os.path.isfile(fn):
+            with open(fn, "r") as f:
+                buf = f.read()
+                if buf.startswith("-----BEGIN "):
+                    return RSAObject(pem=buf)
+                else:
+                    return RSAObject(der=buf)
+
+    try:
+        return RSAObject(pem=pem, der=der)
+    except (TypeError, ValueError, RuntimeError):
+        return None
+
+
+def is_rsakey(pem=None, der=None):
+    if not pem and not der:
+        return False
+    try:
+        RSAObject(pem=pem, der=der)
+        return True
+    except (RuntimeError, TypeError):
         return False
 
 
-def add_trust_publickey(pem):
-    key = RSA.importKey(pem)
-    access_id = get_access_id(key=key)
+def add_trusted_keyobj(keyobj):
+    access_id = get_access_id(keyobj=keyobj)
     filename = _get_path("pub", access_id)
 
     with open(filename, "w") as f:
-        f.write(key.exportKey("PEM"))
+        f.write(keyobj.export_pem())
     return access_id
 
 
-def is_trusted_access_id(access_id):
-    filename = _get_path("pub", access_id)
-    return os.path.isfile(filename)
+def is_trusted_remote(access_id=None, pem=None, der=None, keyobj=None):
+    if not access_id:
+        access_id = get_access_id(pem=pem, der=der, keyobj=keyobj)
+
+    if access_id:
+        return os.path.isfile(_get_path("pub", access_id))
+    else:
+        return False
 
 
-def is_trusted_publickey(pem):
-    key = RSA.importKey(pem)
-    access_id = get_access_id(key=key)
-    return is_trusted_access_id(access_id)
-
-
-def get_access_id(pem=None, key=None):
-    if not key:
-        key = RSA.importKey(pem)
-    return sha1(key.exportKey("PEM")).hexdigest()
+def get_access_id(pem=None, der=None, keyobj=None):
+    if not keyobj:
+        keyobj = get_keyobj(pem=pem, der=der)
+        if not keyobj:
+            return ""
+    return sha1(keyobj.export_pem()).hexdigest()
 
 
 def has_password():
     return os.path.isfile(_get_password_filename())
 
 
-def set_password(memcache, password, old_password, timestemp=None):
+def set_password(memcache, password, old_password):
     if validate_password(memcache, old_password):
         salt = _create_salt(8)
         pwdhash = HMAC(salt, password, sha1).hexdigest()
@@ -154,9 +117,7 @@ def set_password(memcache, password, old_password, timestemp=None):
         return False
 
 
-def validate_password(memcache, password, timestemp=None):
-    if timestemp and not validate_timestemp(memcache, timestemp):
-        return False
+def validate_password(memcache, password):
     if has_password():
         with open(_get_password_filename(), "r") as f:
             salt, pwdhash = f.read().split(";")
@@ -166,40 +127,17 @@ def validate_password(memcache, password, timestemp=None):
         return True
 
 
-def validate_timestemp(memcache, timestemp, expire=300):
-    if abs(float(timestemp) - time()) > 15:
+def validate_timestemp(memcache, timestemp, expire=60):
+    t, signature = timestemp
+    if abs(float(t) - time()) > 15:
         return False
     else:
-        token = "timestemp-%s" % timestemp
+        token = "ts:%s" % binascii.b2a_base64(signature)[:8]
         if memcache.get(token):
             return False
         else:
             assert memcache.set(token, "1", time=time() + expire)
             return True
-
-
-def _get_private_key():
-    filename = _get_key_filename()
-    if not os.path.isfile(filename):
-        _create_key(filename)
-        logger.info("Private key created at: %s" % filename)
-
-    with open(filename, "r") as f:
-        return RSA.importKey(f.read())
-
-
-def _create_key(filename):
-    key = RSA.generate(KEYLENGTH)
-    with open(filename, "w") as f:
-        f.write(key.exportKey('PEM'))
-
-
-def get_remote_pubkey(access_id):
-    if _safe_value(access_id):
-        fn = _get_path("pub", access_id)
-        if os.path.isfile(fn):
-            with open(fn, "r") as f:
-                return f.read()
 
 
 def _get_password_filename():

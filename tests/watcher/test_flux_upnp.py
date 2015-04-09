@@ -2,6 +2,7 @@
 from time import time, sleep
 import unittest
 import binascii
+import logging
 import struct
 import select
 import socket
@@ -36,58 +37,59 @@ class UpnpServicesMixTest(unittest.TestCase):
         # User 1, padding
         raw_req = struct.pack("<d%is" % len(U.PUBLICKEY_1),
                               time(), U.PUBLICKEY_1)
-        resp = self.w.cmd_nopwd_access(S.encrypt_msg(raw_req))
+        resp = self.w.cmd_nopwd_access(raw_req)
         self.assertEqual(resp["status"], "padding")
         self.assertEqual(resp["access_id"],
-                         S.get_access_id(U.PUBLICKEY_1))
+                         S.get_access_id(der=U.PUBLICKEY_1))
 
         # User 1, continue padding
         self.m.erase()
         raw_req = struct.pack("<d%is" % len(U.PUBLICKEY_1),
                               time(), U.PUBLICKEY_1)
-        resp = self.w.cmd_nopwd_access(S.encrypt_msg(raw_req))
+        resp = self.w.cmd_nopwd_access(raw_req)
         self.assertEqual(resp["status"], "padding")
 
         # User 2, blocked
         self.m.erase()
         raw_req = struct.pack("<d%is" % len(U.PUBLICKEY_2),
                               time(), U.PUBLICKEY_2)
-        resp = self.w.cmd_nopwd_access(S.encrypt_msg(raw_req))
+        resp = self.w.cmd_nopwd_access(raw_req)
         self.assertEqual(resp["status"], "blocking")
 
         # Give user 1 access privilege
-        S.add_trust_publickey(U.PUBLICKEY_1)
-        self.assertTrue(S.is_trusted_publickey(U.PUBLICKEY_1))
+        S.add_trusted_keyobj(S.get_keyobj(der=U.PUBLICKEY_1))
+        self.assertTrue(S.is_trusted_remote(der=U.PUBLICKEY_1))
 
         # User 1, ok
         self.m.erase()
         raw_req = struct.pack("<d%ss" % len(U.PUBLICKEY_1),
                               time(), U.PUBLICKEY_1)
-        resp = self.w.cmd_nopwd_access(S.encrypt_msg(raw_req))
+        resp = self.w.cmd_nopwd_access(raw_req)
         self.assertEqual(resp["status"], "ok")
 
         # Set password access
         self.m.erase()
-        S.set_password(self.m, "fluxmonitor", None, time())
+        S.set_password(self.m, "fluxmonitor", None)
         # User 2, blocked
         raw_req = struct.pack("<d%ss" % len(U.PUBLICKEY_2),
                               time(), U.PUBLICKEY_2)
-        resp = self.w.cmd_nopwd_access(S.encrypt_msg(raw_req))
+        resp = self.w.cmd_nopwd_access(raw_req)
         self.assertEqual(resp["status"], "deny")
 
     def _create_message(self, keypair, timestemp, *args):
-        access_id = S.get_access_id(keypair[1])
-        message = "\x00".join(args)
-        signature = S.sign(message, pem=keypair[0])
+        access_id = S.get_access_id(der=keypair[1])
+        message = struct.pack("<d", timestemp) + "\x00".join(args)
 
-        header = struct.pack("<20sHd", binascii.a2b_hex(access_id),
-                             len(signature), timestemp)
-        return S.encrypt_msg(header + signature + message)
+        keyobj = S.get_keyobj(pem=keypair[0])
+
+        signature = keyobj.sign(message)
+        payload = binascii.a2b_hex(access_id) + signature + message
+
+        return S.get_private_key().encrypt(payload)
 
     def test_change_pwd(self):
-        self.assertTrue(
-            S.set_password(self.m, "fluxmonitor", None, time()))
-        S.add_trust_publickey(U.PUBLICKEY_3)
+        self.assertTrue(S.set_password(self.m, "fluxmonitor", None))
+        S.add_trusted_keyobj(S.get_keyobj(der=U.PUBLICKEY_3))
 
         # OK
         self.m.erase()
@@ -104,7 +106,7 @@ class UpnpServicesMixTest(unittest.TestCase):
         self.assertEqual(resp.get("status"), "error")
 
     def test_cmd_set_network(self):
-        S.add_trust_publickey(U.PUBLICKEY_1)
+        S.add_trusted_keyobj(S.get_keyobj(der=U.PUBLICKEY_1))
 
         req = self._create_message(
             U.KEYPAIR1, time(), "method=dhcp", "ssid=MYSSID",
@@ -149,11 +151,13 @@ class UpnpSocketTest(unittest.TestCase):
     """Test fluxmonitor.watcher.flux_upnp.UpnpSocket"""
 
     RESPONSE_PAYLOAD = {"model": "flux3dp:1", "serial": "0x00000000",
-                        "ip": ["192.168.1.1"]}
+                        "ip": ["192.168.1.1", 24]}
 
     hook = lambda self, payload: self.RESPONSE_PAYLOAD
+    logger = logging.getLogger()
 
     def __init__(self, *args, **kw):
+        self.pkey = S.get_private_key()
         super(UpnpSocketTest, self).__init__(*args, **kw)
 
         for hook_name in ["cmd_discover", "cmd_rsa_key", "cmd_nopwd_access",
@@ -215,7 +219,8 @@ class UpnpSocketTest(unittest.TestCase):
         client.close()
 
     def test_cmd_set_network(self):
-        access_id = S.add_trust_publickey(S.get_publickey())
+        S.add_trusted_keyobj(
+            S.get_keyobj(pem=S.get_private_key().export_pubkey_pem()))
 
         client = self.create_client()
 
@@ -227,7 +232,6 @@ class UpnpSocketTest(unittest.TestCase):
             msg, sign, remote = self.retrieve_message_from_server(client)
 
             if msg:
-                S.validate_signature(msg, sign, access_id)
                 self.assertEqual(json.loads(msg), self.RESPONSE_PAYLOAD)
                 break
             else:

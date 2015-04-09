@@ -56,25 +56,24 @@ class UpnpServicesMix(object):
     def cmd_rsa_key(self, payload):
         return {
             "code": CODE_RESPONSE_RSA_KEY,
-            "pubkey": security.get_publickey()
+            "pubkey": self.pubkey_pem
         }
 
     def cmd_nopwd_access(self, payload):
-        rawdata = security.decrypt_msg(payload)
-        ts, pubkey = struct.unpack("<d%ss" % (len(rawdata) - 8), rawdata)
+        if len(payload) < 64:
+            return
 
-        if not security.validate_timestemp(self.memcache, ts):
-            return
-        if not security.is_rsakey(pubkey):
-            return
+        ts, pubkey = struct.unpack("<d%ss" % (len(payload) - 8), payload)
 
         resp = {"code": CODE_RESPONSE_NOPWD_ACCESS,
-                "access_id": security.get_access_id(pubkey)}
+                "access_id": security.get_access_id(der=pubkey)}
 
-        if security.is_trusted_publickey(pubkey):
+        keyobj = security.get_keyobj(der=pubkey)
+
+        if security.is_trusted_remote(keyobj=keyobj):
             resp.update({
                 "status": "ok",
-                "access_id": security.get_access_id(pubkey)})
+                "access_id": security.get_access_id(der=pubkey)})
             if pubkey == self.padding_request_pubkey:
                 self.padding_request_pubkey = None
         elif security.has_password():
@@ -84,59 +83,61 @@ class UpnpServicesMix(object):
                 resp["status"] = "padding"
             else:
                 resp["status"] = "blocking"
-            return resp
         else:
-            self.padding_request_pubkey = pubkey
-            resp["status"] = "padding"
-
+            if keyobj:
+                self.padding_request_pubkey = pubkey
+                resp["status"] = "padding"
         return resp
 
     def cmd_pwd_access(self, payload):
-        rawdata = security.decrypt_msg(payload)
+        rawdata = self.pkey.decrypt(payload)
         ts, passwd, pubkey = json.loads(rawdata)
 
-        if not security.is_rsakey(pubkey):
-            return
-
-        elif security.is_trust_publickey(pubkey):
+        keyobj = security.get_keyobj(der=pubkey)
+        if security.is_trusted_remote(keyobj=keyobj):
             return {
                 "code": CODE_RESPONSE_PWD_ACCESS,
                 "access_id": security.get_access_id(pubkey),
                 "status": "ok"}
 
-        elif security.validate_password(self.memcache, passwd, ts):
-            access_id = security.add_trust_publickey(pubkey)
-            return {
-                "code": CODE_RESPONSE_PWD_ACCESS,
-                "access_id": access_id,
-                "status": "ok"}
+        elif security.validate_password(self.memcache, passwd):
+            if keyobj:
+                access_id = security.add_trusted_keyobj(keyobj)
+                return {
+                    "code": CODE_RESPONSE_PWD_ACCESS,
+                    "access_id": access_id,
+                    "status": "ok"}
 
     def _parse_signed_request(self, payload):
-        # access id (20) + sign_length (2) + timestemp (8) +
-        # sign (sing length) + message
+        rawdata = self.pkey.decrypt(payload)
 
-        rawdata = security.decrypt_msg(payload)
-        # binary_access_id, sign length, timestemp
-        ba, sl, timestemp = struct.unpack("<20sHd", rawdata[:30])
+        # access id (20) + sign (sing length) + timestemp (8) + message
+        access_id = binascii.b2a_hex(rawdata[:20])
+        client_keyobj = security.get_keyobj(access_id=access_id)
 
-        access_id = binascii.b2a_hex(ba)
-        signature = rawdata[30:sl + 30]
-        message = rawdata[sl + 30:]
+        if client_keyobj:
+            keylen = client_keyobj.size()
 
-        if security.validate_signature(message, signature, access_id):
-            if security.validate_timestemp(self.memcache, timestemp):
-                return True, access_id, message
+            signature = rawdata[20:20 + keylen]
+            timestemp = struct.unpack("<d",
+                                      rawdata[20 + keylen:28 + keylen])[0]
+            message = rawdata[28 + keylen:]
 
-        return False, None, []
+            if client_keyobj.verify(rawdata[20 + keylen:], signature):
+                if security.validate_timestemp(self.memcache,
+                                               (timestemp, signature)):
+                    return True, access_id, message
+
+        return False, None, None
 
     def cmd_change_pwd(self, payload):
         ok, access_id, message = self._parse_signed_request(payload)
         if ok:
-            pem = security.get_remote_pubkey(access_id)
+            keyobj = security.get_keyobj(access_id=access_id)
             passwd, old_passwd = message.split("\x00", 1)
 
             if security.set_password(self.memcache, passwd, old_passwd):
-                security.add_trust_publickey(pem)
+                security.add_trusted_keyobj(keyobj)
                 return {
                     "status": "ok", "timestemp": time(),
                     "code": CODE_RESPONSE_CHANGE_PWD,
@@ -239,6 +240,7 @@ class UpnpSocket(object):
 
         cb = self._callback.get(code)
         if cb:
+            t1 = time()
             resp = cb(buf[22:])
             if resp:
                 message = json.dumps(resp)
@@ -247,9 +249,11 @@ class UpnpSocket(object):
                     payload = message + b"\x00"
                     self.sock.sendto(payload, ("255.255.255.255", remote[1]))
                 else:
-                    signature = security.sign(message)
+                    signature = self.server.pkey.sign(message)
                     payload = message + b"\x00" + signature
                     self.sock.sendto(payload, ("255.255.255.255", remote[1]))
+            self.server.logger.debug("%.4f %s" % (time() - t1,
+                                     cb.im_func.func_name))
 
     def close(self):
         self.sock.close()
@@ -260,6 +264,11 @@ class UpnpWatcher(WatcherBase, UpnpServicesMix, NetworkMonitorMix):
     sock = None
 
     def __init__(self, memcache):
+        # Create RSA key if not exist. This will prevent upnp create key during
+        # upnp is running (Its takes times and will cause timeout)
+        self.pkey = security.get_private_key()
+        self.pubkey_pem = self.pkey.export_pubkey_pem()
+
         super(UpnpWatcher, self).__init__(logger, memcache)
 
     def _on_status_changed(self, status):
