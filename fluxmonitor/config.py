@@ -13,10 +13,9 @@ else:
 
 
 # The following is default config
-
 general_config = {
     "db": "/var/db/fluxmonitord",
-    "logfile": "fluxmonitord.log",
+    "logfile": ".",
     "log_syntax": "[%(asctime)s,%(levelname)s,%(name)s] %(message)s",
     "log_timefmt": "%Y-%m-%d %H:%M:%S",
     "keylength": 4096,
