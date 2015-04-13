@@ -11,6 +11,17 @@ from fluxmonitor.config import general_config
 from fluxmonitor.main import FluxMonitor
 
 
+def create_argument_parser(proc_name, parser):
+    parser.add_argument('--daemon', dest='daemon', action='store_const',
+                        const=True, default=False, help='Run as daemon')
+    parser.add_argument('--stop', dest='stop_daemon', action='store_const',
+                        const=True, default=False, help='Stop daemon')
+    parser.add_argument('--pid', dest='pidfile', type=str,
+                        default='%s.pid' % proc_name, help='PID file')
+    parser.add_argument('--debug', dest='debug', action='store_const',
+                        const=True, default=False, help='Enable debug')
+
+
 def create_logger():
     LOG_TIMEFMT = general_config["log_timefmt"]
     LOG_FORMAT = general_config["log_syntax"]
@@ -23,13 +34,8 @@ def create_logger():
     else:
         logger.setLevel(logging.INFO)
 
-    f = open(general_config["logfile"], "a")
-    filelogger = logging.StreamHandler(stream=f)
 
-    logger.addHandler(filelogger)
-
-
-def main(options):
+def main(options, module=None):
     pid_handler = open(options.pidfile, 'w', 0)
 
     try:
@@ -53,12 +59,16 @@ def main(options):
             os.closerange(0, 1024)
 
             sys.stdin = open(os.devnull, 'r')
-            if options.debug:
-                sys.stdout = open('tmp/fluxmonitor.stdout.log', 'w')
-                sys.stderr = open('tmp/fluxmonitor.stderr.log', 'w')
+
+            if module:
+                logfilebase = os.path.join(general_config["logfile"],
+                                           module.__name__)
             else:
-                sys.stdout = open(os.devnull, 'w')
-                sys.stderr = open(os.devnull, 'w')
+                logfilebase = os.path.join(general_config["logfile"],
+                                           "fluxmonitord")
+
+            sys.stdout = open("%s.log" % logfilebase, 'w')
+            sys.stderr = open("%s.err.log" % logfilebase, 'w')
 
             pid_handler = open(options.pidfile, 'w', 0)
             pid_handler.write(repr(os.getpid()))
@@ -73,7 +83,7 @@ def main(options):
         pid_handler.write(repr(os.getpid()))
 
     create_logger()
-    server = FluxMonitor()
+    server = FluxMonitor(module=module)
 
     def sigDbTerm(watcher, revent):
         sys.stdout.write("\n")
@@ -90,27 +100,11 @@ def main(options):
         signal.signal(signal.SIGUSR1, sigUSRn)
         signal.signal(signal.SIGUSR2, sigUSRn)
 
-    if server.start() is False:
+    signal.signal(signal.SIGTERM, sigTerm)
+    signal.signal(signal.SIGINT, sigTerm)
+
+    if server.run() is False:
         return 1
-
-    # term_watcher = server.loop.signal(signal.SIGTERM, sigTerm)
-    # term_watcher.start()
-    # itrup_wathcer = server.loop.signal(signal.SIGINT, sigTerm)
-    # itrup_wathcer.start()
-
-    if options.shell:
-        import IPython
-        IPython.embed()
-        server.shutdown(log="Abort from shell, press ctrl+c will kill the "
-                        "server directly")
-        signal.signal(signal.SIGTERM, sigDbTerm)
-        signal.signal(signal.SIGINT, sigDbTerm)
-    else:
-        signal.signal(signal.SIGTERM, sigTerm)
-        signal.signal(signal.SIGINT, sigTerm)
-
-    while server.isAlive():
-        server.join(3.0)
 
     if options.daemon:
         fcntl.lockf(pid_handler.fileno(), fcntl.LOCK_UN)

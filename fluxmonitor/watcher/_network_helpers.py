@@ -23,7 +23,7 @@ class NetworkMonitorMix(object):
         self._monitor = Monitor(self._on_status_changed)
         self._on_status_changed(self._monitor.full_status())
 
-        self.rlist.append(self._monitor)
+        self.server.add_read_event(self._monitor)
 
     def _on_status_changed(self, status):
         """Callback from self._monitor instance"""
@@ -116,7 +116,7 @@ class ControlSocketMix(object):
     """
     def bootstrap_control_socket(self, memcache):
         self._ctrl_sock = WlanWatcherSocket(self)
-        self.rlist.append(self._ctrl_sock)
+        self.server.add_read_event(self._ctrl_sock)
 
     def bootstrap_nic(self, ifname, delay=0.5, forcus_restart=False):
         """Startup nic, this method will get device information from

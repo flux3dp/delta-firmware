@@ -19,9 +19,10 @@ class Process(Popen):
         self._make_nonblock(self.stdout)
         self._make_nonblock(self.stderr)
 
-        self.manager.rlist += [
-            AsyncIO(self.stdout, self._on_stdout),
-            AsyncIO(self.stderr, self._on_stderr)]
+        self.manager.server.add_read_event(
+            AsyncIO(self.stdout, self._on_stdout))
+        self.manager.server.add_read_event(
+            AsyncIO(self.stderr, self._on_stderr))
 
     def _make_nonblock(self, file_obj):
         fd = file_obj.fileno()
@@ -43,7 +44,7 @@ class Process(Popen):
             self._close(sender)
 
     def _close(self, sender):
-        self.manager.rlist.remove(sender)
+        self.manager.server.remove_read_event(sender)
 
         if self.poll() is not None:
             self.manager.on_daemon_closed(self)

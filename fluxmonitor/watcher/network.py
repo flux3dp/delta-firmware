@@ -22,23 +22,24 @@ class NetworkWatcher(WatcherBase, NetworkMonitorMix, ConfigMix,
     # Internet connection up/down at list
     timestemps = None
 
-    def __init__(self, memcache):
-        self.logger = logger
-        self.POLL_TIMEOUT = 1.0
+    def __init__(self, server):
+        super(NetworkWatcher, self).__init__(server, logger)
 
-        super(NetworkWatcher, self).__init__(logger, memcache)
-
+        self.server.POLL_TIMEOUT = 1.0
         self.timestemps = []
         self.daemons = {}
-        self.bootstrap_network_monitor(memcache)
-        self.bootstrap_control_socket(memcache)
 
-    def run(self):
+    def start(self):
+        self.bootstrap_network_monitor(self.memcache)
+        self.bootstrap_control_socket(self.memcache)
+
         for ifname in self.nic_status.keys():
             try:
                 self.bootstrap(ifname)
             except Exception:
                 self.logger.exception("Error while bootstrap %s" % ifname)
+
+    def shutdown(self):
         super(NetworkWatcher, self).run()
 
         for ifname, daemons in self.daemons:
@@ -46,7 +47,7 @@ class NetworkWatcher(WatcherBase, NetworkMonitorMix, ConfigMix,
                 instance.kill()
 
     def each_loop(self):
-        self.POLL_TIMEOUT = min(self.POLL_TIMEOUT * 2, 300.)
+        self.server.POLL_TIMEOUT = min(self.server.POLL_TIMEOUT * 2, 300.)
         self.connected = connected = self.try_connected()
 
         if not connected:
@@ -67,7 +68,7 @@ class NetworkWatcher(WatcherBase, NetworkMonitorMix, ConfigMix,
             return
         self._connected = val
         self.logger.info("Internet %s" % (val and "connected" or "disconnect"))
-        self.POLL_TIMEOUT = 1.0
+        self.server.POLL_TIMEOUT = 1.0
         self.timestemp = timestemp = time()
         self.timestemps = [t for t in self.timestemps if 300 > (timestemp - t)]
         self.timestemps.append(timestemp)
@@ -92,9 +93,6 @@ class NetworkWatcher(WatcherBase, NetworkMonitorMix, ConfigMix,
         else:
             self.logger.error("Fatal mode disabled")
 
-    def bootstrap_fatal_mode(self):
-        pass
-
     def bootstrap(self, ifname, rebootstrap=False):
         """start network interface and apply its configurations"""
 
@@ -111,7 +109,7 @@ class NetworkWatcher(WatcherBase, NetworkMonitorMix, ConfigMix,
         self.bootstrap_nic(ifname, forcus_restart=rebootstrap)
 
         if self.fatal:
-            pass
+            flux_st = self.config_device(ifname, {})
         else:
             flux_st = self.config_device(ifname, self.get_config(ifname))
             self.nic_status[ifname]["flux_st"] = flux_st

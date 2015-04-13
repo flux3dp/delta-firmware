@@ -58,7 +58,8 @@ class Monitor(object):
             ifname = info.get('IFA_LABEL', 'lo')
             ifname = ifname.split(':')[0]
             if ifname in status:
-                status[ifname]['ipaddr'].append([info.get('IFA_ADDRESS', '0.0.0.0'),
-                                                 addr.get('prefixlen', 32)])
+                status[ifname]['ipaddr'].append(
+                    [info.get('IFA_ADDRESS', '0.0.0.0'),
+                     addr.get('prefixlen', 32)])
 
         return status

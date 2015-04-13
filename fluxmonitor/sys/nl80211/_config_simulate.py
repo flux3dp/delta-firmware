@@ -47,7 +47,7 @@ class FakeIPR(object):
             print("route", args, kw)
 
 
-_config_linux.ipr = FakeIPR()
+_config_linux.IPRoute = FakeIPR
 _config_linux.Process = __process_middle__
 _config_linux.config_nameserver = __config_nameserver
 

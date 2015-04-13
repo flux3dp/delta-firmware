@@ -1,6 +1,6 @@
 
-from time import time, sleep
 from itertools import chain
+from time import time
 import uuid as _uuid
 import binascii
 import logging
@@ -44,6 +44,8 @@ GLOBAL_SERIAL = _uuid.UUID(int=0)
 
 class UpnpServicesMix(object):
     padding_request_pubkey = None
+
+    network_config_buf = None
 
     def cmd_discover(self, payload):
         """Return IP Address in array"""
@@ -94,6 +96,10 @@ class UpnpServicesMix(object):
         ts, passwd, pubkey = json.loads(rawdata)
 
         keyobj = security.get_keyobj(der=pubkey)
+        if not keyobj:
+            return
+
+        access_id = security.get_access_id(keyobj=keyobj)
         if security.is_trusted_remote(keyobj=keyobj):
             return {
                 "code": CODE_RESPONSE_PWD_ACCESS,
@@ -101,12 +107,15 @@ class UpnpServicesMix(object):
                 "status": "ok"}
 
         elif security.validate_password(self.memcache, passwd):
-            if keyobj:
-                access_id = security.add_trusted_keyobj(keyobj)
-                return {
-                    "code": CODE_RESPONSE_PWD_ACCESS,
-                    "access_id": access_id,
-                    "status": "ok"}
+            return {
+                "code": CODE_RESPONSE_PWD_ACCESS,
+                "access_id": access_id,
+                "status": "ok"}
+        else:
+            return {
+                "code": CODE_RESPONSE_PWD_ACCESS,
+                "access_id": access_id,
+                "status": "deny"}
 
     def _parse_signed_request(self, payload):
         rawdata = self.pkey.decrypt(payload)
@@ -182,28 +191,19 @@ class UpnpServicesMix(object):
             elif "ssid" in raw_opts:
                 options["ssid"] = raw_opts["ssid"]
 
-            # TODO Here we has an issue: server must response before change
-            # network config, we make a delay call to prevent this problem.
-            delay_config_network(json.dumps(["config_network", options]))
+            self.network_config_buf = json.dumps(["config_network", options])
 
             return {
                 "status": "ok", "timestemp:": time(),
                 "code": CODE_RESPONSE_SET_NETWORK,
                 "access_id": access_id}
 
-
-def delay_config_network(buf):
-    from threading import Thread
-
-    def execute(s, b):
-        sleep(1.0)
-        s.send(b)
-
-    sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-    sock.connect(network_config["unixsocket"])
-    t = Thread(target=execute, args=(sock, buf))
-    t.setDaemon(True)
-    t.start()
+    def _clean_network_config_buf(self):
+        if self.network_config_buf:
+            sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+            sock.connect(network_config["unixsocket"])
+            sock.send(self.network_config_buf)
+            self.network_config_buf = None
 
 
 class UpnpSocket(object):
@@ -263,13 +263,13 @@ class UpnpWatcher(WatcherBase, UpnpServicesMix, NetworkMonitorMix):
     ipaddress = []
     sock = None
 
-    def __init__(self, memcache):
+    def __init__(self, server):
         # Create RSA key if not exist. This will prevent upnp create key during
         # upnp is running (Its takes times and will cause timeout)
         self.pkey = security.get_private_key()
         self.pubkey_pem = self.pkey.export_pubkey_pem()
 
-        super(UpnpWatcher, self).__init__(logger, memcache)
+        super(UpnpWatcher, self).__init__(server, logger)
 
     def _on_status_changed(self, status):
         """Overwrite _on_status_changed witch called by `NetworkMonitorMix`
@@ -288,7 +288,7 @@ class UpnpWatcher(WatcherBase, UpnpServicesMix, NetworkMonitorMix):
         if self.ipaddress:
             try:
                 self.sock = UpnpSocket(self)
-                self.rlist.append(self.sock)
+                self.server.add_read_event(self.sock)
                 self.logger.info("Upnp UP")
             except socket.error:
                 self.logger.exception("")
@@ -298,15 +298,20 @@ class UpnpWatcher(WatcherBase, UpnpServicesMix, NetworkMonitorMix):
 
     def _try_close_upnp_sock(self):
         if self.sock:
-            if self.sock in self.rlist:
-                self.rlist.remove(self.sock)
-                try:
-                    self.sock.close()
-                except Exception:
-                    pass
-                self.sock = None
+            self.server.remove_read_event(self.sock)
+            try:
+                self.sock.close()
+            except Exception:
+                pass
+            self.sock = None
 
-    def run(self):
+    def start(self):
         self.bootstrap_network_monitor(self.memcache)
         self._on_status_changed(self._monitor.full_status())
-        super(UpnpWatcher, self).run()
+        # super(UpnpWatcher, self).run()
+
+    def shutdown(self):
+        pass
+
+    def each_loop(self):
+        self._clean_network_config_buf()

@@ -1,46 +1,16 @@
 
-import threading
-import select
 
-from fluxmonitor.misc import AsyncSignal
-
-
-class WatcherBase(threading.Thread):
-    POLL_TIMEOUT = 5.0
-
-    def __init__(self, logger, memcache):
-        self.memcache = memcache
+class WatcherBase(object):
+    def __init__(self, server, logger):
+        self.server = server
+        self.memcache = server.cache
         self.logger = logger
-        self.__shutdown_sig = AsyncSignal()
-
-        self.rlist = [self.__shutdown_sig]
-
-        super(WatcherBase, self).__init__()
-        self.setDaemon(True)
 
     def each_loop(self):
-        pass
+        raise RuntimeError("each_loop not implement")
 
-    def run(self):
-        self.running = True
+    def start(self):
+        raise RuntimeError("start not implement")
 
-        while self.running:
-            rlist, wlist, xlist = select.select(self.rlist,
-                                                (),
-                                                (),
-                                                self.POLL_TIMEOUT)
-            for r in rlist:
-                try:
-                    r.on_read()
-                except Exception:
-                    self.logger.exception("Unhandle error")
-
-                try:
-                    self.each_loop()
-                except Exception:
-                    self.logger.exception("Unhandle error")
-
-    def shutdown(self, log=None):
-        self.running = False
-        self.__shutdown_sig.send()
-        self.logger.info("Shutdown: %s" % log)
+    def shutdown(self):
+        raise RuntimeError("shutdown not implement")

@@ -10,12 +10,12 @@ import json
 
 from tests import _utils as U
 from tests._utils.memcache import MemcacheTestClient
+from tests._utils.server import ServerSimulator
 
 from fluxmonitor.misc import security as S
 from fluxmonitor.config import network_config
 from fluxmonitor.watcher.flux_upnp import CODE_DISCOVER, \
     CODE_SET_NETWORK, DEFAULT_PORT
-
 
 from fluxmonitor.watcher.flux_upnp import UpnpWatcher, UpnpSocket
 
@@ -25,8 +25,8 @@ class UpnpServicesMixTest(unittest.TestCase):
 
     def setUp(self):
         U.clean_db()
-        self.m = MemcacheTestClient()
-        self.w = UpnpWatcher(self.m)
+        self.cache = MemcacheTestClient()
+        self.w = UpnpWatcher(ServerSimulator())
 
     def test_fetch_rsa_key(self):
         resp = self.w.cmd_rsa_key({})
@@ -43,14 +43,14 @@ class UpnpServicesMixTest(unittest.TestCase):
                          S.get_access_id(der=U.PUBLICKEY_1))
 
         # User 1, continue padding
-        self.m.erase()
+        self.cache.erase()
         raw_req = struct.pack("<d%is" % len(U.PUBLICKEY_1),
                               time(), U.PUBLICKEY_1)
         resp = self.w.cmd_nopwd_access(raw_req)
         self.assertEqual(resp["status"], "padding")
 
         # User 2, blocked
-        self.m.erase()
+        self.cache.erase()
         raw_req = struct.pack("<d%is" % len(U.PUBLICKEY_2),
                               time(), U.PUBLICKEY_2)
         resp = self.w.cmd_nopwd_access(raw_req)
@@ -61,15 +61,15 @@ class UpnpServicesMixTest(unittest.TestCase):
         self.assertTrue(S.is_trusted_remote(der=U.PUBLICKEY_1))
 
         # User 1, ok
-        self.m.erase()
+        self.cache.erase()
         raw_req = struct.pack("<d%ss" % len(U.PUBLICKEY_1),
                               time(), U.PUBLICKEY_1)
         resp = self.w.cmd_nopwd_access(raw_req)
         self.assertEqual(resp["status"], "ok")
 
         # Set password access
-        self.m.erase()
-        S.set_password(self.m, "fluxmonitor", None)
+        self.cache.erase()
+        S.set_password(self.cache, "fluxmonitor", None)
         # User 2, blocked
         raw_req = struct.pack("<d%ss" % len(U.PUBLICKEY_2),
                               time(), U.PUBLICKEY_2)
@@ -88,18 +88,18 @@ class UpnpServicesMixTest(unittest.TestCase):
         return S.get_private_key().encrypt(payload)
 
     def test_change_pwd(self):
-        self.assertTrue(S.set_password(self.m, "fluxmonitor", None))
+        self.assertTrue(S.set_password(self.cache, "fluxmonitor", None))
         S.add_trusted_keyobj(S.get_keyobj(der=U.PUBLICKEY_3))
 
         # OK
-        self.m.erase()
+        self.cache.erase()
         req = self._create_message(U.KEYPAIR3, time(),
                                    b"new_fluxmonitor", b"fluxmonitor")
         resp = self.w.cmd_change_pwd(req)
         self.assertEqual(resp["status"], "ok")
 
         # Fail
-        self.m.erase()
+        self.cache.erase()
         req = self._create_message(U.KEYPAIR3, time(),
                                    b"new_fluxmonitor", b"fluxmonitor")
         resp = self.w.cmd_change_pwd(req)
@@ -116,9 +116,9 @@ class UpnpServicesMixTest(unittest.TestCase):
         us = U.create_unix_socket(network_config['unixsocket'])
         resp = self.w.cmd_set_network(req)
         self.assertEqual(resp["status"], "ok")
+        self.w.each_loop()  # each_loop will clean buffer
 
         # ensure data sent or raise exception
-        select.select((us,), (), (), 3.)
         us.recv(4096)
 
 
@@ -127,8 +127,8 @@ class UpnpWatcherNetworkMonitorMixTest(unittest.TestCase):
 
     def setUp(self):
         U.clean_db()
-        self.m = MemcacheTestClient()
-        self.w = UpnpWatcher(self.m)
+        self.cache = MemcacheTestClient()
+        self.w = UpnpWatcher(ServerSimulator())
 
     def test_socket_status_on_status_changed(self):
         # Test disable socket
@@ -210,9 +210,10 @@ class UpnpSocketTest(unittest.TestCase):
 
             if msg:
                 self.assertEqual(json.loads(msg), self.RESPONSE_PAYLOAD)
+                break
             else:
                 if can_retry:
-                    sleep(0.5)
+                    sleep(0.2)
                 else:
                     raise RuntimeError("No response")
 
@@ -236,7 +237,7 @@ class UpnpSocketTest(unittest.TestCase):
                 break
             else:
                 if can_retry:
-                    sleep(0.1)
+                    sleep(0.2)
                 else:
                     raise RuntimeError("No response")
 
