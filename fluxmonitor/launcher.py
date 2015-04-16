@@ -60,12 +60,8 @@ def main(options, module=None):
 
             sys.stdin = open(os.devnull, 'r')
 
-            if module:
-                logfilebase = os.path.join(general_config["logfile"],
-                                           module.__name__)
-            else:
-                logfilebase = os.path.join(general_config["logfile"],
-                                           "fluxmonitord")
+            logfilebase = os.path.join(general_config["logfile"],
+                                       module.__name__)
 
             sys.stdout = open("%s.log" % logfilebase, 'w')
             sys.stderr = open("%s.err.log" % logfilebase, 'w')
@@ -84,10 +80,6 @@ def main(options, module=None):
 
     create_logger()
     server = FluxMonitor(module=module)
-
-    def sigDbTerm(watcher, revent):
-        sys.stdout.write("\n")
-        server.kill(log="Recive SIGTERM/SIGINT")
 
     def sigTerm(watcher, revent):
         sys.stderr.write("\n")
