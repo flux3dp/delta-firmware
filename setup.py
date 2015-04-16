@@ -25,7 +25,7 @@ packages = setup_util.get_packages()
 
 
 # Process scripts
-scripts = ["bin/fluxnetworkd", "bin/fluxupnpd", "bin/flux_wlan_scan"]
+scripts = setup_util.get_scripts()
 
 
 if setup_util.is_test():

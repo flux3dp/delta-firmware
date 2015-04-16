@@ -32,9 +32,10 @@ network_config = {
 }
 
 
-serial_config = {
-    "port": "/dev/ttyAMA0",
-    "baudrate": 115200
+uart_config = {
+    "headboard": "/tmp/.headboard",
+    "mainboard": "/tmp/.mainboard",
+    "pc": "/tmp/.pc"
 }
 
 
@@ -51,7 +52,7 @@ def load_config(filename):
 
             override_config(doc.get("network_config", {}), network_config)
             override_config(doc.get("general_config", {}), general_config)
-            override_config(doc.get("serial_config", {}), serial_config)
+            override_config(doc.get("uart_config", {}), uart_config)
     except Exception as error:
         print(error)
 

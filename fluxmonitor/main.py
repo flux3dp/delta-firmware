@@ -55,7 +55,7 @@ class EventBase(object):
 
 class FluxMonitor(EventBase):
     def __init__(self, module):
-        EventBase.__init__(self)
+        super(FluxMonitor, self).__init__()
 
         self.self_test()
         self.cache = memcache.Client(["127.0.0.1:11211"])
@@ -64,7 +64,6 @@ class FluxMonitor(EventBase):
         self.add_read_event(self.signal)
 
         self.watcher = module(self)
-        super(FluxMonitor, self).__init__()
 
     def run(self):
         self.watcher.start()

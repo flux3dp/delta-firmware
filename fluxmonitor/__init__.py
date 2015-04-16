@@ -1,2 +1,2 @@
 
-VERSION = ("0", "3a2")
+VERSION = ("0", "4a1")

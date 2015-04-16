@@ -39,3 +39,7 @@ def setup_test():
     config.general_config["debug"] = True
     config.network_config["unixsocket"] = "./tmp/network-sock"
 
+def get_scripts():
+    return ["bin/fluxnetworkd", "bin/fluxupnpd", "bin/fluxhal-uart",
+        "bin/flux_wlan_scan"]
+
