@@ -36,7 +36,9 @@ class EventBase(object):
                                                     (),
                                                     self.POLL_TIMEOUT)
             except select.error as err:
-                if err.args[0] != EINTR:
+                if err.args[0] == EINTR:
+                    continue
+                else:
                     raise
 
             for r in rlist:
