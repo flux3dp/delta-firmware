@@ -39,6 +39,10 @@ CODE_RESPONSE_CHANGE_PWD = 0x09
 CODE_SET_NETWORK = 0x0a
 CODE_RESPONSE_SET_NETWORK = 0x0b
 
+
+CODE_REQUEST_ROBOT = 0x80
+CODE_RESPONSE_ROBOT = 0x81
+
 GLOBAL_SERIAL = _uuid.UUID(int=0)
 
 
@@ -198,6 +202,13 @@ class UpnpServicesMix(object):
                 "code": CODE_RESPONSE_SET_NETWORK,
                 "access_id": access_id}
 
+    def require_robot(self, payload):
+        ok, access_id, message = self._parse_signed_request(payload)
+        if ok:
+            # TODO
+            return {"status": "error", "message": "not implement :-)"}
+
+
     def _clean_network_config_buf(self):
         if self.network_config_buf:
             sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
@@ -222,10 +233,15 @@ class UpnpSocket(object):
             CODE_PWD_ACCESS: self.server.cmd_pwd_access,
             CODE_CHANGE_PWD: self.server.cmd_change_pwd,
             CODE_SET_NETWORK: self.server.cmd_set_network,
+
+            CODE_REQUEST_ROBOT: self.server.require_robot
         }
 
     def fileno(self):
         return self.sock.fileno()
+
+    def get_remote_sockname(self, orig):
+        return ("255.255.255.255", orig[1])
 
     def on_read(self):
         buf, remote = self.sock.recvfrom(4096)
@@ -247,11 +263,11 @@ class UpnpSocket(object):
 
                 if code == CODE_DISCOVER:
                     payload = message + b"\x00"
-                    self.sock.sendto(payload, ("255.255.255.255", remote[1]))
+                    self.sock.sendto(payload, self.get_remote_sockname(remote))
                 else:
                     signature = self.server.pkey.sign(message)
                     payload = message + b"\x00" + signature
-                    self.sock.sendto(payload, ("255.255.255.255", remote[1]))
+                    self.sock.sendto(payload, self.get_remote_sockname(remote))
             self.server.logger.debug("%.4f %s" % (time() - t1,
                                      cb.im_func.func_name))
 

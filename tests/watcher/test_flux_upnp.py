@@ -162,7 +162,7 @@ class UpnpSocketTest(unittest.TestCase):
 
         for hook_name in ["cmd_discover", "cmd_rsa_key", "cmd_nopwd_access",
                           "cmd_change_pwd", "cmd_pwd_access",
-                          "cmd_set_network"]:
+                          "cmd_set_network", "require_robot"]:
             setattr(self, hook_name, self._cmd_hook)
 
     def _cmd_hook(self, payload):
