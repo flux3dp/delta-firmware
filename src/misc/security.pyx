@@ -70,7 +70,10 @@ cdef class RSAObject:
         return decrypt_message(self.rsakey, message, len(message))
 
     cpdef sign(self, message):
-        return sign_message(self.rsakey, message, len(message))
+        if self.privatekey == 1:
+            return sign_message(self.rsakey, message, len(message))
+        else:
+            raise RuntimeError("Public Key can not sign")
 
     cpdef verify(self, message, sig):
         return verify_message(self.rsakey, message, len(message),

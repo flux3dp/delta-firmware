@@ -640,7 +640,9 @@ static char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
 static char __pyx_k_RuntimeError[] = "RuntimeError";
 static char __pyx_k_export_pubkey_pem[] = "export_pubkey_pem";
 static char __pyx_k_Can_not_load_rsa_key[] = "Can not load rsa key.";
+static char __pyx_k_Public_Key_can_not_sign[] = "Public Key can not sign";
 static PyObject *__pyx_kp_s_Can_not_load_rsa_key;
+static PyObject *__pyx_kp_s_Public_Key_can_not_sign;
 static PyObject *__pyx_n_s_RuntimeError;
 static PyObject *__pyx_n_s_decrypt;
 static PyObject *__pyx_n_s_der;
@@ -662,6 +664,7 @@ static PyObject *__pyx_n_s_test;
 static PyObject *__pyx_n_s_verify;
 static PyObject *__pyx_int_1024;
 static PyObject *__pyx_tuple_;
+static PyObject *__pyx_tuple__2;
 
 /* "src/misc/security.pyx":24
  *     cdef int privatekey
@@ -1859,8 +1862,8 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_14decrypt(st
  *         return decrypt_message(self.rsakey, message, len(message))
  * 
  *     cpdef sign(self, message):             # <<<<<<<<<<<<<<
- *         return sign_message(self.rsakey, message, len(message))
- * 
+ *         if self.privatekey == 1:
+ *             return sign_message(self.rsakey, message, len(message))
  */
 
 static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_17sign(PyObject *__pyx_v_self, PyObject *__pyx_v_message); /*proto*/
@@ -1872,8 +1875,9 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_sign(struct _
   PyObject *__pyx_t_3 = NULL;
   PyObject *__pyx_t_4 = NULL;
   PyObject *__pyx_t_5 = NULL;
-  unsigned char const *__pyx_t_6;
-  Py_ssize_t __pyx_t_7;
+  int __pyx_t_6;
+  unsigned char const *__pyx_t_7;
+  Py_ssize_t __pyx_t_8;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -1923,25 +1927,51 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_sign(struct _
   /* "src/misc/security.pyx":73
  * 
  *     cpdef sign(self, message):
- *         return sign_message(self.rsakey, message, len(message))             # <<<<<<<<<<<<<<
+ *         if self.privatekey == 1:             # <<<<<<<<<<<<<<
+ *             return sign_message(self.rsakey, message, len(message))
+ *         else:
+ */
+  __pyx_t_6 = ((__pyx_v_self->privatekey == 1) != 0);
+  if (__pyx_t_6) {
+
+    /* "src/misc/security.pyx":74
+ *     cpdef sign(self, message):
+ *         if self.privatekey == 1:
+ *             return sign_message(self.rsakey, message, len(message))             # <<<<<<<<<<<<<<
+ *         else:
+ *             raise RuntimeError("Public Key can not sign")
+ */
+    __Pyx_XDECREF(__pyx_r);
+    __pyx_t_7 = __Pyx_PyObject_AsUString(__pyx_v_message); if (unlikely((!__pyx_t_7) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 74; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = PyObject_Length(__pyx_v_message); if (unlikely(__pyx_t_8 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 74; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = sign_message(__pyx_v_self->rsakey, __pyx_t_7, __pyx_t_8); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 74; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_r = __pyx_t_1;
+    __pyx_t_1 = 0;
+    goto __pyx_L0;
+  }
+  /*else*/ {
+
+    /* "src/misc/security.pyx":76
+ *             return sign_message(self.rsakey, message, len(message))
+ *         else:
+ *             raise RuntimeError("Public Key can not sign")             # <<<<<<<<<<<<<<
  * 
  *     cpdef verify(self, message, sig):
  */
-  __Pyx_XDECREF(__pyx_r);
-  __pyx_t_6 = __Pyx_PyObject_AsUString(__pyx_v_message); if (unlikely((!__pyx_t_6) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 73; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_7 = PyObject_Length(__pyx_v_message); if (unlikely(__pyx_t_7 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 73; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_1 = sign_message(__pyx_v_self->rsakey, __pyx_t_6, __pyx_t_7); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 73; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_r = __pyx_t_1;
-  __pyx_t_1 = 0;
-  goto __pyx_L0;
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 76; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_Raise(__pyx_t_1, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 76; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  }
 
   /* "src/misc/security.pyx":72
  *         return decrypt_message(self.rsakey, message, len(message))
  * 
  *     cpdef sign(self, message):             # <<<<<<<<<<<<<<
- *         return sign_message(self.rsakey, message, len(message))
- * 
+ *         if self.privatekey == 1:
+ *             return sign_message(self.rsakey, message, len(message))
  */
 
   /* function exit code */
@@ -1998,8 +2028,8 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_16sign(struc
   return __pyx_r;
 }
 
-/* "src/misc/security.pyx":75
- *         return sign_message(self.rsakey, message, len(message))
+/* "src/misc/security.pyx":78
+ *             raise RuntimeError("Public Key can not sign")
  * 
  *     cpdef verify(self, message, sig):             # <<<<<<<<<<<<<<
  *         return verify_message(self.rsakey, message, len(message),
@@ -2027,7 +2057,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_verify(struct
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_verify); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 75; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_verify); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 78; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_19verify)) {
       __Pyx_XDECREF(__pyx_r);
@@ -2044,7 +2074,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_verify(struct
           __pyx_t_5 = 1;
         }
       }
-      __pyx_t_6 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 75; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_6 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 78; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_6);
       if (__pyx_t_4) {
         PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_4); __Pyx_GIVEREF(__pyx_t_4); __pyx_t_4 = NULL;
@@ -2055,7 +2085,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_verify(struct
       __Pyx_INCREF(__pyx_v_sig);
       PyTuple_SET_ITEM(__pyx_t_6, 1+__pyx_t_5, __pyx_v_sig);
       __Pyx_GIVEREF(__pyx_v_sig);
-      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 75; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 78; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -2067,38 +2097,38 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_verify(struct
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "src/misc/security.pyx":76
+  /* "src/misc/security.pyx":79
  * 
  *     cpdef verify(self, message, sig):
  *         return verify_message(self.rsakey, message, len(message),             # <<<<<<<<<<<<<<
  *                               sig, len(sig)) == 1
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_7 = __Pyx_PyObject_AsUString(__pyx_v_message); if (unlikely((!__pyx_t_7) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 76; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_5 = PyObject_Length(__pyx_v_message); if (unlikely(__pyx_t_5 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 76; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_7 = __Pyx_PyObject_AsUString(__pyx_v_message); if (unlikely((!__pyx_t_7) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = PyObject_Length(__pyx_v_message); if (unlikely(__pyx_t_5 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/misc/security.pyx":77
+  /* "src/misc/security.pyx":80
  *     cpdef verify(self, message, sig):
  *         return verify_message(self.rsakey, message, len(message),
  *                               sig, len(sig)) == 1             # <<<<<<<<<<<<<<
  */
-  __pyx_t_8 = __Pyx_PyObject_AsUString(__pyx_v_sig); if (unlikely((!__pyx_t_8) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 77; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_9 = PyObject_Length(__pyx_v_sig); if (unlikely(__pyx_t_9 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 77; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_8 = __Pyx_PyObject_AsUString(__pyx_v_sig); if (unlikely((!__pyx_t_8) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 80; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_9 = PyObject_Length(__pyx_v_sig); if (unlikely(__pyx_t_9 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 80; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/misc/security.pyx":76
+  /* "src/misc/security.pyx":79
  * 
  *     cpdef verify(self, message, sig):
  *         return verify_message(self.rsakey, message, len(message),             # <<<<<<<<<<<<<<
  *                               sig, len(sig)) == 1
  */
-  __pyx_t_1 = __Pyx_PyBool_FromLong((verify_message(__pyx_v_self->rsakey, __pyx_t_7, __pyx_t_5, __pyx_t_8, __pyx_t_9) == 1)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 77; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyBool_FromLong((verify_message(__pyx_v_self->rsakey, __pyx_t_7, __pyx_t_5, __pyx_t_8, __pyx_t_9) == 1)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 80; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "src/misc/security.pyx":75
- *         return sign_message(self.rsakey, message, len(message))
+  /* "src/misc/security.pyx":78
+ *             raise RuntimeError("Public Key can not sign")
  * 
  *     cpdef verify(self, message, sig):             # <<<<<<<<<<<<<<
  *         return verify_message(self.rsakey, message, len(message),
@@ -2151,11 +2181,11 @@ static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_19verify(PyO
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_sig)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("verify", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 75; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("verify", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 78; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "verify") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 75; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "verify") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 78; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -2168,7 +2198,7 @@ static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_19verify(PyO
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("verify", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 75; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("verify", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 78; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("fluxmonitor.misc._security.RSAObject.verify", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2190,7 +2220,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_18verify(str
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("verify", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_verify(__pyx_v_self, __pyx_v_message, __pyx_v_sig, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 75; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_verify(__pyx_v_self, __pyx_v_message, __pyx_v_sig, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 78; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -2325,6 +2355,7 @@ static struct PyModuleDef __pyx_moduledef = {
 
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_Can_not_load_rsa_key, __pyx_k_Can_not_load_rsa_key, sizeof(__pyx_k_Can_not_load_rsa_key), 0, 0, 1, 0},
+  {&__pyx_kp_s_Public_Key_can_not_sign, __pyx_k_Public_Key_can_not_sign, sizeof(__pyx_k_Public_Key_can_not_sign), 0, 0, 1, 0},
   {&__pyx_n_s_RuntimeError, __pyx_k_RuntimeError, sizeof(__pyx_k_RuntimeError), 0, 0, 1, 1},
   {&__pyx_n_s_decrypt, __pyx_k_decrypt, sizeof(__pyx_k_decrypt), 0, 0, 1, 1},
   {&__pyx_n_s_der, __pyx_k_der, sizeof(__pyx_k_der), 0, 0, 1, 1},
@@ -2367,6 +2398,17 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple_ = PyTuple_Pack(1, __pyx_kp_s_Can_not_load_rsa_key); if (unlikely(!__pyx_tuple_)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 45; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple_);
   __Pyx_GIVEREF(__pyx_tuple_);
+
+  /* "src/misc/security.pyx":76
+ *             return sign_message(self.rsakey, message, len(message))
+ *         else:
+ *             raise RuntimeError("Public Key can not sign")             # <<<<<<<<<<<<<<
+ * 
+ *     cpdef verify(self, message, sig):
+ */
+  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_s_Public_Key_can_not_sign); if (unlikely(!__pyx_tuple__2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 76; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__2);
+  __Pyx_GIVEREF(__pyx_tuple__2);
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -2492,8 +2534,8 @@ PyMODINIT_FUNC PyInit__security(void)
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_os, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/misc/security.pyx":75
- *         return sign_message(self.rsakey, message, len(message))
+  /* "src/misc/security.pyx":78
+ *             raise RuntimeError("Public Key can not sign")
  * 
  *     cpdef verify(self, message, sig):             # <<<<<<<<<<<<<<
  *         return verify_message(self.rsakey, message, len(message),
