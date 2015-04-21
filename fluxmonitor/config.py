@@ -1,15 +1,4 @@
 
-import platform as _platform
-
-develope_env = "armv6l" not in _platform.uname()
-
-if _platform.system().lower().startswith("linux"):
-    platform = "linux"
-elif _platform.system().lower().startswith("darwin"):
-    platform = "darwin"
-else:
-    raise "fluxmonitor can not run under %s" % _platform.system()
-
 
 # The following is default config
 general_config = {
