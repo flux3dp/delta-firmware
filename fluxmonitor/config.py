@@ -1,6 +1,5 @@
 
 import platform as _platform
-import os as _os
 
 develope_env = "armv6l" not in _platform.uname()
 
@@ -62,4 +61,3 @@ def add_config_arguments(parser):
 def load_config_arguments(options):
     if options.configfile:
         load_config(options.configfile)
-

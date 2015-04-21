@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 from fluxmonitor.misc.async_signal import AsyncIO
 from fluxmonitor.config import uart_config
 
+
 class UartHalBase(object):
     hal_name = "BASE"
 
@@ -29,7 +30,7 @@ class UartHalBase(object):
             AsyncIO(self.pc, self.on_connected_pc))
 
         self.server = server
-        
+
     def create_socket(self, path):
         if os.path.exists(path):
             os.unlink(path)

@@ -1,6 +1,7 @@
 
 from fluxmonitor import halprofile
 
+
 def get_uart_hal():
     if halprofile.CURRENT_MODEL == halprofile.MODEL_DARWIN_DEV:
         from .dev import UartHal
