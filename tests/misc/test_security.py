@@ -3,7 +3,7 @@ from io import BytesIO
 from time import time
 import unittest
 
-from fluxmonitor.misc import security
+from fluxmonitor import security
 from fluxmonitor.misc import _security
 from tests import _utils as U
 from tests._utils.memcache import MemcacheTestClient

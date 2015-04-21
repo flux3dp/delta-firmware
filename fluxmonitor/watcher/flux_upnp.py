@@ -11,8 +11,8 @@ import json
 logger = logging.getLogger(__name__)
 
 from fluxmonitor.config import network_config
-from fluxmonitor.misc import security
 from fluxmonitor import VERSION as _VERSION
+from fluxmonitor import security
 from .base import WatcherBase
 from ._network_helpers import NetworkMonitorMix
 
@@ -207,7 +207,6 @@ class UpnpServicesMix(object):
         if ok:
             # TODO
             return {"status": "error", "message": "not implement :-)"}
-
 
     def _clean_network_config_buf(self):
         if self.network_config_buf:

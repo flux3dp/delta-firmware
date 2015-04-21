@@ -5,7 +5,7 @@ import os
 
 
 from fluxmonitor.config import general_config
-from fluxmonitor.misc import security
+from fluxmonitor import security
 
 
 def clean_db(default_privatekey=True):

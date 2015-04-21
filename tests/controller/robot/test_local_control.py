@@ -7,7 +7,7 @@ import socket
 from fluxmonitor.controller.interfaces.local import LocalControl
 from fluxmonitor.misc.async_signal import AsyncIO
 from fluxmonitor.event_base import EventBase
-from fluxmonitor.misc import security as S
+from fluxmonitor import security as S
 
 from tests import _utils as U
 

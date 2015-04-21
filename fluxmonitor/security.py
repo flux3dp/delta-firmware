@@ -12,7 +12,7 @@ import re
 
 logger = logging.getLogger(__name__)
 
-from ._security import RSAObject
+from fluxmonitor.misc._security import RSAObject
 from fluxmonitor.config import general_config
 
 KEYLENGTH = general_config["keylength"]

@@ -4,7 +4,7 @@ import logging
 import socket
 
 from fluxmonitor.misc.async_signal import AsyncIO
-from fluxmonitor.misc import security
+from fluxmonitor import security
 
 PRIVATE_KEY = security.get_private_key()
 

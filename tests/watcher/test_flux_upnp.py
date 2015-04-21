@@ -12,7 +12,7 @@ from tests import _utils as U
 from tests._utils.memcache import MemcacheTestClient
 from tests._utils.server import ServerSimulator
 
-from fluxmonitor.misc import security as S
+from fluxmonitor import security as S
 from fluxmonitor.config import network_config
 from fluxmonitor.watcher.flux_upnp import CODE_DISCOVER, \
     CODE_SET_NETWORK, DEFAULT_PORT
