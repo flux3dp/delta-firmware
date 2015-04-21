@@ -124,8 +124,14 @@ class AsyncIO(object):
     def fileno(self):
         return self.obj.fileno()
 
+    def set_on_read(self, callback):
+        self.read_callback = callback
+
     def on_read(self):
         self.read_callback(self)
+
+    def set_on_write(self, callback):
+        self.write_callback = callback
 
     def on_write(self):
         self.write_callback(self)
