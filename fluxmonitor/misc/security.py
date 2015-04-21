@@ -1,11 +1,12 @@
 
-from random import choice
+from random import choice, randint
 from shutil import rmtree
 from hashlib import sha1
 from hmac import HMAC
 from time import time
 import binascii
 import logging
+import struct
 import os
 import re
 
@@ -16,9 +17,10 @@ from fluxmonitor.config import general_config
 
 KEYLENGTH = general_config["keylength"]
 STR_BASE = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+MAX_UINT64 = (2 ** 64) - 1
+
 
 _safe_value = lambda val: re.match("^[a-zA-Z0-9]+$", val) is not None
-_create_salt = lambda size=8: "".join((choice(STR_BASE) for i in range(size)))
 
 
 def get_serial():
@@ -26,6 +28,27 @@ def get_serial():
     dig = sha1(pubpem).digest()[:16]
     return binascii.b2a_hex(dig)
 
+
+def randstr(length=8):
+    return "".join((choice(STR_BASE) for i in range(length)))
+
+
+def randbytes(length=128):
+    if length == 128:
+        # Just make it faster
+        return struct.pack("@QQQQQQQQQQQQQQQQ",
+                           *[randint(0, MAX_UINT64) for i in range(16)])
+
+    fit, chunks = True, length // 8
+    if length % 8 > 0:
+        fit, chunks = False, chunks + 1
+
+    buf = struct.pack("@" + ("Q" * chunks),
+                      *[randint(0, MAX_UINT64) for i in range(chunks)])
+    if not fit:
+        buf = buf[length]
+
+    return buf
 
 def get_private_key():
     filename = _get_key_filename()
@@ -105,7 +128,7 @@ def has_password():
 
 def set_password(memcache, password, old_password):
     if validate_password(memcache, old_password):
-        salt = _create_salt(8)
+        salt = randstr(8)
         pwdhash = HMAC(salt, password, sha1).hexdigest()
         with open(_get_password_filename(), "w") as f:
             f.write(salt + ";" + pwdhash)
