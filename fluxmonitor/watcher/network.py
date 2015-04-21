@@ -40,10 +40,8 @@ class NetworkWatcher(WatcherBase, NetworkMonitorMix, ConfigMix,
                 self.logger.exception("Error while bootstrap %s" % ifname)
 
     def shutdown(self):
-        super(NetworkWatcher, self).run()
-
-        for ifname, daemons in self.daemons:
-            for dname, instance in daemons:
+        for ifname, daemons in self.daemons.items():
+            for dname, instance in daemons.items():
                 instance.kill()
 
     def each_loop(self):
