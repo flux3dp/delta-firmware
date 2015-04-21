@@ -3,16 +3,18 @@
 import argparse
 import sys
 
+from fluxmonitor.config import add_config_arguments, load_config_arguments
 from fluxmonitor.launcher import create_logger
 from fluxmonitor.controller.robot import Robot
 
 parser = argparse.ArgumentParser(description='flux robot')
+add_config_arguments(parser)
 
 options = parser.parse_args()
-
+load_config_arguments(options)
 create_logger()
+
 
 robot = Robot(options)
 robot.run()
-
 

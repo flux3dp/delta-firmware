@@ -6,16 +6,20 @@ import argparse
 import psutil
 import sys
 
-from fluxmonitor.launcher import create_argument_parser
+from fluxmonitor.config import add_config_arguments, load_config_arguments
+from fluxmonitor.launcher import main, add_daemon_arguments
+from fluxmonitor.watcher.flux_upnp import UpnpWatcher
+
 
 parser = argparse.ArgumentParser(description='flux upnp deamon')
-create_argument_parser("fluxupnpd", parser)
+add_config_arguments(parser)
+add_daemon_arguments("fluxupnpd", parser)
+parser.add_argument('--debug', dest='debug', action='store_const',
+                    const=True, default=False, help='Enable debug')
+
 
 options = parser.parse_args()
-
-if options.daemon and options.shell:
-    sys.stderr.write('--daemon and --shell option can not use at same time.\n')
-    sys.exit(1)
+load_config_arguments(options)
 
 if options.stop_daemon:
     try:
@@ -33,8 +37,5 @@ if options.stop_daemon:
         print("Error: %s" % e)
         sys.exit(1)
 else:
-    from fluxmonitor.launcher import main
-    from fluxmonitor.watcher.flux_upnp import UpnpWatcher
-
     return_code = main(options, module=UpnpWatcher)
     sys.exit(return_code)

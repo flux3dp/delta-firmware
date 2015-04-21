@@ -46,23 +46,20 @@ def override_config(alt_config, current):
 
 def load_config(filename):
     import json
-    try:
-        with open(filename, "r") as f:
-            doc = json.load(f)
+    with open(filename, "r") as f:
+        doc = json.load(f)
 
-            override_config(doc.get("network_config", {}), network_config)
-            override_config(doc.get("general_config", {}), general_config)
-            override_config(doc.get("uart_config", {}), uart_config)
-    except Exception as error:
-        print(error)
+        override_config(doc.get("network_config", {}), network_config)
+        override_config(doc.get("general_config", {}), general_config)
+        override_config(doc.get("uart_config", {}), uart_config)
 
 
-def try_load_config():
-    if _os.path.exists("fluxmonitord.json"):
-        load_config("fluxmonitord.json")
-    elif _os.path.exists(_os.path.expanduser("~/.fluxmonitord.json")):
-        load_config(_os.path.expanduser("~/.fluxmonitord.json"))
-    elif _os.path.exists("/etc/fluxmonitord.json"):
-        load_config("/etc/fluxmonitord.json")
+def add_config_arguments(parser):
+    parser.add_argument('-c', dest='configfile', type=str,
+                        default='', help='PID file')
 
-try_load_config()
+
+def load_config_arguments(options):
+    if options.configfile:
+        load_config(options.configfile)
+

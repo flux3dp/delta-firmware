@@ -8,9 +8,16 @@ Note: You have to ensure you have a fluxmonitord is running and listen to
 proper unixsocket
 """
 
+from pprint import pprint
 import argparse
+import socket
+import json
+
+from fluxmonitor.config import add_config_arguments, load_config_arguments
+
 
 parser = argparse.ArgumentParser(description='network config')
+add_config_arguments(parser)
 parser.add_argument('--if', dest='ifname', type=str, required=True,
                     help='Interface, example: wlan0')
 
@@ -37,10 +44,8 @@ parser.add_argument('--wepkey', dest='wepkey', type=str, default=None,
                     help='wepkey')
 
 options = parser.parse_args()
+load_config_arguments(options)
 
-from pprint import pprint
-import socket
-import json
 from fluxmonitor.config import network_config
 
 # ======== Build config message here ========
