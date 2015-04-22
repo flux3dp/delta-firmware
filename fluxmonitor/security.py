@@ -34,21 +34,9 @@ def randstr(length=8):
 
 
 def randbytes(length=128):
-    if length == 128:
-        # Just make it faster
-        return struct.pack("@QQQQQQQQQQQQQQQQ",
-                           *[randint(0, MAX_UINT64) for i in range(16)])
+    with open("/dev/urandom") as f:
+        return f.read(length)
 
-    fit, chunks = True, length // 8
-    if length % 8 > 0:
-        fit, chunks = False, chunks + 1
-
-    buf = struct.pack("@" + ("Q" * chunks),
-                      *[randint(0, MAX_UINT64) for i in range(chunks)])
-    if not fit:
-        buf = buf[length]
-
-    return buf
 
 def get_private_key():
     filename = _get_key_filename()
