@@ -6,9 +6,10 @@ logger = logging.getLogger(__name__)
 
 from fluxmonitor.misc import Process
 from fluxmonitor.misc import linux_configure
-from fluxmonitor.config import network_config, platform
+from fluxmonitor.config import network_config
+from fluxmonitor import halprofile
 
-if platform == "linux":
+if halprofile.PLATFORM == halprofile.LINUX_PLATFORM:
     from pyroute2 import IPRoute
 
 
