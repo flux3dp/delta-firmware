@@ -1,4 +1,5 @@
 
+from signal import SIGTERM, SIGKILL
 from errno import EAGAIN
 import fcntl
 import os
@@ -35,6 +36,17 @@ def locking_status():
                 return int(pid, 10), label.strip()
     else:
         return 0, None
+
+
+def terminate(kill=False):
+    pid, label = locking_status()
+    if pid:
+        if kill:
+            os.kill(pid, SIGKILL)
+        else:
+            os.kill(pid, SIGTERM)
+        return label
+    return None
 
 
 class ControlLock(object):
