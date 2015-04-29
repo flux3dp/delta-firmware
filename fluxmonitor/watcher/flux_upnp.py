@@ -10,38 +10,45 @@ import json
 
 logger = logging.getLogger(__name__)
 
-from fluxmonitor.config import network_config
-from fluxmonitor import VERSION as _VERSION
+from fluxmonitor.config import network_config, general_config
+from fluxmonitor.misc import control_mutex
+from fluxmonitor.err_codes import *
+from fluxmonitor import STR_VERSION as VERSION
 from fluxmonitor import security
 from .base import WatcherBase
 from ._network_helpers import NetworkMonitorMix
 
-VERSION = ".".join((str(i) for i in _VERSION))
 MODEL = "flux3dp:1"
 DEFAULT_PORT = 3310
 
 
 CODE_DISCOVER = 0x00
-CODE_RESPONSE_DISCOVER = 0x01
+# CODE_RESPONSE_DISCOVER = 0x01
 
 CODE_RSA_KEY = 0x02
-CODE_RESPONSE_RSA_KEY = 0x03
+# CODE_RESPONSE_RSA_KEY = 0x03
 
 CODE_NOPWD_ACCESS = 0x04
-CODE_RESPONSE_NOPWD_ACCESS = 0x05
+# CODE_RESPONSE_NOPWD_ACCESS = 0x05
 
 CODE_PWD_ACCESS = 0x06
-CODE_RESPONSE_PWD_ACCESS = 0x07
+# CODE_RESPONSE_PWD_ACCESS = 0x07
 
-CODE_CHANGE_PWD = 0x08
-CODE_RESPONSE_CHANGE_PWD = 0x09
+CODE_CONTROL_STATUS = 0x80
+# CODE_RESPONSE_CONTROL_STATUS = 0x81
 
-CODE_SET_NETWORK = 0x0a
-CODE_RESPONSE_SET_NETWORK = 0x0b
+CODE_RESET_CONTROL = 0x82
+# CODE_RESPONSE_RESET_CONTROL = 0x83
 
+CODE_REQUEST_ROBOT = 0x84
+# CODE_RESPONSE_ROBOT = 0x85
 
-CODE_REQUEST_ROBOT = 0x80
-CODE_RESPONSE_ROBOT = 0x81
+CODE_CHANGE_PWD = 0xa0
+# CODE_RESPONSE_CHANGE_PWD = 0x09
+
+CODE_SET_NETWORK = 0xa2
+# CODE_RESPONSE_SET_NETWORK = 0x0b
+
 
 GLOBAL_SERIAL = _uuid.UUID(int=0)
 
@@ -54,16 +61,13 @@ class UpnpServicesMix(object):
     def cmd_discover(self, payload):
         """Return IP Address in array"""
         # TODO: NOT CONFIRM
-        return {"code": CODE_RESPONSE_DISCOVER, "ver": VERSION,
+        return {"ver": VERSION,
                 "model": MODEL, "serial": security.get_serial(),
                 "time": time(), "ip": self.ipaddress,
                 "pwd": security.has_password()}
 
     def cmd_rsa_key(self, payload):
-        return {
-            "code": CODE_RESPONSE_RSA_KEY,
-            "pubkey": self.pubkey_pem
-        }
+        return self.pubkey_pem
 
     def cmd_nopwd_access(self, payload):
         if len(payload) < 64:
@@ -71,8 +75,7 @@ class UpnpServicesMix(object):
 
         ts, pubkey = struct.unpack("<d%ss" % (len(payload) - 8), payload)
 
-        resp = {"code": CODE_RESPONSE_NOPWD_ACCESS,
-                "access_id": security.get_access_id(der=pubkey)}
+        resp = {"access_id": security.get_access_id(der=pubkey)}
 
         keyobj = security.get_keyobj(der=pubkey)
 
@@ -121,92 +124,72 @@ class UpnpServicesMix(object):
                 "access_id": access_id,
                 "status": "deny"}
 
-    def _parse_signed_request(self, payload):
-        rawdata = self.pkey.decrypt(payload)
+    def cmd_change_pwd(self, access_id, message):
+        keyobj = security.get_keyobj(access_id=access_id)
+        passwd, old_passwd = message.split("\x00", 1)
 
-        # access id (20) + sign (sing length) + timestemp (8) + message
-        access_id = binascii.b2a_hex(rawdata[:20])
-        client_keyobj = security.get_keyobj(access_id=access_id)
+        if security.set_password(self.memcache, passwd, old_passwd):
+            security.add_trusted_keyobj(keyobj)
+            return {"timestemp": time(), "access_id": access_id}
 
-        if client_keyobj:
-            keylen = client_keyobj.size()
+        else:
+            raise RuntimeError(BAD_PASSWORD)
 
-            signature = rawdata[20:20 + keylen]
-            timestemp = struct.unpack("<d",
-                                      rawdata[20 + keylen:28 + keylen])[0]
-            message = rawdata[28 + keylen:]
+    def cmd_set_network(self, access_id, message):
+        raw_opts = dict([i.split("=", 1) for i in message.split("\x00")])
 
-            if client_keyobj.verify(rawdata[20 + keylen:], signature):
-                if security.validate_timestemp(self.memcache,
-                                               (timestemp, signature)):
-                    return True, access_id, message
+        options = {"ifname": "wlan0"}
+        method = raw_opts.get("method")
+        if method == "dhcp":
+            options["method"] = "dhcp"
+        elif method == "static":
+            options.update({
+                "method": "static", "ipaddr": raw_opts["ipaddr"],
+                "mask": raw_opts["mask"], "route": raw_opts["route"],
+                "ns": raw_opts["ns"].split(",")
+            })
+        else:
+            return
 
-        return False, None, None
+        security = raw_opts.get("security", None)
+        if security == "WEP":
+            options.update({
+                "ssid": raw_opts["ssid"], "security": "WEP",
+                "wepkey": raw_opts["wepkey"]})
+        elif security in ['WPA-PSK', 'WPA2-PSK']:
+            options.update({
+                "ssid": raw_opts["ssid"],
+                "security": security,
+                "psk": raw_opts["psk"]
+            })
+        elif "ssid" in raw_opts:
+            options["ssid"] = raw_opts["ssid"]
 
-    def cmd_change_pwd(self, payload):
-        ok, access_id, message = self._parse_signed_request(payload)
-        if ok:
-            keyobj = security.get_keyobj(access_id=access_id)
-            passwd, old_passwd = message.split("\x00", 1)
+        self.network_config_buf = json.dumps(["config_network", options])
 
-            if security.set_password(self.memcache, passwd, old_passwd):
-                security.add_trusted_keyobj(keyobj)
-                return {
-                    "status": "ok", "timestemp": time(),
-                    "code": CODE_RESPONSE_CHANGE_PWD,
-                    "access_id": access_id}
+        return {"timestemp:": time(), "access_id": access_id}
 
-            else:
-                return {
-                    "code": CODE_RESPONSE_CHANGE_PWD,
-                    "message": "BAD_PASSWORD",
-                    "status": "error", "timestemp": time(),
-                }
+    def cmd_control_status(self, access_id, message):
+        _, label = control_mutex.locking_status()
+        if not label:
+            label = "idel"
 
-    def cmd_set_network(self, payload):
-        ok, access_id, message = self._parse_signed_request(payload)
-        if ok:
-            raw_opts = dict([i.split("=", 1) for i in message.split("\x00")])
+        return {
+            "status": True, "code": CODE_RESPONSE_CONTROL_STATUS,
+            "operation": label
+        }
 
-            options = {"ifname": "wlan0"}
-            method = raw_opts.get("method")
-            if method == "dhcp":
-                options["method"] = "dhcp"
-            elif method == "static":
-                options.update({
-                    "method": "static", "ipaddr": raw_opts["ipaddr"],
-                    "mask": raw_opts["mask"], "route": raw_opts["route"],
-                    "ns": raw_opts["ns"].split(",")
-                })
-            else:
-                return
+    def cmd_reset_control(self, access_id, message):
+        do_kill = message == b"\x01"
+        label = control_mutex.terminate(kill=do_kill)
 
-            security = raw_opts.get("security", None)
-            if security == "WEP":
-                options.update({
-                    "ssid": raw_opts["ssid"], "security": "WEP",
-                    "wepkey": raw_opts["wepkey"]})
-            elif security in ['WPA-PSK', 'WPA2-PSK']:
-                options.update({
-                    "ssid": raw_opts["ssid"],
-                    "security": security,
-                    "psk": raw_opts["psk"]
-                })
-            elif "ssid" in raw_opts:
-                options["ssid"] = raw_opts["ssid"]
+        if label:
+            return {"status": True, "task": label}
+        else:
+            return {"status": False, "error": NOT_RUNNING}
 
-            self.network_config_buf = json.dumps(["config_network", options])
-
-            return {
-                "status": "ok", "timestemp:": time(),
-                "code": CODE_RESPONSE_SET_NETWORK,
-                "access_id": access_id}
-
-    def require_robot(self, payload):
-        ok, access_id, message = self._parse_signed_request(payload)
-        if ok:
-            # TODO
-            return {"status": "error", "message": "not implement :-)"}
+    def cmd_require_robot(self, access_id, message):
+        return {"status": "error", "message": "not implement :-)"}
 
     def _clean_network_config_buf(self):
         if self.network_config_buf:
@@ -233,7 +216,9 @@ class UpnpSocket(object):
             CODE_CHANGE_PWD: self.server.cmd_change_pwd,
             CODE_SET_NETWORK: self.server.cmd_set_network,
 
-            CODE_REQUEST_ROBOT: self.server.require_robot
+            CODE_CONTROL_STATUS: self.server.cmd_control_status,
+            CODE_RESET_CONTROL: self.server.cmd_reset_control,
+            CODE_REQUEST_ROBOT: self.server.cmd_require_robot
         }
 
     def fileno(self):
@@ -242,33 +227,74 @@ class UpnpSocket(object):
     def get_remote_sockname(self, orig):
         return ("255.255.255.255", orig[1])
 
+    def parse_signed_request(self, payload):
+        rawdata = self.server.pkey.decrypt(payload)
+
+        # access id (20) + sign (sing length) + (timestemp (8) + message)
+        access_id = binascii.b2a_hex(rawdata[:20])
+        client_keyobj = security.get_keyobj(access_id=access_id)
+
+        if client_keyobj:
+            keylen = client_keyobj.size()
+
+            signature = rawdata[20:20 + keylen]
+            timestemp = struct.unpack("<d",
+                                      rawdata[20 + keylen:28 + keylen])[0]
+            message = rawdata[28 + keylen:]
+
+            if client_keyobj.verify(rawdata[20 + keylen:], signature):
+                if security.validate_timestemp(self.server.memcache,
+                                               (timestemp, signature)):
+                    return True, access_id, message
+
+        return False, None, None
+
     def on_read(self):
         buf, remote = self.sock.recvfrom(4096)
-        if len(buf) < 22:
+        if len(buf) < 21:
             return  # drop if payload length too short
 
-        magic_num, bid, code = struct.unpack("<4s16sh", buf[:22])
+        magic_num, bid, code = struct.unpack("<4s16sB", buf[:21])
         serial = _uuid.UUID(bytes=bid).hex
         if magic_num != "FLUX" or \
            (serial != security.get_serial() and serial != GLOBAL_SERIAL.hex):
             return  # drop if payload is wrong syntax
 
-        cb = self._callback.get(code)
-        if cb:
-            t1 = time()
-            resp = cb(buf[22:])
-            if resp:
-                message = json.dumps(resp)
+        self.handle_request(code, buf[21:], remote)
 
-                if code == CODE_DISCOVER:
-                    payload = message + b"\x00"
-                    self.sock.sendto(payload, self.get_remote_sockname(remote))
+    def handle_request(self, request_code, raw_msg, remote):
+        callback = self._callback.get(request_code)
+        if not callback:
+            logger.debug("Recive unhandle request code: %i" % request_code)
+            return
+
+        try:
+            if request_code == 0x00:
+                response = json.dumps(callback(raw_msg))
+                self.send_response(request_code, 0, response, remote, False)
+            elif request_code < 0x80:
+                response = json.dumps(callback(raw_msg))
+                self.send_response(request_code, 0, response, remote, True)
+            else:
+                ok, access_id, message = self.parse_signed_request(raw_msg)
+                if ok:
+                    response = json.dumps(callback(access_id, message))
+                    self.send_response(request_code, 0, response, remote, True)
                 else:
-                    signature = self.server.pkey.sign(message)
-                    payload = message + b"\x00" + signature
-                    self.sock.sendto(payload, self.get_remote_sockname(remote))
-            self.server.logger.debug("%.4f %s" % (time() - t1,
-                                     cb.im_func.func_name))
+                    logger.debug("Bad client from %s" % remote[0])
+        except RuntimeError as e:
+            self.send_response(request_code, 1, e.args[0], remote, True)
+
+    def send_response(self, request_code, response_code, message, remote,
+                      require_sign):
+        header = struct.pack("<BB", request_code + 1, response_code)
+        if require_sign:
+            signature = self.server.pkey.sign(message)
+            buf = header + b"\x00".join((message, signature))
+        else:
+            buf = header + message + b"\x00"
+
+        self.sock.sendto(buf, self.get_remote_sockname(remote))
 
     def close(self):
         self.sock.close()
@@ -309,7 +335,7 @@ class UpnpWatcher(WatcherBase, UpnpServicesMix, NetworkMonitorMix):
                 self.logger.exception("")
                 self._try_close_upnp_sock()
         else:
-                self.logger.info("Upnp DOWN")
+            self.logger.info("Upnp DOWN")
 
     def _try_close_upnp_sock(self):
         if self.sock:
@@ -323,7 +349,6 @@ class UpnpWatcher(WatcherBase, UpnpServicesMix, NetworkMonitorMix):
     def start(self):
         self.bootstrap_network_monitor(self.memcache)
         self._on_status_changed(self._monitor.full_status())
-        # super(UpnpWatcher, self).run()
 
     def shutdown(self):
         pass

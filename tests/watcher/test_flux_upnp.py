@@ -30,8 +30,7 @@ class UpnpServicesMixTest(unittest.TestCase):
 
     def test_fetch_rsa_key(self):
         resp = self.w.cmd_rsa_key({})
-        for key in ["code", "pubkey"]:
-            self.assertIn(key, resp)
+        self.assertIsNotNone(resp)
 
     def test_nopwd_access(self):
         # User 1, padding
@@ -76,46 +75,32 @@ class UpnpServicesMixTest(unittest.TestCase):
         resp = self.w.cmd_nopwd_access(raw_req)
         self.assertEqual(resp["status"], "deny")
 
-    def _create_message(self, keypair, timestemp, *args):
-        access_id = S.get_access_id(der=keypair[1])
-        message = struct.pack("<d", timestemp) + "\x00".join(args)
-
-        keyobj = S.get_keyobj(pem=keypair[0])
-
-        signature = keyobj.sign(message)
-        payload = binascii.a2b_hex(access_id) + signature + message
-
-        return S.get_private_key().encrypt(payload)
-
     def test_change_pwd(self):
         self.assertTrue(S.set_password(self.cache, "fluxmonitor", None))
         S.add_trusted_keyobj(S.get_keyobj(der=U.PUBLICKEY_3))
 
         # OK
         self.cache.erase()
-        req = self._create_message(U.KEYPAIR3, time(),
-                                   b"new_fluxmonitor", b"fluxmonitor")
-        resp = self.w.cmd_change_pwd(req)
-        self.assertEqual(resp["status"], "ok")
+        req = b"\x00".join((b"new_fluxmonitor", b"fluxmonitor"))
+        resp = self.w.cmd_change_pwd(None, req)
+        self.assertIn("access_id", resp)
 
         # Fail
         self.cache.erase()
-        req = self._create_message(U.KEYPAIR3, time(),
-                                   b"new_fluxmonitor", b"fluxmonitor")
-        resp = self.w.cmd_change_pwd(req)
-        self.assertEqual(resp.get("status"), "error")
+        req = b"\x00".join((b"new_fluxmonitor", b"fluxmonitor"))
+        self.assertRaises(RuntimeError,
+                          self.w.cmd_change_pwd, "XXX", req)
 
     def test_cmd_set_network(self):
         S.add_trusted_keyobj(S.get_keyobj(der=U.PUBLICKEY_1))
 
-        req = self._create_message(
-            U.KEYPAIR1, time(), "method=dhcp", "ssid=MYSSID",
+        req = b"\x00".join(("method=dhcp", "ssid=MYSSID",
             "security=WPA2-PSK", "psk=46a1b78481d2424cbfe46f9"
-            "e0729346a56386d071afbbe1641c6d4791a37f3ce")
+            "e0729346a56386d071afbbe1641c6d4791a37f3ce"))
 
         us = U.create_unix_socket(network_config['unixsocket'])
-        resp = self.w.cmd_set_network(req)
-        self.assertEqual(resp["status"], "ok")
+        resp = self.w.cmd_set_network(None, req)
+        self.assertIn("access_id", resp)
         self.w.each_loop()  # each_loop will clean buffer
 
         # ensure data sent or raise exception
@@ -153,7 +138,7 @@ class UpnpSocketTest(unittest.TestCase):
     RESPONSE_PAYLOAD = {"model": "flux3dp:1", "serial": "0x00000000",
                         "ip": ["192.168.1.1", 24]}
 
-    hook = lambda self, payload: self.RESPONSE_PAYLOAD
+    hook = lambda self, *args: self.RESPONSE_PAYLOAD
     logger = logging.getLogger()
 
     def __init__(self, *args, **kw):
@@ -161,12 +146,14 @@ class UpnpSocketTest(unittest.TestCase):
         super(UpnpSocketTest, self).__init__(*args, **kw)
 
         for hook_name in ["cmd_discover", "cmd_rsa_key", "cmd_nopwd_access",
-                          "cmd_change_pwd", "cmd_pwd_access",
+                          "cmd_pwd_access", "cmd_control_status",
+                          "cmd_reset_control", "cmd_require_robot",
+                          "cmd_change_pwd",
                           "cmd_set_network", "require_robot"]:
             setattr(self, hook_name, self._cmd_hook)
 
-    def _cmd_hook(self, payload):
-        return self.hook(payload)
+    def _cmd_hook(self, *args):
+        return self.hook(*args)
 
     def setUp(self):
         self.memcache = MemcacheTestClient()
@@ -196,14 +183,14 @@ class UpnpSocketTest(unittest.TestCase):
             else:
                 buf, remote = client_sock.recvfrom(4096)
 
-        payload, signature = buf.split("\x00", 1)
+        payload, signature = buf[2:].split("\x00", 1)
         return payload, signature, remote
 
     def test_cmd_discover(self):
         client = self.create_client()
 
         for can_retry in range(2, -1, -1):
-            payload = struct.pack("<4s16sh", "FLUX", "\x00"*16, CODE_DISCOVER)
+            payload = struct.pack("<4s16sB", "FLUX", "\x00"*16, CODE_DISCOVER)
             client.sendto(payload, ("255.255.255.255", DEFAULT_PORT))
 
             msg, sign, remote = self.retrieve_message_from_server(client)
@@ -219,15 +206,27 @@ class UpnpSocketTest(unittest.TestCase):
 
         client.close()
 
+    def _create_message(self, keypair, code, timestemp, *args):
+        head = struct.pack("<4s16sB", "FLUX", "\x00"*16, code)
+        access_id = S.get_access_id(der=keypair[1])
+        message = struct.pack("<d", timestemp) + "\x00".join(args)
+
+        keyobj = S.get_keyobj(pem=keypair[0])
+
+        signature = keyobj.sign(message)
+        payload = binascii.a2b_hex(access_id) + signature + message
+
+        return head + S.get_private_key().encrypt(payload)
+
     def test_cmd_set_network(self):
         S.add_trusted_keyobj(
-            S.get_keyobj(pem=S.get_private_key().export_pubkey_pem()))
+            S.get_keyobj(der=U.KEYPAIR1[1]))
 
         client = self.create_client()
 
         for can_retry in range(2, -1, -1):
-            payload = struct.pack("<4s16sh", "FLUX", "\x00"*16,
-                                  CODE_SET_NETWORK)
+            payload = self._create_message(U.KEYPAIR1, CODE_SET_NETWORK,
+                                           time(), "HI")
             client.sendto(payload, ("255.255.255.255", DEFAULT_PORT))
 
             msg, sign, remote = self.retrieve_message_from_server(client)

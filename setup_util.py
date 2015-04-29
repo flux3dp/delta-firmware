@@ -41,7 +41,7 @@ def setup_test():
     config.uart_config["headboard"] = "./tmp/headboard-uart"
     config.uart_config["mainboard"] = "./tmp/mainboard-uart"
     config.uart_config["pc"] = "./tmp/pc-uart"
-    config.robot["filepool"] = "./tmp/test_filepool"
+    config.robot_config["filepool"] = "./tmp/test_filepool"
 
 
 def get_scripts():
