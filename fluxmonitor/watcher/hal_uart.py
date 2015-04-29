@@ -12,7 +12,11 @@ class HalUartWatcher(WatcherBase):
         self.server = server
         super(HalUartWatcher, self).__init__(server, logger)
 
-        klass = get_uart_hal()
+        if server.options.smoothie:
+            klass = get_uart_hal("smoothie")
+        else:
+            klass = get_uart_hal()
+
         self.hal = klass(server)
         logger.info("UART %s HAL selected" % self.hal.hal_name)
 

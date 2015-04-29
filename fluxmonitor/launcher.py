@@ -77,7 +77,7 @@ def main(options, module=None):
         pid_handler.write(repr(os.getpid()))
 
     create_logger()
-    server = FluxMonitor(module=module)
+    server = FluxMonitor(options, module)
 
     def sigTerm(watcher, revent):
         sys.stderr.write("\n")

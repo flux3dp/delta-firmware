@@ -38,6 +38,11 @@ def setup_test():
     config.general_config["keylength"] = 512
     config.general_config["debug"] = True
     config.network_config["unixsocket"] = "./tmp/network-sock"
+    config.uart_config["headboard"] = "./tmp/headboard-uart"
+    config.uart_config["mainboard"] = "./tmp/mainboard-uart"
+    config.uart_config["pc"] = "./tmp/pc-uart"
+    config.robot["filepool"] = "./tmp/test_filepool"
+
 
 def get_scripts():
     return ["bin/fluxnetworkd", "bin/fluxupnpd", "bin/fluxhal-uartd",

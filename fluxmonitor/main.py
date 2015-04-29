@@ -10,11 +10,12 @@ from fluxmonitor.misc import AsyncSignal
 
 
 class FluxMonitor(EventBase):
-    def __init__(self, module):
+    def __init__(self, options, module):
         super(FluxMonitor, self).__init__()
 
-        self.self_test()
+        self.options = options
         self.cache = memcache.Client(["127.0.0.1:11211"])
+        self.self_test()
 
         self.signal = AsyncSignal()
         self.add_read_event(self.signal)

@@ -75,7 +75,7 @@ class LocalControl(object):
                                                             access_id))
             else:
                 sender.obj.send(b"AUTH_FAILED" + b"\x00" * 5)
-                sender.close()
+                sender.obj.close()
 
     def on_message(self, sender):
         buf = sender.obj.recv(4096)
