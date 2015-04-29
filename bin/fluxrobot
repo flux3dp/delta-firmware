@@ -4,17 +4,26 @@ import argparse
 import sys
 
 from fluxmonitor.config import add_config_arguments, load_config_arguments
+from fluxmonitor.misc.control_mutex import ControlLock
 from fluxmonitor.launcher import create_logger
-from fluxmonitor.controller.robot import Robot
 
-parser = argparse.ArgumentParser(description='flux robot')
-add_config_arguments(parser)
+def main():
+    parser = argparse.ArgumentParser(description='flux robot')
+    add_config_arguments(parser)
 
-options = parser.parse_args()
-load_config_arguments(options)
-create_logger()
+    options = parser.parse_args()
+
+    with ControlLock("robot"):
+        load_config_arguments(options)
+        create_logger()
+
+        from fluxmonitor.controller.robot import Robot
+
+        robot = Robot(options)
+        robot.run()
+
+        return 0
 
 
-robot = Robot(options)
-robot.run()
-
+if __name__ == "__main__":
+    sys.exit(main())

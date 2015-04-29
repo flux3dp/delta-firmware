@@ -17,8 +17,5 @@ class UartHal(UartHalBase, BaseOnSerial):
 
         server.add_read_event(self.smoothie_io)
 
-    def on_recv_smoothie(self, buf):
-        buf = self.smoothie.readall()
-
     def sendto_mainboard(self, buf):
         self.smoothie.write(buf)

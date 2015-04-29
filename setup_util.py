@@ -4,11 +4,11 @@ import ctypes.util
 import platform
 import sys
 
-from fluxmonitor import VERSION as _VERSION
+from fluxmonitor import STR_VERSION
 
 
 def get_version():
-    return ".".join(_VERSION)
+    return STR_VERSION
 
 
 def get_packages():

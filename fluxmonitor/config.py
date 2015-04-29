@@ -1,4 +1,5 @@
 
+from fluxmonitor import halprofile
 
 # The following is default config
 general_config = {
@@ -6,7 +7,7 @@ general_config = {
     "logfile": ".",
     "log_syntax": "[%(asctime)s,%(levelname)s,%(name)s] %(message)s",
     "log_timefmt": "%Y-%m-%d %H:%M:%S",
-    "keylength": 4096,
+    "keylength": 1024,
     "debug": False
 }
 
@@ -27,6 +28,19 @@ uart_config = {
 }
 
 
+robot_config = {
+    "filepool": "/media"
+}
+
+
+if halprofile.CURRENT_MODEL == halprofile.MODEL_DARWIN_DEV:
+    import os
+    general_config["db"] = os.path.join(os.path.expanduser("~"),
+                                        ".fluxmonitor_dev", "db")
+    robot_config["filepool"] = os.path.join(os.path.expanduser("~"),
+                                            ".fluxmonitor_dev", "filepool")
+
+
 def override_config(alt_config, current):
     for key, val in alt_config.items():
         current[key] = val
@@ -40,6 +54,7 @@ def load_config(filename):
         override_config(doc.get("network_config", {}), network_config)
         override_config(doc.get("general_config", {}), general_config)
         override_config(doc.get("uart_config", {}), uart_config)
+        override_config(doc.get("robot_config", {}), robot_config)
 
 
 def add_config_arguments(parser):
