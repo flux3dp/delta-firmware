@@ -2,6 +2,7 @@
 from itertools import chain
 from time import time
 import uuid as _uuid
+import subprocess
 import binascii
 import logging
 import struct
@@ -23,31 +24,15 @@ DEFAULT_PORT = 3310
 
 
 CODE_DISCOVER = 0x00
-# CODE_RESPONSE_DISCOVER = 0x01
-
 CODE_RSA_KEY = 0x02
-# CODE_RESPONSE_RSA_KEY = 0x03
-
 CODE_NOPWD_ACCESS = 0x04
-# CODE_RESPONSE_NOPWD_ACCESS = 0x05
-
 CODE_PWD_ACCESS = 0x06
-# CODE_RESPONSE_PWD_ACCESS = 0x07
 
 CODE_CONTROL_STATUS = 0x80
-# CODE_RESPONSE_CONTROL_STATUS = 0x81
-
 CODE_RESET_CONTROL = 0x82
-# CODE_RESPONSE_RESET_CONTROL = 0x83
-
 CODE_REQUEST_ROBOT = 0x84
-# CODE_RESPONSE_ROBOT = 0x85
-
 CODE_CHANGE_PWD = 0xa0
-# CODE_RESPONSE_CHANGE_PWD = 0x09
-
 CODE_SET_NETWORK = 0xa2
-# CODE_RESPONSE_SET_NETWORK = 0x0b
 
 
 GLOBAL_SERIAL = _uuid.UUID(int=0)
@@ -109,20 +94,13 @@ class UpnpServicesMix(object):
         access_id = security.get_access_id(keyobj=keyobj)
         if security.is_trusted_remote(keyobj=keyobj):
             return {
-                "code": CODE_RESPONSE_PWD_ACCESS,
                 "access_id": security.get_access_id(pubkey),
                 "status": "ok"}
 
         elif security.validate_password(self.memcache, passwd):
-            return {
-                "code": CODE_RESPONSE_PWD_ACCESS,
-                "access_id": access_id,
-                "status": "ok"}
+            return {"access_id": access_id, "status": "ok"}
         else:
-            return {
-                "code": CODE_RESPONSE_PWD_ACCESS,
-                "access_id": access_id,
-                "status": "deny"}
+            return {"access_id": access_id, "status": "deny"}
 
     def cmd_change_pwd(self, access_id, message):
         keyobj = security.get_keyobj(access_id=access_id)
@@ -174,22 +152,19 @@ class UpnpServicesMix(object):
         if not label:
             label = "idel"
 
-        return {
-            "status": True, "code": CODE_RESPONSE_CONTROL_STATUS,
-            "operation": label
-        }
+        return {"status": True, "operation": label}
 
     def cmd_reset_control(self, access_id, message):
         do_kill = message == b"\x01"
         label = control_mutex.terminate(kill=do_kill)
 
         if label:
-            return {"status": True, "task": label}
+            return {"task": label}
         else:
-            return {"status": False, "error": NOT_RUNNING}
+            raise RuntimeError(NOT_RUNNING)
 
     def cmd_require_robot(self, access_id, message):
-        return {"status": "error", "message": "not implement :-)"}
+        
 
     def _clean_network_config_buf(self):
         if self.network_config_buf:

@@ -73,28 +73,20 @@ class RobotCommands(object):
     def has_task(self):
         return self._task_file != None
 
-    def execute_cmd(self, cmd, sock):
-        try:
-            if self.is_idle:
-                if cmd == "ls":
-                    response = self.list_files()
-                elif cmd.startswith("select "):
-                    filename = cmd.split(" ", 1)[-1]
-                    response = self.select_file(filename)
-                elif cmd.startswith("upload "):
-                    filesize = cmd.split(" ", 1)[-1]
-                    response = self.upload_file(sock, int(filesize, 10))
-                elif cmd == "start":
-                    response 
-                sock.send(response.encode())
+    def execute_cmd(self, cmd, sender):
+        if self.is_idle:
+            if cmd == "ls":
+                return self.list_files()
+            elif cmd.startswith("select "):
+                filename = cmd.split(" ", 1)[-1]
+                return self.select_file(filename)
+            elif cmd.startswith("upload "):
+                filesize = cmd.split(" ", 1)[-1]
+                return self.upload_file(int(filesize, 10), sender)
             else:
-                pass
-
-        except RuntimeError as e:
-            sock.send(("error %s" % e.args[0]).encode())
-        except Exception:
-            sock.send(b"error %s" % UNKNOW_ERROR)
-            logger.exception(UNKNOW_ERROR)
+                raise RuntimeError(UNKNOW_COMMAND)
+        else:
+            return "!!"
 
     def list_files(self):
         # TODO: a rough method
@@ -118,7 +110,7 @@ class RobotCommands(object):
         self._task_file = open(filename, "rb")
         return "ok"
 
-    def upload_file(self, sock, filesize):
+    def upload_file(self, filesize, sender):
         if filesize > 2 ** 30:
             raise RuntimeError(FILE_TOO_LARGE)
 
@@ -127,10 +119,10 @@ class RobotCommands(object):
         buf = memoryview(_buf)
         self._task_file = f = TemporaryFile()
 
-        sock.send(b"continue")
+        sender.obj.send(b"continue")
 
         while recived < filesize:
-            l = sock.recv_into(buf)
+            l = sender.obj.recv_into(buf)
             f.write(buf[:l])
             recived += l
 
@@ -139,8 +131,18 @@ class RobotCommands(object):
 class Robot(EventBase, RobotCommands, RobotTask):
     def __init__(self, options):
         EventBase.__init__(self)
-        self.local_control = LocalControl(self, logger=logger)
         self.filepool = os.path.abspath(robot_config["filepool"])
+        self.local_control = LocalControl(self, logger=logger)
 
-    def on_cmd(self, cmd, sock):
-        self.execute_cmd(cmd, sock)
+    def on_cmd(self, cmd, sender):
+        try:
+            response = self.execute_cmd(cmd, sender)
+            sender.obj.send(response.encode())
+        except RuntimeError as e:
+            sender.obj.send(("error %s" % e.args[0]).encode())
+        except Exception:
+            sender.obj.send(b"error %s" % UNKNOW_ERROR)
+            logger.exception(UNKNOW_ERROR)
+
+    def close(self):
+        self.local_control.close()

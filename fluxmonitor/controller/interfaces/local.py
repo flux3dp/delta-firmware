@@ -17,11 +17,14 @@ class LocalControl(object):
             else logging.getLogger(__name__)
 
         self.serve_sock = s = socket.socket()
+        serve_sock_io = AsyncIO(s, self.on_accept)
+
+        self.server.add_read_event(serve_sock_io)
+        self.io_list = [serve_sock_io]
+        self.logger.info("Listen on %s:%i" % ("", port))
+
         s.bind(("", port))
         s.listen(1)
-        self.server.add_read_event(AsyncIO(s, self.on_accept))
-
-        self.logger.info("Listen on %s:%i" % ("", port))
 
     def on_accept(self, sender):
         request, client = sender.obj.accept()
@@ -69,9 +72,11 @@ class LocalControl(object):
 
             if keyobj and keyobj.verify(sender.randbytes, signature):
                 sender.obj.send(b"OK" + b"\x00" * 14)
-                self.server.add_read_event(AsyncIO(request, self.on_message))
+                sock_io = AsyncIO(request, self.on_message)
+                self.io_list.append(sock_io)
+                self.server.add_read_event(sock_io)
                 self.logger.info(
-                    "Client %s connected (access_id=%s)" % (sender.client,
+                    "Client %s connected (access_id=%s)" % (sender.client[0],
                                                             access_id))
             else:
                 sender.obj.send(b"AUTH_FAILED" + b"\x00" * 5)
@@ -81,6 +86,16 @@ class LocalControl(object):
         buf = sender.obj.recv(4096)
 
         if buf:
-            self.callback(buf, sender.obj)
+            self.callback(buf, sender)
         else:
             self.server.remove_read_event(sender)
+            if sender in self.io_list:
+                self.io_list.remove(sender)
+            self.logger.info("Client %s disconnected" %
+                             sender.obj.getsockname()[0])
+
+    def close(self):
+        for io in self.io_list:
+            self.server.remove_read_event(io)
+            io.obj.close()
+

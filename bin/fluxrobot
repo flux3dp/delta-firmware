@@ -20,7 +20,10 @@ def main():
         from fluxmonitor.controller.robot import Robot
 
         robot = Robot(options)
-        robot.run()
+        try:
+            robot.run()
+        finally:
+            robot.close()
 
         return 0
 
