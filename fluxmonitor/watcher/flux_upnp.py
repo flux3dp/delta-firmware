@@ -11,9 +11,11 @@ import json
 
 logger = logging.getLogger(__name__)
 
-from fluxmonitor.config import network_config, general_config
+from fluxmonitor.config import network_config
 from fluxmonitor.misc import control_mutex
-from fluxmonitor.err_codes import *
+from fluxmonitor.err_codes import ALREADY_RUNNING, BAD_PASSWORD, NOT_RUNNING, \
+    RESOURCE_BUSY
+
 from fluxmonitor import STR_VERSION as VERSION
 from fluxmonitor import security
 from .base import WatcherBase
@@ -108,7 +110,7 @@ class UpnpServicesMix(object):
 
         if security.set_password(self.memcache, passwd, old_passwd):
             security.add_trusted_keyobj(keyobj)
-            return {"timestemp": time(), "access_id": access_id}
+            return {"timestemp": time()}
 
         else:
             raise RuntimeError(BAD_PASSWORD)
@@ -145,14 +147,27 @@ class UpnpServicesMix(object):
 
         self.network_config_buf = json.dumps(["config_network", options])
 
-        return {"timestemp:": time(), "access_id": access_id}
+        return {"timestemp:": time()}
 
     def cmd_control_status(self, access_id, message):
         _, label = control_mutex.locking_status()
         if not label:
             label = "idel"
 
-        return {"status": True, "operation": label}
+        return {"timestemp:": time(), "onthefly": label}
+
+    def cmd_require_robot(self, access_id, message):
+        pid, label = control_mutex.locking_status()
+
+        if label == "robot":
+            raise RuntimeError(ALREADY_RUNNING)
+        elif pid:
+            raise RuntimeError(RESOURCE_BUSY)
+
+        # TODO: not good
+        subprocess.Popen(["fluxrobot"])
+
+        return {"timestemp:": time()}
 
     def cmd_reset_control(self, access_id, message):
         do_kill = message == b"\x01"
@@ -162,9 +177,6 @@ class UpnpServicesMix(object):
             return {"task": label}
         else:
             raise RuntimeError(NOT_RUNNING)
-
-    def cmd_require_robot(self, access_id, message):
-        
 
     def _clean_network_config_buf(self):
         if self.network_config_buf:

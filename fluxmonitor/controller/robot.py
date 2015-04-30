@@ -9,7 +9,8 @@ import os
 from fluxmonitor.misc.async_signal import AsyncIO
 from fluxmonitor.event_base import EventBase
 from fluxmonitor.config import uart_config, robot_config
-from fluxmonitor.err_codes import *
+from fluxmonitor.err_codes import UNKNOW_COMMAND, FILE_NOT_EXIST, \
+    FILE_TOO_LARGE, UNKNOW_ERROR
 
 from fluxmonitor.controller.interfaces.local import LocalControl
 
@@ -37,6 +38,12 @@ class RobotTask(object):
     def start_task(self):
         if not self.is_idle:
             raise RuntimeError("ALREADY_RUNNING")
+
+    def pause_task(self):
+        pass
+
+    def abort_task(self):
+        pass
 
     def on_mainboard_message(self, sender):
         pass
@@ -71,7 +78,7 @@ class RobotCommands(object):
 
     @property
     def has_task(self):
-        return self._task_file != None
+        return not self._task_file
 
     def execute_cmd(self, cmd, sender):
         if self.is_idle:
@@ -103,8 +110,8 @@ class RobotCommands(object):
             os.path.join(robot_config["filepool"], filename))
 
         if not abs_filename.startswith(self.filepool) or \
-            not abs_filename.endswith(".gcode") or \
-            not os.path.isfile(abs_filename):
+           not abs_filename.endswith(".gcode") or \
+           not os.path.isfile(abs_filename):
                 raise RuntimeError(FILE_NOT_EXIST)
 
         self._task_file = open(filename, "rb")
@@ -127,6 +134,7 @@ class RobotCommands(object):
             recived += l
 
         return "ok"
+
 
 class Robot(EventBase, RobotCommands, RobotTask):
     def __init__(self, options):
