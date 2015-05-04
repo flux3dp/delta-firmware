@@ -46,8 +46,8 @@ class IPRoute(object):
 
     def __poke__(self):
         while True:
+            sleep(60.)
             self.trigger_status_changed()
-            sleep(5.)
 
     def bind(self):
         pass
@@ -85,9 +85,12 @@ class IPRoute(object):
 
     def get_addr(self):
         hn = socket.gethostname()
-        return [
-            {"attrs": [["IFA_LABEL", "lo"]]},
-            {"attrs": [["IFA_LABEL", "wlan0"],
-                       ["IFA_ADDRESS", socket.gethostbyname(hn)]],
-             "prefixlen": 24}
-        ]
+        try:
+            return [
+                {"attrs": [["IFA_LABEL", "lo"]]},
+                {"attrs": [["IFA_LABEL", "wlan0"],
+                           ["IFA_ADDRESS", socket.gethostbyname(hn)]],
+                 "prefixlen": 24}
+            ]
+        except socket.gaierror:
+            return [{"attrs": [["IFA_LABEL", "lo"]]}]

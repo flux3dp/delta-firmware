@@ -187,10 +187,10 @@ class UpnpServicesMix(object):
 
 
 class UpnpSocket(object):
-    def __init__(self, server, port=DEFAULT_PORT):
+    def __init__(self, server, ipaddr, port=DEFAULT_PORT):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        sock.bind(("", port))
+        sock.bind((ipaddr, port))
 
         self.sock = sock
         self.server = server
@@ -212,7 +212,10 @@ class UpnpSocket(object):
         return self.sock.fileno()
 
     def get_remote_sockname(self, orig):
-        return ("255.255.255.255", orig[1])
+        if orig[0] == "127.0.0.1":
+            return ("127.0.0.1", orig[1])
+        else:
+            return ("255.255.255.255", orig[1])
 
     def parse_signed_request(self, payload):
         rawdata = self.server.pkey.decrypt(payload)
@@ -256,6 +259,7 @@ class UpnpSocket(object):
             return
 
         try:
+            t1 = time()
             if request_code == 0x00:
                 response = json.dumps(callback(raw_msg))
                 self.send_response(request_code, 0, response, remote, False)
@@ -269,6 +273,8 @@ class UpnpSocket(object):
                     self.send_response(request_code, 0, response, remote, True)
                 else:
                     logger.debug("Bad client from %s" % remote[0])
+            logger.debug("Handle request %x (%f)" % (request_code, 
+                                                     time() - t1))
         except RuntimeError as e:
             self.send_response(request_code, 1, e.args[0], remote, True)
 
@@ -288,7 +294,7 @@ class UpnpSocket(object):
 
 
 class UpnpWatcher(WatcherBase, UpnpServicesMix, NetworkMonitorMix):
-    ipaddress = []
+    ipaddress = None
     sock = None
 
     def __init__(self, server):
@@ -313,19 +319,19 @@ class UpnpWatcher(WatcherBase, UpnpServicesMix, NetworkMonitorMix):
 
     def _replace_upnp_sock(self):
         self._try_close_upnp_sock()
-        if self.ipaddress:
-            try:
-                self.sock = UpnpSocket(self)
-                self.server.add_read_event(self.sock)
-                self.logger.info("Upnp UP")
-            except socket.error:
-                self.logger.exception("")
-                self._try_close_upnp_sock()
-        else:
-            self.logger.info("Upnp DOWN")
+        ipaddr = "" if self.ipaddress else "127.0.0.1"
+
+        try:
+            self.sock = UpnpSocket(self, ipaddr=ipaddr)
+            self.server.add_read_event(self.sock)
+            self.logger.info("Upnp going UP")
+        except socket.error:
+            self.logger.exception("")
+            self._try_close_upnp_sock()
 
     def _try_close_upnp_sock(self):
         if self.sock:
+            self.logger.info("Upnp going DOWN")
             self.server.remove_read_event(self.sock)
             try:
                 self.sock.close()
