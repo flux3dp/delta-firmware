@@ -1,5 +1,6 @@
 
 from tempfile import TemporaryFile
+from select import select
 import logging
 import socket
 import json
@@ -10,7 +11,7 @@ from fluxmonitor.misc.async_signal import AsyncIO
 from fluxmonitor.event_base import EventBase
 from fluxmonitor.config import uart_config, robot_config
 from fluxmonitor.err_codes import UNKNOW_COMMAND, FILE_NOT_EXIST, \
-    FILE_TOO_LARGE, UNKNOW_ERROR
+    FILE_TOO_LARGE, UNKNOW_ERROR, ALREADY_RUNNING, RESOURCE_BUSY
 
 from fluxmonitor.controller.interfaces.local import LocalControl
 
@@ -22,7 +23,7 @@ logger = logging.getLogger("fluxrobot")
 
 
 class RobotTask(object):
-    _uart_mb = None
+    _async_mb = _uart_mb = None
 
     _status = STATUS_IDLE
     _connected = False
@@ -37,7 +38,7 @@ class RobotTask(object):
 
     def start_task(self):
         if not self.is_idle:
-            raise RuntimeError("ALREADY_RUNNING")
+            raise RuntimeError(ALREADY_RUNNING)
 
     def pause_task(self):
         pass
@@ -51,24 +52,27 @@ class RobotTask(object):
     def each_loop(self):
         pass
 
-    def enable_robot(self):
+    @property
+    def connected(self):
+        return self._connected
+
+    def connect(self):
+        self._connected = True
         self._uart_mb = mb = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-
+        logging.info("Connect to %s" % uart_config["mainboard"])
         mb.connect(uart_config["mainboard"])
+        self._async_mb = AsyncIO(mb, self.on_mainboard_message)
+        self.add_read_event(self._async_mb)
 
-        self.async_mb = AsyncIO(mb, self.on_mainboard_message)
-
-        self.add_read_event(self.async_mb)
-
-    def disable_robot(self):
-        if not self._uart_mb:
+    def disconnect(self):
+        if not self._connected:
             return
 
-        self.remove_read_event(self.async_mb)
-        self.async_mb = self.async_nb = None
-
+        self.remove_read_event(self._async_mb)
         self._uart_mb.close()
+        self._async_mb = None
         self._uart_mb = None
+        self._connected = False
 
 
 class RobotCommands(object):
@@ -90,6 +94,11 @@ class RobotCommands(object):
             elif cmd.startswith("upload "):
                 filesize = cmd.split(" ", 1)[-1]
                 return self.upload_file(int(filesize, 10), sender)
+            elif cmd == "raw":
+                return self.raw_access(sender)
+            elif cmd == "start":
+                self.start_task()
+                return "ok"
             else:
                 raise RuntimeError(UNKNOW_COMMAND)
         else:
@@ -117,6 +126,7 @@ class RobotCommands(object):
         self._task_file = open(filename, "rb")
         return "ok"
 
+    # Block method
     def upload_file(self, filesize, sender):
         if filesize > 2 ** 30:
             raise RuntimeError(FILE_TOO_LARGE)
@@ -135,6 +145,28 @@ class RobotCommands(object):
 
         return "ok"
 
+    # Block method
+    def raw_access(self, sender):
+        if not self.connected:
+            self.connect()
+
+        cli = sender.obj
+        mb = self._uart_mb
+
+        while True:
+            rl = select((cli, mb), (), (), 5.0)[0]
+            if cli in rl:
+                # TODO: Bad method
+                buf = cli.recv(128)
+                if not buf:
+                    return ""
+                elif buf == b"quit":
+                    return "ok"
+                else:
+                    mb.send(buf)
+            if mb in rl:
+                buf = mb.recv(4096)
+                cli.send(buf)
 
 class Robot(EventBase, RobotCommands, RobotTask):
     def __init__(self, options):
