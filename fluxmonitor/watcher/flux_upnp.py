@@ -87,7 +87,11 @@ class UpnpServicesMix(object):
 
     def cmd_pwd_access(self, payload):
         rawdata = self.pkey.decrypt(payload)
-        ts, passwd, pubkey = json.loads(rawdata)
+        b_ts, b_passwd, pubkey = rawdata.split(b"\x00", 2)
+        print(b_passwd)
+
+        ts = float(b_ts)
+        passwd = b_passwd.decode("utf8")
 
         keyobj = security.get_keyobj(der=pubkey)
         if not keyobj:
@@ -100,6 +104,7 @@ class UpnpServicesMix(object):
                 "status": "ok"}
 
         elif security.validate_password(self.memcache, passwd):
+            security.add_trusted_keyobj(keyobj)
             return {"access_id": access_id, "status": "ok"}
         else:
             return {"access_id": access_id, "status": "deny"}
