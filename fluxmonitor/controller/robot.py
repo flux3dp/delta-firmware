@@ -11,7 +11,7 @@ from fluxmonitor.misc.async_signal import AsyncIO
 from fluxmonitor.event_base import EventBase
 from fluxmonitor.config import uart_config, robot_config
 from fluxmonitor.err_codes import UNKNOW_COMMAND, FILE_NOT_EXIST, \
-    FILE_TOO_LARGE, UNKNOW_ERROR, ALREADY_RUNNING, RESOURCE_BUSY
+    FILE_TOO_LARGE, UNKNOW_ERROR, ALREADY_RUNNING, RESOURCE_BUSY, NO_TASK
 
 from fluxmonitor.controller.interfaces.local import LocalControl
 
@@ -27,6 +27,11 @@ class RobotTask(object):
 
     _status = STATUS_IDLE
     _connected = False
+    _task_file = None
+
+    @property
+    def has_task(self):
+        return not self._task_file
 
     @property
     def is_idle(self):
@@ -40,10 +45,19 @@ class RobotTask(object):
         if not self.is_idle:
             raise RuntimeError(ALREADY_RUNNING)
 
+        if not self.has_task:
+            raise RuntimeError(NO_TASK)
+
+        if not self.connected:
+            self.connect()
+
     def pause_task(self):
         pass
 
     def abort_task(self):
+        pass
+
+    def resume_task(self):
         pass
 
     def on_mainboard_message(self, sender):
@@ -78,12 +92,6 @@ class RobotTask(object):
 class RobotCommands(object):
     """RobotCommands is using for recvie and process commands"""
 
-    _task_file = None
-
-    @property
-    def has_task(self):
-        return not self._task_file
-
     def execute_cmd(self, cmd, sender):
         if self.is_idle:
             if cmd == "ls":
@@ -95,14 +103,24 @@ class RobotCommands(object):
                 filesize = cmd.split(" ", 1)[-1]
                 return self.upload_file(int(filesize, 10), sender)
             elif cmd == "raw":
-                return self.raw_access(sender)
+                buf = self.raw_access(sender)
+                if self.connected:
+                    self.disconnect()
+                return buf
             elif cmd == "start":
                 self.start_task()
                 return "ok"
             else:
                 raise RuntimeError(UNKNOW_COMMAND)
         else:
-            return "!!"
+            if cmd == "pause":
+                return self.pause_task()
+            elif cmd == "abort":
+                return self.abort_task()
+            elif cmd == "resume":
+                return self.resume_task()
+            else:
+                raise RuntimeError(UNKNOW_COMMAND)
 
     def list_files(self):
         # TODO: a rough method
@@ -167,6 +185,7 @@ class RobotCommands(object):
             if mb in rl:
                 buf = mb.recv(4096)
                 cli.send(buf)
+
 
 class Robot(EventBase, RobotCommands, RobotTask):
     def __init__(self, options):

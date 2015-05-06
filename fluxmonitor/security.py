@@ -151,6 +151,16 @@ def validate_timestemp(memcache, timestemp, expire=60):
             return True
 
 
+def _set_password(password):
+    salt = randstr(8)
+    pwdhash = HMAC(salt, password, sha1).hexdigest()
+    with open(_get_password_filename(), "w") as f:
+        f.write(salt + ";" + pwdhash)
+    pubdir = _get_path("pub")
+    if os.path.isdir(pubdir):
+        rmtree(_get_path("pub"))
+    return True
+
 def _get_password_filename():
     return _get_path("private", "password")
 
