@@ -1,4 +1,5 @@
 
+from errno import ECONNREFUSED
 from tempfile import TemporaryFile
 from select import select
 import logging
@@ -13,7 +14,7 @@ from fluxmonitor.event_base import EventBase
 from fluxmonitor.config import uart_config, robot_config
 from fluxmonitor.err_codes import UNKNOW_COMMAND, FILE_NOT_EXIST, \
     FILE_TOO_LARGE, UNKNOW_ERROR, ALREADY_RUNNING, RESOURCE_BUSY, NO_TASK, \
-    NOT_RUNNING
+    NOT_RUNNING, NO_RESPONSE
 
 from fluxmonitor.controller.interfaces.local import LocalControl
 
@@ -136,12 +137,18 @@ class RobotTask(object):
         return self._connected
 
     def connect(self):
-        self._connected = True
-        self._uart_mb = mb = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        logging.info("Connect to %s" % uart_config["mainboard"])
-        mb.connect(uart_config["mainboard"])
-        self._async_mb = AsyncIO(mb, self.on_mainboard_message)
-        self.add_read_event(self._async_mb)
+        try:
+            self._connected = True
+            self._uart_mb = mb = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            logging.info("Connect to %s" % uart_config["mainboard"])
+            mb.connect(uart_config["mainboard"])
+            self._async_mb = AsyncIO(mb, self.on_mainboard_message)
+            self.add_read_event(self._async_mb)
+        except socket.error as err:
+            if err.args[0] == ECONNREFUSED:
+                raise RuntimeError(NO_RESPONSE)
+            else:
+                raise
 
     def disconnect(self):
         if not self._connected:
