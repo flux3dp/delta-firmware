@@ -24,7 +24,8 @@ network_config = {
 uart_config = {
     "headboard": "/tmp/.headboard",
     "mainboard": "/tmp/.mainboard",
-    "pc": "/tmp/.pc"
+    "pc": "/tmp/.pc",
+    "control": "/tmp/.uart-control"
 }
 
 
