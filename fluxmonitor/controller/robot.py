@@ -6,12 +6,14 @@ import socket
 import json
 import glob
 import os
+import re
 
 from fluxmonitor.misc.async_signal import AsyncIO
 from fluxmonitor.event_base import EventBase
 from fluxmonitor.config import uart_config, robot_config
 from fluxmonitor.err_codes import UNKNOW_COMMAND, FILE_NOT_EXIST, \
-    FILE_TOO_LARGE, UNKNOW_ERROR, ALREADY_RUNNING, RESOURCE_BUSY, NO_TASK
+    FILE_TOO_LARGE, UNKNOW_ERROR, ALREADY_RUNNING, RESOURCE_BUSY, NO_TASK, \
+    NOT_RUNNING
 
 from fluxmonitor.controller.interfaces.local import LocalControl
 
@@ -29,9 +31,18 @@ class RobotTask(object):
     _connected = False
     _task_file = None
 
+    # GCode executed size
+    _task_executed = None
+    # GCode size
+    _task_total = None
+    # Last g code
+    _task_last = None
+    # GCode in queue
+    _task_in_queue = None
+
     @property
     def has_task(self):
-        return not self._task_file
+        return True if self._task_file else False
 
     @property
     def is_idle(self):
@@ -51,17 +62,71 @@ class RobotTask(object):
         if not self.connected:
             self.connect()
 
+        self._task_total = os.fstat(self._task_file.fileno()).st_size
+        self._task_executed = 0
+        self._task_in_queue = 0
+
+        self._status = STATUS_RUNNING
+        logger.info("Start task with size %i" , (self._task_total))
+        self._next_cmd()
+
     def pause_task(self):
-        pass
+        if self._status == STATUS_RUNNING:
+            self._status = STATUS_PAUSE
+        else:
+            raise RuntimeError(NOT_RUNNING)
 
     def abort_task(self):
-        pass
+        if self._status in (STATUS_RUNNING, STATUS_PAUSE):
+            self._clean_task()
+        else:
+            raise RuntimeError(NOT_RUNNING)
 
     def resume_task(self):
-        pass
+        if self._status == STATUS_PAUSE:
+            self._status = STATUS_RUNNING
+            self._next_cmd()
+        else:
+            raise RuntimeError(NOT_RUNNING)
+
+    def report_task(self):
+        return "%i/%i/%s" % (self._task_executed, self._task_total,
+                             self._task_last)
 
     def on_mainboard_message(self, sender):
-        pass
+        buf = sender.obj.recv(4096)
+        messages = buf.decode("ascii")
+
+        for msg in re.split("\r\n|\n", messages):
+            logger.debug("MB: %s" % msg)
+            if msg.startswith("ok"):
+                if self._task_in_queue != None:
+                    self._task_in_queue -= 1
+
+        if self._status == STATUS_RUNNING:
+            self._next_cmd()
+
+    def _next_cmd(self):
+        while self._task_in_queue < 3:
+            buf = self._task_file.readline()
+            if not buf:
+                self._clean_task()
+                return
+
+            self._task_executed += len(buf)
+            logger.debug("GCODE: %s" % buf.decode("ascii").strip())
+
+            cmd = buf.split(b";", 1)[0].rstrip()
+
+            if cmd:
+                self._uart_mb.send(cmd + b"\n")
+                self._task_last = cmd
+                self._task_in_queue += 1
+
+    def _clean_task(self):
+        self._status = STATUS_IDLE
+        self._task_file = self._task_total = self._task_executed = None
+        self._task_in_queue = None
 
     def each_loop(self):
         pass
@@ -115,11 +180,16 @@ class RobotCommands(object):
                 raise RuntimeError(UNKNOW_COMMAND)
         else:
             if cmd == "pause":
-                return self.pause_task()
+                self.pause_task()
+                return "ok"
             elif cmd == "abort":
-                return self.abort_task()
+                self.abort_task()
+                return "ok"
             elif cmd == "resume":
-                return self.resume_task()
+                self.resume_task()
+                return "ok"
+            elif cmd == "report":
+                return self.report_task()
             else:
                 raise RuntimeError(UNKNOW_COMMAND)
 
@@ -159,6 +229,10 @@ class RobotCommands(object):
 
         while recived < filesize:
             l = sender.obj.recv_into(buf)
+            if l == 0:
+                self._task_file = None
+                break
+
             f.write(buf[:l])
             recived += l
 
