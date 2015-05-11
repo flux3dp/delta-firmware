@@ -8,7 +8,7 @@ general_config = {
     "log_syntax": "[%(asctime)s,%(levelname)s,%(name)s] %(message)s",
     "log_timefmt": "%Y-%m-%d %H:%M:%S",
     "keylength": 1024,
-    "debug": False
+    "debug": True
 }
 
 
@@ -40,7 +40,9 @@ if halprofile.CURRENT_MODEL == halprofile.MODEL_DARWIN_DEV:
                                         ".fluxmonitor_dev", "db")
     robot_config["filepool"] = os.path.join(os.path.expanduser("~"),
                                             ".fluxmonitor_dev", "filepool")
-
+else:
+    # TODO: !!!!!!!
+    robot_config["filepool"] = "/var/gcode"
 
 def override_config(alt_config, current):
     for key, val in alt_config.items():
