@@ -111,6 +111,7 @@ class RobotCommands(object):
                 self.start_task()
                 return "ok"
             else:
+                logger.debug("Can not handle: '%s'" % cmd)
                 raise RuntimeError(UNKNOW_COMMAND)
         else:
             if cmd == "pause":
@@ -171,6 +172,7 @@ class RobotCommands(object):
         cli = sender.obj
         mb = self._uart_mb
 
+        sender.obj.send(b"continue")
         while True:
             rl = select((cli, mb), (), (), 5.0)[0]
             if cli in rl:
