@@ -29,17 +29,34 @@ class UartHalBase(object):
         server.add_read_event(
             AsyncIO(self.pc, self.on_connected_pc))
 
+        self.control = self.create_socket(uart_config["control"], udp=True)
+        server.add_read_event(
+            AsyncIO(self.control, self.on_control_message))
+
         self.server = server
 
-    def create_socket(self, path):
+    def create_socket(self, path, udp=False):
         if os.path.exists(path):
             os.unlink(path)
 
-        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        s.bind(path)
-        s.listen(1)
+        if udp:
+            s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+            s.bind(path)
+        else:
+            s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            s.bind(path)
+            s.listen(1)
 
         return s
+
+    def on_control_message(self, sender):
+        buf = self.sender.obj.recv(4096)
+        cmd = buf.decode("ascii")
+
+        if cmd == "reset_dtr":
+            self.resetDTR()
+        elif cmd == "reconnect":
+            self.reconnect()
 
     def on_connected_mainboard(self, sender):
         logger.debug("Connect to mainboard")
