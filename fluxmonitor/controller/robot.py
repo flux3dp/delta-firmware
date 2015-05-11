@@ -236,6 +236,7 @@ class RobotCommands(object):
             f.write(buf[:l])
             recived += l
 
+        f.seek(0)
         return "ok"
 
     # Block method
