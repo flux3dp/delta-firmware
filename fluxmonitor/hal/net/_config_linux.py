@@ -1,31 +1,26 @@
 
+
 import tempfile
 import logging
 
 logger = logging.getLogger(__name__)
 
+from pyroute2 import IPRoute
+
 from fluxmonitor.misc import Process
 from fluxmonitor.misc import linux_configure
 from fluxmonitor.config import network_config
-from fluxmonitor import halprofile
 
-if halprofile.PLATFORM == halprofile.LINUX_PLATFORM:
-    from pyroute2 import IPRoute
-
-
-__all__ = ["ifup", "ifdown", "wlan_managed_daemon", "wlan_ap_daemon",
-           "dhcp_client_daemon", "config_ipaddr", "config_nameserver",
-           "dhcp_server_daemon"]
-
-WPA_SUPPLICANT = network_config['wpa_supplicant']
-HOSTAPD = network_config['hostapd']
 DHCLIENT = network_config['dhclient']
 DHCPD = network_config['dhcpd']
+
+__all__ = ["ifup", "ifdown", "config_ipaddr", "config_nameserver",
+           "dhcp_client_daemon", "dhcp_server_daemon"]
 
 
 def ifup(ifname):
     index = find_device_index(ifname)
-    logger.info("%s up" % ifname)
+    logger.info("ifup %s" % ifname)
     ipr = IPRoute()
     ipr.link_up(index=index)
 
@@ -39,31 +34,17 @@ def ifdown(ifname):
         logger.info("Del ip %s/%s for %s" % (address, mask, ifname))
         ipr.addr('del', index=index, address=address, mask=mask)
 
-    logger.info("%s down" % ifname)
+    logger.info("ifdown %s" % ifname)
     ipr.link_down(index=index)
 
 
-def wlan_managed_daemon(manager, ifname, wlan_config):
-    wpa_conf = tempfile.mktemp() + ".wpa.conf"
-    linux_configure.wpa_supplicant_config_to_file(wpa_conf, wlan_config)
-
-    return Process(manager,
-                   [WPA_SUPPLICANT, "-i", ifname, "-D", "nl80211,wext",
-                    "-c", wpa_conf])
-
-
-def wlan_ap_daemon(manager, ifname):
-    hostapd_conf = tempfile.mktemp() + ".hostapd.conf"
-    linux_configure.hostapd_config_to_file(hostapd_conf, ifname)
-
-    return Process(manager, [HOSTAPD, hostapd_conf])
-
-
 def dhcp_client_daemon(manager, ifname):
+    logger.info("dhcp client for %s" % ifname)
     return Process(manager, [DHCLIENT, "-d", ifname])
 
 
 def dhcp_server_daemon(manager, ifname):
+    logger.info("dhcp server for %s" % ifname)
     dhcpd_conf = tempfile.mktemp() + ".dhcpd.conf"
     dhcpd_leases = tempfile.mktemp() + ".leases"
 
@@ -76,6 +57,8 @@ def dhcp_server_daemon(manager, ifname):
 
 
 def config_ipaddr(ifname, config):
+    logger.info("ifconfig %s: %s" % (ifname, config))
+
     index = find_device_index(ifname)
 
     ipaddr = config["ipaddr"]
@@ -100,6 +83,8 @@ def config_ipaddr(ifname, config):
 def config_nameserver(nameservers):
     """Config nameserver setting, the params is a list contains multi
     nameserviers"""
+
+    logger.info("nameserver config %s" % nameservers)
 
     with open("/etc/resolv.conf", "w") as f:
         f.write("# This file is overwrite by fluxmonitord\n\n")

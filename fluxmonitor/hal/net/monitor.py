@@ -1,9 +1,10 @@
 
 import platform
+
 if platform.system().lower().startswith("linux"):
     from pyroute2 import IPRoute
 else:
-    from fluxmonitor.sys.net._iproute2 import IPRoute
+    from ._iproute2 import IPRoute
 
 
 class Monitor(object):
@@ -42,7 +43,7 @@ class Monitor(object):
         for nic in self.ipr.get_links():
             info = dict(nic['attrs'])
             ifname = info.get('IFLA_IFNAME', 'lo')
-            if ifname == 'lo' or ifname.startswith("mon."):
+            if ifname.startswith('lo') or ifname.startswith("mon."):
                 continue
             ifindex = nic.get('index', -1)
             ifmac = info.get('IFLA_ADDRESS', '??')

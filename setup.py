@@ -13,6 +13,9 @@ install_requires = ['setuptools', 'psutil', 'python-memcached']
 
 if setup_util.is_linux():
     install_requires += ['pyroute2', 'RPi.GPIO']
+else:
+    install_requires += ['netifaces']
+
 
 # Process libraries
 libraries = ['crypto']

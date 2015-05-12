@@ -6,8 +6,8 @@ import json
 import os
 
 from fluxmonitor.config import network_config, general_config
-from fluxmonitor.sys.net.monitor import Monitor
-from fluxmonitor.sys import nl80211
+from fluxmonitor.hal.net import config as net_config
+from fluxmonitor.hal.net.monitor import Monitor
 
 DEBUG = network_config.get("debug", False)
 
@@ -125,15 +125,15 @@ class ControlSocketMix(object):
         ifstatus = self.nic_status.get(ifname, {}).get('ifstatus')
         if ifstatus == 'UP':
             if forcus_restart:
-                nl80211.ifdown(ifname)
+                net_config.ifdown(ifname)
                 sleep(delay)
             else:
                 return
         elif ifstatus != 'DOWN' or forcus_restart:
-            nl80211.ifdown(ifname)
+            net_config.ifdown(ifname)
             sleep(delay)
 
-        nl80211.ifup(ifname)
+        net_config.ifup(ifname)
 
     def is_device_alive(self, ifname):
         """Return if device is UP or not.
@@ -143,10 +143,6 @@ class ControlSocketMix(object):
         """
         if self.nic_status.get(ifname, {}).get('ifstatus') != 'UP':
             return False
-
-        if self.is_wireless(ifname) and \
-           not nl80211.ping_wpa_supplicant(ifname):
-                return False
 
         return True
 

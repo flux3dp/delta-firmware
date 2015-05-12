@@ -6,7 +6,8 @@ logger = logging.getLogger(__name__)
 
 from .base import WatcherBase
 from ._network_helpers import NetworkMonitorMix, ConfigMix, ControlSocketMix
-from fluxmonitor.sys import nl80211
+from fluxmonitor.hal.nl80211 import config as nl80211_config
+from fluxmonitor.hal.net import config as net_config
 
 FLUX_ST_STARTED = "flux_started"
 
@@ -118,24 +119,24 @@ class NetworkWatcher(WatcherBase, NetworkMonitorMix, ConfigMix,
 
         if config:
             if self.is_wireless(ifname):
-                daemon['wpa'] = nl80211.wlan_managed_daemon(self, ifname,
-                                                            config)
+                daemon['wpa'] = nl80211_config.wlan_managed_daemon(
+                    self, ifname, config)
                 self.logger.debug("Set %s associate with %s" %
                                   (ifname, config['ssid']))
 
             if config["method"] == "dhcp":
-                daemon['dhcpc'] = nl80211.dhcp_client_daemon(self, ifname)
+                daemon['dhcpc'] = net_config.dhcp_client_daemon(self, ifname)
                 self.logger.debug("Set %s with DHCP" % ifname)
             else:
-                nl80211.config_ipaddr(ifname, config)
+                net_config.config_ipaddr(ifname, config)
                 self.logger.debug("Set %s with %s" %
                                   (ifname, config['ipaddr']))
 
         elif self.is_wireless(ifname):
-            daemon['hostapd'] = nl80211.wlan_ap_daemon(self, ifname)
-            nl80211.config_ipaddr(ifname, {'ipaddr': '192.168.1.1',
+            daemon['hostapd'] = nl80211_config.wlan_ap_daemon(self, ifname)
+            net_config.config_ipaddr(ifname, {'ipaddr': '192.168.1.1',
                                            'mask': 24})
-            daemon['dhcpd'] = nl80211.dhcp_server_daemon(self, ifname)
+            daemon['dhcpd'] = net_config.dhcp_server_daemon(self, ifname)
             self.logger.debug("Wireless %s not configured, "
                               "start with ap mode" % ifname)
 

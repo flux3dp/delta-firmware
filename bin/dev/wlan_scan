@@ -17,7 +17,7 @@ list and remember allow execute these command with out `PASSWORD`
 import json
 import sys
 
-from fluxmonitor.sys.nl80211 import scan
+from fluxmonitor.hal.nl80211.scan import scan
 
 if sys.argv[-1] == "h":
     def show(result):
