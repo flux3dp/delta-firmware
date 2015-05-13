@@ -83,7 +83,7 @@ class UpnpServicesMixTest(unittest.TestCase):
         self.cache.erase()
         req = b"\x00".join((b"new_fluxmonitor", b"fluxmonitor"))
         resp = self.w.cmd_change_pwd(None, req)
-        self.assertIn("access_id", resp)
+        self.assertIn("timestemp", resp)
 
         # Fail
         self.cache.erase()
@@ -100,7 +100,7 @@ class UpnpServicesMixTest(unittest.TestCase):
 
         us = U.create_unix_socket(network_config['unixsocket'])
         resp = self.w.cmd_set_network(None, req)
-        self.assertIn("access_id", resp)
+        self.assertIn("timestemp", resp)
         self.w.each_loop()  # each_loop will clean buffer
 
         # ensure data sent or raise exception
@@ -119,17 +119,16 @@ class UpnpWatcherNetworkMonitorMixTest(unittest.TestCase):
         # Test disable socket
         self.w._on_status_changed({})
         self.assertEqual(self.w.ipaddress, [])
-        self.assertIsNone(self.w.sock)
 
         # Test enable socket
         self.w._on_status_changed({'wlan0': {'ipaddr': ['192.168.1.1']}})
         self.assertEqual(self.w.ipaddress, ['192.168.1.1'])
-        self.assertIsInstance(self.w.sock, UpnpSocket)
 
         # Test disable socket
         self.w._on_status_changed({})
         self.assertEqual(self.w.ipaddress, [])
-        self.assertIsNone(self.w.sock)
+
+        self.assertIsInstance(self.w.sock, UpnpSocket)
 
 
 class UpnpSocketTest(unittest.TestCase):
@@ -157,7 +156,7 @@ class UpnpSocketTest(unittest.TestCase):
 
     def setUp(self):
         self.memcache = MemcacheTestClient()
-        self.sock = UpnpSocket(self)
+        self.sock = UpnpSocket(self, "")
 
     def tearDown(self):
         self.sock.close()

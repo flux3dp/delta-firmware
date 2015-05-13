@@ -152,14 +152,14 @@ class UpnpServicesMix(object):
 
         self.network_config_buf = json.dumps(["config_network", options])
 
-        return {"timestemp:": time()}
+        return {"timestemp": time()}
 
     def cmd_control_status(self, access_id, message):
         _, label = control_mutex.locking_status()
         if not label:
             label = "idel"
 
-        return {"timestemp:": time(), "onthefly": label}
+        return {"timestemp": time(), "onthefly": label}
 
     def cmd_require_robot(self, access_id, message):
         pid, label = control_mutex.locking_status()
@@ -172,7 +172,7 @@ class UpnpServicesMix(object):
         # TODO: not good
         subprocess.Popen(["fluxrobot"])
 
-        return {"timestemp:": time()}
+        return {"timestemp": time()}
 
     def cmd_reset_control(self, access_id, message):
         do_kill = message == b"\x01"
