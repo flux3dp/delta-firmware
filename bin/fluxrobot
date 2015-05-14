@@ -16,7 +16,7 @@ def main():
 
     with ControlLock("robot"):
         apply_config_arguments(options)
-        create_logger()
+        create_logger(options)
 
         from fluxmonitor.controller.robot import Robot
 
