@@ -1,5 +1,5 @@
 
-MODEL_DARWIN_DEV = "darwin"
+MODEL_DARWIN_DEV = "darwin-dev"
 MODEL_LINUX_DEV = "linux-dev"
 MODEL_MODEL_G1 = "model:1"
 

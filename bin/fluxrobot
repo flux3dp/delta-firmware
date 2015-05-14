@@ -3,7 +3,8 @@
 import argparse
 import sys
 
-from fluxmonitor.config import add_config_arguments, load_config_arguments
+from fluxmonitor.misc.flux_argparse import add_config_arguments, \
+    apply_config_arguments
 from fluxmonitor.misc.control_mutex import ControlLock
 from fluxmonitor.launcher import create_logger
 
@@ -14,7 +15,7 @@ def main():
     options = parser.parse_args()
 
     with ControlLock("robot"):
-        load_config_arguments(options)
+        apply_config_arguments(options)
         create_logger()
 
         from fluxmonitor.controller.robot import Robot

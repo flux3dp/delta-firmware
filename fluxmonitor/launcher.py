@@ -11,16 +11,7 @@ from fluxmonitor.config import general_config
 from fluxmonitor.main import FluxMonitor
 
 
-def add_daemon_arguments(proc_name, parser):
-    parser.add_argument('--daemon', dest='daemon', action='store_const',
-                        const=True, default=False, help='Run as daemon')
-    parser.add_argument('--stop', dest='stop_daemon', action='store_const',
-                        const=True, default=False, help='Stop daemon')
-    parser.add_argument('--pid', dest='pidfile', type=str,
-                        default='%s.pid' % proc_name, help='PID file')
-
-
-def create_logger():
+def create_logger(options):
     LOG_TIMEFMT = general_config["log_timefmt"]
     LOG_FORMAT = general_config["log_syntax"]
 
@@ -58,11 +49,8 @@ def main(options, module=None):
 
             sys.stdin = open(os.devnull, 'r')
 
-            logfilebase = os.path.join(general_config["logfile"],
-                                       module.__name__)
-
-            sys.stdout = open("%s.log" % logfilebase, 'w')
-            sys.stderr = open("%s.err.log" % logfilebase, 'w')
+            sys.stdout = open(options.logfile, 'a')
+            sys.stderr = sys.stdout
 
             pid_handler = open(options.pidfile, 'w', 0)
             pid_handler.write(repr(os.getpid()))
@@ -76,7 +64,7 @@ def main(options, module=None):
     else:
         pid_handler.write(repr(os.getpid()))
 
-    create_logger()
+    create_logger(options)
     server = FluxMonitor(options, module)
 
     def sigTerm(watcher, revent):

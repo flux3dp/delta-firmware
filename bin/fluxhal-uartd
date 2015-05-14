@@ -6,24 +6,21 @@ import argparse
 import psutil
 import sys
 
-from fluxmonitor.config import add_config_arguments, load_config_arguments
-from fluxmonitor.launcher import main, add_daemon_arguments
+from fluxmonitor.misc.flux_argparse import add_daemon_arguments, \
+    apply_daemon_arguments
 from fluxmonitor.watcher.hal_uart import HalUartWatcher
+from fluxmonitor.launcher import main
 
 
 parser = argparse.ArgumentParser(description='flux hal uart deamon')
-add_config_arguments(parser)
 add_daemon_arguments("fluxhal-uartd", parser)
-
 parser.add_argument('--smoothie', dest='smoothie', action='store_const',
                     const=True, default=False, help='Connect to smoothie')
-parser.add_argument('--debug', dest='debug', action='store_const',
-                    const=True, default=False, help='Enable debug')
 parser.add_argument("--port", dest='serial_port', type=str, default=None,
                     help='Printer Serial Port')
-
 options = parser.parse_args()
-load_config_arguments(options)
+apply_daemon_arguments(options)
+
 
 if options.stop_daemon:
     try:

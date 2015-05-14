@@ -26,10 +26,10 @@ logger = logging.getLogger("fluxrobot")
 
 
 class RobotTask(object):
-    _async_mb = _uart_mb = None
+    connected = False
 
+    _async_mb = _uart_mb = None
     _status = STATUS_IDLE
-    _connected = False
     _task_file = None
 
     # GCode executed size
@@ -132,33 +132,37 @@ class RobotTask(object):
     def each_loop(self):
         pass
 
-    @property
-    def connected(self):
-        return self._connected
-
     def connect(self):
         try:
-            self._connected = True
-            self._uart_mb = mb = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            self.connected = True
+            self._uart_mb = mb = socket.socket(socket.AF_UNIX,
+                                               socket.SOCK_STREAM)
+
             logging.info("Connect to %s" % uart_config["mainboard"])
             mb.connect(uart_config["mainboard"])
+
             self._async_mb = AsyncIO(mb, self.on_mainboard_message)
             self.add_read_event(self._async_mb)
+
         except socket.error as err:
+            logger.exception("Connect to %s failed" % uart_config["mainboard"])
+            self.disconnect()
+
             if err.args[0] == ECONNREFUSED:
                 raise RuntimeError(NO_RESPONSE)
             else:
                 raise
 
     def disconnect(self):
-        if not self._connected:
-            return
+        if self._async_mb:
+            self.remove_read_event(self._async_mb)
+            self._async_mb = None
 
-        self.remove_read_event(self._async_mb)
-        self._uart_mb.close()
-        self._async_mb = None
-        self._uart_mb = None
-        self._connected = False
+        if self._uart_mb:
+            self._uart_mb.close()
+            self._uart_mb = None
+
+        self.connected = False
 
 
 class RobotCommands(object):
@@ -175,10 +179,7 @@ class RobotCommands(object):
                 filesize = cmd.split(" ", 1)[-1]
                 return self.upload_file(int(filesize, 10), sender)
             elif cmd == "raw":
-                buf = self.raw_access(sender)
-                if self.connected:
-                    self.disconnect()
-                return buf
+                return self.raw_access(sender)
             elif cmd == "start":
                 self.start_task()
                 return "ok"
@@ -232,43 +233,53 @@ class RobotCommands(object):
         buf = memoryview(_buf)
         self._task_file = f = TemporaryFile()
 
-        sender.obj.send(b"continue")
+        try:
+            logger.info("Upload task file size: %i" % filesize)
+            logger.warning("Enter upload mode. Connectoin EXCLUSIVE.")
+            sender.obj.send(b"continue")
 
-        while recived < filesize:
-            l = sender.obj.recv_into(buf)
-            if l == 0:
-                self._task_file = None
-                break
+            while recived < filesize:
+                l = sender.obj.recv_into(buf)
+                if l == 0:
+                    self._task_file = None
+                    break
 
-            f.write(buf[:l])
-            recived += l
+                f.write(buf[:l])
+                recived += l
 
-        f.seek(0)
-        return "ok"
+            f.seek(0)
+            return "ok"
+        finally:
+            logger.warning("Quit upload mode.")
 
     # Block method
     def raw_access(self, sender):
-        if not self.connected:
-            self.connect()
+        try:
+            logger.warning("Enter RAW mode. Connectoin EXCLUSIVE.")
+            if not self.connected:
+                self.connect()
 
-        cli = sender.obj
-        mb = self._uart_mb
+            cli = sender.obj
+            mb = self._uart_mb
+            sender.obj.send(b"continue")
 
-        sender.obj.send(b"continue")
-        while True:
-            rl = select((cli, mb), (), (), 5.0)[0]
-            if cli in rl:
-                # TODO: Bad method
-                buf = cli.recv(128)
-                if not buf:
-                    return ""
-                elif buf == b"quit":
-                    return "ok"
-                else:
-                    mb.send(buf)
-            if mb in rl:
-                buf = mb.recv(4096)
-                cli.send(buf)
+            while True:  # Loop untile disconnect or recive quit
+                rl = select((cli, mb), (), (), 5.0)[0]
+                if cli in rl:
+                    buf = cli.recv(128)
+                    if not buf:  # Disconnected
+                        return ""
+                    elif buf == b"quit":  # Recive quit
+                        return "ok"
+                    else:
+                        mb.send(buf)
+                if mb in rl:
+                    buf = mb.recv(4096)
+                    cli.send(buf)
+        finally:
+            logger.warning("Quit RAW mode.")
+            if self.connected:
+                self.disconnect()
 
 
 class Robot(EventBase, RobotCommands, RobotTask):

@@ -4,7 +4,6 @@ from fluxmonitor import halprofile
 # The following is default config
 general_config = {
     "db": "/var/db/fluxmonitord",
-    "logfile": ".",
     "log_syntax": "[%(asctime)s,%(levelname)s,%(name)s] %(message)s",
     "log_timefmt": "%Y-%m-%d %H:%M:%S",
     "keylength": 1024,
@@ -58,13 +57,3 @@ def load_config(filename):
         override_config(doc.get("general_config", {}), general_config)
         override_config(doc.get("uart_config", {}), uart_config)
         override_config(doc.get("robot_config", {}), robot_config)
-
-
-def add_config_arguments(parser):
-    parser.add_argument('-c', dest='configfile', type=str,
-                        default='', help='PID file')
-
-
-def load_config_arguments(options):
-    if options.configfile:
-        load_config(options.configfile)
