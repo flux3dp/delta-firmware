@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 from fluxmonitor.config import network_config
 from fluxmonitor.misc import control_mutex
 from fluxmonitor.err_codes import ALREADY_RUNNING, BAD_PASSWORD, NOT_RUNNING, \
-    RESOURCE_BUSY
+    RESOURCE_BUSY, AUTH_ERROR
 
 from fluxmonitor import STR_VERSION as VERSION
 from fluxmonitor import security
@@ -88,7 +88,6 @@ class UpnpServicesMix(object):
     def cmd_pwd_access(self, payload):
         rawdata = self.pkey.decrypt(payload)
         b_ts, b_passwd, pubkey = rawdata.split(b"\x00", 2)
-        print(b_passwd)
 
         ts = float(b_ts)
         passwd = b_passwd.decode("utf8")
@@ -241,8 +240,14 @@ class UpnpSocket(object):
                 if security.validate_timestemp(self.server.memcache,
                                                (timestemp, signature)):
                     return True, access_id, message
+                else:
+                    logger.debug("Timestemp error for '%s'" % access_id)
+            else:
+                logger.debug("Signuture error for '%s'" % access_id)
+        else:
+            logger.debug("Access id '%s' not found" % access_id)
 
-        return False, None, None
+        return False, access_id, None
 
     def on_read(self):
         buf, remote = self.sock.recvfrom(4096)
@@ -277,8 +282,12 @@ class UpnpSocket(object):
                     response = json.dumps(callback(access_id, message))
                     self.send_response(request_code, 0, response, remote, True)
                 else:
-                    logger.debug("Bad client from %s" % remote[0])
-            logger.debug("Handle request %x (%f)" % (request_code, 
+                    logger.debug("Client '%s' auth failed with access id '%s' "
+                                 "require 0x%x" %
+                                 (remote[0], access_id, request_code))
+                    raise RuntimeError(AUTH_ERROR)
+
+            logger.debug("Handle request 0x%x (%f)" % (request_code, 
                                                      time() - t1))
         except RuntimeError as e:
             self.send_response(request_code, 1, e.args[0], remote, True)
