@@ -241,6 +241,10 @@ class UpnpSocket(object):
                 if security.validate_timestemp(self.server.memcache,
                                                (timestemp, signature)):
                     return True, access_id, message
+            else:
+                logger.debug("Sign verify faild for access id: " % access_id)
+        else:
+            logger.debug("Can not find access id: %s" % access_id)
 
         return False, None, None
 
