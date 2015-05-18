@@ -4,12 +4,71 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated"
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
+#include <openssl/evp.h>
+#include <openssl/aes.h>
 #include <openssl/rsa.h>
 #include <openssl/pem.h>
 #include <openssl/sha.h>
 #include <openssl/x509.h>
 #include <openssl/err.h>
 #include <openssl/objects.h>
+
+
+EVP_CIPHER_CTX* create_enc_aes256key(const unsigned char* key,
+                                    const unsigned char* iv) {
+    EVP_CIPHER_CTX* ctx = malloc(sizeof(EVP_CIPHER_CTX));
+    EVP_CIPHER_CTX_init(ctx);
+    EVP_EncryptInit(ctx, EVP_aes_256_cfb(), key, iv);
+    // EVP_EncryptInit_ex(ctx, EVP_aes_256_cfb(), NULL, key, iv);
+    return ctx;
+}
+
+EVP_CIPHER_CTX* create_dec_aes256key(const unsigned char* key,
+                                    const unsigned char* iv) {
+    EVP_CIPHER_CTX* ctx = malloc(sizeof(EVP_CIPHER_CTX));
+    EVP_CIPHER_CTX_init(ctx);
+    EVP_DecryptInit(ctx, EVP_aes_256_cfb(), key, iv);
+    // EVP_EncryptInit_ex(ctx, EVP_aes_256_cfb(), NULL, key, iv);
+    return ctx;
+}
+
+void free_aes256key(EVP_CIPHER_CTX* ctx) {
+    EVP_CIPHER_CTX_cleanup(ctx);
+    free(ctx);
+}
+
+unsigned char* aes256_encrypt(EVP_CIPHER_CTX* ctx, const unsigned char* input,
+                              int inputlen, int* outputlen) {
+    int c_len = inputlen + AES_BLOCK_SIZE;
+    unsigned char *ciphertext = malloc(c_len);
+
+    // EVP_EncryptInit_ex(ctx, NULL, NULL, NULL, NULL);
+    EVP_EncryptUpdate(ctx, ciphertext, &c_len, input, inputlen);
+
+    int f_len = 0;
+    // EVP_EncryptFinal_ex(ctx, ciphertext + c_len, &f_len);
+
+    *outputlen = c_len + f_len;
+    return ciphertext;
+}
+
+unsigned char* aes256_decrypt(EVP_CIPHER_CTX* ctx,
+                              const unsigned char* ciphertext,
+                              int inputlen, int* outputlen) {
+    unsigned char *plaintext = malloc(inputlen);
+
+    // EVP_DecryptInit_ex(ctx, NULL, NULL, NULL, NULL);
+
+    int p_len = 0;
+    EVP_DecryptUpdate(ctx, plaintext, &p_len, ciphertext, inputlen);
+
+    int f_len = 0;
+    // EVP_DecryptFinal_ex(ctx, plaintext + inputlen, &f_len);
+
+    *outputlen = p_len + f_len;
+    return plaintext;
+}
 
 RSA* create_rsa(int keylen) {
     RSA *rsa = NULL;

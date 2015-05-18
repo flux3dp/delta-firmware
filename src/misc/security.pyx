@@ -3,6 +3,21 @@ import os
 
 
 cdef extern from "openssl_bridge.h":
+    ctypedef struct EVP_CIPHER_CTX
+
+    EVP_CIPHER_CTX* create_enc_aes256key(const unsigned char* key,
+                                         const unsigned char* iv)
+    EVP_CIPHER_CTX* create_dec_aes256key(const unsigned char* key,
+                                         const unsigned char* iv)
+    void free_aes256key(EVP_CIPHER_CTX* ctx)
+    unsigned char* aes256_encrypt(EVP_CIPHER_CTX* ctx,
+                                  const unsigned char* input,
+                                  int inputlen, int* outputlen)
+
+    unsigned char* aes256_decrypt(EVP_CIPHER_CTX* ctx,
+                                  const unsigned char* ciphertext,
+                                  int inputlen, int* outputlen)
+
     ctypedef struct RSA
     void RSA_free(RSA*)
 
@@ -15,6 +30,32 @@ cdef extern from "openssl_bridge.h":
     object decrypt_message(RSA*, const unsigned char*, int)
     object sign_message(RSA*, const unsigned char*, int)
     int verify_message(RSA*, const unsigned char*, int, const unsigned char*, int)
+
+
+cdef class AESObject:
+    cdef EVP_CIPHER_CTX* enc_aeskey
+    cdef EVP_CIPHER_CTX* dec_aeskey
+
+    def __init__(self, key, iv):
+        self.enc_aeskey = create_enc_aes256key(key, iv)
+        self.dec_aeskey = create_dec_aes256key(key, iv)
+
+    def __del__(self):
+        free_aes256key(self.enc_aeskey)
+        free_aes256key(self.dec_aeskey)
+
+    # 'D\xfb\x95\xbf+'
+    cpdef encrypt(self, plaintext):
+        cdef int outputlen
+        output = aes256_encrypt(self.enc_aeskey, plaintext, len(plaintext),
+                                &outputlen)
+        return output[:outputlen]
+
+    cpdef decrypt(self, ciphertext):
+        cdef int outputlen
+        output = aes256_decrypt(self.dec_aeskey, ciphertext, len(ciphertext),
+                                &outputlen)
+        return output[:outputlen]
 
 
 cdef class RSAObject:

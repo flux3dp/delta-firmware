@@ -3,11 +3,10 @@ import logging
 import socket
 import os
 
-logger = logging.getLogger(__name__)
-
-
 from fluxmonitor.misc.async_signal import AsyncIO
 from fluxmonitor.config import uart_config
+
+logger = logging.getLogger("hal.uart.base")
 
 
 class UartHalBase(object):

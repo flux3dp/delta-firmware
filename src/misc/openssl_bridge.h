@@ -2,6 +2,27 @@
 #include <Python.h>
 #include <openssl/rsa.h>
 
+// key: char[256] for key
+// iv: char[256] for iv
+// @return: EVP_CIPHER_CTX object
+EVP_CIPHER_CTX* create_enc_aes256key(const unsigned char* key,
+                                     const unsigned char* iv);
+
+EVP_CIPHER_CTX* create_dec_aes256key(const unsigned char* key,
+                                     const unsigned char* iv);
+
+
+// ctx: EVP_CIPHER_CTX obj to delete
+void free_aes256key(EVP_CIPHER_CTX* ctx);
+
+
+unsigned char* aes256_encrypt(EVP_CIPHER_CTX* ctx, const unsigned char* input,
+                              int inputlen, int* outputlen);
+
+unsigned char* aes256_decrypt(EVP_CIPHER_CTX* ctx,
+                              const unsigned char* ciphertext,
+                              int inputlen, int* outputlen);
+
 // keylength: what you see what you get
 RSA* create_rsa(int keylength);
 

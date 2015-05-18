@@ -1,10 +1,13 @@
 
 from time import sleep
+import logging
 
 from serial import Serial
 
 from fluxmonitor.misc.async_signal import AsyncIO
 from .base import UartHalBase, BaseOnSerial
+
+logger = logging.getLogger("hal.uart.smoothie")
 
 
 class UartHal(UartHalBase, BaseOnSerial):
