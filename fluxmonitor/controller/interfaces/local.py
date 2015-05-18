@@ -17,13 +17,15 @@ class LocalControl(object):
             else logging.getLogger(__name__)
 
         self.serve_sock = s = socket.socket()
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.bind(("", port))
+
         serve_sock_io = AsyncIO(s, self.on_accept)
 
         self.server.add_read_event(serve_sock_io)
         self.io_list = [serve_sock_io]
         self.logger.info("Listen on %s:%i" % ("", port))
 
-        s.bind(("", port))
         s.listen(1)
 
     def on_accept(self, sender):
