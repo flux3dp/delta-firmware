@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 
 import argparse
 import sys
@@ -8,19 +7,20 @@ from fluxmonitor.misc.flux_argparse import add_config_arguments, \
 from fluxmonitor.misc.control_mutex import ControlLock
 from fluxmonitor.launcher import create_logger
 
+
 def main():
-    parser = argparse.ArgumentParser(description='flux robot')
+    parser = argparse.ArgumentParser(description='flux scanner')
     add_config_arguments(parser)
 
     options = parser.parse_args()
 
-    with ControlLock("robot"):
+    with ControlLock("scanner"):
         apply_config_arguments(options)
         create_logger(options)
 
-        from fluxmonitor.controller.robot import Robot
+        from fluxmonitor.controller.scanner import Scanner
 
-        robot = Robot(options)
+        robot = Scanner(options)
         try:
             robot.run()
         finally:

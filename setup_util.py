@@ -7,6 +7,10 @@ import sys
 from fluxmonitor import STR_VERSION
 
 
+def get_install_requires():
+    return ['setuptools', 'psutil', 'python-memcached', 'pillow', ]
+
+
 def get_version():
     return STR_VERSION
 
@@ -15,6 +19,11 @@ def get_packages():
     return [name
             for _, name, ispkg in walk_packages(".")
             if name.startswith("fluxmonitor") and ispkg]
+
+
+def checklibs():
+    checklib('crypto', 'OpenSSL', )
+    checklib('jpeg', 'libjpeg', )
 
 
 def checklib(lib_name, package_name):
@@ -44,7 +53,19 @@ def setup_test():
     config.robot_config["filepool"] = "./tmp/test_filepool"
 
 
+def get_entry_points():
+    return {
+        "console_scripts": [
+            "fluxupnpd=fluxmonitor.bin.fluxupnpd:main",
+            "fluxhal-uartd=fluxmonitor.bin.fluxuartd:main",
+            "fluxnetworkd=fluxmonitor.bin.fluxnetworkd:main",
+
+            "fluxrobot=fluxmonitor.bin.fluxrobot:main",
+            "fluxscanner=fluxmonitor.bin.fluxscanner:main"
+        ]
+    }
+
+
 def get_scripts():
-    return ["bin/fluxnetworkd", "bin/fluxupnpd", "bin/fluxhal-uartd",
-        "bin/fluxrobot"]
+    return []
 

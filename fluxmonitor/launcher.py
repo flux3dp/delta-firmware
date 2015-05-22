@@ -24,7 +24,7 @@ def create_logger(options):
         logger.setLevel(logging.INFO)
 
 
-def main(options, module=None):
+def deamon_entry(options, module=None):
     pid_handler = open(options.pidfile, 'w', 0)
 
     try:

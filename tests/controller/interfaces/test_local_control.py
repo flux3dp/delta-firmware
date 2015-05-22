@@ -44,7 +44,6 @@ class LocalControlTest(unittest.TestCase):
         lc.on_handshake(lc_io)
         client_sock.send(sendbuf)
 
-        
-
         finalbuf = client_sock.recv(16).rstrip(b"\x00")
         self.assertTrue(finalbuf, b"OK")
+
