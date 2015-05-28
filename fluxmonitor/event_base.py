@@ -23,7 +23,7 @@ class EventBase(object):
         else:
             return False
 
-    def add_loop_event(self, fd_obj):
+    def add_loop_event(self, callback):
         self.llist.append(fd_obj)
 
     def remove_loop_event(self, fd_obj):
@@ -56,7 +56,7 @@ class EventBase(object):
 
             for o in self.llist:
                 try:
-                    o.on_loop()
+                    o.on_loop(caller)
                 except Exception:
                     logger.exception("Unhandle error")
 
