@@ -1,10 +1,36 @@
 
+from os.path import expanduser
+
+
 MODEL_DARWIN_DEV = "darwin-dev"
 MODEL_LINUX_DEV = "linux-dev"
-MODEL_MODEL_G1 = "model:1"
+MODEL_G1 = "model:1"
 
 LINUX_PLATFORM = "linux"
 DARWIN_PLATFORM = "darwin"
+
+
+PROFILES = {
+    DARWIN_DEV_PROFILE: {
+        "db": expanduser("~/.fluxmonitor_dev/db"),
+        "gcode-pool": expanduser("~/.fluxmonitor_dev/filepool"),
+        "scan_camera": 0,
+    },
+    MODEL_LINUX_DEV: {
+        "db": expanduser("~/.fluxmonitor_dev/db"),
+        "gcode-pool": expanduser("~/.fluxmonitor_dev/filepool"),
+        "scan_camera": None,
+    },
+    MODEL_G1: {
+        "db": "/var/db/fluxmonitord",
+        "gcode-pool": "/var/gcode",
+        "mainboard_uart":
+            "/dev/serial/by-path/platform-bcm2708_usb-usb-0:1.4:1.0",
+        "haedboard_uart": None,
+        "pc_uart": None,
+        "scan_camera": 0,
+    }
+}
 
 
 def get_model_id():
@@ -17,10 +43,13 @@ def get_model_id():
             return MODEL_LINUX_DEV
         else:
             # Need some method to check if it is raspberry A
-            return MODEL_MODEL_G1
+            return MODEL_G1
     else:
         raise Exception("Can not get model id")
 
+
+def get_model_profile():
+    return MODEL_LINUX_DEV
 
 def is_dev_model(profile=None):
     if profile is None:

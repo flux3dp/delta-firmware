@@ -1,15 +1,21 @@
 
-from fluxmonitor import halprofile
-
 # The following is default config
 general_config = {
+    "debug": True,
+
     "db": "/var/db/fluxmonitord",
+    "keylength": 1024,
+
     "log_syntax": "[%(asctime)s,%(levelname)s,%(name)s] %(message)s",
     "log_timefmt": "%Y-%m-%d %H:%M:%S",
-    "keylength": 1024,
-    "debug": True
 }
 
+hal_config = {
+    "mainboard_uart": None,
+    "haedboard_uart": None,
+    "pc_uart": None,
+    "scan_camera": None,
+}
 
 network_config = {
     "unixsocket": "/tmp/.fluxmonitord-network",
@@ -33,15 +39,20 @@ robot_config = {
 }
 
 
-if halprofile.CURRENT_MODEL == halprofile.MODEL_DARWIN_DEV:
-    import os
-    general_config["db"] = os.path.join(os.path.expanduser("~"),
-                                        ".fluxmonitor_dev", "db")
-    robot_config["filepool"] = os.path.join(os.path.expanduser("~"),
-                                            ".fluxmonitor_dev", "filepool")
-else:
-    # TODO: !!!!!!!
-    robot_config["filepool"] = "/var/gcode"
+def load_model_profile():
+    from fluxmonitor.halprofile import get_model_profile
+    profile = get_model_profile()
+
+    general_config["db"] = profile["db"]
+    general_config["scan_camera"] = profile["scan_camera"]
+
+    hal_config["mainboard_uart"] = profile.get("mainboard_uart")
+    hal_config["haedboard_uart"] = profile.get("haedboard_uart")
+    hal_config["pc_uart"] = profile.get("pc_uart")
+    hal_config["scan_camera"] = profile.get("scan_camera")
+
+    robot_config["filepool"] = profile["gcode-pool"]
+
 
 def override_config(alt_config, current):
     for key, val in alt_config.items():
@@ -57,3 +68,5 @@ def load_config(filename):
         override_config(doc.get("general_config", {}), general_config)
         override_config(doc.get("uart_config", {}), uart_config)
         override_config(doc.get("robot_config", {}), robot_config)
+
+load_model_profile()

@@ -12,17 +12,17 @@ import re
 from fluxmonitor.misc.async_signal import AsyncIO
 from fluxmonitor.event_base import EventBase
 from fluxmonitor.config import uart_config, robot_config
+from fluxmonitor.controller.interfaces.local import LocalControl
 from fluxmonitor.err_codes import UNKNOW_COMMAND, FILE_NOT_EXIST, \
     FILE_TOO_LARGE, UNKNOW_ERROR, ALREADY_RUNNING, RESOURCE_BUSY, NO_TASK, \
     NOT_RUNNING, NO_RESPONSE
 
-from fluxmonitor.controller.interfaces.local import LocalControl
 
 STATUS_IDLE = 0x0
 STATUS_RUNNING = 0x1
 STATUS_PAUSE = 0x3
 
-logger = logging.getLogger("fluxrobot")
+logger = logging.getLogger(__name__)
 
 
 class RobotTask(object):
