@@ -26,7 +26,8 @@ class UpnpServicesMixTest(unittest.TestCase):
     def setUp(self):
         U.clean_db()
         self.cache = MemcacheTestClient()
-        self.w = UpnpWatcher(ServerSimulator())
+        self.server = ServerSimulator()
+        self.w = UpnpWatcher(self.server)
 
     def test_fetch_rsa_key(self):
         resp = self.w.cmd_rsa_key({})
@@ -101,7 +102,7 @@ class UpnpServicesMixTest(unittest.TestCase):
         us = U.create_unix_socket(network_config['unixsocket'])
         resp = self.w.cmd_set_network(None, req)
         self.assertIn("timestemp", resp)
-        self.w.each_loop()  # each_loop will clean buffer
+        self.server.do_loops()  # each_loop will clean buffer
 
         # ensure data sent or raise exception
         us.recv(4096)
@@ -206,16 +207,16 @@ class UpnpSocketTest(unittest.TestCase):
         client.close()
 
     def _create_message(self, keypair, code, timestemp, *args):
-        head = struct.pack("<4s16sB", "FLUX", "\x00"*16, code)
-        access_id = S.get_access_id(der=keypair[1])
-        message = struct.pack("<d", timestemp) + "\x00".join(args)
-
         keyobj = S.get_keyobj(pem=keypair[0])
 
-        signature = keyobj.sign(message)
-        payload = binascii.a2b_hex(access_id) + signature + message
+        head = struct.pack("<4s16sB", "FLUX", "\x00"*16, code)
+        access_id = binascii.a2b_hex(S.get_access_id(der=keypair[1]))
+        body = "\x00".join(args)
 
-        return head + S.get_private_key().encrypt(payload)
+        message = struct.pack("<20sf4s", access_id, timestemp, "abc") + body
+        signature = keyobj.sign(head[4:20] + message)
+        encrypt_message = S.get_private_key().encrypt(message + signature)
+        return head + encrypt_message
 
     def test_cmd_set_network(self):
         S.add_trusted_keyobj(

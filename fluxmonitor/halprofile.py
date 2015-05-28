@@ -11,7 +11,7 @@ DARWIN_PLATFORM = "darwin"
 
 
 PROFILES = {
-    DARWIN_DEV_PROFILE: {
+    MODEL_DARWIN_DEV: {
         "db": expanduser("~/.fluxmonitor_dev/db"),
         "gcode-pool": expanduser("~/.fluxmonitor_dev/filepool"),
         "scan_camera": 0,
@@ -49,7 +49,7 @@ def get_model_id():
 
 
 def get_model_profile():
-    return MODEL_LINUX_DEV
+    return PROFILES.get(get_model_id())
 
 def is_dev_model(profile=None):
     if profile is None:

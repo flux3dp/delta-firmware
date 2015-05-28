@@ -23,12 +23,12 @@ class EventBase(object):
         else:
             return False
 
-    def add_loop_event(self, callback):
-        self.llist.append(fd_obj)
+    def add_loop_event(self, obj):
+        self.llist.append(obj)
 
-    def remove_loop_event(self, fd_obj):
-        if fd_obj in self.llist:
-            self.llist.remove(fd_obj)
+    def remove_loop_event(self, obj):
+        if obj in self.llist:
+            self.llist.remove(obj)
             return True
         else:
             return False

@@ -139,11 +139,11 @@ def validate_password(memcache, password):
 
 
 def validate_timestemp(memcache, timestemp, expire=60):
-    t, signature = timestemp
+    t, salt = timestemp
     if abs(float(t) - time()) > 15:
         return False
     else:
-        token = "ts:%s" % binascii.b2a_base64(signature)[:8]
+        token = "ts:%s" % binascii.b2a_base64(salt)
         if memcache.get(token):
             return False
         else:
