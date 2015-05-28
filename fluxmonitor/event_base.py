@@ -56,7 +56,7 @@ class EventBase(object):
 
             for o in self.llist:
                 try:
-                    o.on_loop(caller)
+                    o.on_loop(self)
                 except Exception:
                     logger.exception("Unhandle error")
 
