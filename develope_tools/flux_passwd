@@ -3,13 +3,14 @@
 import argparse
 import getpass
 
-from fluxmonitor.config import add_config_arguments, load_config_arguments
+from fluxmonitor.misc.flux_argparse import add_config_arguments, \
+    apply_config_arguments
 
 parser = argparse.ArgumentParser(description='set password')
 add_config_arguments(parser)
 
 options = parser.parse_args()
-load_config_arguments(options)
+apply_config_arguments(options)
 
 
 pw1 = getpass.getpass("Password: ")

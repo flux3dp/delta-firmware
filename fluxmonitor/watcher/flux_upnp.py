@@ -97,7 +97,7 @@ class UpnpServicesMix(object):
         access_id = security.get_access_id(keyobj=keyobj)
         if security.is_trusted_remote(keyobj=keyobj):
             return {
-                "access_id": security.get_access_id(pubkey),
+                "access_id": security.get_access_id(der=pubkey),
                 "status": "ok"}
 
         elif security.validate_password(self.memcache, passwd):
