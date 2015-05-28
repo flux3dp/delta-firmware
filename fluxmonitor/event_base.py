@@ -11,6 +11,7 @@ class EventBase(object):
 
     def __init__(self):
         self.rlist = []
+        self.llist = []
 
     def add_read_event(self, fd_obj):
         self.rlist.append(fd_obj)
@@ -18,6 +19,16 @@ class EventBase(object):
     def remove_read_event(self, fd_obj):
         if fd_obj in self.rlist:
             self.rlist.remove(fd_obj)
+            return True
+        else:
+            return False
+
+    def add_loop_event(self, fd_obj):
+        self.llist.append(fd_obj)
+
+    def remove_loop_event(self, fd_obj):
+        if fd_obj in self.llist:
+            self.llist.remove(fd_obj)
             return True
         else:
             return False
@@ -40,6 +51,12 @@ class EventBase(object):
             for r in rlist:
                 try:
                     r.on_read()
+                except Exception:
+                    logger.exception("Unhandle error")
+
+            for o in self.llist:
+                try:
+                    o.on_loop()
                 except Exception:
                     logger.exception("Unhandle error")
 
