@@ -22,6 +22,12 @@ def get_model_id():
         raise Exception("Can not get model id")
 
 
+def is_dev_model(profile=None):
+    if profile is None:
+        profile = get_model_id()
+
+    return profile == MODEL_LINUX_DEV or profile == MODEL_DARWIN_DEV
+
 def get_platform():
     import platform as _platform
     if _platform.system().lower().startswith("linux"):
