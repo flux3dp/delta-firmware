@@ -48,7 +48,7 @@ def load_model_profile():
     general_config["scan_camera"] = profile["scan_camera"]
 
     hal_config["mainboard_uart"] = profile.get("mainboard_uart")
-    hal_config["haedboard_uart"] = profile.get("haedboard_uart")
+    hal_config["headboard_uart"] = profile.get("headboard_uart")
     hal_config["pc_uart"] = profile.get("pc_uart")
     hal_config["scan_camera"] = profile.get("scan_camera")
 
