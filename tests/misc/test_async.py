@@ -9,7 +9,7 @@ import os
 
 from fluxmonitor.misc.async_signal import make_nonblock, close_fds
 from fluxmonitor.misc.async_signal import read_without_error
-from fluxmonitor.misc.async_signal import AsyncIO, AsyncQueue, AsyncSignal
+from fluxmonitor.misc.async_signal import AsyncIO, AsyncSignal
 
 
 class AsyncSingleFunctionTest(unittest.TestCase):
@@ -69,28 +69,6 @@ class AsyncSingleFunctionTest(unittest.TestCase):
 
         sig.close()
         self.assertRaises(OSError, sig.on_read)
-
-    def test_async_queue(self):
-        def cb(sender):
-            self.assertEqual(sender.get(), b"MN")
-
-        q = AsyncQueue(callback=cb)
-
-        rl = select((q,), (), (), 0)[0]
-        self.assertEqual(rl, [])
-
-        q.put(b"M1")
-        rl = select((q,), (), (), 0)[0]
-        self.assertEqual(rl, [q])
-        self.assertEqual(q.get(), b"M1")
-
-        q.put(b"M2")
-        q.put(b"MN")
-        self.assertEqual(q.get(), b"M2")
-        rl = select((q,), (), (), 0)[0]
-        self.assertEqual(rl, [])
-        self.assertEqual(q.qsize(), 1)
-        q.on_read()
 
     def test_async_io(self):
         def reader(sender):

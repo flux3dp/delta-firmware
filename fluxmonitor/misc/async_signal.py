@@ -78,43 +78,6 @@ class AsyncSignal(AsyncPipe):
         os.write(self._wfd, b" ")
 
 
-class AsyncQueue(Queue):
-    def __init__(self, maxsize=0, callback=None):
-        Queue.__init__(self, maxsize)
-        self.callback = callback
-        self._rfd, self._wfd = os.pipe()
-        make_nonblock(self._rfd)
-
-    def __del__(self):
-        try:
-            os.close(self._rfd)
-        except Exception:
-            pass
-
-    def fileno(self):
-        return self._rfd
-
-    def on_read(self):
-        if self.callback:
-            self.callback(self)
-
-    def put(self, item, block=True, timeout=None):
-        Queue.put(self, item, block, timeout)
-        os.write(self._wfd, b"\x00")
-
-    def get(self, block=True, timeout=None):
-        obj = Queue.get(self, block, timeout)
-
-        try:
-            # Clear signal IO
-            os.read(self._rfd, 4096)
-        except OSError as e:
-            if e.errno is not EAGAIN:
-                raise e
-
-        return obj
-
-
 class AsyncIO(object):
     def __init__(self, file_object, read_callback=None, write_callback=None):
         self.obj = file_object
