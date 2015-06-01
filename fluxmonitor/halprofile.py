@@ -42,7 +42,7 @@ def get_model_id():
         with open("/proc/cpuinfo", "r") as f:
             buf = f.read()
             # Need some method to check if it is raspberry A
-            if "BCM2708" in buf of "BCM2835" in buf:
+            if "BCM2708" in buf or "BCM2835" in buf:
                 return MODEL_G1
             else:
                 return MODEL_LINUX_DEV

@@ -61,7 +61,9 @@ def get_entry_points():
             "fluxnetworkd=fluxmonitor.bin.fluxnetworkd:main",
 
             "fluxrobot=fluxmonitor.bin.fluxrobot:main",
-            "fluxscanner=fluxmonitor.bin.fluxscanner:main"
+            "fluxscanner=fluxmonitor.bin.fluxscanner:main",
+
+            "fluxinfo=fluxmonitor.bin.fluxinfo:main"
         ]
     }
 
