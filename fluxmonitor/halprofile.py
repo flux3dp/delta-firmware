@@ -39,11 +39,13 @@ def get_model_id():
     if P.uname()[0] == "Darwin":
         return MODEL_DARWIN_DEV
     elif P.uname()[0] == "Linux":
-        if "x86" in P.uname()[4]:
-            return MODEL_LINUX_DEV
-        else:
+        with open("/proc/cpuinfo", "r") as f:
+            buf = f.read()
             # Need some method to check if it is raspberry A
-            return MODEL_G1
+            if "BCM2708" in buf of "BCM2835" in buf:
+                return MODEL_G1
+            else:
+                return MODEL_LINUX_DEV
     else:
         raise Exception("Can not get model id")
 
