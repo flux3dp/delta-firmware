@@ -12,7 +12,7 @@ general_config = {
 
 hal_config = {
     "mainboard_uart": None,
-    "haedboard_uart": None,
+    "headboard_uart": None,
     "pc_uart": None,
     "scan_camera": None,
 }
@@ -30,6 +30,7 @@ uart_config = {
     "headboard": "/tmp/.headboard",
     "mainboard": "/tmp/.mainboard",
     "pc": "/tmp/.pc",
+
     "control": "/tmp/.uart-control"
 }
 

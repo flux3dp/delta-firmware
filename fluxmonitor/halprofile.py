@@ -25,8 +25,10 @@ PROFILES = {
         "db": "/var/db/fluxmonitord",
         "gcode-pool": "/var/gcode",
         "mainboard_uart":
-            "/dev/serial/by-path/platform-bcm2708_usb-usb-0:1.4:1.0",
-        "haedboard_uart": None,
+            # "/dev/serial/by-path/platform-bcm2708_usb-usb-0:1.4:1.0",
+            # TODO: /dev/ttyACM0 is a temp soluction for using USB hub
+            "/dev/ttyACM0",
+        "headboard_uart": "/dev/ttyAMA0",
         "pc_uart": None,
         "scan_camera": 0,
     }
@@ -53,11 +55,13 @@ def get_model_id():
 def get_model_profile():
     return PROFILES.get(get_model_id())
 
+
 def is_dev_model(profile=None):
     if profile is None:
         profile = get_model_id()
 
     return profile == MODEL_LINUX_DEV or profile == MODEL_DARWIN_DEV
+
 
 def get_platform():
     import platform as _platform
