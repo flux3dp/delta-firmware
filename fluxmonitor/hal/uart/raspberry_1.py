@@ -45,8 +45,11 @@ class UartHal(UartHalBase, BaseOnSerial):
 
         self.mainboard_io = AsyncIO(self.mainboard_uart,
                                     self.on_recvfrom_mainboard)
-        self.raspi_io = AsyncIO(self.raspi_io,
+        self.raspi_io = AsyncIO(self.raspi_uart,
                                 self.on_recvfrom_raspi_io)
+
+        self.server.add_read_event(self.mainboard_io)
+        self.server.add_read_event(self.raspi_io)
 
     def _disconnect(self):
         if self.mainboard_uart:

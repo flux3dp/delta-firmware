@@ -28,7 +28,8 @@ logger = logging.getLogger(__name__)
 class RobotTask(object):
     connected = False
 
-    _async_mb = _uart_mb = None
+    _uart_mb = _uart_hb = None
+    _async_mb = _async_hb = None
     _status = STATUS_IDLE
     _task_file = None
 
@@ -139,12 +140,18 @@ class RobotTask(object):
             self.connected = True
             self._uart_mb = mb = socket.socket(socket.AF_UNIX,
                                                socket.SOCK_STREAM)
-
-            logging.info("Connect to %s" % uart_config["mainboard"])
+            logging.info("Connect to mainboard %s" % uart_config["mainboard"])
             mb.connect(uart_config["mainboard"])
-
             self._async_mb = AsyncIO(mb, self.on_mainboard_message)
             self.add_read_event(self._async_mb)
+
+            self._uart_hb = hb = socket.socket(socket.AF_UNIX,
+                                               socket.SOCK_STREAM)
+            logging.info("Connect to headboard %s" % uart_config["headboard"])
+            hb.connect(uart_config["headboard"])
+            # TODO: uart
+            # self._async_hb = AsyncIO(hb, self.on_headboard_message)
+            # self.add_read_event(self._async_hb)
 
         except socket.error as err:
             logger.exception("Connect to %s failed" % uart_config["mainboard"])
@@ -163,6 +170,10 @@ class RobotTask(object):
         if self._uart_mb:
             self._uart_mb.close()
             self._uart_mb = None
+
+        if self._uart_hb:
+            self._uart_hb.close()
+            self._uart_hb = None
 
         self.connected = False
 
@@ -263,21 +274,26 @@ class RobotCommands(object):
 
             cli = sender.obj
             mb = self._uart_mb
+            hb = self._uart_hb
             sender.obj.send(b"continue")
 
             while True:  # Loop untile disconnect or recive quit
-                rl = select((cli, mb), (), (), 5.0)[0]
-                if cli in rl:
-                    buf = cli.recv(128)
-                    if not buf:  # Disconnected
-                        return ""
-                    elif buf == b"quit":  # Recive quit
-                        return "ok"
+                rl = select((cli, mb, hb), (), (), 5.0)[0]
+                for r in rl:
+                    if r == cli:
+                        buf = cli.recv(128)
+                        if not buf:  # Disconnected
+                            return ""
+                        elif buf == b"quit":  # Recive quit
+                            return "ok"
+                        else:
+                            # TODO: not implement
+                            mb.send(buf)
+                            hb.send(buf)
                     else:
-                        mb.send(buf)
-                if mb in rl:
-                    buf = mb.recv(4096)
-                    cli.send(buf)
+                        buf = r.recv(4096)
+                        print(buf)
+                        cli.send(buf)
         finally:
             logger.warning("Quit RAW mode.")
             if self.connected:
