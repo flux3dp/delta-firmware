@@ -11,7 +11,7 @@ import json
 
 logger = logging.getLogger(__name__)
 
-from fluxmonitor.config import network_config
+from fluxmonitor.config import uart_config, network_config
 from fluxmonitor.misc import control_mutex
 from fluxmonitor.err_codes import ALREADY_RUNNING, BAD_PASSWORD, NOT_RUNNING, \
     RESOURCE_BUSY, AUTH_ERROR
@@ -168,7 +168,10 @@ class UpnpServicesMix(object):
             raise RuntimeError(RESOURCE_BUSY)
 
         # TODO: not good
-        subprocess.Popen(["fluxrobot"])
+        if self.debug:
+            subprocess.Popen(["fluxrobot --debug"])
+        else:
+            subprocess.Popen(["fluxrobot"])
 
         return {"timestemp": time()}
 
@@ -257,7 +260,7 @@ class UpnpSocket(object):
 
         return True, access_id, body
 
-    def on_read(self):
+    def on_read(self, sender=None):
         """Payload struct:
         +----+---------------+----+
         | MN | Device Serial | OP |
@@ -330,6 +333,8 @@ class UpnpWatcher(WatcherBase, UpnpServicesMix, NetworkMonitorMix):
     sock = None
 
     def __init__(self, server):
+        self.debug = server.options.debug
+
         # Create RSA key if not exist. This will prevent upnp create key during
         # upnp is running (Its takes times and will cause timeout)
         self.pkey = security.get_private_key()

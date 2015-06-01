@@ -8,6 +8,7 @@ class ServerSimulator(EventBase):
     def __init__(self):
         EventBase.__init__(self)
         self.cache = MemcacheTestClient()
+        self.options = Options()
 
     def do_loops(self):
         for obj in self.llist:
@@ -15,3 +16,7 @@ class ServerSimulator(EventBase):
 
     def each_loop(self):
         self.running = False
+
+
+class Options(object):
+    debug = False

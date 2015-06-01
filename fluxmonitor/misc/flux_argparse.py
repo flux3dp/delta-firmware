@@ -3,6 +3,8 @@
 def add_config_arguments(parser):
     parser.add_argument('--config', dest='configfile', type=str,
                         default='', help='config file')
+    parser.add_argument('--debug', dest='debug', action='store_const',
+                        const=True, default=False, help='Enable debug')
 
 
 def apply_config_arguments(options):
@@ -14,8 +16,6 @@ def apply_config_arguments(options):
 def add_daemon_arguments(proc_name, parser):
     add_config_arguments(parser)
 
-    parser.add_argument('--debug', dest='debug', action='store_const',
-                        const=True, default=False, help='Enable debug')
     parser.add_argument('--daemon', dest='daemon', action='store_const',
                         const=True, default=False, help='Run as daemon')
     parser.add_argument('--stop', dest='stop_daemon', action='store_const',

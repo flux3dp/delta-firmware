@@ -99,7 +99,8 @@ class RobotTask(object):
         messages = buf.decode("ascii")
 
         for msg in re.split("\r\n|\n", messages):
-            logger.debug("MB: %s" % msg)
+            if self.debug:
+                logger.debug("MB: %s" % msg)
             if msg.startswith("ok"):
                 if self._task_in_queue != None:
                     self._task_in_queue -= 1
@@ -115,7 +116,8 @@ class RobotTask(object):
                 return
 
             self._task_executed += len(buf)
-            logger.debug("GCODE: %s" % buf.decode("ascii").strip())
+            if self.debug:
+                logger.debug("GCODE: %s" % buf.decode("ascii").strip())
 
             cmd = buf.split(b";", 1)[0].rstrip()
 
@@ -285,6 +287,7 @@ class RobotCommands(object):
 class Robot(EventBase, RobotCommands, RobotTask):
     def __init__(self, options):
         EventBase.__init__(self)
+        self.debug = options.debug
         self.filepool = os.path.abspath(robot_config["filepool"])
         self.local_control = LocalControl(self, logger=logger)
 
