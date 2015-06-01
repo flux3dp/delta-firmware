@@ -50,7 +50,7 @@ class EventBase(object):
 
             for r in rlist:
                 try:
-                    r.on_read()
+                    r.on_read(self)
                 except Exception:
                     logger.exception("Unhandle error")
 

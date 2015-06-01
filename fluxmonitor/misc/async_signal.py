@@ -62,7 +62,7 @@ class AsyncSignal(AsyncPipe):
         AsyncPipe.__init__(self)
         self.callback = callback
 
-    def on_read(self, sender=None):
+    def on_read(self, sender):
         success, buf = read_without_error(self._rfd, 1)
         if success and buf:
             # If read successed, trigger callback
@@ -90,11 +90,11 @@ class AsyncIO(object):
     def set_on_read(self, callback):
         self.read_callback = callback
 
-    def on_read(self):
+    def on_read(self, sender):
         self.read_callback(self)
 
     def set_on_write(self, callback):
         self.write_callback = callback
 
-    def on_write(self):
+    def on_write(self, sender):
         self.write_callback(self)

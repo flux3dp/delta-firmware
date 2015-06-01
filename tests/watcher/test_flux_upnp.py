@@ -173,7 +173,7 @@ class UpnpSocketTest(unittest.TestCase):
     def retrieve_message_from_server(self, client_sock):
         """Let self.sock read and process data"""
         while select.select((self.sock, ), (), (), 0)[0]:
-            self.sock.on_read()
+            self.sock.on_read(self)
 
         buf, remote = None, (None, None)
 

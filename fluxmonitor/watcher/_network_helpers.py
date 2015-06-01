@@ -168,7 +168,7 @@ class WlanWatcherSocket(socket.socket):
         self.master.logger.debug(
             "network command socket created at: %s" % path)
 
-    def on_read(self):
+    def on_read(self, sender):
         try:
             buf = self.recv(4096)
             payload = json.loads(buf)

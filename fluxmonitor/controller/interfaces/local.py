@@ -101,3 +101,41 @@ class LocalControl(object):
             self.server.remove_read_event(io)
             io.obj.close()
 
+
+class LocalConnectionAsyncIO(object):
+    def __init__(self, server, logger, sock):
+        self.server = server
+        self.logger = logger
+        self.sock = sock
+
+        self._recv_handler = self._on_handshake
+
+        self._buf = bytearray(4096)
+        self._bufmv = memoryview(self._buf)
+        self._buf_size = 0
+
+        server.add_read_event(self)
+        server.add_loop_event(self)
+
+    def on_read(self, sender):
+        l = self.sock.recv(self._bufmv[self._buf_size:])
+        if l:
+            self._recv_handler()
+        else:
+            sender.remove_read_event(self)
+            if sender in self.io_list:
+                self.io_list.remove(sender)
+            self.logger.info("Client %s disconnected" %
+                             sender.obj.getsockname()[0])
+
+        self._recv_handler()
+
+    def on_write(self, sender):
+        pass
+
+    def on_loop(self):
+        pass
+
+    def _on_handshake(self):
+        if self._buf_size < 100:
+            return

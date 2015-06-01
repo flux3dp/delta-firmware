@@ -185,6 +185,22 @@ class UpnpServicesMix(object):
             raise RuntimeError(NOT_RUNNING)
 
 
+class UpnpUSB(object):
+    def __init__(self, server, path=None):
+        if path is None:
+            path = uart_config["pc"]
+
+        self.server = server
+        self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self.sock.connect(path)
+
+    def fileno(self):
+        return self.sock.fileno()
+
+    def on_read(self, sender):
+        pass
+
+
 class UpnpSocket(object):
     def __init__(self, server, ipaddr, port=DEFAULT_PORT):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -260,7 +276,7 @@ class UpnpSocket(object):
 
         return True, access_id, body
 
-    def on_read(self, sender=None):
+    def on_read(self, sender):
         """Payload struct:
         +----+---------------+----+
         | MN | Device Serial | OP |
