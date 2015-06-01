@@ -15,13 +15,23 @@ def main():
 
     from fluxmonitor import halprofile
     from fluxmonitor import security
+    from fluxmonitor import config
 
     # TODO: Add more information here
     print("""Flux info:
   Module: %(module)s
-  Serial: %(serial)s""" % {
+  Serial: %(serial)s
+
+  HAL:
+    Mainboard Serial: %(mainboard_serial)s
+    Headboard Serial: %(headboard_serial)s
+    PC Serial: %(pc_serial)s""" % {
         "module": halprofile.get_model_id(),
-        "serial": security.get_serial()
+        "serial": security.get_serial(),
+
+        "mainboard_serial": config.hal_config["mainboard_uart"],
+        "headboard_serial": config.hal_config["headboard_uart"],
+        "pc_serial": config.hal_config["pc_uart"],
     })
 
 
