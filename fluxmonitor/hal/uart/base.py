@@ -82,7 +82,7 @@ class UartHalBase(object):
         self.pc_socks.append(request)
         self.server.add_read_event(AsyncIO(request, self.on_sendto_pc))
 
-    def on_disconnect_pc(self, obj):
+    def on_disconnect_pc(self, ref):
         self.server.remove_read_event(ref)
         self.pc_socks.remove(ref.obj)
 

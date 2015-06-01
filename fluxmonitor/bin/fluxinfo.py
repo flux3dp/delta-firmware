@@ -5,6 +5,7 @@ import sys
 from fluxmonitor.misc.flux_argparse import add_config_arguments, \
     apply_config_arguments
 
+
 def main():
     parser = argparse.ArgumentParser(description='flux info')
     add_config_arguments(parser)

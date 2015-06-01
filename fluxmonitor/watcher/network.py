@@ -135,7 +135,7 @@ class NetworkWatcher(WatcherBase, NetworkMonitorMix, ConfigMix,
         elif self.is_wireless(ifname):
             daemon['hostapd'] = nl80211_config.wlan_ap_daemon(self, ifname)
             net_config.config_ipaddr(ifname, {'ipaddr': '192.168.1.1',
-                                           'mask': 24})
+                                              'mask': 24})
             daemon['dhcpd'] = net_config.dhcp_server_daemon(self, ifname)
             self.logger.debug("Wireless %s not configured, "
                               "start with ap mode" % ifname)

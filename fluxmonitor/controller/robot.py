@@ -14,7 +14,7 @@ from fluxmonitor.event_base import EventBase
 from fluxmonitor.config import uart_config, robot_config
 from fluxmonitor.controller.interfaces.local import LocalControl
 from fluxmonitor.err_codes import UNKNOW_COMMAND, FILE_NOT_EXIST, \
-    FILE_TOO_LARGE, UNKNOW_ERROR, ALREADY_RUNNING, RESOURCE_BUSY, NO_TASK, \
+    FILE_TOO_LARGE, UNKNOW_ERROR, ALREADY_RUNNING, NO_TASK, \
     NOT_RUNNING, NO_RESPONSE
 
 
@@ -68,7 +68,7 @@ class RobotTask(object):
         self._task_in_queue = 0
 
         self._status = STATUS_RUNNING
-        logger.info("Start task with size %i" , (self._task_total))
+        logger.info("Start task with size %i", (self._task_total))
         self._next_cmd()
 
     def pause_task(self):
@@ -102,7 +102,7 @@ class RobotTask(object):
             if self.debug:
                 logger.debug("MB: %s" % msg)
             if msg.startswith("ok"):
-                if self._task_in_queue != None:
+                if self._task_in_queue is not None:
                     self._task_in_queue -= 1
 
         if self._status == STATUS_RUNNING:
@@ -111,7 +111,7 @@ class RobotTask(object):
     def _next_cmd(self):
         while self._task_in_queue < 3:
             buf = self._task_file.readline()
-            if not buf:
+            if buf is None:
                 self._clean_task()
                 return
 

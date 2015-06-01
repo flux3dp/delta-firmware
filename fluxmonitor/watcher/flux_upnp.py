@@ -87,7 +87,7 @@ class UpnpServicesMix(object):
         rawdata = self.pkey.decrypt(payload)
         b_ts, b_passwd, pubkey = rawdata.split(b"\x00", 2)
 
-        ts = float(b_ts)
+        # ts = float(b_ts)
         passwd = b_passwd.decode("utf8")
 
         keyobj = security.get_keyobj(der=pubkey)
@@ -308,8 +308,8 @@ class UpnpSocket(object):
                                  (remote[0], access_id, request_code))
                     raise RuntimeError(AUTH_ERROR)
 
-            logger.debug("Handle request 0x%x (%f)" % (request_code, 
-                                                     time() - t1))
+            logger.debug("Handle request 0x%x (%f)" % (request_code,
+                                                       time() - t1))
         except RuntimeError as e:
             self.send_response(request_code, 1, e.args[0], remote, True)
 

@@ -1,12 +1,11 @@
 
-from random import choice, randint
+from random import choice
 from shutil import rmtree
 from hashlib import sha1
 from hmac import HMAC
 from time import time
 import binascii
 import logging
-import struct
 import os
 import re
 
@@ -160,6 +159,7 @@ def _set_password(password):
     if os.path.isdir(pubdir):
         rmtree(_get_path("pub"))
     return True
+
 
 def _get_password_filename():
     return _get_path("private", "password")

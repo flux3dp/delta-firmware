@@ -1,5 +1,4 @@
 
-from time import sleep
 import logging
 
 from serial import Serial

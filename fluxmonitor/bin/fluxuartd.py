@@ -19,7 +19,6 @@ def main():
     options = parser.parse_args()
     apply_daemon_arguments(options)
 
-
     if options.stop_daemon:
         try:
             pid_handler = open(options.pidfile, 'r', 0)

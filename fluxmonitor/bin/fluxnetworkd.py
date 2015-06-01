@@ -6,7 +6,6 @@ import sys
 from fluxmonitor.misc.flux_argparse import add_daemon_arguments, \
     apply_daemon_arguments
 from fluxmonitor.watcher.network import NetworkWatcher
-from fluxmonitor.launcher import deamon_entry
 
 
 def main():
@@ -14,7 +13,6 @@ def main():
     add_daemon_arguments("fluxnetworkd", parser)
     options = parser.parse_args()
     apply_daemon_arguments(options)
-
 
     if options.stop_daemon:
         try:
