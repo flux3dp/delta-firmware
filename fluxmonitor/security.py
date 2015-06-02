@@ -61,10 +61,14 @@ def get_keyobj(pem=None, der=None, access_id=None):
         if os.path.isfile(fn):
             with open(fn, "r") as f:
                 buf = f.read()
-                if buf.startswith("-----BEGIN "):
-                    return RSAObject(pem=buf)
-                else:
-                    return RSAObject(der=buf)
+                try:
+                    if buf.startswith("-----BEGIN "):
+                        return RSAObject(pem=buf)
+                    else:
+                        return RSAObject(der=buf)
+                except RuntimeError:
+                    os.unlink(fn)
+                    raise
 
     try:
         return RSAObject(pem=pem, der=der)
