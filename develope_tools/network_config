@@ -13,7 +13,8 @@ import argparse
 import socket
 import json
 
-from fluxmonitor.config import add_config_arguments, load_config_arguments
+from fluxmonitor.misc.flux_argparse import add_config_arguments, \
+    apply_config_arguments
 
 
 parser = argparse.ArgumentParser(description='network config')
@@ -44,7 +45,7 @@ parser.add_argument('--wepkey', dest='wepkey', type=str, default=None,
                     help='wepkey')
 
 options = parser.parse_args()
-load_config_arguments(options)
+apply_config_arguments(options)
 
 from fluxmonitor.config import network_config
 

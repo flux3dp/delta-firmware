@@ -5,7 +5,8 @@ import socket
 import json
 import os
 
-from fluxmonitor.config import add_config_arguments, load_config_arguments
+from fluxmonitor.misc.flux_argparse import add_config_arguments, \
+    apply_config_arguments
 from fluxmonitor import security
 
 parser = argparse.ArgumentParser(description='list access id')
@@ -18,7 +19,7 @@ parser.add_argument('-d', dest='del_publickey', type=str, default=None,
                     help='Delete trusted publickey file')
 
 options = parser.parse_args()
-load_config_arguments(options)
+apply_config_arguments(options)
 
 
 def get_keyobj(filename):
