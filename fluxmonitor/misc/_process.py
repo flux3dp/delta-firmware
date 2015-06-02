@@ -24,6 +24,8 @@ class Process(Popen):
         self.manager.server.add_read_event(
             AsyncIO(self.stderr, self._on_stderr))
 
+        self._closed = False
+
     def _make_nonblock(self, file_obj):
         fd = file_obj.fileno()
         fl = fcntl.fcntl(fd, fcntl.F_GETFL)
@@ -46,7 +48,8 @@ class Process(Popen):
     def _close(self, sender):
         self.manager.server.remove_read_event(sender)
 
-        if self.poll() is not None:
+        if not self._closed and self.poll() is not None:
+            self._closed = True
             self.manager.on_daemon_closed(self)
 
     def __repr__(self):

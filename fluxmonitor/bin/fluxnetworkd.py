@@ -6,6 +6,7 @@ import sys
 from fluxmonitor.misc.flux_argparse import add_daemon_arguments, \
     apply_daemon_arguments
 from fluxmonitor.watcher.network import NetworkWatcher
+from fluxmonitor.launcher import deamon_entry
 
 
 def main():
@@ -30,7 +31,7 @@ def main():
             print("Error: %s" % e)
             sys.exit(1)
     else:
-        return_code = main(options, module=NetworkWatcher)
+        return_code = deamon_entry(options, module=NetworkWatcher)
         sys.exit(return_code)
 
 

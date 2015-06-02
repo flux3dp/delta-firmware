@@ -1,14 +1,13 @@
 
-
 import tempfile
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
 from pyroute2 import IPRoute
 
 from fluxmonitor.misc import Process
-from fluxmonitor.misc import linux_configure
 from fluxmonitor.config import network_config
 
 DHCLIENT = network_config['dhclient']
@@ -19,20 +18,18 @@ __all__ = ["ifup", "ifdown", "config_ipaddr", "config_nameserver",
 
 
 def ifup(ifname):
-    index = find_device_index(ifname)
     logger.info("ifup %s" % ifname)
     ipr = IPRoute()
+    index = _find_device_index(ifname, ipr)
+    _clean_ipaddr(ifname, index, ipr)
+
     ipr.link_up(index=index)
 
 
 def ifdown(ifname):
-    index = find_device_index(ifname)
     ipr = IPRoute()
-
-    # Get all ip address and delete it
-    for address, mask in get_ipaddresses(index):
-        logger.info("Del ip %s/%s for %s" % (address, mask, ifname))
-        ipr.addr('del', index=index, address=address, mask=mask)
+    index = _find_device_index(ifname, ipr)
+    _clean_ipaddr(ifname, index, ipr)
 
     logger.info("ifdown %s" % ifname)
     ipr.link_down(index=index)
@@ -40,7 +37,7 @@ def ifdown(ifname):
 
 def dhcp_client_daemon(manager, ifname):
     logger.info("dhcp client for %s" % ifname)
-    return Process(manager, [DHCLIENT, "-d", ifname])
+    return Process(manager, [DHCLIENT, "-w", "-d", ifname])
 
 
 def dhcp_server_daemon(manager, ifname):
@@ -48,7 +45,7 @@ def dhcp_server_daemon(manager, ifname):
     dhcpd_conf = tempfile.mktemp() + ".dhcpd.conf"
     dhcpd_leases = tempfile.mktemp() + ".leases"
 
-    linux_configure.dhcpd_config_to_file(dhcpd_conf)
+    _write_dhcpd_config(dhcpd_conf)
     with open(dhcpd_leases, "w"):
         pass
 
@@ -59,7 +56,8 @@ def dhcp_server_daemon(manager, ifname):
 def config_ipaddr(ifname, config):
     logger.info("ifconfig %s: %s" % (ifname, config))
 
-    index = find_device_index(ifname)
+    ipr = IPRoute()
+    index = _find_device_index(ifname, ipr)
 
     ipaddr = config["ipaddr"]
     mask = config["mask"]
@@ -67,10 +65,9 @@ def config_ipaddr(ifname, config):
     ns = config.get("ns")
 
     logger.info("Add ip %s/%s for %s" % (ipaddr, mask, ifname))
-    ipr = IPRoute()
     ipr.addr('add', index=index, address=ipaddr, mask=mask)
 
-    clean_route()
+    _clean_route()
 
     if route:
         logger.info("Add gateway %s" % (route))
@@ -94,31 +91,51 @@ def config_nameserver(nameservers):
 
 
 # Private Methods
-def find_device_index(ifname):
-    ipr = IPRoute()
+def _find_device_index(ifname, ipr):
     devices = ipr.link_lookup(ifname=ifname)
     if len(devices) == 0:
         raise RuntimeError("Bad ifname %s" % ifname)
     return devices[0]
 
 
-def clean_route():
+def _clean_ipaddr(ifname, index, ipr):
+    for address, mask in _get_ipaddresses(index):
+        try:
+            logger.info("Del ip %s/%s for %s" % (address, mask, ifname))
+            ipr.addr('del', index=index, address=address, mask=mask)
+        except Exception:
+            logger.exception("Remove ipaddr error")
+
+def _clean_route():
     ipr = IPRoute()
-    for g in get_gateways():
+    for g in _get_gateways():
         try:
             ipr.route("delete", gateway=g)
         except Exception:
             logger.exception("Remove route error")
 
 
-def get_ipaddresses(index):
+def _get_ipaddresses(index):
     ipr = IPRoute()
     return [(i['attrs'][0][1], i['prefixlen'])
             for i in ipr.get_addr()
             if i['index'] == index]
 
 
-def get_gateways():
+def _get_gateways():
     ipr = IPRoute()
     routes = [dict(r["attrs"]) for r in ipr.get_routes()]
     return [g["RTA_GATEWAY"] for g in routes if "RTA_GATEWAY" in g]
+
+
+def _write_dhcpd_config(filepath):
+    with open(filepath, "w") as f:
+        f.write("""# Create by fluxmonitord
+default-lease-time 600;
+max-lease-time 7200;
+log-facility local7;
+
+subnet 192.168.1.0 netmask 255.255.255.0 {
+  range 192.168.1.100 192.168.1.200;
+}
+""")
