@@ -171,9 +171,11 @@ class UpnpServicesMix(object):
 
         # TODO: not good
         if self.debug:
-            self._control_proc = subprocess.Popen(["fluxrobot", "--debug"])
+            self._control_proc = subprocess.Popen(["fluxrobot", "--debug"],
+                                                  close_fds=True)
         else:
-            self._control_proc = subprocess.Popen(["fluxrobot"])
+            self._control_proc = subprocess.Popen(["fluxrobot"],
+                                                  close_fds=True)
 
         return {"timestemp": time()}
 
