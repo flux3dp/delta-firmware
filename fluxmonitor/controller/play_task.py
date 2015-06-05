@@ -4,23 +4,18 @@ import re
 import os
 
 from fluxmonitor.config import DEBUG
-from fluxmonitor.err_codes import UNKNOW_COMMAND, UNKNOW_ERROR, \
-    ALREADY_RUNNING, NOT_RUNNING, NO_TASK, RESOURCE_BUSY
+from fluxmonitor.err_codes import UNKNOW_COMMAND, ALREADY_RUNNING, \
+    NOT_RUNNING, NO_TASK, RESOURCE_BUSY
 
-from .tasks_base import DeviceOperationMixIn
+from .tasks_base import CommandTaskBase, DeviceOperationMixIn
 
 logger = logging.getLogger(__name__)
 
 
-class PlayTask(DeviceOperationMixIn):
+class PlayTask(CommandTaskBase, DeviceOperationMixIn):
     def __init__(self, server, sender, task_file):
         self.server = server
-
-        try:
-            self.connect()
-        except:
-            self.disconnect()
-            raise
+        self.connect()
 
         self._task_file = task_file
         self._task_total = os.fstat(task_file.fileno()).st_size
@@ -69,22 +64,7 @@ class PlayTask(DeviceOperationMixIn):
     def on_headboard_message(self, sender):
         pass
 
-    def on_message(self, message, sender):
-        try:
-            cmd = message.rstrip(b"\x00").decode("utf8", "ascii")
-            response = self.dispatch_cmd(cmd)
-            sender.send(response.encode())
-        except RuntimeError as e:
-            sender.send(("error %s" % e.args[0]).encode())
-        except Exception as e:
-            if DEBUG:
-                sender.send(b"error %s %s" % (UNKNOW_ERROR, e))
-            else:
-                sender.send(b"error %s" % UNKNOW_ERROR)
-
-            logger.exception(UNKNOW_ERROR)
-
-    def dispatch_cmd(self, cmd):
+    def dispatch_cmd(self, cmd, sender):
         if cmd == "pause":
             if self._status == "RUNNING":
                 self._status = "PAUSE"
@@ -115,12 +95,14 @@ class PlayTask(DeviceOperationMixIn):
 
         elif cmd == "quit":
             if self._status in ["ABORT", "COMPLETED"]:
-                self.server.exit_task()
+                self.disconnect()
+                self.server.exit_task(self)
                 return "ok"
             else:
                 raise RuntimeError(RESOURCE_BUSY)
 
         else:
+            logger.debug("Can not handle: '%s'" % cmd)
             raise RuntimeError(UNKNOW_COMMAND)
 
     def on_loop(self, sender):

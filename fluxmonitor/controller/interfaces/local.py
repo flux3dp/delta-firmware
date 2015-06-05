@@ -167,11 +167,12 @@ class LocalConnectionAsyncIO(object):
         self.sock.send(payload)
 
     def close(self):
-        self._recv_handler = None
         self.server.remove_read_event(self)
         self.server.remove_loop_event(self)
         self.logger.info("Client %s disconnected" %
                          self.sock.getsockname()[0])
+        self._recv_handler = None
+        self.sock.close()
 
     def _on_message(self, sender):
         offset = self._buffered

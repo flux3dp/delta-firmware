@@ -33,7 +33,10 @@ class Robot(EventBase):
         self.task_callstack.append((self.this_task, return_callback))
         self.this_task = invoke_task
 
-    def exit_task(self, *return_args):
+    def exit_task(self, task, *return_args):
+        if self.this_task != task:
+            raise Exception("Task not match")
+
         task, callback = self.task_callstack.pop()
 
         try:

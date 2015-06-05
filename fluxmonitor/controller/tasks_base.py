@@ -7,8 +7,8 @@ import socket
 logger = logging.getLogger(__name__)
 
 from fluxmonitor.misc.async_signal import AsyncIO
-from fluxmonitor.config import uart_config
-from fluxmonitor.err_codes import NO_RESPONSE
+from fluxmonitor.config import uart_config, DEBUG
+from fluxmonitor.err_codes import NO_RESPONSE, UNKNOW_ERROR
 
 
 class ExclusiveTaskBase(object):
@@ -17,10 +17,40 @@ class ExclusiveTaskBase(object):
         self.owner = weakref.ref(sender, self.on_dead)
 
     def on_dead(self, sender_proxy, reason=None):
+        if self.server.this_task != self:
+            return
+
         if not reason:
             reason = "Connection/Owner gone"
         logger.info("%s abort (%s)" % (self.__class__.__name__, reason))
-        self.server.exit_task(False)
+        self.server.exit_task(self, False)
+
+
+class CommandTaskBase(object):
+    def on_message(self, buf, sender):
+        try:
+            cmd = buf.rstrip(b"\x00\n\r").decode("utf8", "ignore")
+
+            if len(cmd) > 128:
+                logger.error("Recive cmd length > 128, kick connection")
+                sender.close()
+                return
+
+            if cmd == "position":
+                sender.send(self.__class__.__name__)
+            else:
+                response = self.dispatch_cmd(cmd, sender)
+                sender.send(response.encode())
+
+        except RuntimeError as e:
+            sender.send(("error %s" % e.args[0]).encode())
+        except Exception as e:
+            if DEBUG:
+                sender.send(b"error %s %s" % (UNKNOW_ERROR, e))
+            else:
+                sender.send(b"error %s" % UNKNOW_ERROR)
+
+            logger.exception(UNKNOW_ERROR)
 
 
 class DeviceOperationMixIn(object):

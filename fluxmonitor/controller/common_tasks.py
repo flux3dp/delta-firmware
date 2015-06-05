@@ -5,37 +5,22 @@ import glob
 import json
 import os
 
-from fluxmonitor.config import DEBUG
 from fluxmonitor.config import robot_config
 from fluxmonitor.err_codes import UNKNOW_COMMAND, FILE_NOT_EXIST, \
-    FILE_TOO_LARGE, UNKNOW_ERROR, NO_TASK, RESOURCE_BUSY
-from .tasks_base import ExclusiveTaskBase, DeviceOperationMixIn
+    FILE_TOO_LARGE, NO_TASK, RESOURCE_BUSY
+from .tasks_base import ExclusiveTaskBase, DeviceOperationMixIn, \
+    CommandTaskBase
 from .play_task import PlayTask
 
 logger = logging.getLogger(__name__)
 
 
-class CommandTask(object):
+class CommandTask(CommandTaskBase):
     _task_file = None
 
     def __init__(self, server):
         self.server = server
         self.filepool = os.path.abspath(robot_config["filepool"])
-
-    def on_message(self, message, sender):
-        try:
-            cmd = message.rstrip(b"\x00").decode("utf8", "ignore")
-            response = self.dispatch_cmd(cmd, sender)
-            sender.send(response.encode())
-        except RuntimeError as e:
-            sender.send(("error %s" % e.args[0]).encode())
-        except Exception as e:
-            if DEBUG:
-                sender.send(b"error %s %s" % (UNKNOW_ERROR, e))
-            else:
-                sender.send(b"error %s" % UNKNOW_ERROR)
-
-            logger.exception(UNKNOW_ERROR)
 
     def dispatch_cmd(self, cmd, sender):
         if cmd == "ls":
@@ -134,7 +119,7 @@ class UploadTask(ExclusiveTaskBase):
                 else:
                     self.task_file.write(message[:self.padding_length])
                 sender.send(b"ok")
-                self.server.exit_task(True)
+                self.server.exit_task(self, True)
 
         else:
             if message.rstrip("\x00") == b"kick":
@@ -147,11 +132,7 @@ class UploadTask(ExclusiveTaskBase):
 class RawTask(ExclusiveTaskBase, DeviceOperationMixIn):
     def __init__(self, server, sender):
         super(RawTask, self).__init__(server, sender)
-        try:
-            self.connect()
-        except:
-            self.disconnect()
-            raise
+        self.connect()
 
     def on_dead(self, sender, reason=None):
         try:
@@ -160,21 +141,31 @@ class RawTask(ExclusiveTaskBase, DeviceOperationMixIn):
             super(RawTask, self).on_dead(sender, reason)
 
     def on_mainboard_message(self, sender):
-        buf = sender.obj.recv(4096)
-        self.owner().send(buf)
+        try:
+            buf = sender.obj.recv(4096)
+            self.owner().send(buf)
+        except Exception as e:
+            self.on_dead(repr(e))
 
     def on_headboard_message(self, sender):
-        buf = sender.obj.recv(4096)
-        self.owner().send(buf)
+        try:
+            buf = sender.obj.recv(4096)
+            self.owner().send(buf)
+        except Exception as e:
+            self.on_dead(repr(e))
 
     def on_message(self, buf, sender):
+        buf = buf.rstrip("\x00")
+
         if self.owner() == sender:
             if buf == b"quit":
                 sender.send(b"ok")
-                self.server.exit_task(True)
-            self._uart_mb.send(buf.rstrip(b"\x00"))
+                self.disconnect()
+                self.server.exit_task(self, True)
+            else:
+                self._uart_mb.send(buf)
         else:
-            if buf.rstrip("\x00") == b"kick":
+            if buf == b"kick":
                 self.on_dead(self.sender, "Kicked")
                 sender.send("kicked")
             else:
