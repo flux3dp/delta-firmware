@@ -11,7 +11,7 @@ import re
 
 logger = logging.getLogger(__name__)
 
-from fluxmonitor.misc._security import RSAObject
+from fluxmonitor.misc._security import RSAObject, AESObject
 from fluxmonitor.config import general_config
 
 KEYLENGTH = general_config["keylength"]

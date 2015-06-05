@@ -23,6 +23,8 @@ def main():
         robot = Robot(options)
         try:
             robot.run()
+        except (KeyboardInterrupt, ):
+            pass
         finally:
             robot.close()
 

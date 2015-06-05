@@ -2,6 +2,7 @@
 from itertools import chain
 from time import time
 import uuid as _uuid
+from signal import signal, SIGCHLD
 import subprocess
 import binascii
 import logging
@@ -11,7 +12,7 @@ import json
 
 logger = logging.getLogger(__name__)
 
-from fluxmonitor.config import uart_config, network_config
+from fluxmonitor.config import network_config
 from fluxmonitor.misc import control_mutex
 from fluxmonitor.err_codes import ALREADY_RUNNING, BAD_PASSWORD, NOT_RUNNING, \
     RESOURCE_BUSY, AUTH_ERROR
@@ -42,6 +43,7 @@ GLOBAL_SERIAL = _uuid.UUID(int=0)
 
 class UpnpServicesMix(object):
     padding_request_pubkey = None
+    _control_proc = None
 
     def cmd_discover(self, payload):
         """Return IP Address in array"""
@@ -169,9 +171,9 @@ class UpnpServicesMix(object):
 
         # TODO: not good
         if self.debug:
-            subprocess.Popen(["fluxrobot --debug"])
+            self._control_proc = subprocess.Popen(["fluxrobot", "--debug"])
         else:
-            subprocess.Popen(["fluxrobot"])
+            self._control_proc = subprocess.Popen(["fluxrobot"])
 
         return {"timestemp": time()}
 
@@ -184,21 +186,11 @@ class UpnpServicesMix(object):
         else:
             raise RuntimeError(NOT_RUNNING)
 
-
-class UpnpUSB(object):
-    def __init__(self, server, path=None):
-        if path is None:
-            path = uart_config["pc"]
-
-        self.server = server
-        self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        self.sock.connect(path)
-
-    def fileno(self):
-        return self.sock.fileno()
-
-    def on_read(self, sender):
-        pass
+    def on_control_terminate(self, signum, frame):
+        if self._control_proc:
+            poll = self._control_proc.poll()
+            self._control_proc = None
+            logger.debug("Control program terminated with %s", poll)
 
 
 class UpnpSocket(object):
@@ -356,6 +348,7 @@ class UpnpWatcher(WatcherBase, UpnpServicesMix, NetworkMonitorMix):
         self.pkey = security.get_private_key()
         self.pubkey_pem = self.pkey.export_pubkey_pem()
 
+        signal(SIGCHLD, self.on_control_terminate)
         super(UpnpWatcher, self).__init__(server, logger)
 
     def _on_status_changed(self, status):

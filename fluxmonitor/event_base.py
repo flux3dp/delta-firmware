@@ -53,12 +53,14 @@ class EventBase(object):
                     r.on_read(self)
                 except Exception:
                     logger.exception("Unhandle error")
+            r = None
 
             for o in self.llist:
                 try:
                     o.on_loop(self)
                 except Exception:
                     logger.exception("Unhandle error")
+            o = None
 
             try:
                 self.each_loop()

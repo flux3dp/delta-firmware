@@ -18,7 +18,7 @@ def create_logger(options):
     logging.basicConfig(format=LOG_FORMAT, datefmt=LOG_TIMEFMT)
 
     logger = logging.getLogger('')
-    if general_config.get("debug"):
+    if options.debug:
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.INFO)

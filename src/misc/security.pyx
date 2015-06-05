@@ -44,7 +44,6 @@ cdef class AESObject:
         free_aes256key(self.enc_aeskey)
         free_aes256key(self.dec_aeskey)
 
-    # 'D\xfb\x95\xbf+'
     cpdef encrypt(self, plaintext):
         cdef int outputlen
         output = aes256_encrypt(self.enc_aeskey, plaintext, len(plaintext),

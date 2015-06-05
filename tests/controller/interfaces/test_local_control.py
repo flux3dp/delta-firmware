@@ -1,10 +1,11 @@
 
 from binascii import a2b_hex as from_hex
 import unittest
+import logging
 import struct
 import socket
 
-from fluxmonitor.controller.interfaces.local import LocalControl
+from fluxmonitor.controller.interfaces.local import LocalConnectionAsyncIO
 from fluxmonitor.misc.async_signal import AsyncIO
 from fluxmonitor.event_base import EventBase
 from fluxmonitor import security as S
@@ -26,13 +27,10 @@ class LocalControlTest(unittest.TestCase):
         self.access_id = S.get_access_id(keyobj=keyobj)
 
     def test_on_handshake_identify(self):
-        lc = LocalControl(EventBase(), callback=lambda buf, sock: None)
-
         lc_sock, client_sock = socket.socketpair()
 
-        lc_io = AsyncIO(lc_sock)
-        lc_io.client = "192.168.1.2"
-        lc.on_connected(lc_io)
+        lc_io = LocalConnectionAsyncIO((lc_sock, ("192.168.1.2", 12345)),
+                                        EventBase(), logging.getLogger())
 
         recvbuf = client_sock.recv(8 + PRIVATE_KEY.size() + 128)
         ver, signature, salt = struct.unpack("<8s%is128s" % PRIVATE_KEY.size(),
@@ -41,7 +39,7 @@ class LocalControlTest(unittest.TestCase):
 
         sendbuf = from_hex(self.access_id) + self.keyobj.sign(salt)
         client_sock.send(sendbuf)
-        lc.on_handshake(lc_io)
+        lc_io.on_read(self)
         client_sock.send(sendbuf)
 
         finalbuf = client_sock.recv(16).rstrip(b"\x00")

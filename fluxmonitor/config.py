@@ -1,7 +1,9 @@
 
+DEBUG = False
+
 # The following is default config
 general_config = {
-    "debug": True,
+    "debug": False,
 
     "db": "/var/db/fluxmonitord",
     "keylength": 1024,

@@ -9,8 +9,12 @@ def add_config_arguments(parser):
 
 def apply_config_arguments(options):
     if options.configfile:
-        from fluxmonitor.config import load_config
-        load_config(options.configfile)
+        from fluxmonitor import config
+        config.load_config(options.configfile)
+
+        if options.debug:
+            config.general_config["debug"] = True
+            config.DEBUG = True
 
 
 def add_daemon_arguments(proc_name, parser):
