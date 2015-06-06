@@ -6,8 +6,8 @@ import json
 import os
 
 from fluxmonitor.config import robot_config
-from fluxmonitor.err_codes import UNKNOW_COMMAND, FILE_NOT_EXIST, \
-    FILE_TOO_LARGE, NO_TASK, RESOURCE_BUSY
+from fluxmonitor.err_codes import UNKNOW_COMMAND, NOT_EXIST, \
+    TOO_LARGE, NO_TASK, RESOURCE_BUSY
 from .tasks_base import ExclusiveTaskBase, DeviceOperationMixIn, \
     CommandTaskBase
 from .play_task import PlayTask
@@ -56,14 +56,14 @@ class CommandTask(CommandTaskBase):
         if not abs_filename.startswith(self.filepool) or \
            not abs_filename.endswith(".gcode") or \
            not os.path.isfile(abs_filename):
-                raise RuntimeError(FILE_NOT_EXIST)
+                raise RuntimeError(NOT_EXIST)
 
         self._task_file = open(filename, "rb")
         return "ok"
 
     def upload_file(self, filesize, sender):
         if filesize > 2 ** 30:
-            raise RuntimeError(FILE_TOO_LARGE)
+            raise RuntimeError(TOO_LARGE)
 
         self._task_file = TemporaryFile()
 
