@@ -7,12 +7,12 @@ from fluxmonitor.config import DEBUG
 from fluxmonitor.err_codes import UNKNOW_COMMAND, ALREADY_RUNNING, \
     NOT_RUNNING, NO_TASK, RESOURCE_BUSY
 
-from .tasks_base import CommandTaskBase, DeviceOperationMixIn
+from .base import CommandMixIn, DeviceOperationMixIn
 
 logger = logging.getLogger(__name__)
 
 
-class PlayTask(CommandTaskBase, DeviceOperationMixIn):
+class PlayTask(CommandMixIn, DeviceOperationMixIn):
     def __init__(self, server, sender, task_file):
         self.server = server
         self.connect()

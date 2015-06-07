@@ -3,7 +3,7 @@ import logging
 
 from fluxmonitor.event_base import EventBase
 from fluxmonitor.controller.interfaces.local import LocalControl
-from fluxmonitor.controller.common_tasks import CommandTask
+from fluxmonitor.controller.tasks.command_task import CommandTask
 
 
 STATUS_IDLE = 0x0

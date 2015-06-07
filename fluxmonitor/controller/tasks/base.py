@@ -11,7 +11,7 @@ from fluxmonitor.config import uart_config, DEBUG
 from fluxmonitor.err_codes import NO_RESPONSE, UNKNOW_ERROR
 
 
-class ExclusiveTaskBase(object):
+class ExclusiveMixIn(object):
     def __init__(self, server, sender):
         self.server = server
         self.owner = weakref.ref(sender, self.on_dead)
@@ -26,7 +26,7 @@ class ExclusiveTaskBase(object):
         self.server.exit_task(self, False)
 
 
-class CommandTaskBase(object):
+class CommandMixIn(object):
     def on_message(self, buf, sender):
         try:
             cmd = buf.rstrip(b"\x00\n\r").decode("utf8", "ignore")
@@ -58,7 +58,7 @@ class DeviceOperationMixIn(object):
     DeviceOperationMixIn require implement methods:
         on_mainboard_message(self, sender)
         on_headboard_message(self, sender)
-    And require “self.server” property
+    And require `self.server` property
     """
     connected = False
 
