@@ -4,7 +4,7 @@ from time import sleep
 import logging
 
 from fluxmonitor.config import hal_config
-from fluxmonitor.err_codes import DEVICE_ERROR, NOT_SUPPORT
+from fluxmonitor.err_codes import DEVICE_ERROR, NOT_SUPPORT, UNKNOW_COMMAND
 from .base import CommandMixIn, DeviceOperationMixIn
 
 logger = logging.getLogger(__name__)
@@ -64,17 +64,17 @@ class ScanTask(CommandMixIn, DeviceOperationMixIn):
                     sender.obj.recv(4096).decode("utf8", "ignore"))
 
     def dispatch_cmd(self, cmd, sock):
-        if cmd == "i" or cmd == "image":
-            return self.fetch_image(sock)
+        if cmd == "image":
+            return self.take_images(sock)
 
-        elif cmd == "p" or cmd == "previous":
+        elif cmd == "previous":
             ret = self.make_gcode_cmd("G1 F500 E-%.5f" % self.step_length)
             if ret == "ok":
                 return ret
             else:
                 raise RuntimeError(DEVICE_ERROR, ret)
 
-        elif cmd == "n" or cmd == "next":
+        elif cmd == "next":
             ret = self.make_gcode_cmd("G1 F500 E%.5f" % self.step_length)
             if ret == "ok":
                 return ret
@@ -90,22 +90,25 @@ class ScanTask(CommandMixIn, DeviceOperationMixIn):
             logger.debug("Can not handle: '%s'" % cmd)
             raise RuntimeError(UNKNOW_COMMAND)
 
-    def fetch_image(self, sock):
+    def take_images(self, sock):
         ret = self.make_gcode_cmd("@X1O")
-        self._send_img(sock)
-        ret = self.make_gcode_cmd("@X1F")
+        self._take_image(sock)
         ret = self.make_gcode_cmd("@X2O")
-        self._send_img(sock)
+        ret = self.make_gcode_cmd("@X1F")
+        self._take_image(sock)
         ret = self.make_gcode_cmd("@X2F")
-        self._send_img(sock)
+        self._take_image(sock)
         return "ok"
 
-    def _send_img(self, sock):
+    def _take_image(self, sock):
         try:
-            ret = False
+            for i in range(4):
+                while not self.camera.grab():
+                    pass
+            ret, self._img_buf = self.camera.read(self._img_buf)
             while not ret:
+                logger.error("Take image failed")
                 ret, self._img_buf = self.camera.read(self._img_buf)
-                sleep(0.1)
 
             # Convert IMWRITE_JPEG_QUALITY from long type to int (a bug)
             ret, buf = cv2.imencode(".jpg", self._img_buf,
@@ -115,10 +118,7 @@ class ScanTask(CommandMixIn, DeviceOperationMixIn):
             total, sent = len(buf), 0
             sock.send("image image/jpeg %i" % total)
             while sent < total:
-                sock.send(buf[sent:sent + 4096].tostring())
-                sent += 4096
+                sent += sock.send(buf[sent:sent + 4096].tostring())
 
         except Exception as e:
             logger.exception("ERR")
-            import IPython
-            IPython.embed()

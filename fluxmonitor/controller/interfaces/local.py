@@ -160,11 +160,20 @@ class LocalConnectionAsyncIO(object):
 
     def send(self, buf):
         l = len(buf)
-        if l > 4096:
-            logger.error("Can not send message larger then 4096")
-        pad = b"\x00" * ((256 - (l % 128)) % 128)
-        payload = self.aes.encrypt(buf + pad)
-        self.sock.send(payload)
+        lpad = ((256 - (l % 128)) % 128)
+
+        if lpad:
+            length = l + lpad
+            pad = b"\x00" * lpad
+            buf = memoryview(self.aes.encrypt(buf + pad))
+        else:
+            length = l
+            buf = memoryview(self.aes.encrypt(buf))
+
+        sent = self.sock.send(buf)
+        while sent < length:
+            sent += self.sock.send(buf[sent:])
+        return l
 
     def close(self):
         self.server.remove_read_event(self)
