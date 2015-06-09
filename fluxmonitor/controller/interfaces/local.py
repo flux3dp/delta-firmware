@@ -170,7 +170,7 @@ class LocalConnectionAsyncIO(object):
         self.server.remove_read_event(self)
         self.server.remove_loop_event(self)
         self.logger.info("Client %s disconnected" %
-                         self.sock.getsockname()[0])
+                         self.sock.getpeername()[0])
         self._recv_handler = None
         self.sock.close()
 
