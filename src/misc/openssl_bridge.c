@@ -16,18 +16,18 @@
 
 
 EVP_CIPHER_CTX* create_enc_aes256key(const unsigned char* key,
-                                    const unsigned char* iv) {
+                                     const unsigned char* iv) {
     EVP_CIPHER_CTX* ctx = malloc(sizeof(EVP_CIPHER_CTX));
     EVP_CIPHER_CTX_init(ctx);
-    EVP_EncryptInit(ctx, EVP_aes_256_cfb(), key, iv);
+    EVP_EncryptInit(ctx, EVP_aes_256_cfb8(), key, iv);
     return ctx;
 }
 
 EVP_CIPHER_CTX* create_dec_aes256key(const unsigned char* key,
-                                    const unsigned char* iv) {
+                                     const unsigned char* iv) {
     EVP_CIPHER_CTX* ctx = malloc(sizeof(EVP_CIPHER_CTX));
     EVP_CIPHER_CTX_init(ctx);
-    EVP_DecryptInit(ctx, EVP_aes_256_cfb(), key, iv);
+    EVP_DecryptInit(ctx, EVP_aes_256_cfb8(), key, iv);
     return ctx;
 }
 
@@ -36,29 +36,19 @@ void free_aes256key(EVP_CIPHER_CTX* ctx) {
     free(ctx);
 }
 
-unsigned char* aes256_encrypt(EVP_CIPHER_CTX* ctx, const unsigned char* input,
-                              int inputlen, int* outputlen) {
-    int c_len = inputlen + AES_BLOCK_SIZE;
-    unsigned char *ciphertext = malloc(c_len);
-
-    EVP_EncryptUpdate(ctx, ciphertext, &c_len, input, inputlen);
-
-    int f_len = 0;
-    *outputlen = c_len + f_len;
-    return ciphertext;
+int aes256_encrypt(EVP_CIPHER_CTX* ctx, const unsigned char* plaintext,
+                   unsigned char* ciphertext, int length) {
+    int ol = length;
+    int ret = EVP_EncryptUpdate(ctx, ciphertext, &ol, plaintext, length);
+    return ret;
 }
 
-unsigned char* aes256_decrypt(EVP_CIPHER_CTX* ctx,
+int aes256_decrypt(EVP_CIPHER_CTX* ctx,
                               const unsigned char* ciphertext,
-                              int inputlen, int* outputlen) {
-    unsigned char *plaintext = malloc(inputlen);
-
-    int p_len = 0;
-    EVP_DecryptUpdate(ctx, plaintext, &p_len, ciphertext, inputlen);
-
-    int f_len = 0;
-    *outputlen = p_len + f_len;
-    return plaintext;
+                              unsigned char* plaintext, int length) {
+    int ol = length;
+    int ret = EVP_DecryptUpdate(ctx, plaintext, &ol, ciphertext, length);
+    return ret;
 }
 
 RSA* create_rsa(int keylen) {

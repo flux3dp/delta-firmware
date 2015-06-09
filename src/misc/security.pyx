@@ -1,4 +1,6 @@
 
+from cpython.buffer cimport PyBUF_SIMPLE, PyObject_GetBuffer, PyBuffer_Release
+from libc.stdlib cimport malloc, free
 import os
 
 
@@ -10,13 +12,11 @@ cdef extern from "openssl_bridge.h":
     EVP_CIPHER_CTX* create_dec_aes256key(const unsigned char* key,
                                          const unsigned char* iv)
     void free_aes256key(EVP_CIPHER_CTX* ctx)
-    unsigned char* aes256_encrypt(EVP_CIPHER_CTX* ctx,
-                                  const unsigned char* input,
-                                  int inputlen, int* outputlen)
+    int aes256_encrypt(EVP_CIPHER_CTX* ctx, const unsigned char* plaintext,
+                       unsigned char* ciphertext, int length)
 
-    unsigned char* aes256_decrypt(EVP_CIPHER_CTX* ctx,
-                                  const unsigned char* ciphertext,
-                                  int inputlen, int* outputlen)
+    int aes256_decrypt(EVP_CIPHER_CTX* ctx, const unsigned char* ciphertext,
+                       unsigned char* plaintext, int length)
 
     ctypedef struct RSA
     void RSA_free(RSA*)
@@ -37,6 +37,10 @@ cdef class AESObject:
     cdef EVP_CIPHER_CTX* dec_aeskey
 
     def __init__(self, key, iv):
+        if len(key) != 32:
+            raise Exception("key must be 32 bytes")
+        if len(iv) != 16:
+            raise Exception("iv must be 16 bytes")
         self.enc_aeskey = create_enc_aes256key(key, iv)
         self.dec_aeskey = create_dec_aes256key(key, iv)
 
@@ -45,16 +49,62 @@ cdef class AESObject:
         free_aes256key(self.dec_aeskey)
 
     cpdef encrypt(self, plaintext):
-        cdef int outputlen
-        output = aes256_encrypt(self.enc_aeskey, plaintext, len(plaintext),
-                                &outputlen)
-        return output[:outputlen]
+        cdef Py_buffer view
+        cdef int length = len(plaintext)
+        cdef unsigned char* buf= <unsigned char *>malloc(length)
+        try:
+            PyObject_GetBuffer(plaintext, &view, PyBUF_SIMPLE)
+            ret = aes256_decrypt(self.enc_aeskey,
+                                 <const unsigned char*>view.buf, buf, length)
+            return <bytes>buf[:len(plaintext)]
+        finally:
+            PyBuffer_Release(&view)
+            free(buf)
+
+    cpdef encrypt_into(self, plaintext, unsigned char[:] ciphertext):
+        cdef Py_buffer view
+        cdef int length = len(plaintext)
+        
+        if length > len(ciphertext):
+            raise Exception("Output buffer too small (%i, %i)" %
+                            (len(plaintext), len(ciphertext)))
+        try:
+            PyObject_GetBuffer(plaintext, &view, PyBUF_SIMPLE)
+            ret = aes256_encrypt(self.enc_aeskey,
+                                 <const unsigned char*>view.buf,
+                                 &(ciphertext[0]), length)
+            return ret
+        finally:
+            PyBuffer_Release(&view)
 
     cpdef decrypt(self, ciphertext):
-        cdef int outputlen
-        output = aes256_decrypt(self.dec_aeskey, ciphertext, len(ciphertext),
-                                &outputlen)
-        return output[:outputlen]
+        cdef Py_buffer view
+        cdef int length = len(ciphertext)
+        cdef unsigned char* buf= <unsigned char *>malloc(length)
+        try:
+            PyObject_GetBuffer(ciphertext, &view, PyBUF_SIMPLE)
+            ret = aes256_decrypt(self.dec_aeskey,
+                                 <const unsigned char*>view.buf, buf, length)
+            return <bytes>buf[:len(ciphertext)]
+        finally:
+            PyBuffer_Release(&view)
+            free(buf)
+
+    cpdef decrypt_into(self, ciphertext, unsigned char[:] plaintext):
+        cdef Py_buffer view
+        cdef int length = len(plaintext)
+
+        if len(plaintext) < len(ciphertext):
+            raise Exception("Output buffer too small (%i, %i)" %
+                            (len(ciphertext), len(plaintext)))
+        try:
+            PyObject_GetBuffer(ciphertext, &view, PyBUF_SIMPLE)
+            ret = aes256_decrypt(self.dec_aeskey,
+                                 <const unsigned char*>view.buf,
+                                 &(plaintext[0]), length)
+            return plaintext
+        finally:
+            PyBuffer_Release(&view)
 
 
 cdef class RSAObject:

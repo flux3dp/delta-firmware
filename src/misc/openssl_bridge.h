@@ -16,12 +16,11 @@ EVP_CIPHER_CTX* create_dec_aes256key(const unsigned char* key,
 void free_aes256key(EVP_CIPHER_CTX* ctx);
 
 
-unsigned char* aes256_encrypt(EVP_CIPHER_CTX* ctx, const unsigned char* input,
-                              int inputlen, int* outputlen);
+int aes256_encrypt(EVP_CIPHER_CTX* ctx, const unsigned char* plaintext,
+                   unsigned char* ciphertext, int length);
 
-unsigned char* aes256_decrypt(EVP_CIPHER_CTX* ctx,
-                              const unsigned char* ciphertext,
-                              int inputlen, int* outputlen);
+int aes256_decrypt(EVP_CIPHER_CTX* ctx, const unsigned char* ciphertext,
+                  unsigned char* plaintext, int length);
 
 // keylength: what you see what you get
 RSA* create_rsa(int keylength);
