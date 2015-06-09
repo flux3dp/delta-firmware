@@ -11,6 +11,7 @@ from fluxmonitor.err_codes import UNKNOW_COMMAND, NOT_EXIST, \
 
 from .base import CommandMixIn
 from .play_task import PlayTask
+from .scan_task import ScanTask
 from .upload_task import UploadTask
 from .raw_task import RawTask
 
@@ -37,10 +38,12 @@ class CommandTask(CommandMixIn):
         elif cmd.startswith("upload "):
             filesize = cmd.split(" ", 1)[-1]
             return self.upload_file(int(filesize, 10), sender)
-        elif cmd == "raw":
-            return self.raw_access(sender)
+        elif cmd.startswith("scan"):
+            return self.scan(sender, cmd)
         elif cmd == "start":
             return self.play(sender)
+        elif cmd == "raw":
+            return self.raw_access(sender)
         else:
             logger.debug("Can not handle: '%s'" % cmd)
             raise RuntimeError(UNKNOW_COMMAND)
@@ -100,3 +103,8 @@ class CommandTask(CommandMixIn):
             return "ok"
         else:
             raise RuntimeError(NO_TASK)
+
+    def scan(self, cmd, sender):
+        task = ScanTask(self.server, sender)
+        self.server.enter_task(task, empty_callback)
+        return "ok"

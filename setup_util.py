@@ -8,7 +8,7 @@ from fluxmonitor import STR_VERSION
 
 
 def get_install_requires():
-    return ['setuptools', 'psutil', 'python-memcached', 'pillow', ]
+    return ['setuptools', 'psutil', 'python-memcached', ]
 
 
 def get_version():

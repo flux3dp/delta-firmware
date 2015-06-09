@@ -40,7 +40,8 @@ class CommandMixIn(object):
                 sender.send(self.__class__.__name__)
             else:
                 response = self.dispatch_cmd(cmd, sender)
-                sender.send(response.encode())
+                if response is not None:
+                    sender.send(response.encode())
 
         except RuntimeError as e:
             sender.send(("error %s" % e.args[0]).encode())
@@ -65,7 +66,7 @@ class DeviceOperationMixIn(object):
     _uart_mb = _uart_hb = None
     _async_mb = _async_hb = None
 
-    def connect(self):
+    def connect(self, mainboard_only=False):
         try:
             self.connected = True
             self._uart_mb = mb = socket.socket(socket.AF_UNIX,
@@ -75,12 +76,14 @@ class DeviceOperationMixIn(object):
             self._async_mb = AsyncIO(mb, self.on_mainboard_message)
             self.server.add_read_event(self._async_mb)
 
-            self._uart_hb = hb = socket.socket(socket.AF_UNIX,
-                                               socket.SOCK_STREAM)
-            self._async_hb = AsyncIO(hb, self.on_headboard_message)
-            self.server.add_read_event(self._async_hb)
-            logger.info("Connect to headboard %s" % uart_config["headboard"])
-            hb.connect(uart_config["headboard"])
+            if not mainboard_only:
+                self._uart_hb = hb = socket.socket(socket.AF_UNIX,
+                                                   socket.SOCK_STREAM)
+                self._async_hb = AsyncIO(hb, self.on_headboard_message)
+                self.server.add_read_event(self._async_hb)
+                logger.info("Connect to headboard %s" %
+                            uart_config["headboard"])
+                hb.connect(uart_config["headboard"])
 
         except socket.error as err:
             logger.exception("Connect to %s failed" % uart_config["mainboard"])
@@ -101,12 +104,12 @@ class DeviceOperationMixIn(object):
             self._async_hb = None
 
         if self._uart_mb:
-            logger.info("Disconnect to mainboard")
+            logger.info("Disconnect from mainboard")
             self._uart_mb.close()
             self._uart_mb = None
 
         if self._uart_hb:
-            logger.info("Disconnect to headboard")
+            logger.info("Disconnect from headboard")
             self._uart_hb.close()
             self._uart_hb = None
 
