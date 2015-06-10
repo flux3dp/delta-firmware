@@ -55,3 +55,13 @@ class C_AESObjectTest(unittest.TestCase):
         aesobj.decrypt_into(enc_buf, memoryview(dec_buf))
         self.assertNotEqual(plaintext, enc_buf)
         self.assertEqual(plaintext, dec_buf)
+
+    def test_in_memory_decrypt(self):
+        aesobj = AESObject(b"a"*32, b"b"*16)
+
+        plaintext = "b"*70
+        enc_buf = bytearray(plaintext)
+        aesobj.encrypt_into(enc_buf, enc_buf)
+        aesobj.decrypt_into(enc_buf, enc_buf)
+        self.assertEqual(plaintext, enc_buf)
+
