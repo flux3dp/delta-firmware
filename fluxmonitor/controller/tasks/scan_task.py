@@ -64,17 +64,22 @@ class ScanTask(CommandMixIn, DeviceOperationMixIn):
                     sender.obj.recv(4096).decode("utf8", "ignore"))
 
     def dispatch_cmd(self, cmd, sock):
-        if cmd == "image":
-            return self.take_images(sock)
+        if cmd == "oneshot":
+            self._take_image(sock)
+            return "ok"
 
-        elif cmd == "previous":
+        elif cmd == "scanimages":
+            self.take_images(sock)
+            return "ok"
+
+        elif cmd == "scan_forword":
             ret = self.make_gcode_cmd("G1 F500 E-%.5f" % self.step_length)
             if ret == "ok":
                 return ret
             else:
                 raise RuntimeError(DEVICE_ERROR, ret)
 
-        elif cmd == "next":
+        elif cmd == "scan_next":
             ret = self.make_gcode_cmd("G1 F500 E%.5f" % self.step_length)
             if ret == "ok":
                 return ret
@@ -116,7 +121,7 @@ class ScanTask(CommandMixIn, DeviceOperationMixIn):
                                      self.quality])
 
             total, sent = len(buf), 0
-            sock.send("image image/jpeg %i" % total)
+            sock.send("binary image/jpeg %i" % total)
             while sent < total:
                 sent += sock.send(buf[sent:sent + 4096].tostring())
 
