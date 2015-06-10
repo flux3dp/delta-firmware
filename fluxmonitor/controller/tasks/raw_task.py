@@ -32,7 +32,13 @@ class RawTask(ExclusiveMixIn, DeviceOperationMixIn):
         buf = buf.rstrip("\x00")
 
         if self.owner() == sender:
-            if buf == b"quit":
+            if buf.startswith(b"+"):
+                self._uart_mb.send(buf[1:])
+            elif buf.startswith(b"-"):
+                self._uart_hb.send(buf[1:])
+            elif buf.startswith(b"L") or buf.startswith(b"H"):
+                self._uart_hb.send(buf)
+            elif buf == b"quit":
                 sender.send(b"ok")
                 self.disconnect()
                 self.server.exit_task(self, True)
