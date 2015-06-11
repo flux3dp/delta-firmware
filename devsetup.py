@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 from setuptools import setup, Extension
-from pkgutil import walk_packages
 
 from Cython.Distutils import build_ext
 
@@ -12,30 +11,14 @@ setup_util.checklibs()
 
 VERSION = setup_util.get_version()
 
-# Process install_requires
 install_requires = setup_util.get_install_requires()
-
-if setup_util.is_linux():
-    install_requires += ['pyroute2', 'RPi.GPIO']
-else:
-    install_requires += ['netifaces']
-
-
-# Process libraries
+tests_require = setup_util.get_tests_require()
 libraries = ['crypto']
-
-
-# Process packages
 packages = setup_util.get_packages()
-
-
-# Process scripts
 entry_points = setup_util.get_entry_points()
-scripts = setup_util.get_scripts()
 
 
 if setup_util.is_test():
-    install_requires += ['pycrypto']
     setup_util.setup_test()
 
 
@@ -49,9 +32,9 @@ setup(
     packages=packages,
     test_suite="tests.main.everything",
     entry_points=entry_points,
-    scripts=scripts,
     install_requires=install_requires,
-    cmdclass = {'build_ext': build_ext},
+    tests_require=tests_require,
+    cmdclass={'build_ext': build_ext},
     ext_modules=[
         Extension(
             'fluxmonitor.misc._security', sources=[

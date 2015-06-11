@@ -8,7 +8,16 @@ from fluxmonitor import STR_VERSION
 
 
 def get_install_requires():
-    return ['setuptools', 'psutil', 'python-memcached', ]
+    packages = ['setuptools', 'psutil', 'python-memcached', ]
+    if is_linux():
+        packages += ['pyroute2', 'RPi.GPIO']
+    if is_darwin():
+        packages += ['netifaces']
+    return packages
+
+
+def get_tests_require():
+    return ['pycrypto']
 
 
 def get_version():
@@ -38,6 +47,10 @@ def is_test():
 
 def is_linux():
     return platform.system().lower().startswith("linux")
+
+
+def is_darwin():
+    return platform.system().lower().startswith("darwin")
 
 
 def setup_test():
@@ -70,4 +83,3 @@ def get_entry_points():
 
 def get_scripts():
     return []
-
