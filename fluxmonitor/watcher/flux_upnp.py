@@ -392,7 +392,7 @@ class UpnpWatcher(WatcherBase, UpnpServicesMix, NetworkMonitorMix):
         self._on_status_changed(self._monitor.full_status())
 
     def shutdown(self):
-        pass
+        self._try_close_upnp_sock()
 
     def each_loop(self):
         pass

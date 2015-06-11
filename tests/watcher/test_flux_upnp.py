@@ -29,6 +29,10 @@ class UpnpServicesMixTest(unittest.TestCase):
         self.server = ServerSimulator()
         self.w = UpnpWatcher(self.server)
 
+    def tearDown(self):
+        self.w.shutdown()
+        self.w = None
+
     def test_fetch_rsa_key(self):
         resp = self.w.cmd_rsa_key({})
         self.assertIsNotNone(resp)
@@ -116,6 +120,10 @@ class UpnpWatcherNetworkMonitorMixTest(unittest.TestCase):
         self.cache = MemcacheTestClient()
         self.w = UpnpWatcher(ServerSimulator())
 
+    def tearDown(self):
+        self.w.shutdown()
+        self.w = None
+
     def test_socket_status_on_status_changed(self):
         # Test disable socket
         self.w._on_status_changed({})
@@ -161,6 +169,7 @@ class UpnpSocketTest(unittest.TestCase):
 
     def tearDown(self):
         self.sock.close()
+        self.sock = None
 
     def create_client(self):
         client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
