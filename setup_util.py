@@ -72,9 +72,9 @@ def get_entry_points():
             "fluxupnpd=fluxmonitor.bin.fluxupnpd:main",
             "fluxhal-uartd=fluxmonitor.bin.fluxuartd:main",
             "fluxnetworkd=fluxmonitor.bin.fluxnetworkd:main",
+            "fluxusbd=fluxmonitor.bin.fluxusbd:main",
 
             "fluxrobot=fluxmonitor.bin.fluxrobot:main",
-            "fluxscanner=fluxmonitor.bin.fluxscanner:main",
 
             "fluxinfo=fluxmonitor.bin.fluxinfo:main"
         ]

@@ -1,5 +1,4 @@
 
-from weakref import WeakValueDictionary
 from errno import ENOENT, ENOTSOCK
 from time import time
 import logging
@@ -34,6 +33,12 @@ class UsbWatcher(WatcherBase):
     usb = None
     usb_io = None
 
+    def __init__(self, server):
+        super(UsbWatcher, self).__init__(server, logger)
+
+    def start(self):
+        self.connect_usb_serial()
+
     def connect_usb_serial(self):
         try:
             s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
@@ -41,7 +46,7 @@ class UsbWatcher(WatcherBase):
             io = UsbIO(self, s)
 
             self.usb_io = io
-            self.add_read_event(io)
+            self.server.add_read_event(io)
 
         except socket.error as e:
             self.close_usb_serial()
@@ -52,11 +57,12 @@ class UsbWatcher(WatcherBase):
                 logger.exception("USB Connection error")
 
     def close_usb_serial(self, *args):
+        self.server.remove_read_event(self.usb_id)
         self.usb = None
         self.usb_io = None
 
     def each_loop(self):
-        if not self.sock:
+        if not self.usb_io:
             self.connect_usb_serial()
 
 
@@ -65,24 +71,24 @@ class UsbIO(object):
         self.sock = sock
         self.server = server
         self.meta = CommonMetadata()
-        self.callbacks = WeakValueDictionary({
+        self.callbacks = {
             MSG_IDENTIFY: self.on_identify,
             MSG_RSAKEY: self.on_rsakey,
             MSG_AUTH: self.on_auth,
             MSG_CONFIG_GENERAL: self.on_config_general,
             MSG_CONFIG_NETWORK: self.on_config_network,
             MSG_GET_SSID: self.on_query_ssid
-        })
+        }
 
     def fileno(self):
-        return self.sock.fileno
+        return self.sock.fileno()
 
     def on_read(self, sender):
         buf = self.sock.recv(4096)
         if buf:
-            self.dispatch_msg()
+            self.dispatch_msg(buf)
         else:
-            sender.remove_read_event(self)
+            self.callbacks = None
             self.server.close_usb_serial()
 
     def dispatch_msg(self, buf):
@@ -94,6 +100,10 @@ class UsbIO(object):
                 handler = self.callbacks.get(req)
                 if handler:
                     handler(buf)
+                else:
+                    logger.debug("handler not found %i" % req)
+            else:
+                logger.debug("ignore unmatch message")
 
     def send_response(self, req, is_success, buf):
         """
@@ -112,6 +122,7 @@ class UsbIO(object):
                 "time=%.2f\x00pwd=%i") % (
                 VERSION, MODEL_ID, SERIAL, self.meta.get_nickname(),
                 time(), security.has_password(),)
+        logger.debug("on_identify")
         self.send_response(0, True, resp.encode())
 
     def on_rsakey(self, buf):
