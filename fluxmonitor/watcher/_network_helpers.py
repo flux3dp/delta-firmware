@@ -5,9 +5,11 @@ import socket
 import json
 import os
 
-from fluxmonitor.config import network_config, general_config
+from fluxmonitor.misc import network_config_encoder as NCE
 from fluxmonitor.hal.net import config as net_config
+from fluxmonitor.config import network_config
 from fluxmonitor.hal.net.monitor import Monitor
+from fluxmonitor.storage import Storage
 
 DEBUG = network_config.get("debug", False)
 
@@ -75,33 +77,23 @@ class NetworkMonitorMix(object):
 class ConfigMix(object):
     """ConfigMix provide get/set network config"""
 
-    __CONFIG_KEYS = ["method", "ipaddr", "mask", "route", "ns",
-                     "ssid", "security", "wepkey", "psk"]
-
-    def __config_path(self, ifname):
-        return os.path.join(general_config["db"], "net", ifname)
+    @property
+    def storage(self):
+        return Storage("net")
 
     def set_config(self, ifname, config):
-        new_config = {k: v
-                      for k, v in config.items() if k in self.__CONFIG_KEYS}
-        config_file = self.__config_path(ifname)
-        dirname = os.path.dirname(config_file)
-
+        config = NCE.validate_options(config)
         try:
-            if not os.path.isdir(dirname):
-                os.makedirs(dirname)
-            with open(config_file, "w") as f:
+            with self.storage.open(ifname, "w") as f:
                 json.dump(config, f)
         except Exception:
             self.logger.exception("Write network config error")
-
-        return new_config
+        return config
 
     def get_config(self, ifname):
-        config_file = self.__config_path(ifname)
-        if os.path.exists(config_file):
+        if self.storage.exists(ifname):
             try:
-                with open(config_file, "r") as f:
+                with open(ifname, "r") as f:
                     return json.load(f)
             except Exception:
                 self.logger.exception("Read network config error")
