@@ -150,7 +150,6 @@ class UpnpSocketTest(unittest.TestCase):
     logger = logging.getLogger()
 
     def __init__(self, *args, **kw):
-        self.pkey = S.get_private_key()
         super(UpnpSocketTest, self).__init__(*args, **kw)
 
         for hook_name in ["cmd_discover", "cmd_rsa_key", "cmd_nopwd_access",
@@ -164,6 +163,7 @@ class UpnpSocketTest(unittest.TestCase):
         return self.hook(*args)
 
     def setUp(self):
+        self.pkey = S.get_private_key()
         self.memcache = MemcacheTestClient()
         self.sock = UpnpSocket(self, "")
 
