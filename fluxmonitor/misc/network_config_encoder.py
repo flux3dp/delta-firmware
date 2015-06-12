@@ -1,48 +1,14 @@
 
 
+try:
+    unicode
+except NameError:
+    unicode = str
+
+
 def parse_bytes(buf):
-    raw_opts = dict([i.split(b"=", 1) for i in buf.split(b"\x00")])
-    options = {}
-
-    if b"ifname" in raw_opts:
-        options["ifname"] = _b2s(raw_opts[b"ifname"])
-
-    method = raw_opts.get(b"method")
-    if method == b"dhcp":
-        options["method"] = "dhcp"
-    elif method == b"static":
-        options.update({
-            "method": "static", "ipaddr": _b2s(raw_opts["ipaddr"]),
-            "mask": int(raw_opts["mask"]),
-            "route": _b2s(raw_opts.get("route")),
-            "ns": _b2s(raw_opts[b"ns"]).split(",")
-        })
-    else:
-        raise KeyError("method")
-
-    if b"ssid" in raw_opts:
-        ssid = _b2s(raw_opts[b"ssid"])
-        wifi_mode = _b2s(raw_opts.get(b"wifi_mode", b"client"))
-        security = _b2s(raw_opts.get(b"security"))
-
-        if not ssid:
-            raise KeyError("ssid")
-
-        if wifi_mode not in ("client", "host"):
-            raise KeyError("wifi_mode")
-        if security not in ('WPA-PSK', 'WPA2-PSK', None):
-            raise KeyError("security")
-
-        options["ssid"] = ssid
-        options["wifi_mode"] = wifi_mode
-        options["security"] = security
-
-        if security == "WEP":
-            options["wepkey"] = _b2s(raw_opts[b"wepkey"])
-        elif security in ['WPA-PSK', 'WPA2-PSK']:
-            options["psk"] = _b2s(raw_opts[b"psk"])
-
-    return options
+    raw_options = dict([i.split(b"=", 1) for i in buf.split(b"\x00")])
+    return validate_options(raw_options)
 
 
 def to_bytes(options):
@@ -61,8 +27,62 @@ def to_bytes(options):
     return "\x00".join(keyvalues)
 
 
-def _b2s(bytes):
-    if bytes is None:
-        return None
+def validate_options(orig):
+    options = {}
+    
+    if b"ifname" in orig:
+        options["ifname"] = _b2s(orig[b"ifname"])
+
+    method = orig.get(b"method")
+    if method == b"dhcp":
+        options["method"] = "dhcp"
+    elif method == b"static":
+        ons = orig[b"ns"]
+        if not isinstance(ons, list):
+            ns = _b2s(orig[b"ns"]).split(",")
+        else:
+            ns = ons
+
+        options.update({
+            "method": "static", "ipaddr": _b2s(orig["ipaddr"]),
+            "mask": int(orig["mask"]),
+            "route": _b2s(orig.get("route")),
+            "ns": ns
+        })
     else:
-        return bytes.decode("ascii", "ignore")
+        raise KeyError("method")
+
+    if b"ssid" in orig:
+        ssid = _b2s(orig[b"ssid"])
+        wifi_mode = _b2s(orig.get(b"wifi_mode", b"client"))
+        security = _b2s(orig.get(b"security"))
+
+        if not ssid:
+            raise KeyError("ssid")
+
+        if wifi_mode not in ("client", "host"):
+            raise KeyError("wifi_mode")
+        if security not in ('WPA-PSK', 'WPA2-PSK', None):
+            raise KeyError("security")
+
+        options["ssid"] = ssid
+        options["wifi_mode"] = wifi_mode
+        options["security"] = security
+
+        if security == "WEP":
+            options["wepkey"] = _b2s(orig[b"wepkey"])
+        elif security in ['WPA-PSK', 'WPA2-PSK']:
+            options["psk"] = _b2s(orig[b"psk"])
+
+    return options
+
+
+def _b2s(input):
+    if input is None:
+        return None
+    elif isinstance(input, bytes):
+        return input.decode("ascii", "ignore")
+    elif isinstance(input, (unicode, str)):
+        return input
+    else:
+        raise TypeError(input, input.__class__)
