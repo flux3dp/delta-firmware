@@ -47,6 +47,7 @@ class UsbWatcher(WatcherBase):
 
             self.usb_io = io
             self.server.add_read_event(io)
+            logger.info("Ready on port %s" % uart_config["pc"])
 
         except socket.error as e:
             self.close_usb_serial()
@@ -60,6 +61,9 @@ class UsbWatcher(WatcherBase):
         self.server.remove_read_event(self.usb_id)
         self.usb = None
         self.usb_io = None
+
+    def shutdown(self):
+        pass
 
     def each_loop(self):
         if not self.usb_io:
@@ -104,6 +108,8 @@ class UsbIO(object):
                     logger.debug("handler not found %i" % req)
             else:
                 logger.debug("ignore unmatch message")
+        else:
+            logger.debug("message too short")
 
     def send_response(self, req, is_success, buf):
         """

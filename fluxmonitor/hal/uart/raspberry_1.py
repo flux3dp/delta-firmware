@@ -24,13 +24,21 @@ class UartHal(UartHalBase, BaseOnSerial):
         self._connect()
 
     def on_recvfrom_raspi_io(self, obj):
-        # TODO: We assume message is always from head now
-        self.on_recvfrom_headboard(obj)
+        # TODO: NOT READY!
+        if self.headboard_socks:
+            self.on_recvfrom_headboard(obj)
+        else:
+            self.on_recvfrom_pc(obj)
 
     def sendto_mainboard(self, buf):
         self.mainboard_uart.write(buf)
 
     def sendto_headboard(self, buf):
+        # TODO: NOT READY!
+        self.raspi_uart.write(buf)
+
+    def sendto_pc(self, buf):
+        # TODO: NOT READY!
         self.raspi_uart.write(buf)
 
     def reconnect(self):
