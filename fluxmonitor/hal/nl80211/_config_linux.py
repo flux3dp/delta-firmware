@@ -10,7 +10,7 @@ from fluxmonitor.config import network_config
 WPA_SUPPLICANT = network_config['wpa_supplicant']
 HOSTAPD = network_config['hostapd']
 
-__all__ = ["wlan_managed_daemon", "wlan_ap_daemon"]
+__all__ = ["wlan_managed_daemon", "wlan_ap_daemon", "get_wlan_ssid"]
 
 
 def wlan_managed_daemon(manager, ifname, wlan_config):
@@ -31,6 +31,10 @@ def wlan_ap_daemon(manager, ifname):
     _write_hostapd_config(conf_file, ifname, {})
 
     return Process(manager, [HOSTAPD, conf_file])
+
+
+def get_wlan_ssid(ifname="wlan0"):
+    return Process.call_with_output("iwgetid", "-r", ifname)
 
 
 def _write_wpa_config(filepath, config):

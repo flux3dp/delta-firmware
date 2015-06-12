@@ -109,7 +109,7 @@ def get_access_id(pem=None, der=None, keyobj=None):
     if not keyobj:
         keyobj = get_keyobj(pem=pem, der=der)
         if not keyobj:
-            return ""
+            raise Exception("key error")
     return sha1(keyobj.export_pem()).hexdigest()
 
 

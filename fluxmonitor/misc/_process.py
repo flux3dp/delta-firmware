@@ -9,6 +9,16 @@ __all__ = ["Process"]
 
 
 class Process(Popen):
+    @staticmethod
+    def call_with_output(*args):
+        proc = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        try:
+            ret = proc.wait(15.0)
+            if ret == 0:
+                return proc.stdout.read()
+        except Exception:
+            proc.kill()
+
     def __init__(self, manager, cmd):
         self.cmd = " ".join(cmd)
         self.manager = manager
