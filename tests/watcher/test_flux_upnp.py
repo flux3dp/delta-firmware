@@ -187,7 +187,7 @@ class UpnpSocketTest(unittest.TestCase):
         buf, remote = None, (None, None)
 
         while self.is_local_addr(remote[0]):
-            if select.select((client_sock, ), (), (), 0)[0] == []:
+            if select.select((client_sock, ), (), (), 1.0)[0] == []:
                 return None, None, (None, None)
             else:
                 buf, remote = client_sock.recvfrom(4096)

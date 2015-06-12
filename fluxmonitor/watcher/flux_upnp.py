@@ -12,6 +12,7 @@ import json
 
 logger = logging.getLogger(__name__)
 
+from fluxmonitor.halprofile import get_model_id
 from fluxmonitor.config import network_config
 from fluxmonitor.misc import control_mutex
 from fluxmonitor.err_codes import ALREADY_RUNNING, BAD_PASSWORD, NOT_RUNNING, \
@@ -22,7 +23,9 @@ from fluxmonitor import security
 from .base import WatcherBase
 from ._network_helpers import NetworkMonitorMix
 
-MODEL = "flux3dp:1"
+
+SERIAL = security.get_serial()
+MODEL_ID = get_model_id()
 DEFAULT_PORT = 3310
 
 
@@ -49,7 +52,7 @@ class UpnpServicesMix(object):
         """Return IP Address in array"""
         # TODO: NOT CONFIRM
         return {"ver": VERSION,
-                "model": MODEL, "serial": security.get_serial(),
+                "model": MODEL_ID, "serial": SERIAL,
                 "time": time(), "ip": self.ipaddress,
                 "pwd": security.has_password()}
 
@@ -407,3 +410,4 @@ class DelayNetworkConfigure(object):
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
         sock.connect(network_config["unixsocket"])
         sock.send(self.config)
+        sock.close()
