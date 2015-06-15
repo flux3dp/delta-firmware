@@ -34,7 +34,7 @@ def wlan_ap_daemon(manager, ifname):
 
 
 def get_wlan_ssid(ifname="wlan0"):
-    return Process.call_with_output("iwgetid", "-r", ifname)
+    return Process.call_with_output("iwgetid", "-r", ifname).strip()
 
 
 def _write_wpa_config(filepath, config):

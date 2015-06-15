@@ -1,8 +1,8 @@
 
+from signal import signal, SIGCHLD
 from itertools import chain
 from time import time
 import uuid as _uuid
-from signal import signal, SIGCHLD
 import subprocess
 import binascii
 import logging
@@ -12,6 +12,7 @@ import json
 
 logger = logging.getLogger(__name__)
 
+from fluxmonitor.misc import network_config_encoder as NCE
 from fluxmonitor.halprofile import get_model_id
 from fluxmonitor.config import network_config
 from fluxmonitor.misc import control_mutex
@@ -124,7 +125,6 @@ class UpnpServicesMix(object):
 
     def cmd_set_network(self, access_id, message):
         raw_opts = dict([i.split("=", 1) for i in message.split("\x00")])
-
         options = {"ifname": "wlan0"}
         method = raw_opts.get("method")
         if method == "dhcp":
@@ -152,7 +152,8 @@ class UpnpServicesMix(object):
         elif "ssid" in raw_opts:
             options["ssid"] = raw_opts["ssid"]
 
-        nw_config = json.dumps(["config_network", options])
+        nw_config = ("config_network" + "\x00" + \
+                     NCE.to_bytes(options)).encode()
         self.server.add_loop_event(DelayNetworkConfigure(nw_config))
 
         return {"timestemp": time()}
@@ -271,7 +272,7 @@ class UpnpSocket(object):
             logger.debug("Timestemp error for '%s'" % access_id)
             return False, access_id, None
 
-        return True, access_id, body
+        return True, access_id, body[28:]
 
     def on_read(self, sender):
         """Payload struct:

@@ -6,7 +6,7 @@ import socket
 import struct
 
 from fluxmonitor.hal.nl80211.config import get_wlan_ssid
-from fluxmonitor.misc import network_config_encoder
+from fluxmonitor.misc import network_config_encoder as NCE
 from fluxmonitor.halprofile import get_model_id
 from fluxmonitor.config import network_config
 from fluxmonitor.config import uart_config
@@ -27,6 +27,8 @@ MSG_AUTH = 0x02
 MSG_CONFIG_GENERAL = 0x03
 MSG_CONFIG_NETWORK = 0x04
 MSG_GET_SSID = 0x05
+MSG_SET_PASSWORD = 0x06
+
 
 
 class UsbWatcher(WatcherBase):
@@ -179,12 +181,12 @@ class UsbIO(object):
                 "time=%.2f\x00pwd=%i") % (
                 VERSION, MODEL_ID, SERIAL, self.meta.get_nickname(),
                 time(), security.has_password(),)
-        self.send_response(0, True, resp.encode())
+        self.send_response(MSG_IDENTIFY, True, resp.encode())
 
     def on_rsakey(self, buf):
         pkey = security.get_private_key()
         pem = pkey.export_pubkey_pem()
-        self.send_response(1, True, pem)
+        self.send_response(MSG_RSAKEY, True, pem)
 
     def on_auth(self, buf):
         """
@@ -205,54 +207,57 @@ class UsbIO(object):
 
         if keyobj:
             if security.is_trusted_remote(keyobj=keyobj):
-                self.send_response(2, True, b"ALREADY_TRUSTED")
+                self.send_response(MSG_AUTH, True, b"ALREADY_TRUSTED")
             else:
                 if security.has_password():
                     if security.validate_password(None, pwd):
                         security.add_trusted_keyobj(keyobj)
-                        self.send_response(2, True, b"OK")
+                        self.send_response(MSG_AUTH, True, b"OK")
                     else:
-                        self.send_response(2, False, b"BAD_PASSWORD")
+                        self.send_response(MSG_AUTH, False, b"BAD_PASSWORD")
                 else:
                     security.add_trusted_keyobj(keyobj)
-                    self.send_response(2, True, b"OK")
+                    self.send_response(MSG_AUTH, True, b"OK")
         else:
-            self.send_response(2, False, b"BAD_KEY")
+            logger.error("Get bad rsa key: %s" % pem.decode("ascii", "ignore"))
+            self.send_response(MSG_AUTH, False, b"BAD_KEY", )
 
     def on_config_general(self, buf):
         raw_opts = dict([i.split(b"=", 1) for i in buf.split(b"\x00")])
         name = raw_opts.get(b"nickname").decode("utf8", "ignore")
         if name:
             self.meta.set_nickname(name)
-        self.send_response(3, True, b"OK")
+        self.send_response(MSG_CONFIG_GENERAL, True, b"OK")
 
     def on_config_network(self, buf):
         try:
-            options = network_config_encoder.parse_bytes(buf)
+            options = NCE.parse_bytes(buf)
             options["ifname"] = "wlan0"
-            nw_request = network_config_encoder.to_bytes(options)
         except ValueError as e:
-            self.send_response(4, False, b"BAD_PARAMS syntax")
+            self.send_response(MSG_CONFIG_NETWORK, False, b"BAD_PARAMS syntax")
             return
         except KeyError as e:
-            self.send_response(4, False,
+            self.send_response(MSG_CONFIG_NETWORK, False,
                                ("BAD_PARAMS %s" % e.args[0]).encode())
             return
+
+        nw_request = ("config_network" + "\x00" + \
+                      NCE.to_bytes(options)).encode()
 
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
         sock.connect(network_config["unixsocket"])
         sock.send(nw_request)
         sock.close()
 
-        self.send_response(4, True, b"OK")
+        self.send_response(MSG_CONFIG_NETWORK, True, b"OK")
 
     def on_query_ssid(self, buf):
         try:
             ssid = get_wlan_ssid("wlan0")
             if ssid:
-                self.send_response(5, True, ssid.encode())
+                self.send_response(MSG_GET_SSID, True, ssid.encode())
             else:
-                self.send_response(5, False, "NOT_FOUND")
+                self.send_response(MSG_GET_SSID, False, "NOT_FOUND")
         except Exception as e:
             logger.exception("Error while getting ssid %s" % "wlan0")
-            self.send_response(5, False, "NOT_FOUND")
+            self.send_response(MSG_GET_SSID, False, "NOT_FOUND")

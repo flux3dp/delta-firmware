@@ -164,15 +164,18 @@ class WlanWatcherSocket(socket.socket):
             "network command socket created at: %s" % path)
 
     def on_read(self, sender):
-        try:
-            buf = self.recv(4096)
-            payload = json.loads(buf)
-            cmd, data = payload
-        except (ValueError, TypeError):
-            self.logger.error("Can not process request: %s" % buf)
+        buf = self.recv(4096)
+        payloads = buf.split("\x00", 1)
 
-        if cmd == "config_network":
-            self.config_network(data)
+        if len(payloads) == 2:
+            cmd, data = payloads
+            if cmd == "config_network":
+                self.config_network(NCE.parse_bytes(data))
+            else:
+                self.master.logger.error("Unknow cmd: %s" % cmd)
+        else:
+            self.master.logger.error("Can not process request: %s" % buf)
+            return
 
     def config_network(self, payload):
         ifname = payload.pop("ifname")

@@ -1,5 +1,7 @@
 
 from subprocess import Popen, PIPE
+from io import BytesIO
+from time import time
 import fcntl
 import os
 
@@ -12,12 +14,19 @@ class Process(Popen):
     @staticmethod
     def call_with_output(*args):
         proc = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        buffer = BytesIO()
+        ttl = time() + 15.0
+
         try:
-            ret = proc.wait(15.0)
-            if ret == 0:
-                return proc.stdout.read()
-        except Exception:
-            proc.kill()
+            while ttl > time():
+                l = buffer.write(proc.stdout.read())
+                if l == 0:
+                    break
+
+            return buffer.getvalue()
+        finally:
+            if proc.poll() is None:
+                proc.kill()
 
     def __init__(self, manager, cmd):
         self.cmd = " ".join(cmd)
