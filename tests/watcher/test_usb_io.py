@@ -31,19 +31,39 @@ class UsbIoTest(unittest.TestCase):
         mn, req, l, flag = struct.unpack("<3sHHb", buf[:8])
         return mn, req, l, flag, buf[8:]
 
-    def test_dispatch_msg(self):
-        REQ0_PAYLOAD = b'\x97\xae\x02\x00\x00\x00\x00'
-        REQ1_PAYLOAD = b'\x97\xae\x02\x01\x00\x00\x00'
+    def test_single_check_recv_buffer(self):
+        REQ0_PAYLOAD = b'\x97\xae\x02\x00\x00\x02\x00HI'
+        REQ1_PAYLOAD = b'\x97\xae\x02\x01\x00\x02\x00BI'
 
         def cb(buf):
             raise RuntimeError(buf)
-
         self.usbio.callbacks = {0: cb}
-        with self.assertRaises(RuntimeError) as cm:
-            self.usbio.dispatch_msg(REQ0_PAYLOAD)
-        self.assertEqual(cm.exception.args[0], REQ0_PAYLOAD)
 
-        self.usbio.dispatch_msg(REQ1_PAYLOAD)
+        self.usbio._recv_view[:9] = REQ0_PAYLOAD
+        self.usbio._recv_offset = 9
+        with self.assertRaises(RuntimeError) as cm:
+            self.usbio.check_recv_buffer()
+        self.assertEqual(cm.exception.args[0], "HI")
+
+        self.usbio._recv_view[:9] = REQ1_PAYLOAD
+        self.usbio._recv_offset = 9
+        self.usbio.check_recv_buffer()
+
+    def test_multi_check_recv_buffer(self):
+        REQ_PAYLOAD = b'\x97\xae\x02\x00\x00\x02\x00HI'
+        def cb(buf):
+            raise RuntimeError(buf)
+        self.usbio.callbacks = {0: cb}
+
+        self.usbio._recv_view[:9] = REQ_PAYLOAD
+        self.usbio._recv_view[9:18] = REQ_PAYLOAD
+        self.usbio._recv_view[20:29] = REQ_PAYLOAD
+        self.usbio._recv_offset = 29
+
+        self.assertRaises(RuntimeError, self.usbio.check_recv_buffer)
+        self.assertRaises(RuntimeError, self.usbio.check_recv_buffer)
+        self.assertRaises(RuntimeError, self.usbio.check_recv_buffer)
+
 
     def test_on_identify(self):
         self.usbio.on_identify(b"")

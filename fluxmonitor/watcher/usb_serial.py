@@ -75,6 +75,12 @@ class UsbIO(object):
         self.sock = sock
         self.server = server
         self.meta = CommonMetadata()
+
+        self._recv_buf = bytearray(4096)
+        self._recv_view = memoryview(self._recv_buf)
+        self._recv_offset = 0
+        self._request_len = None
+
         self.callbacks = {
             MSG_IDENTIFY: self.on_identify,
             MSG_RSAKEY: self.on_rsakey,
@@ -88,28 +94,73 @@ class UsbIO(object):
         return self.sock.fileno()
 
     def on_read(self, sender):
-        buf = self.sock.recv(4096)
-        if buf:
-            self.dispatch_msg(buf)
+        l = self.sock.recv_into(self._recv_view[self._recv_offset:])
+        if l:
+            self._recv_offset += l
+            self.check_recv_buffer()
         else:
             self.callbacks = None
             self.server.close_usb_serial()
 
-    def dispatch_msg(self, buf):
-        lbuf = len(buf)
-        if lbuf >= 7 and buf.startswith(b'\x97\xae\x02'):
-            req, length = struct.unpack("<HH", buf[3:7])
+    def check_recv_buffer(self):
+        if self._request_len is None and self._recv_offset >= 7:
+            # Try to unpack new payload
 
-            if length == lbuf - 7:
-                handler = self.callbacks.get(req)
-                if handler:
-                    handler(buf)
-                else:
-                    logger.debug("handler not found %i" % req)
+            # Try to find payload header
+            try:
+                index = self._recv_buf.index(b'\x97\xae\x02')
+                if index > 0:
+                    # Header found, buf not at index 0, ignore message from
+                    # 0 to index
+                    remnant = self._recv_offset - index
+                    self._recv_view[:remnant] = \
+                        self._recv_view[index:self._recv_offset]
+                    self._recv_offset = remnant
+                    logger.error("Protocol magic number error, shift buffer")
+
+                    if remnant < 7:
+                        return
+
+            except ValueError:
+                logger.error("Protocol magic number error, clean buffer")
+                self._recv_offset = 0
+                return
+
+            # Try to unpack payload
+            # TODO: python buffer api bug
+            req, length = struct.unpack("<HH", self._recv_view[3:7].tobytes())
+            if length + 7 <= self._recv_offset:
+                # Payload is recived, dispatch it
+                self.dispatch_msg()
             else:
-                logger.debug("ignore unmatch message")
-        else:
-            logger.debug("message too short")
+                # Payload is not recived yet, mark self._request_len
+                if length > 4089:
+                    logger.error("Message too large, ignore")
+                    self._recv_offset
+                self._request_len = length + 7
+
+        elif self._request_len is not None:
+            # Try to unpack a padding payload
+            if self._recv_offset >= self._request_len:
+                self.dispatch_msg()
+                self._request_len = None
+
+    def dispatch_msg(self):
+        # TODO: python buffer api bug
+        req, length = struct.unpack("<HH", self._recv_view[3:7].tobytes())
+        try:
+            handler = self.callbacks.get(req)
+            if handler:
+                logger.debug("Request: %s" % handler.__name__)
+                handler(self._recv_view[7:7 + length].tobytes())
+            else:
+                logger.debug("handler not found %i" % req)
+        finally:
+            remnant = self._recv_offset - length - 7
+            if remnant:
+                self._recv_view[:remnant] = \
+                    self._recv_view[length + 7:self._recv_offset]
+            self._recv_offset = remnant
 
     def send_response(self, req, is_success, buf):
         """
@@ -128,7 +179,6 @@ class UsbIO(object):
                 "time=%.2f\x00pwd=%i") % (
                 VERSION, MODEL_ID, SERIAL, self.meta.get_nickname(),
                 time(), security.has_password(),)
-        logger.debug("on_identify")
         self.send_response(0, True, resp.encode())
 
     def on_rsakey(self, buf):
@@ -137,6 +187,11 @@ class UsbIO(object):
         self.send_response(1, True, pem)
 
     def on_auth(self, buf):
+        """
+        If auth without password, message will be pem format RSA key.
+        If auth with password, message comes with 'PASSWORD' prefix,
+        the message will be PASSWORD[your password]\\x00[pem format RSA key]
+        """
         if buf.startswith(b"PASSWORD"):
             try:
                 pwd, pem = buf[8:].split("\x00", 1)

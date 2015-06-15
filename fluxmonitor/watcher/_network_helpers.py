@@ -77,9 +77,12 @@ class NetworkMonitorMix(object):
 class ConfigMix(object):
     """ConfigMix provide get/set network config"""
 
+    _storage = None
     @property
     def storage(self):
-        return Storage("net")
+        if not self._storage:
+            self._storage = Storage("net")
+        return self._storage
 
     def set_config(self, ifname, config):
         config = NCE.validate_options(config)
@@ -93,7 +96,7 @@ class ConfigMix(object):
     def get_config(self, ifname):
         if self.storage.exists(ifname):
             try:
-                with open(ifname, "r") as f:
+                with self.storage.open(ifname, "r") as f:
                     return json.load(f)
             except Exception:
                 self.logger.exception("Read network config error")

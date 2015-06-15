@@ -20,7 +20,7 @@ class NetworkWatcher(WatcherBase, NetworkMonitorMix, ConfigMix,
 
         self.server.POLL_TIMEOUT = 1.0
         self.daemons = {}
-        self.storage = Storage("net")
+        # self.storage = Storage("net")
 
     def start(self):
         self.bootstrap_network_monitor(self.memcache)
