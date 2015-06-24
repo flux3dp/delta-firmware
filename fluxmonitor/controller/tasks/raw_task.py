@@ -7,6 +7,7 @@ class RawTask(ExclusiveMixIn, DeviceOperationMixIn):
     def __init__(self, server, sender):
         super(RawTask, self).__init__(server, sender)
         self.connect()
+        sender.binary_mode = True
 
     def on_dead(self, sender, reason=None):
         try:
@@ -19,18 +20,16 @@ class RawTask(ExclusiveMixIn, DeviceOperationMixIn):
             buf = sender.obj.recv(4096)
             self.owner().send(buf)
         except Exception as e:
-            self.on_dead(repr(e))
+            self.on_dead(self, repr(e))
 
     def on_headboard_message(self, sender):
         try:
             buf = sender.obj.recv(4096)
             self.owner().send(buf)
         except Exception as e:
-            self.on_dead(repr(e))
+            self.on_dead(self, repr(e))
 
     def on_message(self, buf, sender):
-        buf = buf.rstrip("\x00")
-
         if self.owner() == sender:
             if buf.startswith(b"+"):
                 self._uart_mb.send(buf[1:])
@@ -39,7 +38,8 @@ class RawTask(ExclusiveMixIn, DeviceOperationMixIn):
             elif buf.startswith(b"L") or buf.startswith(b"H"):
                 self._uart_hb.send(buf)
             elif buf == b"quit":
-                sender.send(b"ok")
+                sender.binary_mode = False
+                sender.send_text(b"ok")
                 self.disconnect()
                 self.server.exit_task(self, True)
             else:
@@ -47,6 +47,6 @@ class RawTask(ExclusiveMixIn, DeviceOperationMixIn):
         else:
             if buf == b"kick":
                 self.on_dead(self.sender, "Kicked")
-                sender.send("kicked")
+                sender.send_text("kicked")
             else:
-                sender.send(("error %s raw" % RESOURCE_BUSY).encode())
+                sender.send_text(("error %s raw" % RESOURCE_BUSY).encode())

@@ -3,6 +3,7 @@ from pkgutil import walk_packages
 import ctypes.util
 import platform
 import sys
+import os
 
 from fluxmonitor import STR_VERSION
 
@@ -79,6 +80,12 @@ def get_entry_points():
             "fluxinfo=fluxmonitor.bin.fluxinfo:main"
         ]
     }
+
+
+def get_extra_compile_args():
+    args = ["-std=c99"]
+    if "FLUX_MODEL" in os.environ:
+        args.append("-D%s" % os.environ["FLUX_MODEL"])
 
 
 def get_scripts():

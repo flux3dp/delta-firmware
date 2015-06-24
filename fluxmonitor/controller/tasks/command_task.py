@@ -1,7 +1,6 @@
 
 from tempfile import TemporaryFile
 import logging
-import json
 import glob
 import os
 
@@ -31,7 +30,7 @@ class CommandTask(CommandMixIn):
 
     def dispatch_cmd(self, cmd, sender):
         if cmd == "ls":
-            return self.list_files()
+            return self.list_files(sender)
         elif cmd.startswith("select "):
             filename = cmd.split(" ", 1)[-1]
             return self.select_file(filename)
@@ -48,7 +47,7 @@ class CommandTask(CommandMixIn):
             logger.debug("Can not handle: '%s'" % cmd)
             raise RuntimeError(UNKNOW_COMMAND)
 
-    def list_files(self):
+    def list_files(self, sender):
         # TODO: a rough method
         pool = self.filepool
 
@@ -56,7 +55,10 @@ class CommandTask(CommandMixIn):
             glob.glob(os.path.join(pool, "*", "*.gcode")) + \
             glob.glob(os.path.join(pool, "*", "*", "*.gcode"))
 
-        return json.dumps(files)
+        for file in files:
+            sender.send_text("file " + file)
+
+        return "ok"
 
     def select_file(self, filename):
         abs_filename = os.path.abspath(

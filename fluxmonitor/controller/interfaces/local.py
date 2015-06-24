@@ -2,6 +2,7 @@
 from binascii import b2a_hex as to_hex
 from weakref import WeakSet
 import logging
+import struct
 import socket
 import os
 
@@ -44,6 +45,8 @@ class LocalControl(object):
 
 class LocalConnectionAsyncIO(object):
     def __init__(self, endpoint, server, logger):
+        self.binary_mode = False
+
         self.sock, self.client = endpoint
         self.server = server
         self.logger = logger.getChild("%s:%s" % self.client)
@@ -53,7 +56,6 @@ class LocalConnectionAsyncIO(object):
         self._buf = bytearray(4096)
         self._bufview = memoryview(self._buf)
         self._buffered = 0
-        self._message_buf = None
 
         """
         Send handshake payload:
@@ -78,9 +80,9 @@ class LocalConnectionAsyncIO(object):
         l = self.sock.recv_into(self._bufview[self._buffered:])
         if l:
             self._buffered += l
-            self._recv_handler(sender)
+            self._recv_handler(sender, l)
         else:
-            self.close()
+            self.close("Remote closed")
 
     def on_write(self, sender):
         pass
@@ -89,7 +91,7 @@ class LocalConnectionAsyncIO(object):
         # TODO: Timeout check
         pass
 
-    def _on_handshake_identify(self, sender):
+    def _on_handshake_identify(self, sender, length):
         if self._buffered >= 20:
             access_id = to_hex(self._buf[:20])
             if access_id == "0" * 40:
@@ -100,11 +102,11 @@ class LocalConnectionAsyncIO(object):
                 self.keyobj = security.get_keyobj(access_id=access_id)
 
                 if self._buffered >= (20 + self.keyobj.size()):
-                    self._on_handshake_validate(sender)
+                    self._on_handshake_validate(sender, length)
                 else:
                     self._recv_handler = self._on_handshake_identify
 
-    def _on_handshake_validate(self, sender):
+    def _on_handshake_validate(self, sender, length):
         """
         Recive handshake payload:
             access id (20 bytes)
@@ -143,8 +145,33 @@ class LocalConnectionAsyncIO(object):
                 self._buffered = 0
                 self._recv_handler = self._on_message
 
+    def _on_message(self, sender, length):
+        chunk = self._bufview[self._buffered - length:self._buffered]
+        self.aes.decrypt_into(chunk, chunk)
+
+        if self.binary_mode:
+            ret = self._buffered
+            self._buffered = 0
+            sender.on_message(bytes(self._buf[:ret]), self)
+        else:
+            while self._buffered > 2:
+                # Try unpack
+                l = struct.unpack_from("<H", self._bufview[:2].tobytes())[0]
+                if self._buffered > l:
+                    payload = self._bufview[2:l].tobytes()
+                    self._bufview[:l - self._buffered] = \
+                        self._bufview[l:self._buffered]
+                    self._buffered -= l
+                    sender.on_message(payload, self)
+                elif self._buffered == l:
+                    payload = self._bufview[2:l].tobytes()
+                    self._buffered = 0
+                    sender.on_message(payload, self)
+                else:
+                    break
+
     def _reply_handshake(self, sender, message, success, log_message=None):
-        if len(message < 16):
+        if len(message) < 16:
             message += b"\x00" * (16 - len(message))
         else:
             message = message[:16]
@@ -155,42 +182,26 @@ class LocalConnectionAsyncIO(object):
         else:
             self.logger.error(log_message)
             self.sock.send(message)
-            self.sock.close()
             self.close()
 
     def send(self, buf):
-        l = len(buf)
-        lpad = ((256 - (l % 128)) % 128)
-
-        if lpad:
-            length = l + lpad
-            pad = b"\x00" * lpad
-            buf = memoryview(self.aes.encrypt(buf + pad))
-        else:
-            length = l
-            buf = memoryview(self.aes.encrypt(buf))
+        length = len(buf)
+        buf = memoryview(self.aes.encrypt(buf))
 
         sent = self.sock.send(buf)
         while sent < length:
             sent += self.sock.send(buf[sent:])
-        return l
+        return length
 
-    def close(self):
+    def send_text(self, message):
+        l = len(message)
+        buf = struct.pack("<H", l) + message.encode()
+        return self.send(buf)
+
+    def close(self, reason=""):
+        self._recv_handler = None
         self.server.remove_read_event(self)
         self.server.remove_loop_event(self)
-        self.logger.info("Client %s disconnected" %
-                         self.sock.getpeername()[0])
-        self._recv_handler = None
         self.sock.close()
-
-    def _on_message(self, sender):
-        offset = self._buffered
-        chunk_offset = 128 * (offset // 128)
-        left_offset = offset - chunk_offset
-
-        buf = self.aes.decrypt(self._buf[:chunk_offset])
-        if left_offset:
-            self._bufview[:left_offset] = self._bufview[chunk_offset:offset]
-        self._buffered = left_offset
-
-        sender.on_message(buf, self)
+        self.logger.debug("Client %s disconnected (reason=%s)" %
+                          (self.client[0], reason))

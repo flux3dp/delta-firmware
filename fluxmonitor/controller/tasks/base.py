@@ -37,19 +37,19 @@ class CommandMixIn(object):
                 return
 
             if cmd == "position":
-                sender.send(self.__class__.__name__)
+                sender.send_text(self.__class__.__name__)
             else:
                 response = self.dispatch_cmd(cmd, sender)
                 if response is not None:
-                    sender.send(response.encode())
+                    sender.send_text(response)
 
         except RuntimeError as e:
-            sender.send(("error %s" % e.args[0]).encode())
+            sender.send_text(("error %s" % e.args[0]).encode())
         except Exception as e:
             if DEBUG:
-                sender.send(b"error %s %s" % (UNKNOW_ERROR, e))
+                sender.send_text("error %s %s" % (UNKNOW_ERROR, e))
             else:
-                sender.send(b"error %s" % UNKNOW_ERROR)
+                sender.send_text("error %s" % UNKNOW_ERROR)
 
             logger.exception(UNKNOW_ERROR)
 

@@ -1,6 +1,5 @@
 
 from importlib import import_module
-from time import sleep
 import logging
 
 from fluxmonitor.config import hal_config
@@ -53,14 +52,14 @@ class ScanTask(CommandMixIn, DeviceOperationMixIn):
                     raise RuntimeError(DEVICE_ERROR, erro_msg)
         except:
             self.camera.release()
-            raise 
+            raise
 
     def make_gcode_cmd(self, cmd):
         self._uart_mb.send(("%s\n" % cmd).encode())
         return self._uart_mb.recv(128).decode("ascii", "ignore").strip()
 
     def on_mainboard_message(self, sender):
-        logger.warn("Recive additional message from mainboard: %s" % 
+        logger.warn("Recive additional message from mainboard: %s" %
                     sender.obj.recv(4096).decode("utf8", "ignore"))
 
     def dispatch_cmd(self, cmd, sock):
@@ -96,12 +95,12 @@ class ScanTask(CommandMixIn, DeviceOperationMixIn):
             raise RuntimeError(UNKNOW_COMMAND)
 
     def take_images(self, sock):
-        ret = self.make_gcode_cmd("@X1O")
+        self.make_gcode_cmd("@X1O")
         self._take_image(sock)
-        ret = self.make_gcode_cmd("@X2O")
-        ret = self.make_gcode_cmd("@X1F")
+        self.make_gcode_cmd("@X2O")
+        self.make_gcode_cmd("@X1F")
         self._take_image(sock)
-        ret = self.make_gcode_cmd("@X2F")
+        self.make_gcode_cmd("@X2F")
         self._take_image(sock)
         return "ok"
 
@@ -121,9 +120,9 @@ class ScanTask(CommandMixIn, DeviceOperationMixIn):
                                      self.quality])
 
             total, sent = len(buf), 0
-            sock.send("binary image/jpeg %i" % total)
+            sock.send_text("binary image/jpeg %i" % total)
             while sent < total:
                 sent += sock.send(buf[sent:sent + 4096].tostring())
 
-        except Exception as e:
+        except Exception:
             logger.exception("ERR")

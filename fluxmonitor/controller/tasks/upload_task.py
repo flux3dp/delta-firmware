@@ -1,6 +1,10 @@
 
+import logging
+
 from fluxmonitor.err_codes import RESOURCE_BUSY
 from .base import ExclusiveMixIn
+
+logger = logging.getLogger(__name__)
 
 
 class UploadTask(ExclusiveMixIn):
@@ -8,6 +12,7 @@ class UploadTask(ExclusiveMixIn):
         super(UploadTask, self).__init__(server, sender)
         self.task_file = task_file
         self.padding_length = length
+        sender.binary_mode = True
 
     def on_message(self, message, sender):
         if self.owner() == sender:
@@ -22,7 +27,8 @@ class UploadTask(ExclusiveMixIn):
                     self.task_file.write(message)
                 else:
                     self.task_file.write(message[:self.padding_length])
-                sender.send(b"ok")
+                sender.binary_mode = False
+                sender.send_text("ok")
                 self.server.exit_task(self, True)
 
         else:
