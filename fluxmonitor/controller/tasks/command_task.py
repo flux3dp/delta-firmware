@@ -13,6 +13,7 @@ from .play_task import PlayTask
 from .scan_task import ScanTask
 from .upload_task import UploadTask
 from .raw_task import RawTask
+from .maintain_task import MaintainTask
 
 logger = logging.getLogger(__name__)
 
@@ -38,11 +39,13 @@ class CommandTask(CommandMixIn):
             filesize = cmd.split(" ", 1)[-1]
             return self.upload_file(int(filesize, 10), sender)
         elif cmd.startswith("scan"):
-            return self.scan(sender, cmd)
+            return self.scan(sender)
         elif cmd == "start":
             return self.play(sender)
         elif cmd == "raw":
             return self.raw_access(sender)
+        elif cmd == "maintain":
+            return self.maintain(sender)
         else:
             logger.debug("Can not handle: '%s'" % cmd)
             raise RuntimeError(UNKNOW_COMMAND)
@@ -106,7 +109,12 @@ class CommandTask(CommandMixIn):
         else:
             raise RuntimeError(NO_TASK)
 
-    def scan(self, cmd, sender):
+    def scan(self, sender):
         task = ScanTask(self.server, sender)
+        self.server.enter_task(task, empty_callback)
+        return "ok"
+
+    def maintain(self, sender):
+        task = MaintainTask(self.server, sender)
         self.server.enter_task(task, empty_callback)
         return "ok"

@@ -94,6 +94,14 @@ class DeviceOperationMixIn(object):
             else:
                 raise
 
+    def on_mainboard_message(self, sender):
+        logger.warn("Recive message from mainboard but not handle: %s" %
+                    sender.obj.recv(4096).decode("utf8", "ignore"))
+
+    def on_headboard_message(self, sender):
+        logger.warn("Recive message from headboard but not handle: %s" %
+                    sender.obj.recv(4096).decode("utf8", "ignore"))
+
     def disconnect(self):
         if self._async_mb:
             self.server.remove_read_event(self._async_mb)

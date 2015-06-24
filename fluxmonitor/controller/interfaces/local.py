@@ -157,6 +157,8 @@ class LocalConnectionAsyncIO(object):
             while self._buffered > 2:
                 # Try unpack
                 l = struct.unpack_from("<H", self._bufview[:2].tobytes())[0]
+                if l > 4094:
+                    self.close("Text payload too large, disconnect.")
                 if self._buffered > l:
                     payload = self._bufview[2:l].tobytes()
                     self._bufview[:l - self._buffered] = \

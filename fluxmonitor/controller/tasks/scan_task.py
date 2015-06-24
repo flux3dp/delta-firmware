@@ -58,10 +58,6 @@ class ScanTask(CommandMixIn, DeviceOperationMixIn):
         self._uart_mb.send(("%s\n" % cmd).encode())
         return self._uart_mb.recv(128).decode("ascii", "ignore").strip()
 
-    def on_mainboard_message(self, sender):
-        logger.warn("Recive additional message from mainboard: %s" %
-                    sender.obj.recv(4096).decode("utf8", "ignore"))
-
     def dispatch_cmd(self, cmd, sock):
         if cmd == "oneshot":
             self._take_image(sock)
@@ -89,6 +85,7 @@ class ScanTask(CommandMixIn, DeviceOperationMixIn):
             self.disconnect()
             self.camera.release()
             self.server.exit_task(self)
+            return "ok"
 
         else:
             logger.debug("Can not handle: '%s'" % cmd)
