@@ -1,11 +1,12 @@
 
-from .base import CommandMixIn, DeviceOperationMixIn
+from .base import CommandMixIn, ExclusiveMixIn, DeviceOperationMixIn
 
 
-class MaintainTask(CommandMixIn, DeviceOperationMixIn):
+class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
     def __init__(self, server, sock):
         self.server = server
         self.connect()
+        ExclusiveMixIn.__init__(self, server, sock)
 
     def __del__(self):
         self.disconnect()

@@ -7,10 +7,12 @@ import socket
 import os
 
 from fluxmonitor.misc.async_signal import AsyncIO
+from fluxmonitor.misc import timer as T
 from fluxmonitor import security
 
 logger = logging.getLogger(__name__)
 PRIVATE_KEY = security.get_private_key()
+IDLE_TIMEOUT = 30.  # Close conn if idel after seconds.
 
 
 class LocalControl(object):
@@ -44,6 +46,7 @@ class LocalControl(object):
 
 
 class LocalConnectionAsyncIO(object):
+    @T.update_time
     def __init__(self, endpoint, server, logger):
         self.binary_mode = False
 
@@ -76,6 +79,7 @@ class LocalConnectionAsyncIO(object):
     def fileno(self):
         return self.sock.fileno()
 
+    @T.update_time
     def on_read(self, sender):
         l = self.sock.recv_into(self._bufview[self._buffered:])
         if l:
@@ -88,8 +92,8 @@ class LocalConnectionAsyncIO(object):
         pass
 
     def on_loop(self, sender):
-        # TODO: Timeout check
-        pass
+        if T.time_since_update(self) > IDLE_TIMEOUT:
+            self.close("Idle timeout")
 
     def _on_handshake_identify(self, sender, length):
         if self._buffered >= 20:
@@ -204,6 +208,7 @@ class LocalConnectionAsyncIO(object):
         self._recv_handler = None
         self.server.remove_read_event(self)
         self.server.remove_loop_event(self)
+        self.sock.shutdown(socket.SHUT_RDWR)
         self.sock.close()
         self.logger.debug("Client %s disconnected (reason=%s)" %
                           (self.client[0], reason))

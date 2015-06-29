@@ -4,13 +4,13 @@ import logging
 
 from fluxmonitor.config import hal_config
 from fluxmonitor.err_codes import DEVICE_ERROR, NOT_SUPPORT, UNKNOW_COMMAND
-from .base import CommandMixIn, DeviceOperationMixIn
+from .base import ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn
 
 logger = logging.getLogger(__name__)
 cv2 = None
 
 
-class ScanTask(CommandMixIn, DeviceOperationMixIn):
+class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
     camera = None
     _img_buf = None
 
@@ -37,6 +37,7 @@ class ScanTask(CommandMixIn, DeviceOperationMixIn):
         self.check_opencv()
         self.server = server
         self.init_device(camera_id)
+        ExclusiveMixIn.__init__(self, server, sock)
 
     def init_device(self, camera_id):
         self.connect(mainboard_only=True)
