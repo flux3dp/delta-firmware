@@ -40,9 +40,16 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
             cmd = buf.split(b";", 1)[0].rstrip()
 
             if cmd:
-                self._uart_mb.send(cmd + b"\n")
-                self._task_last = cmd
-                self._task_in_queue += 1
+                self.send_cmd(cmd)
+
+    def send_cmd(self, cmd):
+        # TODO:
+        if cmd.startswith(b"H"):
+            self._uart_hb.send(cmd[1:] + b"\n")
+        else:
+            self._uart_mb.send(cmd + b"\n")
+            self._task_last = cmd
+            self._task_in_queue += 1
 
     def clean_task(self):
         self._status = "COMPLETED"
