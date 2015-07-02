@@ -13,6 +13,9 @@ logger = logging.getLogger(__name__)
 
 
 class PlayTask(CommandMixIn, DeviceOperationMixIn):
+    _mb_swap = None
+    _hb_swap = None
+
     def __init__(self, server, sender, task_file):
         self.server = server
         self.connect()
@@ -63,9 +66,14 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
 
     def on_mainboard_message(self, sender):
         buf = sender.obj.recv(4096)
-        messages = buf.decode("ascii")
-
-        for msg in re.split("\r\n|\n", messages):
+        if self._mb_swap:
+            self._mb_swap += buf.decode("ascii", "ignore")
+        else:
+            self._mb_swap = buf.decode("ascii", "ignore")
+            
+        messages = re.split("\r\n|\n", self._mb_swap)
+        self._mb_swap = messages.pop()
+        for msg in messages:
             if DEBUG:
                 logger.debug("MB: %s" % msg)
             if msg.startswith("ok"):
