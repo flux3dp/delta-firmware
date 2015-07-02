@@ -13,6 +13,9 @@ class UploadTask(ExclusiveMixIn):
         self.padding_length = length
         sender.binary_mode = True
 
+    def on_exit(self, sender):
+        pass
+
     def on_owner_message(self, message, sender):
         l = len(message)
 

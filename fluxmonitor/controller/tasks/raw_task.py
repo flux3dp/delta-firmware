@@ -8,15 +8,6 @@ class RawTask(ExclusiveMixIn, DeviceOperationMixIn):
         self.connect()
         sender.binary_mode = True
 
-    def __del__(self):
-        self.disconnect()
-
-    def on_dead(self, sender, reason=None):
-        try:
-            self.disconnect()
-        finally:
-            super(RawTask, self).on_dead(sender, reason)
-
     def on_mainboard_message(self, sender):
         try:
             buf = sender.obj.recv(4096)

@@ -8,7 +8,7 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
         self.connect()
         ExclusiveMixIn.__init__(self, server, sock)
 
-    def __del__(self):
+    def on_exit(self, sender):
         self.disconnect()
 
     def make_mainboard_cmd(self, cmd):

@@ -21,10 +21,15 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
         self._task_total = os.fstat(task_file.fileno()).st_size
         self._task_executed = 0
         self._task_in_queue = 0
+        self.server.add_loop_event(self)
         logger.info("Start task with size %i", (self._task_total))
 
         self._status = "RUNNING"
         self.next_cmd()
+
+    def on_exit(self, sender):
+        self.server.remove_loop_event(self)
+        self.disconnect()
 
     def next_cmd(self):
         while self._task_in_queue < 2:
@@ -102,7 +107,6 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
 
         elif cmd == "quit":
             if self._status in ["ABORT", "COMPLETED"]:
-                self.disconnect()
                 self.server.exit_task(self)
                 return "ok"
             else:
@@ -113,4 +117,4 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
             raise RuntimeError(UNKNOW_COMMAND)
 
     def on_loop(self, sender):
-        pass
+        self.server.renew_timer()

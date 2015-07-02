@@ -39,6 +39,10 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
         self.init_device(camera_id)
         ExclusiveMixIn.__init__(self, server, sock)
 
+    def on_exit(self, sender):
+        self.disconnect()
+        self.camera.release()
+
     def init_device(self, camera_id):
         self.connect(mainboard_only=True)
         self.camera = cv2.VideoCapture(camera_id)
@@ -83,8 +87,6 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
                 raise RuntimeError(DEVICE_ERROR, ret)
 
         elif cmd == "quit":
-            self.disconnect()
-            self.camera.release()
             self.server.exit_task(self)
             return "ok"
 

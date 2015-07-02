@@ -47,6 +47,11 @@ class Robot(EventBase):
         task, callback = self.task_callstack.pop()
 
         try:
+            task.on_exit(self)
+        except Exception:
+            logger.exception("Exit %s" % self.this_task.__class__.__name__)
+
+        try:
             callback(*return_args)
             logger.debug("Exit %s" % self.this_task.__class__.__name__)
         except Exception:
