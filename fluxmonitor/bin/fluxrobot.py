@@ -2,20 +2,20 @@
 import argparse
 import sys
 
-from fluxmonitor.misc.flux_argparse import add_config_arguments, \
-    apply_config_arguments
+from fluxmonitor.misc.flux_argparse import add_daemon_arguments, \
+    apply_daemon_arguments
 from fluxmonitor.misc.control_mutex import ControlLock
 from fluxmonitor.launcher import create_logger
 
 
 def main():
     parser = argparse.ArgumentParser(description='flux robot')
-    add_config_arguments(parser)
+    add_daemon_arguments("fluxrobot", parser)
 
     options = parser.parse_args()
 
     with ControlLock("robot"):
-        apply_config_arguments(options)
+        apply_daemon_arguments(options)
         create_logger(options)
 
         from fluxmonitor.controller.robot import Robot
