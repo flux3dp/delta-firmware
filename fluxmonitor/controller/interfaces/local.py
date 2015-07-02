@@ -12,7 +12,7 @@ from fluxmonitor import security
 
 logger = logging.getLogger(__name__)
 PRIVATE_KEY = security.get_private_key()
-IDLE_TIMEOUT = 30.  # Close conn if idel after seconds.
+IDLE_TIMEOUT = 3600.  # Close conn if idel after seconds.
 
 
 class LocalControl(object):
