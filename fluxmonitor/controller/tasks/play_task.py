@@ -34,8 +34,10 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
     def next_cmd(self):
         while self._task_in_queue < 2:
             buf = self._task_file.readline()
-            if buf is None:
-                self._clean_task()
+            if not buf:
+                if self._task_in_queue == 0:
+                    self.clean_task()
+                    logger.debug("Play completed")
                 return
 
             self._task_executed += len(buf)

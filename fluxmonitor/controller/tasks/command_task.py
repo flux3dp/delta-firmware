@@ -47,7 +47,7 @@ class CommandTask(CommandMixIn):
         elif cmd == "maintain":
             return self.maintain(sender)
         else:
-            logger.debug("Can not handle: '%s'" % cmd)
+            logger.debug("Can not handle: %s" % repr(cmd))
             raise RuntimeError(UNKNOW_COMMAND)
 
     def list_files(self, sender):

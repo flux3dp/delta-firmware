@@ -8,6 +8,9 @@ class RawTask(ExclusiveMixIn, DeviceOperationMixIn):
         self.connect()
         sender.binary_mode = True
 
+    def on_exit(self, sender):
+        self.disconnect()
+
     def on_mainboard_message(self, sender):
         try:
             buf = sender.obj.recv(4096)
@@ -34,7 +37,6 @@ class RawTask(ExclusiveMixIn, DeviceOperationMixIn):
         elif buf == b"quit":
             sender.binary_mode = False
             sender.send_text(b"ok")
-            self.disconnect()
             self.server.exit_task(self, True)
         else:
             self._uart_mb.send(buf)
