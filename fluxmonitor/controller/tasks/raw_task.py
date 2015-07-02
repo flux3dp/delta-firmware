@@ -27,6 +27,8 @@ class RawTask(ExclusiveMixIn, DeviceOperationMixIn):
             self._uart_mb.send(buf[1:])
         elif buf.startswith(b"-"):
             self._uart_hb.send(buf[1:])
+        elif buf.startswith(b"H"):
+            self._uart_hb.send(buf[1:])
         elif buf.startswith(b"L") or buf.startswith(b"H"):
             self._uart_hb.send(buf)
         elif buf == b"quit":
