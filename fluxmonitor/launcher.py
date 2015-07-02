@@ -1,7 +1,6 @@
 
 from __future__ import absolute_import
-
-import logging
+import logging.config
 import signal
 import fcntl
 import sys
@@ -11,20 +10,53 @@ from fluxmonitor.config import general_config
 from fluxmonitor.main import FluxMonitor
 
 
+LOG_FORMAT = "[%(asctime)s,%(levelname)s,%(name)s] %(message)s"
+LOG_DATEFMT = "%Y-%m-%d %H:%M:%S"
+
+
 def create_logger(options):
-    LOG_TIMEFMT = general_config["log_timefmt"]
-    LOG_FORMAT = general_config["log_syntax"]
+    log_format = general_config.get("log_syntax", LOG_FORMAT)
+    log_datefmt = general_config.get("log_timefmt", LOG_DATEFMT)
+    log_level = logging.DEBUG if options.debug else logging.INFO
 
-    logging.basicConfig(format=LOG_FORMAT, datefmt=LOG_TIMEFMT)
+    handlers = {}
+    if sys.stdout.isatty():
+        handlers['console'] = {
+            'level': log_level,
+            'formatter': 'default',
+            'class': 'logging.StreamHandler',
+        }
 
-    logger = logging.getLogger('')
-    if options.debug:
-        logger.setLevel(logging.DEBUG)
-    else:
-        logger.setLevel(logging.INFO)
+    if options.logfile:
+        handlers['file'] = {
+            'level': log_level,
+            'formatter': 'default',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': options.logfile,
+            'maxBytes': 5 * (2 ** 20),  # 10M
+            'backupCount': 9
+        }
+
+    logging.config.dictConfig({
+        'version': 1,
+        'disable_existing_loggers': True,
+        'formatters': {
+            'default': {
+                'format': log_format,
+                'datefmt': log_datefmt
+            }
+        },
+        'handlers': handlers,
+        'loggers': {},
+        'root': {
+            'handlers': list(handlers.keys()),
+            'level': 'DEBUG',
+            'propagate': True
+        }
+    })
 
 
-def deamon_entry(options, module=None):
+def deamon_entry(options, watcher=None):
     pid_handler = open(options.pidfile, 'w', 0)
 
     try:
@@ -48,9 +80,10 @@ def deamon_entry(options, module=None):
             os.closerange(0, 1024)
 
             sys.stdin = open(os.devnull, 'r')
-
-            sys.stdout = open(options.logfile, 'a')
-            sys.stderr = sys.stdout
+            sys.stdout = open(os.devnull, 'r')
+            sys.stderr = open(os.devnull, 'r')
+            # sys.stdout = open(options.logfile, 'a')
+            # sys.stderr = sys.stdout
 
             pid_handler = open(options.pidfile, 'w', 0)
             pid_handler.write(repr(os.getpid()))
@@ -65,7 +98,7 @@ def deamon_entry(options, module=None):
         pid_handler.write(repr(os.getpid()))
 
     create_logger(options)
-    server = FluxMonitor(options, module)
+    server = FluxMonitor(options, watcher)
 
     def sigTerm(watcher, revent):
         sys.stderr.write("\n")

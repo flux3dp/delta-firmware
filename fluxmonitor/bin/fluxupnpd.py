@@ -5,7 +5,6 @@ import sys
 
 from fluxmonitor.misc.flux_argparse import add_daemon_arguments, \
     apply_daemon_arguments
-from fluxmonitor.watcher.flux_upnp import UpnpWatcher
 from fluxmonitor.launcher import deamon_entry
 
 
@@ -31,7 +30,9 @@ def main():
             print("Error: %s" % e)
             sys.exit(1)
     else:
-        return_code = deamon_entry(options, module=UpnpWatcher)
+        return_code = deamon_entry(
+            options,
+            watcher="fluxmonitor.watcher.flux_upnp.UpnpWatcher")
         sys.exit(return_code)
 
 
