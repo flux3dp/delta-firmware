@@ -13,6 +13,7 @@ install_requires = setup_util.get_install_requires()
 tests_require = setup_util.get_tests_require()
 packages = setup_util.get_packages()
 entry_points = setup_util.get_entry_points()
+extra_compile_args = setup_util.get_extra_compile_args()
 
 
 if setup_util.is_test():
@@ -36,8 +37,8 @@ setup(
             'fluxmonitor.misc._security', sources=[
                 "src/misc/security.c",
                 "src/misc/openssl_bridge.c"],
-            extra_compile_args=["-std=c99"],
+            extra_compile_args=extra_compile_args,
             libraries=["crypto"],
-            extra_objects=[], include_dirs=[])
+            extra_objects=[], include_dirs=["src"])
     ]
 )

@@ -72,6 +72,7 @@ class MiscSecurityTest(unittest.TestCase):
 class C_RSAObjectTest(unittest.TestCase):
     def encrypt(self, pem, message):
         key = RSA.importKey(pem)
+
         chip = PKCS1_OAEP.new(key)
         size = ((key.size() + 1) / 8) - 42
         in_buf = BytesIO(message)
@@ -111,7 +112,7 @@ class C_RSAObjectTest(unittest.TestCase):
 
         self.assertEqual(rsaobj.export_pem(), pem)
 
-        self.assertRaises(RuntimeError, _security.RSAObject, pem="123")
+        self.assertRaises(TypeError, _security.RSAObject, pem="123")
 
     def test_encrype_decrypt(self):
         rsaobj = _security.RSAObject(keylength=1024)
@@ -141,3 +142,15 @@ class C_RSAObjectTest(unittest.TestCase):
         self.assertFalse(rsaobj.verify(buf, "b"*127))
         self.assertFalse(rsaobj.verify(buf, "b"*128))
         self.assertFalse(rsaobj.verify(buf, "b"*129))
+
+    def test_export_der(self):
+        rsaobj = _security.RSAObject()
+        der_buffer = rsaobj.export_der()
+
+        new_rsaobj = _security.RSAObject(der=der_buffer)
+        self.assertEqual(der_buffer, new_rsaobj.export_der())
+        self.assertEqual(rsaobj.export_pem(), new_rsaobj.export_pem())
+
+        pub_rsakey = _security.RSAObject(der=rsaobj.export_pubkey_der())
+        self.assertEqual(rsaobj.export_pubkey_pem(),
+                         pub_rsakey.export_pubkey_pem())

@@ -11,7 +11,8 @@ import re
 
 logger = logging.getLogger(__name__)
 
-from fluxmonitor.misc._security import RSAObject, AESObject
+from fluxmonitor.misc._security import RSAObject, AESObject, is_rsakey
+from fluxmonitor.misc import _security
 from fluxmonitor.config import general_config
 
 KEYLENGTH = general_config["keylength"]
@@ -76,16 +77,6 @@ def get_keyobj(pem=None, der=None, access_id=None):
         return None
 
 
-def is_rsakey(pem=None, der=None):
-    if not pem and not der:
-        return False
-    try:
-        RSAObject(pem=pem, der=der)
-        return True
-    except (RuntimeError, TypeError):
-        return False
-
-
 def add_trusted_keyobj(keyobj):
     access_id = get_access_id(keyobj=keyobj)
     filename = _get_path("pub", access_id)
@@ -114,7 +105,7 @@ def get_access_id(pem=None, der=None, keyobj=None):
 
 
 def has_password():
-    return os.path.isfile(_get_password_filename())
+    return _security.has_password()
 
 
 def set_password(memcache, password, old_password):
@@ -132,13 +123,7 @@ def set_password(memcache, password, old_password):
 
 
 def validate_password(memcache, password):
-    if has_password():
-        with open(_get_password_filename(), "r") as f:
-            salt, pwdhash = f.read().split(";")
-            inputhash = HMAC(salt, password, sha1).hexdigest()
-            return pwdhash == inputhash
-    else:
-        return True
+    return _security.validate_password(password)
 
 
 def validate_timestemp(memcache, timestemp, expire=60):

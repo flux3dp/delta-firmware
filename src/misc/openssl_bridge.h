@@ -40,6 +40,12 @@ RSA* import_pem(const char* pem, int length, int is_private);
 // to_pubkey: if set to 1, export public key
 // @return: return key in pem format (Python String). empty string if key can
 //          can not export.
+PyObject* export_der(RSA* key, int to_pubkey);
+
+// key: RSA key to be exported
+// to_pubkey: if set to 1, export public key
+// @return: return key in pem format (Python String). empty string if key can
+//          can not export.
 PyObject* export_pem(RSA* key, int to_pubkey);
 
 // key: get key size

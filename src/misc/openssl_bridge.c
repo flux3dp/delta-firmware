@@ -98,6 +98,26 @@ RSA* import_pem(void* pem, int length, int is_private) {
     return rsa;
 }
 
+PyObject* export_der(RSA* key, int to_pubkey) {
+    BIO *bio = BIO_new(BIO_s_mem());
+
+    if(to_pubkey) {
+        i2d_RSA_PUBKEY_bio(bio, key);
+    } else {
+        i2d_RSAPrivateKey_bio(bio, key);
+    }
+
+    int derlen = BIO_pending(bio);
+    void* der = calloc(derlen + 1, 1); /* Null-terminate */
+    BIO_read(bio, der, derlen);
+    PyObject* result = Py_BuildValue("s#", der, derlen);
+
+    BIO_free(bio);
+    free(der);
+
+    return result;
+}
+
 PyObject* export_pem(RSA* key, int to_pubkey) {
     BIO *bio = BIO_new(BIO_s_mem());
 
@@ -197,4 +217,3 @@ int verify_message(RSA *key, const unsigned char* message, int length,
     return ret;
 }
 #pragma GCC diagnostic pop
-

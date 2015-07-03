@@ -1,5 +1,6 @@
 
 from random import choice
+from shutil import rmtree
 import os
 
 from fluxmonitor.config import general_config
@@ -16,6 +17,10 @@ class Storage(object):
 
     def exists(self, filename):
         return os.path.exists(self.get_path(filename))
+
+    def rmtree(self, path):
+        if os.path.isdir(rmtree):
+            rmtree(self.get_path(path))
 
     def open(self, filename, *args):
         return open(self.get_path(filename), *args)

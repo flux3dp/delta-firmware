@@ -24,6 +24,7 @@ cdef extern from "openssl_bridge.h":
     RSA* create_rsa(int)
     RSA* import_der(const char*, int, int)
     RSA* import_pem(const char*, int, int)
+    object export_der(RSA*, int)
     object export_pem(RSA*, int)
     int rsakey_size(const RSA*)
     object encrypt_message(RSA* key, const unsigned char*, int)
@@ -64,7 +65,7 @@ cdef class AESObject:
     cpdef encrypt_into(self, plaintext, unsigned char[:] ciphertext):
         cdef Py_buffer view
         cdef int length = len(plaintext)
-        
+
         if length > len(ciphertext):
             raise Exception("Output buffer too small (%i, %i)" %
                             (len(plaintext), len(ciphertext)))
@@ -132,7 +133,7 @@ cdef class RSAObject:
             self.privatekey = 1
 
         if not self.rsakey:
-            raise RuntimeError("Can not load rsa key.")
+            raise TypeError("Can not load rsa key.")
 
     def __del__(self):
         if self.rsakey:
@@ -143,6 +144,15 @@ cdef class RSAObject:
 
     cpdef size(self):
         return rsakey_size(self.rsakey)
+
+    cpdef export_der(self):
+        if self.privatekey == 1:
+            return export_der(self.rsakey, 0) # export private key
+        else:
+            return export_der(self.rsakey, 1) # export public key
+
+    cpdef export_pubkey_der(self):
+        return export_der(self.rsakey, 1) # export public key
 
     cpdef export_pem(self):
         if self.privatekey == 1:
