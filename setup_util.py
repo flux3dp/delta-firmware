@@ -86,6 +86,7 @@ def get_extra_compile_args():
     args = ["-std=c99"]
     if "FLUX_MODEL" in os.environ:
         args.append("-D%s" % os.environ["FLUX_MODEL"])
+    return args
 
 
 def get_scripts():
