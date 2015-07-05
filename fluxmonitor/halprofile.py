@@ -1,6 +1,6 @@
 
 from os.path import expanduser
-
+import _halprofile
 
 MODEL_DARWIN_DEV = "darwin-dev"
 MODEL_LINUX_DEV = "linux-dev"
@@ -36,31 +36,11 @@ PROFILES = {
 
 
 def get_model_id():
-    import platform as P
-
-    if P.uname()[0] == "Darwin":
-        return MODEL_DARWIN_DEV
-    elif P.uname()[0] == "Linux":
-        with open("/proc/cpuinfo", "r") as f:
-            buf = f.read()
-            # Need some method to check if it is raspberry A
-            if "BCM2708" in buf or "BCM2835" in buf:
-                return MODEL_G1
-            else:
-                return MODEL_LINUX_DEV
-    else:
-        raise Exception("Can not get model id")
+    return _halprofile.model_id
 
 
 def get_model_profile():
     return PROFILES.get(get_model_id())
-
-
-def is_dev_model(profile=None):
-    if profile is None:
-        profile = get_model_id()
-
-    return profile == MODEL_LINUX_DEV or profile == MODEL_DARWIN_DEV
 
 
 def get_platform():

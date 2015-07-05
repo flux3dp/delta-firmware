@@ -4,45 +4,56 @@ from setuptools import setup, Extension
 
 from Cython.Distutils import build_ext
 
-import setup_util
+import setup_utils
 
 
-setup_util.checklibs()
+setup_utils.checklibs()
 
-VERSION = setup_util.get_version()
-
-install_requires = setup_util.get_install_requires()
-tests_require = setup_util.get_tests_require()
-libraries = ['crypto']
-packages = setup_util.get_packages()
-entry_points = setup_util.get_entry_points()
-extra_compile_args = setup_util.get_extra_compile_args()
-
-
-if setup_util.is_test():
-    setup_util.setup_test()
+if setup_utils.is_test():
+    setup_utils.setup_test()
 
 
 setup(
     name="fluxmonitor",
-    version=VERSION,
+    version=setup_utils.VERSION,
     author="Flux Crop.",
     author_email="cerberus@flux3dp.com",
     description="",
     license="?",
-    packages=packages,
+    packages=setup_utils.PACKAGES,
     test_suite="tests.main.everything",
-    entry_points=entry_points,
-    install_requires=install_requires,
-    tests_require=tests_require,
+    entry_points=setup_utils.ENTRY_POINTS,
+    install_requires=setup_utils.get_install_requires(),
+    tests_require=setup_utils.TEST_REQUIRE,
     cmdclass={'build_ext': build_ext},
+    libraries=[
+        ("flux_hal", {
+            "sources": ["src/libflux_hal/halprofile.c"],
+            "include_dirs": [],
+            "macros": setup_utils.DEFAULT_MACROS
+        }),
+        ("flux_crypto", {
+            "sources": [
+                "src/libflux_crypto/flux_crypto_rsa.c",
+                "src/libflux_crypto/flux_crypto_aes.c"],
+            "include_dirs": setup_utils.PY_INCLUDES,
+            "macros": setup_utils.DEFAULT_MACROS
+        })
+    ],
     ext_modules=[
         Extension(
+            'fluxmonitor._halprofile', sources=[
+                "src/halprofile/halprofile.pyx"],
+            extra_compile_args=["-std=c99"],
+            define_macros=setup_utils.DEFAULT_MACROS,
+            include_dirs=["src"]
+        ),
+        Extension(
             'fluxmonitor.misc._security', sources=[
-                "src/misc/security.pyx",
-                "src/misc/openssl_bridge.c"],
-            extra_compile_args=extra_compile_args,
-            libraries=["crypto"],
-            extra_objects=[], include_dirs=["src"])
+                "src/misc/security.pyx", ],
+            extra_compile_args=["-std=c99"],
+            define_macros=setup_utils.DEFAULT_MACROS,
+            extra_objects=[], include_dirs=["src"]
+        )
     ]
 )

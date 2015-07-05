@@ -233,10 +233,10 @@ void __Pyx_call_destructor(T* x) {
 #include <math.h>
 #define __PYX_HAVE__fluxmonitor__misc___security
 #define __PYX_HAVE_API__fluxmonitor__misc___security
-#include "halprofile.h"
+#include "libflux_hal/halprofile.h"
 #include "string.h"
 #include "stdlib.h"
-#include "openssl_bridge.h"
+#include "libflux_crypto/flux_crypto.h"
 #include "pythread.h"
 #include "stdio.h"
 #include "pystate.h"
@@ -5684,8 +5684,6 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_validate_password(PyObject *__
  *             return pwdhash == inputhash
  *     else:
  *         return True             # <<<<<<<<<<<<<<
- * 
- * 
  */
     __pyx_r = 1;
     goto __pyx_L0;

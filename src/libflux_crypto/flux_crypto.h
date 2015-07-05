@@ -7,20 +7,18 @@
 // @return: EVP_CIPHER_CTX object
 EVP_CIPHER_CTX* create_enc_aes256key(const unsigned char* key,
                                      const unsigned char* iv);
-
 EVP_CIPHER_CTX* create_dec_aes256key(const unsigned char* key,
                                      const unsigned char* iv);
 
-
 // ctx: EVP_CIPHER_CTX obj to delete
 void free_aes256key(EVP_CIPHER_CTX* ctx);
-
 
 int aes256_encrypt(EVP_CIPHER_CTX* ctx, const unsigned char* plaintext,
                    unsigned char* ciphertext, int length);
 
 int aes256_decrypt(EVP_CIPHER_CTX* ctx, const unsigned char* ciphertext,
                   unsigned char* plaintext, int length);
+
 
 // keylength: what you see what you get
 RSA* create_rsa(int keylength);
@@ -41,7 +39,6 @@ RSA* import_pem(const char* pem, int length, int is_private);
 // @return: return key in pem format (Python String). empty string if key can
 //          can not export.
 PyObject* export_der(RSA* key, int to_pubkey);
-
 // key: RSA key to be exported
 // to_pubkey: if set to 1, export public key
 // @return: return key in pem format (Python String). empty string if key can

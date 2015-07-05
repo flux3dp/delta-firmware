@@ -4,7 +4,7 @@ from libc.stdlib cimport malloc, free
 import os
 
 
-cdef extern from "openssl_bridge.h":
+cdef extern from "libflux_crypto/flux_crypto.h":
     ctypedef struct EVP_CIPHER_CTX
 
     EVP_CIPHER_CTX* create_enc_aes256key(const unsigned char* key,

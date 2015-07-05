@@ -5,8 +5,6 @@
 #pragma GCC diagnostic ignored "-Wdeprecated"
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-#include <openssl/evp.h>
-#include <openssl/aes.h>
 #include <openssl/rsa.h>
 #include <openssl/pem.h>
 #include <openssl/sha.h>
@@ -14,42 +12,6 @@
 #include <openssl/err.h>
 #include <openssl/objects.h>
 
-
-EVP_CIPHER_CTX* create_enc_aes256key(const unsigned char* key,
-                                     const unsigned char* iv) {
-    EVP_CIPHER_CTX* ctx = malloc(sizeof(EVP_CIPHER_CTX));
-    EVP_CIPHER_CTX_init(ctx);
-    EVP_EncryptInit(ctx, EVP_aes_256_cfb8(), key, iv);
-    return ctx;
-}
-
-EVP_CIPHER_CTX* create_dec_aes256key(const unsigned char* key,
-                                     const unsigned char* iv) {
-    EVP_CIPHER_CTX* ctx = malloc(sizeof(EVP_CIPHER_CTX));
-    EVP_CIPHER_CTX_init(ctx);
-    EVP_DecryptInit(ctx, EVP_aes_256_cfb8(), key, iv);
-    return ctx;
-}
-
-void free_aes256key(EVP_CIPHER_CTX* ctx) {
-    EVP_CIPHER_CTX_cleanup(ctx);
-    free(ctx);
-}
-
-int aes256_encrypt(EVP_CIPHER_CTX* ctx, const unsigned char* plaintext,
-                   unsigned char* ciphertext, int length) {
-    int ol = length;
-    int ret = EVP_EncryptUpdate(ctx, ciphertext, &ol, plaintext, length);
-    return ret;
-}
-
-int aes256_decrypt(EVP_CIPHER_CTX* ctx,
-                              const unsigned char* ciphertext,
-                              unsigned char* plaintext, int length) {
-    int ol = length;
-    int ret = EVP_DecryptUpdate(ctx, plaintext, &ol, ciphertext, length);
-    return ret;
-}
 
 RSA* create_rsa(int keylen) {
     RSA *rsa = NULL;
@@ -156,7 +118,8 @@ PyObject* encrypt_message(RSA* key, const unsigned char *message, int length) {
     for(int i=0;i<length;i+=chunk_size) {
         int l = length - i;
         if(l > chunk_size) l = chunk_size;
-        RSA_public_encrypt(l, message_ptr, encbuf_ptr, key, RSA_PKCS1_OAEP_PADDING);
+        RSA_public_encrypt(l, message_ptr, encbuf_ptr, key,
+                           RSA_PKCS1_OAEP_PADDING);
         encbuf_ptr += keysize;
         message_ptr += chunk_size;
     }
@@ -179,7 +142,8 @@ PyObject* decrypt_message(RSA* key, const unsigned char* message, int length) {
     unsigned char *decbuf_ptr = decbuf;
 
     for(int i=0;i<sections;i++) {
-        int l = RSA_private_decrypt(keysize, message, decbuf_ptr, key, RSA_PKCS1_OAEP_PADDING);
+        int l = RSA_private_decrypt(keysize, message, decbuf_ptr, key,
+                                    RSA_PKCS1_OAEP_PADDING);
         decbuf_ptr += l;
         message += keysize;
     }
