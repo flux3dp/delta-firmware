@@ -119,12 +119,12 @@ class UartHalBase(object):
 
 class BaseOnSerial(object):
     def on_recvfrom_mainboard(self, sender):
-        buf = sender.obj.readall()
+        buf = sender.obj.read(4096)
         for sock in self.mainboard_socks:
             sock.send(buf)
 
     def on_recvfrom_headboard(self, sender):
-        buf = sender.obj.readall()
+        buf = sender.obj.read(4096)
         for sock in self.headboard_socks:
             sock.send(buf)
 
