@@ -43,11 +43,9 @@ def get_private_key():
     if os.path.isfile(filename):
         try:
             with open(filename, "r") as f:
-                buf = f.read()
-                if buf:
-                    return RSAObject(pem=f.read())
-        except RuntimeError:
-            pass
+                return RSAObject(pem=f.read())
+        except Exception:
+            logger.exception("Error while get private key")
 
     rsaobj = RSAObject(keylength=KEYLENGTH)
     pem = rsaobj.export_pem()
