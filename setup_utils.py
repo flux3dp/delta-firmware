@@ -96,10 +96,10 @@ elif is_linux():
         # TODO: Need some method to check if it is raspberry A
         if "BCM2708" in buf or "BCM2835" in buf:
             HARDWARE_MODEL = "model-1"
-            DEFAULT_MACROS += (["FLUX_MODEL_G1"], 1)
+            DEFAULT_MACROS += [("FLUX_MODEL_G1", 1)]
         else:
             HARDWARE_MODEL = "linux-dev"
-            DEFAULT_MACROS += (["FLUX_MODEL_LINUX_DEV"], 1)
+            DEFAULT_MACROS += [("FLUX_MODEL_LINUX_DEV", 1)]
 
 
 def get_install_requires():
@@ -114,6 +114,12 @@ def get_install_requires():
         packages += ['RPi.GPIO']
 
     return packages
+
+
+if "CFLAGS" in os.environ:
+    os.environ["CFLAGS"] += " -std=c99"
+else:
+    os.environ["CFLAGS"] = "-std=c99"
 
 
 if is_darwin():

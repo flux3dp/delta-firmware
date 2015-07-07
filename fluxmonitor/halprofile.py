@@ -4,7 +4,7 @@ import _halprofile
 
 MODEL_DARWIN_DEV = "darwin-dev"
 MODEL_LINUX_DEV = "linux-dev"
-MODEL_G1 = "model:1"
+MODEL_G1 = "model-1"
 
 LINUX_PLATFORM = "linux"
 DARWIN_PLATFORM = "darwin"
@@ -40,7 +40,7 @@ def get_model_id():
 
 
 def get_model_profile():
-    return PROFILES.get(get_model_id())
+    return PROFILES[get_model_id()]
 
 
 def get_platform():

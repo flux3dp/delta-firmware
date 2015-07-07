@@ -50,7 +50,7 @@ setup(
                 "src/misc/security.c", ],
             extra_compile_args=["-std=c99"],
             define_macros=setup_utils.DEFAULT_MACROS,
-            extra_objects=[], include_dirs=["src"]
+            libraries=["crypto"], extra_objects=[], include_dirs=["src"]
         )
     ]
 )
