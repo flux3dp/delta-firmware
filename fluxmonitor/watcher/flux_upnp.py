@@ -327,6 +327,9 @@ class UpnpSocket(object):
         except RuntimeError as e:
             self.send_response(request_code, 1, e.args[0], remote, True)
 
+        except Exception as e:
+            logger.exception("Unhandle exception")
+
     def send_response(self, request_code, response_code, message, remote,
                       require_sign):
         header = struct.pack("<BB", request_code + 1, response_code)

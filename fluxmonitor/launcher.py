@@ -37,6 +37,13 @@ def create_logger(options):
             'backupCount': 9
         }
 
+    if options.debug:
+        handlers['local_udp'] = {
+            'level': log_level,
+            'formatter': 'default',
+            'class': 'fluxmonitor.diagnosis.log_helpers.DatagramHandler',
+        }
+
     logging.config.dictConfig({
         'version': 1,
         'disable_existing_loggers': True,
