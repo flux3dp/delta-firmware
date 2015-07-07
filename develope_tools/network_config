@@ -13,6 +13,7 @@ import argparse
 import socket
 import json
 
+from fluxmonitor.misc import network_config_encoder as NCE
 from fluxmonitor.misc.flux_argparse import add_config_arguments, \
     apply_config_arguments
 
@@ -104,5 +105,6 @@ pprint(payload)
 print("\nOpen communicate socket at: %s" % network_config["unixsocket"])
 s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
 s.connect(network_config["unixsocket"])
-s.send(json.dumps(["config_network", payload]))
+
+s.send(b"%s\x00%s" % (b"config_network", NCE.to_bytes(payload)))
 print("Message sent.")

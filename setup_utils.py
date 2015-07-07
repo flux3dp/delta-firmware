@@ -83,7 +83,7 @@ if "FLUX_MODEL" in os.environ:
     if not define:
         raise RuntimeError("Get unupport type in FLUX_MODEL env")
 
-    DEFAULT_MACROS.append(define)
+    DEFAULT_MACROS.append((define, 1))
     HARDWARE_MODEL = os.environ["FLUX_MODEL"]
 
 elif is_darwin():
