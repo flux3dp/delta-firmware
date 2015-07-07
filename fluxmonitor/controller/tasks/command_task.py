@@ -63,13 +63,15 @@ class CommandTask(CommandMixIn):
 
         return "ok"
 
-    def select_file(self, filename):
+    def select_file(self, filename, raw=False):
         abs_filename = os.path.abspath(
             os.path.join(robot_config["filepool"], filename))
 
-        if not abs_filename.startswith(self.filepool) or \
-           not abs_filename.endswith(".gcode") or \
-           not os.path.isfile(abs_filename):
+        if not raw and not abs_filename.startswith(self.filepool):
+            raise RuntimeError(NOT_EXIST)
+
+        if not os.path.isfile(abs_filename) or \
+           not abs_filename.endswith(".gcode"):
                 raise RuntimeError(NOT_EXIST)
 
         self._task_file = open(filename, "rb")

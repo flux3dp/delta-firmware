@@ -11,6 +11,9 @@ from fluxmonitor.launcher import create_logger
 def main():
     parser = argparse.ArgumentParser(description='flux robot')
     add_daemon_arguments("fluxrobot", parser)
+    parser.add_argument('--task', dest='taskfile', type=str, default=None,
+                        help='A g-code file, if this arg given, robot will'
+                             ' enter PlayTask and run g-code automatically')
 
     options = parser.parse_args()
 

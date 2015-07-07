@@ -27,6 +27,13 @@ class Robot(EventBase):
         cmd_task = CommandTask(self)
         self.enter_task(cmd_task, None)
 
+        try:
+            if options.taskfile:
+                assert cmd_task.select_file(options.taskfile, raw=True) == "ok"
+                assert cmd_task.play(sender=None) == "ok"
+        except Exception:
+            logger.exception("Error while setting task at init")
+
     @T.update_time
     def on_message(self, message, sender):
         self.this_task.on_message(message, sender)
