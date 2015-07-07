@@ -43,7 +43,9 @@ def get_private_key():
     if os.path.isfile(filename):
         try:
             with open(filename, "r") as f:
-                return RSAObject(pem=f.read())
+                buf = f.read()
+                if buf:
+                    return RSAObject(pem=f.read())
         except RuntimeError:
             pass
 
