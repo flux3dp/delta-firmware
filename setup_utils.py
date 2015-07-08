@@ -73,7 +73,7 @@ ENTRY_POINTS = {
 
         "fluxrobot=fluxmonitor.bin.fluxrobot:main",
 
-        "fluxinfo=fluxmonitor.bin.fluxinfo:main"
+        "fluxinit=fluxmonitor.bin.fluxinit:main"
     ]
 }
 
