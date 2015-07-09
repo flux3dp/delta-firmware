@@ -3,6 +3,7 @@ from random import choice
 from shutil import rmtree
 from hashlib import sha1
 from hmac import HMAC
+from uuid import UUID
 from time import time
 import binascii
 import logging
@@ -16,6 +17,7 @@ from fluxmonitor.misc import _security
 from fluxmonitor.config import general_config
 
 KEYLENGTH = general_config["keylength"]
+HEXMAP = "123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 STR_BASE = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 MAX_UINT64 = (2 ** 64) - 1
 
@@ -23,10 +25,30 @@ MAX_UINT64 = (2 ** 64) - 1
 _safe_value = lambda val: re.match("^[a-zA-Z0-9]+$", val) is not None
 
 
-def get_serial():
-    pubpem = get_private_key().export_pubkey_pem()
-    dig = sha1(pubpem).digest()[:16]
+def get_uuid():
+    pubder = get_private_key().export_pubkey_der()
+    dig = sha1(pubder).digest()[:16]
     return binascii.b2a_hex(dig)
+
+
+def get_serial():
+    return uuid_to_short(get_uuid())
+
+
+def uuid_to_short(uuid_hex, mapping=HEXMAP):
+    u = UUID(uuid_hex)
+    l = len(mapping)
+    n = u.int
+    a_short = []
+    while n > 0:
+        c = mapping[n % l]
+        n = n // l
+        a_short.append(c)
+
+    while len(a_short) < 25:
+        a_short.append(mapping[0])
+
+    return "".join(a_short)
 
 
 def randstr(length=8):

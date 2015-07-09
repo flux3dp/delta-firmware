@@ -17,7 +17,7 @@ from .base import WatcherBase
 
 logger = logging.getLogger(__name__)
 
-SERIAL = security.get_serial()
+SERIAL_HEX = security.get_uuid()
 MODEL_ID = get_model_id()
 COMMON_ERRNO = (ENOENT, ENOTSOCK)
 
@@ -179,7 +179,7 @@ class UsbIO(object):
     def on_identify(self, buf):
         resp = ("ver=%s\x00model=%s\x00serial=%s\x00name=%s\x00"
                 "time=%.2f\x00pwd=%i") % (
-                VERSION, MODEL_ID, SERIAL, self.meta.get_nickname(),
+                VERSION, MODEL_ID, SERIAL_HEX, self.meta.get_nickname(),
                 time(), security.has_password(),)
         self.send_response(MSG_IDENTIFY, True, resp.encode())
 

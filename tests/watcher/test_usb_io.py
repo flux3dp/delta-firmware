@@ -12,7 +12,7 @@ from fluxmonitor.halprofile import get_model_id, get_platform
 from fluxmonitor.config import network_config
 from fluxmonitor import security
 
-SERIAL = security.get_serial()
+SERIAL_HEX = security.get_uuid()
 MODEL_ID = get_model_id()
 MAGIC_NUMBER = b"\x97\xae\x02"
 
@@ -73,7 +73,7 @@ class UsbIoTest(unittest.TestCase):
         self.assertEqual(flag, 1)
         info = dict([keyvalue.split(b"=", 1)
                     for keyvalue in buf.split(b"\x00")])
-        self.assertEqual(info["serial"], SERIAL)
+        self.assertEqual(info["serial"], SERIAL_HEX)
         self.assertEqual(info["model"], MODEL_ID)
         self.assertAlmostEqual(float(info["time"]), time(), places=-1)
 

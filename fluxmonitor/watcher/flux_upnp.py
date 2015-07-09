@@ -25,7 +25,7 @@ from .base import WatcherBase
 from ._network_helpers import NetworkMonitorMix
 
 
-SERIAL = security.get_serial()
+SERIAL_HEX = security.get_uuid()
 MODEL_ID = get_model_id()
 DEFAULT_PORT = 3310
 
@@ -53,7 +53,7 @@ class UpnpServicesMix(object):
         """Return IP Address in array"""
         # TODO: NOT CONFIRM
         return {"ver": VERSION,
-                "model": MODEL_ID, "serial": SERIAL,
+                "model": MODEL_ID, "serial": SERIAL_HEX,
                 "time": time(), "ip": self.ipaddress,
                 "pwd": security.has_password()}
 
@@ -292,7 +292,7 @@ class UpnpSocket(object):
         magic_num, bserial, code = struct.unpack("<4s16sB", buf[:21])
         serial = _uuid.UUID(bytes=bserial).hex
         if magic_num != "FLUX" or \
-           (serial != security.get_serial() and serial != GLOBAL_SERIAL.hex):
+           (serial != SERIAL_HEX and serial != GLOBAL_SERIAL.hex):
             return  # drop if payload is wrong syntax
 
         self.handle_request(code, buf, remote)
