@@ -1,4 +1,5 @@
 
+from time import sleep
 import logging
 
 from serial import Serial
@@ -35,7 +36,9 @@ class UartHal(UartHalBase, BaseOnSerial):
 
     def sendto_headboard(self, buf):
         # TODO: NOT READY!
-        self.raspi_uart.write(buf)
+        for c in buf:
+            self.raspi_uart.write(c)
+            sleep(0.02)
 
     def sendto_pc(self, buf):
         # TODO: NOT READY!
