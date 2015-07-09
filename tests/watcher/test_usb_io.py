@@ -97,7 +97,7 @@ class UsbIoTest(unittest.TestCase):
         self.assertEqual(buf, b"ALREADY_TRUSTED")
 
         self.assertFalse(security.has_password())
-        self.assertTrue(security.set_password(None, "TESTPASS", ""))
+        self.assertTrue(security.set_password("TESTPASS", ""))
 
         rsa = RSA.generate(1024)
         self.usbio.on_auth(rsa.exportKey().encode())

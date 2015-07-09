@@ -179,8 +179,8 @@ class UsbIO(object):
     def on_identify(self, buf):
         resp = ("ver=%s\x00model=%s\x00serial=%s\x00name=%s\x00"
                 "time=%.2f\x00pwd=%i") % (
-                VERSION, MODEL_ID, SERIAL_HEX, self.meta.get_nickname(),
-                time(), security.has_password(),)
+                    VERSION, MODEL_ID, SERIAL_HEX, self.meta.get_nickname(),
+                    time(), security.has_password(),)
         self.send_response(MSG_IDENTIFY, True, resp.encode())
 
     def on_rsakey(self, buf):
@@ -197,7 +197,7 @@ class UsbIO(object):
         if buf.startswith(b"PASSWORD"):
             try:
                 pwd, pem = buf[8:].split("\x00", 1)
-            except ValueError as e:
+            except ValueError:
                 logger.error("Unpack password in on_auth error")
                 pwd, pem = "", buf
         else:
@@ -210,7 +210,7 @@ class UsbIO(object):
                 self.send_response(MSG_AUTH, True, b"ALREADY_TRUSTED")
             else:
                 if security.has_password():
-                    if security.validate_password(None, pwd):
+                    if security.validate_password(pwd):
                         security.add_trusted_keyobj(keyobj)
                         self.send_response(MSG_AUTH, True, b"OK")
                     else:
@@ -258,6 +258,6 @@ class UsbIO(object):
                 self.send_response(MSG_GET_SSID, True, ssid.encode())
             else:
                 self.send_response(MSG_GET_SSID, False, "NOT_FOUND")
-        except Exception as e:
+        except Exception:
             logger.exception("Error while getting ssid %s" % "wlan0")
             self.send_response(MSG_GET_SSID, False, "NOT_FOUND")

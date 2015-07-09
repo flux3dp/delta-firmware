@@ -1,7 +1,7 @@
 
 import unittest
 
-from fluxmonitor.misc._security import AESObject
+from fluxmonitor.security._security import AESObject
 
 class C_AESObjectTest(unittest.TestCase):
     def test_bytearray_input(self):

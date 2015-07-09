@@ -19,8 +19,12 @@ class Storage(object):
         return os.path.exists(self.get_path(filename))
 
     def rmtree(self, path):
-        if os.path.isdir(rmtree):
-            rmtree(self.get_path(path))
+        p = self.get_path(path)
+        if os.path.isdir(p):
+            rmtree(p)
+
+    def unlink(self, filename):
+        os.unlink(self.get_path(filename))
 
     def open(self, filename, *args):
         return open(self.get_path(filename), *args)

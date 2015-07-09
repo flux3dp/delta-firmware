@@ -51,16 +51,42 @@ def setup_test():
     config.uart_config["pc"] = "./tmp/pc-uart"
     config.robot_config["filepool"] = "./tmp/test_filepool"
 
+    import logging.config
+    logging.config.dictConfig({
+        'version': 1,
+        'disable_existing_loggers': True,
+        'formatters': {
+            'default': {
+                'format': "[%(asctime)s,%(levelname)s,%(name)s] %(message)s",
+                'datefmt': "%Y-%m-%d %H:%M:%S"
+            }
+        },
+        'handlers': {
+            'file': {
+                'formatter': 'default',
+                'class': 'logging.FileHandler',
+                'filename': "./tmp/test.log"
+            }
+        },
+        'root': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True
+        }
+    })
+
+
+def get_packages():
+    return [name
+            for _, name, ispkg in walk_packages(".")
+            if name.startswith("fluxmonitor") and ispkg]
+
 
 DEFAULT_MACROS = []
 
 HARDWARE_MODEL = None
 
 TEST_REQUIRE = ['pycrypto']
-
-PACKAGES = [name
-            for _, name, ispkg in walk_packages(".")
-            if name.startswith("fluxmonitor") and ispkg]
 
 PY_INCLUDES = [distutils.sysconfig.get_python_inc()]
 

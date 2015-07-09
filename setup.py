@@ -18,7 +18,7 @@ setup(
     author_email="cerberus@flux3dp.com",
     description="",
     license="?",
-    packages=setup_utils.PACKAGES,
+    packages=setup_utils.get_packages(),
     test_suite="tests.main.everything",
     entry_points=setup_utils.ENTRY_POINTS,
     install_requires=setup_utils.get_install_requires(),
@@ -46,8 +46,8 @@ setup(
             include_dirs=["src"]
         ),
         Extension(
-            'fluxmonitor.misc._security', sources=[
-                "src/misc/security.c", ],
+            'fluxmonitor.security._security', sources=[
+                "src/security/security.c", ],
             extra_compile_args=["-std=c99"],
             define_macros=setup_utils.DEFAULT_MACROS,
             libraries=["crypto"], extra_objects=[], include_dirs=["src"]

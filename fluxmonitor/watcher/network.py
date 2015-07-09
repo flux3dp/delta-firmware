@@ -1,5 +1,4 @@
 
-from time import time
 import logging
 
 logger = logging.getLogger(__name__)
@@ -8,7 +7,6 @@ from .base import WatcherBase
 from ._network_helpers import NetworkMonitorMix, ConfigMix, ControlSocketMix
 from fluxmonitor.hal.nl80211 import config as nl80211_config
 from fluxmonitor.hal.net import config as net_config
-from fluxmonitor.storage import Storage
 
 FLUX_ST_STARTED = "flux_started"
 
@@ -20,7 +18,6 @@ class NetworkWatcher(WatcherBase, NetworkMonitorMix, ConfigMix,
 
         self.server.POLL_TIMEOUT = 1.0
         self.daemons = {}
-        # self.storage = Storage("net")
 
     def start(self):
         self.bootstrap_network_monitor(self.memcache)

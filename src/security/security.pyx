@@ -3,14 +3,12 @@ from fluxmonitor.storage import Storage
 from hashlib import sha1
 from hmac import HMAC
 
-cimport src.halprofile
-
 include "halprofile.pxd"
 include "security_encrypt.pyx"
 
-
 DEF PASSWORD_SYMBOL = "private/password"
 DEF PUBKEY_SYMBOL = "pub"
+
 cdef object storage = Storage("security")
 
 

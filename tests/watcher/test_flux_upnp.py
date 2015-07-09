@@ -16,7 +16,6 @@ from fluxmonitor import security as S
 from fluxmonitor.config import network_config
 from fluxmonitor.watcher.flux_upnp import CODE_DISCOVER, \
     CODE_SET_NETWORK, DEFAULT_PORT
-
 from fluxmonitor.watcher.flux_upnp import UpnpWatcher, UpnpSocket
 
 
@@ -73,7 +72,7 @@ class UpnpServicesMixTest(unittest.TestCase):
 
         # Set password access
         self.cache.erase()
-        S.set_password(self.cache, "fluxmonitor", None)
+        S.set_password("fluxmonitor", None)
         # User 2, blocked
         raw_req = struct.pack("<d%ss" % len(U.PUBLICKEY_2),
                               time(), U.PUBLICKEY_2)
@@ -81,7 +80,7 @@ class UpnpServicesMixTest(unittest.TestCase):
         self.assertEqual(resp["status"], "deny")
 
     def test_change_pwd(self):
-        self.assertTrue(S.set_password(self.cache, "fluxmonitor", None))
+        self.assertTrue(S.set_password("fluxmonitor", None))
         S.add_trusted_keyobj(S.get_keyobj(der=U.PUBLICKEY_3))
 
         # OK

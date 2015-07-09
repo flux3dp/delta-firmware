@@ -4,7 +4,7 @@ from time import time
 import unittest
 
 from fluxmonitor import security
-from fluxmonitor.misc import _security
+from fluxmonitor.security import _security
 from tests import _utils as U
 from tests._utils.memcache import MemcacheTestClient
 
@@ -62,9 +62,9 @@ class MiscSecurityTest(unittest.TestCase):
     def test_password(self):
         self.assertFalse(security.has_password())
 
-        self.assertTrue(security.set_password(self.memcache, "HELLO", ""))
-        self.assertTrue(security.validate_password(self.memcache, "HELLO"))
-        self.assertFalse(security.validate_password(self.memcache, "HEIIO"))
+        self.assertTrue(security.set_password("HELLO", ""))
+        self.assertTrue(security.validate_password("HELLO"))
+        self.assertFalse(security.validate_password("HEIIO"))
 
         self.assertTrue(security.has_password())
 
