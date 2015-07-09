@@ -48,6 +48,7 @@ class UartHal(UartHalBase, BaseOnSerial):
     def _connect(self):
         self.mainboard_uart = Serial(port=hal_config["mainboard_uart"],
                                      baudrate=115200, timeout=0)
+        # TODO: baudrate adjust to 28800
         self.raspi_uart = Serial(port=hal_config["headboard_uart"],
                                  baudrate=115200, timeout=0)
 
