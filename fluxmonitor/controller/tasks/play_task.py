@@ -3,7 +3,6 @@ import logging
 import re
 import os
 
-from fluxmonitor.config import DEBUG
 from fluxmonitor.err_codes import UNKNOW_COMMAND, ALREADY_RUNNING, \
     NOT_RUNNING, NO_TASK, RESOURCE_BUSY
 
@@ -46,8 +45,7 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
                 return
 
             self._task_executed += len(buf)
-            if DEBUG:
-                logger.debug("GCODE: %s" % buf.decode("ascii").strip())
+            logger.debug("GCODE: %s" % buf.decode("ascii").strip())
 
             cmd = buf.split(b";", 1)[0].rstrip()
 
@@ -72,12 +70,11 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
             self._mb_swap += buf.decode("ascii", "ignore")
         else:
             self._mb_swap = buf.decode("ascii", "ignore")
-            
+
         messages = re.split("\r\n|\n", self._mb_swap)
         self._mb_swap = messages.pop()
         for msg in messages:
-            if DEBUG:
-                logger.debug("MB: %s" % msg)
+            logger.debug("MB: %s" % msg)
             if msg.startswith("ok"):
                 if self._task_in_queue is not None:
                     self._task_in_queue -= 1
@@ -86,7 +83,16 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
             self.next_cmd()
 
     def on_headboard_message(self, sender):
-        pass
+        buf = sender.obj.recv(4096)
+        if self._hb_swap:
+            self._hb_swap += buf.decode("ascii", "ignore")
+        else:
+            self._hb_swap = buf.decode("ascii", "ignore")
+
+        messages = re.split("\r\n|\n", self._hb_swap)
+        self._hb_swap = messages.pop()
+        for msg in messages:
+            logger.debug("HB: %s" % msg)
 
     def dispatch_cmd(self, cmd, sender):
         if cmd == "pause":
