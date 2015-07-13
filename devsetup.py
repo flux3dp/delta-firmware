@@ -38,6 +38,15 @@ setup(
                 "src/libflux_crypto/flux_crypto_aes.c"],
             "include_dirs": setup_utils.PY_INCLUDES,
             "macros": setup_utils.DEFAULT_MACROS
+        }),
+        ("flux_identify", {
+            "sources": [
+                "src/libflux_identify/rescue.c",
+                "src/libflux_identify/model_dev.c",
+                "src/libflux_identify/model_rasp.c",
+            ],
+            "include_dirs": ["src"] + setup_utils.PY_INCLUDES,
+            "macros": setup_utils.DEFAULT_MACROS
         })
     ],
     ext_modules=[

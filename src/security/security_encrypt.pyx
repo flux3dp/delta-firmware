@@ -45,7 +45,7 @@ cdef class AESObject:
         self.enc_aeskey = create_enc_aes256key(key, iv)
         self.dec_aeskey = create_dec_aes256key(key, iv)
 
-    def __del__(self):
+    def __dealloc__(self):
         free_aes256key(self.enc_aeskey)
         free_aes256key(self.dec_aeskey)
 
@@ -112,6 +112,9 @@ cdef class RSAObject:
     cdef RSA* rsakey
     cdef int privatekey
 
+    def __cinit__(self):
+        pass
+
     def __init__(self, pem=None, der=None, keylength=1024):
         self.privatekey = 0
         if der != None:
@@ -135,7 +138,7 @@ cdef class RSAObject:
         if not self.rsakey:
             raise TypeError("Can not load rsa key.")
 
-    def __del__(self):
+    def __dealloc__(self):
         if self.rsakey:
             RSA_free(self.rsakey)
 

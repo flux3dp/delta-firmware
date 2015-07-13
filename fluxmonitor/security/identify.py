@@ -1,48 +1,55 @@
 
-from hashlib import sha1
 from uuid import UUID
 import binascii
 import logging
 
-from fluxmonitor.security._security import RSAObject
-from fluxmonitor.config import general_config
-from fluxmonitor.storage import Storage
+from fluxmonitor.security._security import get_rsakey as _get_rsakey, \
+     get_uuid as _get_uuid
 
-KEYNAME = "key.pem"
-HEXMAP = "123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-KEYLENGTH = general_config["keylength"]
+HEXMAP = "123456789ABCDEFGHJKLMNOPQRSTUVWXYZ"
 
 logger = logging.getLogger(__name__)
-_storage = Storage("security", "private")
+
+_keycache = None
+_uuidcache = None
+_rescue = None
+
+
+def __checkenv__():
+    global _keycache, _uuidcache, _rescue
+    if not _keycache:
+        try:
+            _keycache = _get_rsakey()
+            _uuidcache = _get_uuid()
+            _rescue = False
+        except Exception:
+            logger.exception("#### Fetch device key failed!! ####")
+            _keycache = _get_rsakey(rescue=True)
+            _uuidcache = _get_uuid(rescue=True)
+            _rescue = True
 
 
 def get_uuid():
-    pubder = get_private_key().export_pubkey_der()
-    dig = sha1(pubder).digest()[:16]
-    return binascii.b2a_hex(dig)
+    __checkenv__()
+    return binascii.b2a_hex(_uuidcache)
 
 
 def get_serial():
-    return uuid_to_short(get_uuid())
+    __checkenv__()
+    return _uuid_to_short(get_uuid())
+
+
+def rescue_mode():
+    __checkenv__()
+    return _rescue
 
 
 def get_private_key():
-    if _storage.exists(KEYNAME):
-        try:
-            with _storage.open(KEYNAME, "r") as f:
-                return RSAObject(pem=f.read())
-        except Exception:
-            logger.exception("Error while get private key")
-
-    rsaobj = RSAObject(keylength=KEYLENGTH)
-    pem = rsaobj.export_pem()
-    with _storage.open(KEYNAME, "w") as f:
-        f.write(pem)
-    logger.info("Private key created at: %s" % _storage.get_path(KEYNAME))
-    return rsaobj
+    __checkenv__()
+    return _keycache
 
 
-def uuid_to_short(uuid_hex, mapping=HEXMAP):
+def _uuid_to_short(uuid_hex, mapping=HEXMAP):
     u = UUID(uuid_hex)
     l = len(mapping)
     n = u.int

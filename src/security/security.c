@@ -231,12 +231,13 @@ void __Pyx_call_destructor(T* x) {
 #define _USE_MATH_DEFINES
 #endif
 #include <math.h>
-#define __PYX_HAVE__fluxmonitor__misc___security
-#define __PYX_HAVE_API__fluxmonitor__misc___security
+#define __PYX_HAVE__fluxmonitor__security___security
+#define __PYX_HAVE_API__fluxmonitor__security___security
 #include "libflux_hal/halprofile.h"
 #include "string.h"
 #include "stdlib.h"
 #include "libflux_crypto/flux_crypto.h"
+#include "libflux_identify/flux_identify.h"
 #include "pythread.h"
 #include "stdio.h"
 #include "pystate.h"
@@ -422,8 +423,8 @@ static const char *__pyx_filename;
 
 
 static const char *__pyx_f[] = {
-  "xmonitor/src/misc/security_encrypt.pyx",
-  "xmonitor/src/misc/security.pyx",
+  "xmonitor/src/security/security_encrypt.pyx",
+  "xmonitor/src/security/security.pyx",
   "xmonitor/stringsource",
 };
 struct __pyx_memoryview_obj;
@@ -519,52 +520,52 @@ typedef volatile __pyx_atomic_int_type __pyx_atomic_int;
 
 
 /*--- Type declarations ---*/
-struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject;
-struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject;
+struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject;
+struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject;
 struct __pyx_array_obj;
 struct __pyx_MemviewEnum_obj;
 struct __pyx_memoryview_obj;
 struct __pyx_memoryviewslice_obj;
-struct __pyx_opt_args_11fluxmonitor_4misc_9_security_is_rsakey;
+struct __pyx_opt_args_11fluxmonitor_8security_9_security_is_rsakey;
 
-/* "src/misc/security.pyx":15
+/* "src/security/security.pyx":47
  * 
  * 
  * cpdef bint is_rsakey(object pem=None, object der=None):             # <<<<<<<<<<<<<<
  *     if not pem and not der:
  *         return False
  */
-struct __pyx_opt_args_11fluxmonitor_4misc_9_security_is_rsakey {
+struct __pyx_opt_args_11fluxmonitor_8security_9_security_is_rsakey {
   int __pyx_n;
   PyObject *pem;
   PyObject *der;
 };
 
-/* "src/misc/security_encrypt.pyx":36
+/* "src/security/security_encrypt.pyx":36
  * 
  * 
  * cdef class AESObject:             # <<<<<<<<<<<<<<
  *     cdef EVP_CIPHER_CTX* enc_aeskey
  *     cdef EVP_CIPHER_CTX* dec_aeskey
  */
-struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject {
+struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject {
   PyObject_HEAD
-  struct __pyx_vtabstruct_11fluxmonitor_4misc_9_security_AESObject *__pyx_vtab;
+  struct __pyx_vtabstruct_11fluxmonitor_8security_9_security_AESObject *__pyx_vtab;
   EVP_CIPHER_CTX *enc_aeskey;
   EVP_CIPHER_CTX *dec_aeskey;
 };
 
 
-/* "src/misc/security_encrypt.pyx":111
+/* "src/security/security_encrypt.pyx":111
  * 
  * 
  * cdef class RSAObject:             # <<<<<<<<<<<<<<
  *     cdef RSA* rsakey
  *     cdef int privatekey
  */
-struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject {
+struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject {
   PyObject_HEAD
-  struct __pyx_vtabstruct_11fluxmonitor_4misc_9_security_RSAObject *__pyx_vtab;
+  struct __pyx_vtabstruct_11fluxmonitor_8security_9_security_RSAObject *__pyx_vtab;
   RSA *rsakey;
   int privatekey;
 };
@@ -647,7 +648,7 @@ struct __pyx_memoryviewslice_obj {
 
 
 
-/* "src/misc/security_encrypt.pyx":36
+/* "src/security/security_encrypt.pyx":36
  * 
  * 
  * cdef class AESObject:             # <<<<<<<<<<<<<<
@@ -655,16 +656,16 @@ struct __pyx_memoryviewslice_obj {
  *     cdef EVP_CIPHER_CTX* dec_aeskey
  */
 
-struct __pyx_vtabstruct_11fluxmonitor_4misc_9_security_AESObject {
-  PyObject *(*encrypt)(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *, PyObject *, int __pyx_skip_dispatch);
-  PyObject *(*encrypt_into)(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *, PyObject *, __Pyx_memviewslice, int __pyx_skip_dispatch);
-  PyObject *(*decrypt)(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *, PyObject *, int __pyx_skip_dispatch);
-  PyObject *(*decrypt_into)(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *, PyObject *, __Pyx_memviewslice, int __pyx_skip_dispatch);
+struct __pyx_vtabstruct_11fluxmonitor_8security_9_security_AESObject {
+  PyObject *(*encrypt)(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *, PyObject *, int __pyx_skip_dispatch);
+  PyObject *(*encrypt_into)(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *, PyObject *, __Pyx_memviewslice, int __pyx_skip_dispatch);
+  PyObject *(*decrypt)(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *, PyObject *, int __pyx_skip_dispatch);
+  PyObject *(*decrypt_into)(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *, PyObject *, __Pyx_memviewslice, int __pyx_skip_dispatch);
 };
-static struct __pyx_vtabstruct_11fluxmonitor_4misc_9_security_AESObject *__pyx_vtabptr_11fluxmonitor_4misc_9_security_AESObject;
+static struct __pyx_vtabstruct_11fluxmonitor_8security_9_security_AESObject *__pyx_vtabptr_11fluxmonitor_8security_9_security_AESObject;
 
 
-/* "src/misc/security_encrypt.pyx":111
+/* "src/security/security_encrypt.pyx":111
  * 
  * 
  * cdef class RSAObject:             # <<<<<<<<<<<<<<
@@ -672,19 +673,19 @@ static struct __pyx_vtabstruct_11fluxmonitor_4misc_9_security_AESObject *__pyx_v
  *     cdef int privatekey
  */
 
-struct __pyx_vtabstruct_11fluxmonitor_4misc_9_security_RSAObject {
-  PyObject *(*is_private)(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *, int __pyx_skip_dispatch);
-  PyObject *(*size)(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *, int __pyx_skip_dispatch);
-  PyObject *(*export_der)(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *, int __pyx_skip_dispatch);
-  PyObject *(*export_pubkey_der)(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *, int __pyx_skip_dispatch);
-  PyObject *(*export_pem)(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *, int __pyx_skip_dispatch);
-  PyObject *(*export_pubkey_pem)(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *, int __pyx_skip_dispatch);
-  PyObject *(*encrypt)(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *, PyObject *, int __pyx_skip_dispatch);
-  PyObject *(*decrypt)(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *, PyObject *, int __pyx_skip_dispatch);
-  PyObject *(*sign)(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *, PyObject *, int __pyx_skip_dispatch);
-  PyObject *(*verify)(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *, PyObject *, PyObject *, int __pyx_skip_dispatch);
+struct __pyx_vtabstruct_11fluxmonitor_8security_9_security_RSAObject {
+  PyObject *(*is_private)(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *, int __pyx_skip_dispatch);
+  PyObject *(*size)(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *, int __pyx_skip_dispatch);
+  PyObject *(*export_der)(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *, int __pyx_skip_dispatch);
+  PyObject *(*export_pubkey_der)(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *, int __pyx_skip_dispatch);
+  PyObject *(*export_pem)(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *, int __pyx_skip_dispatch);
+  PyObject *(*export_pubkey_pem)(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *, int __pyx_skip_dispatch);
+  PyObject *(*encrypt)(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *, PyObject *, int __pyx_skip_dispatch);
+  PyObject *(*decrypt)(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *, PyObject *, int __pyx_skip_dispatch);
+  PyObject *(*sign)(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *, PyObject *, int __pyx_skip_dispatch);
+  PyObject *(*verify)(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *, PyObject *, PyObject *, int __pyx_skip_dispatch);
 };
-static struct __pyx_vtabstruct_11fluxmonitor_4misc_9_security_RSAObject *__pyx_vtabptr_11fluxmonitor_4misc_9_security_RSAObject;
+static struct __pyx_vtabstruct_11fluxmonitor_8security_9_security_RSAObject *__pyx_vtabptr_11fluxmonitor_8security_9_security_RSAObject;
 
 
 /* "View.MemoryView":302
@@ -863,6 +864,8 @@ static CYTHON_INLINE int __pyx_sub_acquisition_count_locked(
 #define __PYX_XDEC_MEMVIEW(slice, have_gil) __Pyx_XDEC_MEMVIEW(slice, have_gil, __LINE__)
 static CYTHON_INLINE void __Pyx_INC_MEMVIEW(__Pyx_memviewslice *, int, int);
 static CYTHON_INLINE void __Pyx_XDEC_MEMVIEW(__Pyx_memviewslice *, int, int);
+
+static CYTHON_INLINE int __Pyx_CheckKeywordStrings(PyObject *kwdict, const char* function_name, int kw_allowed);
 
 #if CYTHON_COMPILING_IN_CPYTHON
 static CYTHON_INLINE PyObject* __Pyx_PyObject_CallNoArg(PyObject *func);
@@ -1121,20 +1124,20 @@ static int __Pyx_check_binary_version(void);
 
 static int __Pyx_InitStrings(__Pyx_StringTabEntry *t);
 
-static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_plaintext, int __pyx_skip_dispatch); /* proto*/
-static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt_into(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_plaintext, __Pyx_memviewslice __pyx_v_ciphertext, int __pyx_skip_dispatch); /* proto*/
-static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_ciphertext, int __pyx_skip_dispatch); /* proto*/
-static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt_into(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_ciphertext, __Pyx_memviewslice __pyx_v_plaintext, int __pyx_skip_dispatch); /* proto*/
-static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_is_private(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, int __pyx_skip_dispatch); /* proto*/
-static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_size(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, int __pyx_skip_dispatch); /* proto*/
-static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_der(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, int __pyx_skip_dispatch); /* proto*/
-static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_pubkey_der(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, int __pyx_skip_dispatch); /* proto*/
-static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_pem(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, int __pyx_skip_dispatch); /* proto*/
-static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_pubkey_pem(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, int __pyx_skip_dispatch); /* proto*/
-static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_encrypt(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message, int __pyx_skip_dispatch); /* proto*/
-static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_decrypt(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message, int __pyx_skip_dispatch); /* proto*/
-static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_sign(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message, int __pyx_skip_dispatch); /* proto*/
-static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_verify(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message, PyObject *__pyx_v_sig, int __pyx_skip_dispatch); /* proto*/
+static PyObject *__pyx_f_11fluxmonitor_8security_9_security_9AESObject_encrypt(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_plaintext, int __pyx_skip_dispatch); /* proto*/
+static PyObject *__pyx_f_11fluxmonitor_8security_9_security_9AESObject_encrypt_into(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_plaintext, __Pyx_memviewslice __pyx_v_ciphertext, int __pyx_skip_dispatch); /* proto*/
+static PyObject *__pyx_f_11fluxmonitor_8security_9_security_9AESObject_decrypt(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_ciphertext, int __pyx_skip_dispatch); /* proto*/
+static PyObject *__pyx_f_11fluxmonitor_8security_9_security_9AESObject_decrypt_into(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_ciphertext, __Pyx_memviewslice __pyx_v_plaintext, int __pyx_skip_dispatch); /* proto*/
+static PyObject *__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_is_private(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, int __pyx_skip_dispatch); /* proto*/
+static PyObject *__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_size(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, int __pyx_skip_dispatch); /* proto*/
+static PyObject *__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_export_der(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, int __pyx_skip_dispatch); /* proto*/
+static PyObject *__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_export_pubkey_der(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, int __pyx_skip_dispatch); /* proto*/
+static PyObject *__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_export_pem(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, int __pyx_skip_dispatch); /* proto*/
+static PyObject *__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_export_pubkey_pem(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, int __pyx_skip_dispatch); /* proto*/
+static PyObject *__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_encrypt(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message, int __pyx_skip_dispatch); /* proto*/
+static PyObject *__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_decrypt(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message, int __pyx_skip_dispatch); /* proto*/
+static PyObject *__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_sign(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message, int __pyx_skip_dispatch); /* proto*/
+static PyObject *__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_verify(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message, PyObject *__pyx_v_sig, int __pyx_skip_dispatch); /* proto*/
 static char *__pyx_memoryview_get_item_pointer(struct __pyx_memoryview_obj *__pyx_v_self, PyObject *__pyx_v_index); /* proto*/
 static PyObject *__pyx_memoryview_is_slice(struct __pyx_memoryview_obj *__pyx_v_self, PyObject *__pyx_v_obj); /* proto*/
 static PyObject *__pyx_memoryview_setitem_slice_assignment(struct __pyx_memoryview_obj *__pyx_v_self, PyObject *__pyx_v_dst, PyObject *__pyx_v_src); /* proto*/
@@ -1151,22 +1154,22 @@ static PyObject *__pyx_memoryviewslice_assign_item_from_object(struct __pyx_memo
 
 /* Module declarations from 'libc.stdlib' */
 
-/* Module declarations from 'fluxmonitor.misc._security' */
-static PyTypeObject *__pyx_ptype_11fluxmonitor_4misc_9_security_AESObject = 0;
-static PyTypeObject *__pyx_ptype_11fluxmonitor_4misc_9_security_RSAObject = 0;
+/* Module declarations from 'fluxmonitor.security._security' */
+static PyTypeObject *__pyx_ptype_11fluxmonitor_8security_9_security_AESObject = 0;
+static PyTypeObject *__pyx_ptype_11fluxmonitor_8security_9_security_RSAObject = 0;
 static PyTypeObject *__pyx_array_type = 0;
 static PyTypeObject *__pyx_MemviewEnum_type = 0;
 static PyTypeObject *__pyx_memoryview_type = 0;
 static PyTypeObject *__pyx_memoryviewslice_type = 0;
-static PyObject *__pyx_v_11fluxmonitor_4misc_9_security_storage = 0;
+static PyObject *__pyx_v_11fluxmonitor_8security_9_security_storage = 0;
 static PyObject *generic = 0;
 static PyObject *strided = 0;
 static PyObject *indirect = 0;
 static PyObject *contiguous = 0;
 static PyObject *indirect_contiguous = 0;
-static int __pyx_f_11fluxmonitor_4misc_9_security_is_rsakey(int __pyx_skip_dispatch, struct __pyx_opt_args_11fluxmonitor_4misc_9_security_is_rsakey *__pyx_optional_args); /*proto*/
-static int __pyx_f_11fluxmonitor_4misc_9_security_has_password(int __pyx_skip_dispatch); /*proto*/
-static int __pyx_f_11fluxmonitor_4misc_9_security_validate_password(PyObject *, int __pyx_skip_dispatch); /*proto*/
+static int __pyx_f_11fluxmonitor_8security_9_security_is_rsakey(int __pyx_skip_dispatch, struct __pyx_opt_args_11fluxmonitor_8security_9_security_is_rsakey *__pyx_optional_args); /*proto*/
+static int __pyx_f_11fluxmonitor_8security_9_security_has_password(int __pyx_skip_dispatch); /*proto*/
+static int __pyx_f_11fluxmonitor_8security_9_security_validate_password(PyObject *, int __pyx_skip_dispatch); /*proto*/
 static struct __pyx_array_obj *__pyx_array_new(PyObject *, Py_ssize_t, char *, char *, char *); /*proto*/
 static void *__pyx_align_pointer(void *, size_t); /*proto*/
 static PyObject *__pyx_memoryview_new(PyObject *, int, int, __Pyx_TypeInfo *); /*proto*/
@@ -1200,10 +1203,10 @@ static void __pyx_memoryview_refcount_objects_in_slice(char *, Py_ssize_t *, Py_
 static void __pyx_memoryview_slice_assign_scalar(__Pyx_memviewslice *, int, size_t, void *, int); /*proto*/
 static void __pyx_memoryview__slice_assign_scalar(char *, Py_ssize_t *, Py_ssize_t *, int, size_t, void *); /*proto*/
 static __Pyx_TypeInfo __Pyx_TypeInfo_unsigned_char = { "unsigned char", NULL, sizeof(unsigned char), { 0 }, 0, IS_UNSIGNED(unsigned char) ? 'U' : 'I', IS_UNSIGNED(unsigned char), 0 };
-#define __Pyx_MODULE_NAME "fluxmonitor.misc._security"
-int __pyx_module_is_main_fluxmonitor__misc___security = 0;
+#define __Pyx_MODULE_NAME "fluxmonitor.security._security"
+int __pyx_module_is_main_fluxmonitor__security___security = 0;
 
-/* Implementation of 'fluxmonitor.misc._security' */
+/* Implementation of 'fluxmonitor.security._security' */
 static PyObject *__pyx_builtin_Exception;
 static PyObject *__pyx_builtin_TypeError;
 static PyObject *__pyx_builtin_RuntimeError;
@@ -1215,27 +1218,30 @@ static PyObject *__pyx_builtin_Ellipsis;
 static PyObject *__pyx_builtin_xrange;
 static PyObject *__pyx_builtin_id;
 static PyObject *__pyx_builtin_IndexError;
-static int __pyx_pf_11fluxmonitor_4misc_9_security_9AESObject___init__(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_key, PyObject *__pyx_v_iv); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_2__del__(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_4encrypt(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_plaintext); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_6encrypt_into(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_plaintext, __Pyx_memviewslice __pyx_v_ciphertext); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_8decrypt(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_ciphertext); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_10decrypt_into(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_ciphertext, __Pyx_memviewslice __pyx_v_plaintext); /* proto */
-static int __pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject___init__(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_pem, PyObject *__pyx_v_der, PyObject *__pyx_v_keylength); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_2__del__(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_4is_private(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_6size(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_8export_der(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_10export_pubkey_der(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_12export_pem(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_14export_pubkey_pem(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_16encrypt(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_18decrypt(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_20sign(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_22verify(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message, PyObject *__pyx_v_sig); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_is_rsakey(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_pem, PyObject *__pyx_v_der); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_2has_password(CYTHON_UNUSED PyObject *__pyx_self); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_4validate_password(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_password); /* proto */
+static int __pyx_pf_11fluxmonitor_8security_9_security_9AESObject___init__(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_key, PyObject *__pyx_v_iv); /* proto */
+static void __pyx_pf_11fluxmonitor_8security_9_security_9AESObject_2__dealloc__(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9AESObject_4encrypt(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_plaintext); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9AESObject_6encrypt_into(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_plaintext, __Pyx_memviewslice __pyx_v_ciphertext); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9AESObject_8decrypt(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_ciphertext); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9AESObject_10decrypt_into(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_ciphertext, __Pyx_memviewslice __pyx_v_plaintext); /* proto */
+static int __pyx_pf_11fluxmonitor_8security_9_security_9RSAObject___cinit__(CYTHON_UNUSED struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self); /* proto */
+static int __pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_2__init__(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_pem, PyObject *__pyx_v_der, PyObject *__pyx_v_keylength); /* proto */
+static void __pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_4__dealloc__(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_6is_private(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_8size(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_10export_der(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_12export_pubkey_der(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_14export_pem(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_16export_pubkey_pem(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_18encrypt(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_20decrypt(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_22sign(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_24verify(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message, PyObject *__pyx_v_sig); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_get_rsakey(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_rescue); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_2get_uuid(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_rescue); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_4is_rsakey(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_pem, PyObject *__pyx_v_der); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_6has_password(CYTHON_UNUSED PyObject *__pyx_self); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_8validate_password(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_password); /* proto */
 static int __pyx_array_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
 static int __pyx_array_getbuffer_MemoryView_5array_2__getbuffer__(struct __pyx_array_obj *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_array_MemoryView_5array_4__dealloc__(struct __pyx_array_obj *__pyx_v_self); /* proto */
@@ -1268,8 +1274,8 @@ static PyObject *__pyx_memoryview_MemoryView_10memoryview_20copy(struct __pyx_me
 static PyObject *__pyx_memoryview_MemoryView_10memoryview_22copy_fortran(struct __pyx_memoryview_obj *__pyx_v_self); /* proto */
 static void __pyx_memoryviewslice_MemoryView_16_memoryviewslice___dealloc__(struct __pyx_memoryviewslice_obj *__pyx_v_self); /* proto */
 static PyObject *__pyx_memoryviewslice__get__base_MemoryView_16_memoryviewslice_4base___get__(struct __pyx_memoryviewslice_obj *__pyx_v_self); /* proto */
-static PyObject *__pyx_tp_new_11fluxmonitor_4misc_9_security_AESObject(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
-static PyObject *__pyx_tp_new_11fluxmonitor_4misc_9_security_RSAObject(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
+static PyObject *__pyx_tp_new_11fluxmonitor_8security_9_security_AESObject(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
+static PyObject *__pyx_tp_new_11fluxmonitor_8security_9_security_RSAObject(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_array(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_Enum(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_memoryview(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
@@ -1281,6 +1287,7 @@ static char __pyx_k__7[] = ";";
 static char __pyx_k_id[] = "id";
 static char __pyx_k_iv[] = "iv";
 static char __pyx_k_os[] = "os";
+static char __pyx_k_buf[] = "buf";
 static char __pyx_k_der[] = "der";
 static char __pyx_k_key[] = "key";
 static char __pyx_k_obj[] = "obj";
@@ -1314,7 +1321,9 @@ static char __pyx_k_start[] = "start";
 static char __pyx_k_exists[] = "exists";
 static char __pyx_k_format[] = "format";
 static char __pyx_k_import[] = "__import__";
+static char __pyx_k_keyobj[] = "keyobj";
 static char __pyx_k_name_2[] = "__name__";
+static char __pyx_k_rescue[] = "rescue";
 static char __pyx_k_struct[] = "struct";
 static char __pyx_k_unpack[] = "unpack";
 static char __pyx_k_verify[] = "verify";
@@ -1327,6 +1336,7 @@ static char __pyx_k_hashlib[] = "hashlib";
 static char __pyx_k_memview[] = "memview";
 static char __pyx_k_message[] = "message";
 static char __pyx_k_Ellipsis[] = "Ellipsis";
+static char __pyx_k_get_uuid[] = "get_uuid";
 static char __pyx_k_itemsize[] = "itemsize";
 static char __pyx_k_security[] = "security";
 static char __pyx_k_Exception[] = "Exception";
@@ -1340,6 +1350,7 @@ static char __pyx_k_ValueError[] = "ValueError";
 static char __pyx_k_ciphertext[] = "ciphertext";
 static char __pyx_k_export_der[] = "export_der";
 static char __pyx_k_export_pem[] = "export_pem";
+static char __pyx_k_get_rsakey[] = "get_rsakey";
 static char __pyx_k_is_private[] = "is_private";
 static char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
 static char __pyx_k_MemoryError[] = "MemoryError";
@@ -1372,6 +1383,8 @@ static char __pyx_k_Output_buffer_too_small_i_i[] = "Output buffer too small (%i
 static char __pyx_k_Step_may_not_be_zero_axis_d[] = "Step may not be zero (axis %d)";
 static char __pyx_k_itemsize_0_for_cython_array[] = "itemsize <= 0 for cython.array";
 static char __pyx_k_unable_to_allocate_array_data[] = "unable to allocate array data.";
+static char __pyx_k_Users_Cerberus_Projects_python[] = "/Users/Cerberus/Projects/python/py27/flux3dp/fluxmonitor/src/security/security.pyx";
+static char __pyx_k_fluxmonitor_security__security[] = "fluxmonitor.security._security";
 static char __pyx_k_strided_and_direct_or_indirect[] = "<strided and direct or indirect>";
 static char __pyx_k_All_dimensions_preceding_dimensi[] = "All dimensions preceding dimension %d must be indexed and not sliced";
 static char __pyx_k_Buffer_view_does_not_expose_stri[] = "Buffer view does not expose strides";
@@ -1407,10 +1420,12 @@ static PyObject *__pyx_n_s_RuntimeError;
 static PyObject *__pyx_n_s_Storage;
 static PyObject *__pyx_n_s_TypeError;
 static PyObject *__pyx_kp_s_Unable_to_convert_item_to_object;
+static PyObject *__pyx_kp_s_Users_Cerberus_Projects_python;
 static PyObject *__pyx_n_s_ValueError;
 static PyObject *__pyx_kp_s__7;
 static PyObject *__pyx_n_s_allocate_buffer;
 static PyObject *__pyx_n_s_base;
+static PyObject *__pyx_n_s_buf;
 static PyObject *__pyx_n_s_c;
 static PyObject *__pyx_n_u_c;
 static PyObject *__pyx_n_s_ciphertext;
@@ -1433,10 +1448,13 @@ static PyObject *__pyx_n_s_export_pem;
 static PyObject *__pyx_n_s_export_pubkey_der;
 static PyObject *__pyx_n_s_export_pubkey_pem;
 static PyObject *__pyx_n_s_flags;
+static PyObject *__pyx_n_s_fluxmonitor_security__security;
 static PyObject *__pyx_n_s_fluxmonitor_storage;
 static PyObject *__pyx_n_s_format;
 static PyObject *__pyx_n_s_fortran;
 static PyObject *__pyx_n_u_fortran;
+static PyObject *__pyx_n_s_get_rsakey;
+static PyObject *__pyx_n_s_get_uuid;
 static PyObject *__pyx_kp_s_got_differing_extents_in_dimensi;
 static PyObject *__pyx_n_s_hashlib;
 static PyObject *__pyx_n_s_hexdigest;
@@ -1451,6 +1469,7 @@ static PyObject *__pyx_kp_s_iv_must_be_16_bytes;
 static PyObject *__pyx_n_s_key;
 static PyObject *__pyx_kp_s_key_must_be_32_bytes;
 static PyObject *__pyx_n_s_keylength;
+static PyObject *__pyx_n_s_keyobj;
 static PyObject *__pyx_n_s_main;
 static PyObject *__pyx_n_s_memview;
 static PyObject *__pyx_n_s_message;
@@ -1470,6 +1489,7 @@ static PyObject *__pyx_n_s_pyx_vtable;
 static PyObject *__pyx_n_s_r;
 static PyObject *__pyx_n_s_range;
 static PyObject *__pyx_n_s_read;
+static PyObject *__pyx_n_s_rescue;
 static PyObject *__pyx_n_s_security;
 static PyObject *__pyx_n_s_sha1;
 static PyObject *__pyx_n_s_shape;
@@ -1516,12 +1536,16 @@ static PyObject *__pyx_tuple__17;
 static PyObject *__pyx_tuple__21;
 static PyObject *__pyx_tuple__22;
 static PyObject *__pyx_tuple__23;
-static PyObject *__pyx_tuple__24;
 static PyObject *__pyx_tuple__25;
-static PyObject *__pyx_tuple__26;
 static PyObject *__pyx_tuple__27;
+static PyObject *__pyx_tuple__28;
+static PyObject *__pyx_tuple__29;
+static PyObject *__pyx_tuple__30;
+static PyObject *__pyx_tuple__31;
+static PyObject *__pyx_codeobj__24;
+static PyObject *__pyx_codeobj__26;
 
-/* "src/misc/security_encrypt.pyx":40
+/* "src/security/security_encrypt.pyx":40
  *     cdef EVP_CIPHER_CTX* dec_aeskey
  * 
  *     def __init__(self, key, iv):             # <<<<<<<<<<<<<<
@@ -1530,8 +1554,8 @@ static PyObject *__pyx_tuple__27;
  */
 
 /* Python wrapper */
-static int __pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static int __pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static int __pyx_pw_11fluxmonitor_8security_9_security_9AESObject_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static int __pyx_pw_11fluxmonitor_8security_9_security_9AESObject_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_key = 0;
   PyObject *__pyx_v_iv = 0;
   int __pyx_lineno = 0;
@@ -1579,18 +1603,18 @@ static int __pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_1__init__(PyObject
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 40; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("fluxmonitor.misc._security.AESObject.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.AESObject.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return -1;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_11fluxmonitor_4misc_9_security_9AESObject___init__(((struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *)__pyx_v_self), __pyx_v_key, __pyx_v_iv);
+  __pyx_r = __pyx_pf_11fluxmonitor_8security_9_security_9AESObject___init__(((struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *)__pyx_v_self), __pyx_v_key, __pyx_v_iv);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_pf_11fluxmonitor_4misc_9_security_9AESObject___init__(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_key, PyObject *__pyx_v_iv) {
+static int __pyx_pf_11fluxmonitor_8security_9_security_9AESObject___init__(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_key, PyObject *__pyx_v_iv) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   Py_ssize_t __pyx_t_1;
@@ -1605,7 +1629,7 @@ static int __pyx_pf_11fluxmonitor_4misc_9_security_9AESObject___init__(struct __
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "src/misc/security_encrypt.pyx":41
+  /* "src/security/security_encrypt.pyx":41
  * 
  *     def __init__(self, key, iv):
  *         if len(key) != 32:             # <<<<<<<<<<<<<<
@@ -1616,7 +1640,7 @@ static int __pyx_pf_11fluxmonitor_4misc_9_security_9AESObject___init__(struct __
   __pyx_t_2 = ((__pyx_t_1 != 32) != 0);
   if (__pyx_t_2) {
 
-    /* "src/misc/security_encrypt.pyx":42
+    /* "src/security/security_encrypt.pyx":42
  *     def __init__(self, key, iv):
  *         if len(key) != 32:
  *             raise Exception("key must be 32 bytes")             # <<<<<<<<<<<<<<
@@ -1630,7 +1654,7 @@ static int __pyx_pf_11fluxmonitor_4misc_9_security_9AESObject___init__(struct __
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 42; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "src/misc/security_encrypt.pyx":43
+  /* "src/security/security_encrypt.pyx":43
  *         if len(key) != 32:
  *             raise Exception("key must be 32 bytes")
  *         if len(iv) != 16:             # <<<<<<<<<<<<<<
@@ -1641,7 +1665,7 @@ static int __pyx_pf_11fluxmonitor_4misc_9_security_9AESObject___init__(struct __
   __pyx_t_2 = ((__pyx_t_1 != 16) != 0);
   if (__pyx_t_2) {
 
-    /* "src/misc/security_encrypt.pyx":44
+    /* "src/security/security_encrypt.pyx":44
  *             raise Exception("key must be 32 bytes")
  *         if len(iv) != 16:
  *             raise Exception("iv must be 16 bytes")             # <<<<<<<<<<<<<<
@@ -1655,7 +1679,7 @@ static int __pyx_pf_11fluxmonitor_4misc_9_security_9AESObject___init__(struct __
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 44; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "src/misc/security_encrypt.pyx":45
+  /* "src/security/security_encrypt.pyx":45
  *         if len(iv) != 16:
  *             raise Exception("iv must be 16 bytes")
  *         self.enc_aeskey = create_enc_aes256key(key, iv)             # <<<<<<<<<<<<<<
@@ -1666,18 +1690,18 @@ static int __pyx_pf_11fluxmonitor_4misc_9_security_9AESObject___init__(struct __
   __pyx_t_5 = __Pyx_PyObject_AsUString(__pyx_v_iv); if (unlikely((!__pyx_t_5) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 45; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_v_self->enc_aeskey = create_enc_aes256key(__pyx_t_4, __pyx_t_5);
 
-  /* "src/misc/security_encrypt.pyx":46
+  /* "src/security/security_encrypt.pyx":46
  *             raise Exception("iv must be 16 bytes")
  *         self.enc_aeskey = create_enc_aes256key(key, iv)
  *         self.dec_aeskey = create_dec_aes256key(key, iv)             # <<<<<<<<<<<<<<
  * 
- *     def __del__(self):
+ *     def __dealloc__(self):
  */
   __pyx_t_6 = __Pyx_PyObject_AsUString(__pyx_v_key); if (unlikely((!__pyx_t_6) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 46; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_t_7 = __Pyx_PyObject_AsUString(__pyx_v_iv); if (unlikely((!__pyx_t_7) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 46; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_v_self->dec_aeskey = create_dec_aes256key(__pyx_t_6, __pyx_t_7);
 
-  /* "src/misc/security_encrypt.pyx":40
+  /* "src/security/security_encrypt.pyx":40
  *     cdef EVP_CIPHER_CTX* dec_aeskey
  * 
  *     def __init__(self, key, iv):             # <<<<<<<<<<<<<<
@@ -1690,50 +1714,47 @@ static int __pyx_pf_11fluxmonitor_4misc_9_security_9AESObject___init__(struct __
   goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.AESObject.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.AESObject.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = -1;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "src/misc/security_encrypt.pyx":48
+/* "src/security/security_encrypt.pyx":48
  *         self.dec_aeskey = create_dec_aes256key(key, iv)
  * 
- *     def __del__(self):             # <<<<<<<<<<<<<<
+ *     def __dealloc__(self):             # <<<<<<<<<<<<<<
  *         free_aes256key(self.enc_aeskey)
  *         free_aes256key(self.dec_aeskey)
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_3__del__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_3__del__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
-  PyObject *__pyx_r = 0;
+static void __pyx_pw_11fluxmonitor_8security_9_security_9AESObject_3__dealloc__(PyObject *__pyx_v_self); /*proto*/
+static void __pyx_pw_11fluxmonitor_8security_9_security_9AESObject_3__dealloc__(PyObject *__pyx_v_self) {
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("__del__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_2__del__(((struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *)__pyx_v_self));
+  __Pyx_RefNannySetupContext("__dealloc__ (wrapper)", 0);
+  __pyx_pf_11fluxmonitor_8security_9_security_9AESObject_2__dealloc__(((struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
-  return __pyx_r;
 }
 
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_2__del__(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *__pyx_v_self) {
-  PyObject *__pyx_r = NULL;
+static void __pyx_pf_11fluxmonitor_8security_9_security_9AESObject_2__dealloc__(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *__pyx_v_self) {
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("__del__", 0);
+  __Pyx_RefNannySetupContext("__dealloc__", 0);
 
-  /* "src/misc/security_encrypt.pyx":49
+  /* "src/security/security_encrypt.pyx":49
  * 
- *     def __del__(self):
+ *     def __dealloc__(self):
  *         free_aes256key(self.enc_aeskey)             # <<<<<<<<<<<<<<
  *         free_aes256key(self.dec_aeskey)
  * 
  */
   free_aes256key(__pyx_v_self->enc_aeskey);
 
-  /* "src/misc/security_encrypt.pyx":50
- *     def __del__(self):
+  /* "src/security/security_encrypt.pyx":50
+ *     def __dealloc__(self):
  *         free_aes256key(self.enc_aeskey)
  *         free_aes256key(self.dec_aeskey)             # <<<<<<<<<<<<<<
  * 
@@ -1741,22 +1762,19 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_2__del__(str
  */
   free_aes256key(__pyx_v_self->dec_aeskey);
 
-  /* "src/misc/security_encrypt.pyx":48
+  /* "src/security/security_encrypt.pyx":48
  *         self.dec_aeskey = create_dec_aes256key(key, iv)
  * 
- *     def __del__(self):             # <<<<<<<<<<<<<<
+ *     def __dealloc__(self):             # <<<<<<<<<<<<<<
  *         free_aes256key(self.enc_aeskey)
  *         free_aes256key(self.dec_aeskey)
  */
 
   /* function exit code */
-  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
-  __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
-  return __pyx_r;
 }
 
-/* "src/misc/security_encrypt.pyx":52
+/* "src/security/security_encrypt.pyx":52
  *         free_aes256key(self.dec_aeskey)
  * 
  *     cpdef encrypt(self, plaintext):             # <<<<<<<<<<<<<<
@@ -1764,8 +1782,8 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_2__del__(str
  *         cdef int length = len(plaintext)
  */
 
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_5encrypt(PyObject *__pyx_v_self, PyObject *__pyx_v_plaintext); /*proto*/
-static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_plaintext, int __pyx_skip_dispatch) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9AESObject_5encrypt(PyObject *__pyx_v_self, PyObject *__pyx_v_plaintext); /*proto*/
+static PyObject *__pyx_f_11fluxmonitor_8security_9_security_9AESObject_encrypt(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_plaintext, int __pyx_skip_dispatch) {
   Py_buffer __pyx_v_view;
   int __pyx_v_length;
   unsigned char *__pyx_v_buf;
@@ -1797,7 +1815,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt(struc
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
     __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_encrypt); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 52; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_5encrypt)) {
+    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9AESObject_5encrypt)) {
       __Pyx_XDECREF(__pyx_r);
       __Pyx_INCREF(__pyx_t_1);
       __pyx_t_3 = __pyx_t_1; __pyx_t_4 = NULL;
@@ -1833,7 +1851,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt(struc
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "src/misc/security_encrypt.pyx":54
+  /* "src/security/security_encrypt.pyx":54
  *     cpdef encrypt(self, plaintext):
  *         cdef Py_buffer view
  *         cdef int length = len(plaintext)             # <<<<<<<<<<<<<<
@@ -1843,7 +1861,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt(struc
   __pyx_t_6 = PyObject_Length(__pyx_v_plaintext); if (unlikely(__pyx_t_6 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 54; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_v_length = __pyx_t_6;
 
-  /* "src/misc/security_encrypt.pyx":55
+  /* "src/security/security_encrypt.pyx":55
  *         cdef Py_buffer view
  *         cdef int length = len(plaintext)
  *         cdef unsigned char* buf= <unsigned char *>malloc(length)             # <<<<<<<<<<<<<<
@@ -1852,7 +1870,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt(struc
  */
   __pyx_v_buf = ((unsigned char *)malloc(__pyx_v_length));
 
-  /* "src/misc/security_encrypt.pyx":56
+  /* "src/security/security_encrypt.pyx":56
  *         cdef int length = len(plaintext)
  *         cdef unsigned char* buf= <unsigned char *>malloc(length)
  *         try:             # <<<<<<<<<<<<<<
@@ -1861,7 +1879,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt(struc
  */
   /*try:*/ {
 
-    /* "src/misc/security_encrypt.pyx":57
+    /* "src/security/security_encrypt.pyx":57
  *         cdef unsigned char* buf= <unsigned char *>malloc(length)
  *         try:
  *             PyObject_GetBuffer(plaintext, &view, PyBUF_SIMPLE)             # <<<<<<<<<<<<<<
@@ -1870,7 +1888,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt(struc
  */
     __pyx_t_7 = PyObject_GetBuffer(__pyx_v_plaintext, (&__pyx_v_view), PyBUF_SIMPLE); if (unlikely(__pyx_t_7 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 57; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
 
-    /* "src/misc/security_encrypt.pyx":58
+    /* "src/security/security_encrypt.pyx":58
  *         try:
  *             PyObject_GetBuffer(plaintext, &view, PyBUF_SIMPLE)
  *             ret = aes256_decrypt(self.enc_aeskey,             # <<<<<<<<<<<<<<
@@ -1879,7 +1897,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt(struc
  */
     __pyx_v_ret = aes256_decrypt(__pyx_v_self->enc_aeskey, ((unsigned char const *)__pyx_v_view.buf), __pyx_v_buf, __pyx_v_length);
 
-    /* "src/misc/security_encrypt.pyx":60
+    /* "src/security/security_encrypt.pyx":60
  *             ret = aes256_decrypt(self.enc_aeskey,
  *                                  <const unsigned char*>view.buf, buf, length)
  *             return <bytes>buf[:len(plaintext)]             # <<<<<<<<<<<<<<
@@ -1896,7 +1914,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt(struc
     goto __pyx_L3_return;
   }
 
-  /* "src/misc/security_encrypt.pyx":62
+  /* "src/security/security_encrypt.pyx":62
  *             return <bytes>buf[:len(plaintext)]
  *         finally:
  *             PyBuffer_Release(&view)             # <<<<<<<<<<<<<<
@@ -1924,7 +1942,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt(struc
       {
         PyBuffer_Release((&__pyx_v_view));
 
-        /* "src/misc/security_encrypt.pyx":63
+        /* "src/security/security_encrypt.pyx":63
  *         finally:
  *             PyBuffer_Release(&view)
  *             free(buf)             # <<<<<<<<<<<<<<
@@ -1951,7 +1969,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt(struc
       __pyx_t_15 = __pyx_r;
       __pyx_r = 0;
 
-      /* "src/misc/security_encrypt.pyx":62
+      /* "src/security/security_encrypt.pyx":62
  *             return <bytes>buf[:len(plaintext)]
  *         finally:
  *             PyBuffer_Release(&view)             # <<<<<<<<<<<<<<
@@ -1960,7 +1978,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt(struc
  */
       PyBuffer_Release((&__pyx_v_view));
 
-      /* "src/misc/security_encrypt.pyx":63
+      /* "src/security/security_encrypt.pyx":63
  *         finally:
  *             PyBuffer_Release(&view)
  *             free(buf)             # <<<<<<<<<<<<<<
@@ -1974,7 +1992,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt(struc
     }
   }
 
-  /* "src/misc/security_encrypt.pyx":52
+  /* "src/security/security_encrypt.pyx":52
  *         free_aes256key(self.dec_aeskey)
  * 
  *     cpdef encrypt(self, plaintext):             # <<<<<<<<<<<<<<
@@ -1989,7 +2007,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt(struc
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.AESObject.encrypt", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.AESObject.encrypt", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -1998,19 +2016,19 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt(struc
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_5encrypt(PyObject *__pyx_v_self, PyObject *__pyx_v_plaintext); /*proto*/
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_5encrypt(PyObject *__pyx_v_self, PyObject *__pyx_v_plaintext) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9AESObject_5encrypt(PyObject *__pyx_v_self, PyObject *__pyx_v_plaintext); /*proto*/
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9AESObject_5encrypt(PyObject *__pyx_v_self, PyObject *__pyx_v_plaintext) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("encrypt (wrapper)", 0);
-  __pyx_r = __pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_4encrypt(((struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *)__pyx_v_self), ((PyObject *)__pyx_v_plaintext));
+  __pyx_r = __pyx_pf_11fluxmonitor_8security_9_security_9AESObject_4encrypt(((struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *)__pyx_v_self), ((PyObject *)__pyx_v_plaintext));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_4encrypt(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_plaintext) {
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9AESObject_4encrypt(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_plaintext) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -2019,7 +2037,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_4encrypt(str
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("encrypt", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt(__pyx_v_self, __pyx_v_plaintext, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 52; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_f_11fluxmonitor_8security_9_security_9AESObject_encrypt(__pyx_v_self, __pyx_v_plaintext, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 52; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -2028,7 +2046,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_4encrypt(str
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.AESObject.encrypt", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.AESObject.encrypt", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -2036,7 +2054,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_4encrypt(str
   return __pyx_r;
 }
 
-/* "src/misc/security_encrypt.pyx":65
+/* "src/security/security_encrypt.pyx":65
  *             free(buf)
  * 
  *     cpdef encrypt_into(self, plaintext, unsigned char[:] ciphertext):             # <<<<<<<<<<<<<<
@@ -2044,8 +2062,8 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_4encrypt(str
  *         cdef int length = len(plaintext)
  */
 
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_7encrypt_into(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt_into(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_plaintext, __Pyx_memviewslice __pyx_v_ciphertext, int __pyx_skip_dispatch) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9AESObject_7encrypt_into(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_f_11fluxmonitor_8security_9_security_9AESObject_encrypt_into(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_plaintext, __Pyx_memviewslice __pyx_v_ciphertext, int __pyx_skip_dispatch) {
   Py_buffer __pyx_v_view;
   int __pyx_v_length;
   int __pyx_v_ret;
@@ -2078,7 +2096,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt_into(
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
     __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_encrypt_into); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_7encrypt_into)) {
+    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9AESObject_7encrypt_into)) {
       __Pyx_XDECREF(__pyx_r);
       if (unlikely(!__pyx_v_ciphertext.memview)) { __Pyx_RaiseUnboundLocalError("ciphertext"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
       __pyx_t_3 = __pyx_memoryview_fromslice(__pyx_v_ciphertext, 1, (PyObject *(*)(char *)) __pyx_memview_get_unsigned_char, (int (*)(char *, PyObject *)) __pyx_memview_set_unsigned_char, 0);; if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -2119,7 +2137,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt_into(
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "src/misc/security_encrypt.pyx":67
+  /* "src/security/security_encrypt.pyx":67
  *     cpdef encrypt_into(self, plaintext, unsigned char[:] ciphertext):
  *         cdef Py_buffer view
  *         cdef int length = len(plaintext)             # <<<<<<<<<<<<<<
@@ -2129,7 +2147,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt_into(
   __pyx_t_6 = PyObject_Length(__pyx_v_plaintext); if (unlikely(__pyx_t_6 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 67; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_v_length = __pyx_t_6;
 
-  /* "src/misc/security_encrypt.pyx":69
+  /* "src/security/security_encrypt.pyx":69
  *         cdef int length = len(plaintext)
  * 
  *         if length > len(ciphertext):             # <<<<<<<<<<<<<<
@@ -2143,7 +2161,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt_into(
   __pyx_t_8 = ((__pyx_v_length > __pyx_t_6) != 0);
   if (__pyx_t_8) {
 
-    /* "src/misc/security_encrypt.pyx":71
+    /* "src/security/security_encrypt.pyx":71
  *         if length > len(ciphertext):
  *             raise Exception("Output buffer too small (%i, %i)" %
  *                             (len(plaintext), len(ciphertext)))             # <<<<<<<<<<<<<<
@@ -2168,7 +2186,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt_into(
     __pyx_t_1 = 0;
     __pyx_t_2 = 0;
 
-    /* "src/misc/security_encrypt.pyx":70
+    /* "src/security/security_encrypt.pyx":70
  * 
  *         if length > len(ciphertext):
  *             raise Exception("Output buffer too small (%i, %i)" %             # <<<<<<<<<<<<<<
@@ -2191,7 +2209,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt_into(
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 70; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "src/misc/security_encrypt.pyx":72
+  /* "src/security/security_encrypt.pyx":72
  *             raise Exception("Output buffer too small (%i, %i)" %
  *                             (len(plaintext), len(ciphertext)))
  *         try:             # <<<<<<<<<<<<<<
@@ -2200,7 +2218,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt_into(
  */
   /*try:*/ {
 
-    /* "src/misc/security_encrypt.pyx":73
+    /* "src/security/security_encrypt.pyx":73
  *                             (len(plaintext), len(ciphertext)))
  *         try:
  *             PyObject_GetBuffer(plaintext, &view, PyBUF_SIMPLE)             # <<<<<<<<<<<<<<
@@ -2209,7 +2227,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt_into(
  */
     __pyx_t_9 = PyObject_GetBuffer(__pyx_v_plaintext, (&__pyx_v_view), PyBUF_SIMPLE); if (unlikely(__pyx_t_9 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 73; __pyx_clineno = __LINE__; goto __pyx_L5_error;}
 
-    /* "src/misc/security_encrypt.pyx":76
+    /* "src/security/security_encrypt.pyx":76
  *             ret = aes256_encrypt(self.enc_aeskey,
  *                                  <const unsigned char*>view.buf,
  *                                  &(ciphertext[0]), length)             # <<<<<<<<<<<<<<
@@ -2227,7 +2245,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt_into(
       {__pyx_filename = __pyx_f[0]; __pyx_lineno = 76; __pyx_clineno = __LINE__; goto __pyx_L5_error;}
     }
 
-    /* "src/misc/security_encrypt.pyx":74
+    /* "src/security/security_encrypt.pyx":74
  *         try:
  *             PyObject_GetBuffer(plaintext, &view, PyBUF_SIMPLE)
  *             ret = aes256_encrypt(self.enc_aeskey,             # <<<<<<<<<<<<<<
@@ -2236,7 +2254,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt_into(
  */
     __pyx_v_ret = aes256_encrypt(__pyx_v_self->enc_aeskey, ((unsigned char const *)__pyx_v_view.buf), (&(*((unsigned char *) ( /* dim=0 */ (__pyx_v_ciphertext.data + __pyx_t_6 * __pyx_v_ciphertext.strides[0]) )))), __pyx_v_length);
 
-    /* "src/misc/security_encrypt.pyx":77
+    /* "src/security/security_encrypt.pyx":77
  *                                  <const unsigned char*>view.buf,
  *                                  &(ciphertext[0]), length)
  *             return ret             # <<<<<<<<<<<<<<
@@ -2251,7 +2269,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt_into(
     goto __pyx_L4_return;
   }
 
-  /* "src/misc/security_encrypt.pyx":79
+  /* "src/security/security_encrypt.pyx":79
  *             return ret
  *         finally:
  *             PyBuffer_Release(&view)             # <<<<<<<<<<<<<<
@@ -2304,7 +2322,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt_into(
     }
   }
 
-  /* "src/misc/security_encrypt.pyx":65
+  /* "src/security/security_encrypt.pyx":65
  *             free(buf)
  * 
  *     cpdef encrypt_into(self, plaintext, unsigned char[:] ciphertext):             # <<<<<<<<<<<<<<
@@ -2320,7 +2338,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt_into(
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_7);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.AESObject.encrypt_into", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.AESObject.encrypt_into", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -2329,8 +2347,8 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt_into(
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_7encrypt_into(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_7encrypt_into(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9AESObject_7encrypt_into(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9AESObject_7encrypt_into(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_plaintext = 0;
   __Pyx_memviewslice __pyx_v_ciphertext = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_lineno = 0;
@@ -2378,18 +2396,18 @@ static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_7encrypt_int
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("encrypt_into", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("fluxmonitor.misc._security.AESObject.encrypt_into", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.AESObject.encrypt_into", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_6encrypt_into(((struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *)__pyx_v_self), __pyx_v_plaintext, __pyx_v_ciphertext);
+  __pyx_r = __pyx_pf_11fluxmonitor_8security_9_security_9AESObject_6encrypt_into(((struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *)__pyx_v_self), __pyx_v_plaintext, __pyx_v_ciphertext);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_6encrypt_into(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_plaintext, __Pyx_memviewslice __pyx_v_ciphertext) {
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9AESObject_6encrypt_into(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_plaintext, __Pyx_memviewslice __pyx_v_ciphertext) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -2399,7 +2417,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_6encrypt_int
   __Pyx_RefNannySetupContext("encrypt_into", 0);
   __Pyx_XDECREF(__pyx_r);
   if (unlikely(!__pyx_v_ciphertext.memview)) { __Pyx_RaiseUnboundLocalError("ciphertext"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
-  __pyx_t_1 = __pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt_into(__pyx_v_self, __pyx_v_plaintext, __pyx_v_ciphertext, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_f_11fluxmonitor_8security_9_security_9AESObject_encrypt_into(__pyx_v_self, __pyx_v_plaintext, __pyx_v_ciphertext, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -2408,7 +2426,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_6encrypt_int
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.AESObject.encrypt_into", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.AESObject.encrypt_into", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_ciphertext, 1);
@@ -2417,7 +2435,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_6encrypt_int
   return __pyx_r;
 }
 
-/* "src/misc/security_encrypt.pyx":81
+/* "src/security/security_encrypt.pyx":81
  *             PyBuffer_Release(&view)
  * 
  *     cpdef decrypt(self, ciphertext):             # <<<<<<<<<<<<<<
@@ -2425,8 +2443,8 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_6encrypt_int
  *         cdef int length = len(ciphertext)
  */
 
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_9decrypt(PyObject *__pyx_v_self, PyObject *__pyx_v_ciphertext); /*proto*/
-static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_ciphertext, int __pyx_skip_dispatch) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9AESObject_9decrypt(PyObject *__pyx_v_self, PyObject *__pyx_v_ciphertext); /*proto*/
+static PyObject *__pyx_f_11fluxmonitor_8security_9_security_9AESObject_decrypt(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_ciphertext, int __pyx_skip_dispatch) {
   Py_buffer __pyx_v_view;
   int __pyx_v_length;
   unsigned char *__pyx_v_buf;
@@ -2458,7 +2476,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt(struc
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
     __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_decrypt); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 81; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_9decrypt)) {
+    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9AESObject_9decrypt)) {
       __Pyx_XDECREF(__pyx_r);
       __Pyx_INCREF(__pyx_t_1);
       __pyx_t_3 = __pyx_t_1; __pyx_t_4 = NULL;
@@ -2494,7 +2512,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt(struc
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "src/misc/security_encrypt.pyx":83
+  /* "src/security/security_encrypt.pyx":83
  *     cpdef decrypt(self, ciphertext):
  *         cdef Py_buffer view
  *         cdef int length = len(ciphertext)             # <<<<<<<<<<<<<<
@@ -2504,7 +2522,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt(struc
   __pyx_t_6 = PyObject_Length(__pyx_v_ciphertext); if (unlikely(__pyx_t_6 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 83; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_v_length = __pyx_t_6;
 
-  /* "src/misc/security_encrypt.pyx":84
+  /* "src/security/security_encrypt.pyx":84
  *         cdef Py_buffer view
  *         cdef int length = len(ciphertext)
  *         cdef unsigned char* buf= <unsigned char *>malloc(length)             # <<<<<<<<<<<<<<
@@ -2513,7 +2531,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt(struc
  */
   __pyx_v_buf = ((unsigned char *)malloc(__pyx_v_length));
 
-  /* "src/misc/security_encrypt.pyx":85
+  /* "src/security/security_encrypt.pyx":85
  *         cdef int length = len(ciphertext)
  *         cdef unsigned char* buf= <unsigned char *>malloc(length)
  *         try:             # <<<<<<<<<<<<<<
@@ -2522,7 +2540,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt(struc
  */
   /*try:*/ {
 
-    /* "src/misc/security_encrypt.pyx":86
+    /* "src/security/security_encrypt.pyx":86
  *         cdef unsigned char* buf= <unsigned char *>malloc(length)
  *         try:
  *             PyObject_GetBuffer(ciphertext, &view, PyBUF_SIMPLE)             # <<<<<<<<<<<<<<
@@ -2531,7 +2549,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt(struc
  */
     __pyx_t_7 = PyObject_GetBuffer(__pyx_v_ciphertext, (&__pyx_v_view), PyBUF_SIMPLE); if (unlikely(__pyx_t_7 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 86; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
 
-    /* "src/misc/security_encrypt.pyx":87
+    /* "src/security/security_encrypt.pyx":87
  *         try:
  *             PyObject_GetBuffer(ciphertext, &view, PyBUF_SIMPLE)
  *             ret = aes256_decrypt(self.dec_aeskey,             # <<<<<<<<<<<<<<
@@ -2540,7 +2558,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt(struc
  */
     __pyx_v_ret = aes256_decrypt(__pyx_v_self->dec_aeskey, ((unsigned char const *)__pyx_v_view.buf), __pyx_v_buf, __pyx_v_length);
 
-    /* "src/misc/security_encrypt.pyx":89
+    /* "src/security/security_encrypt.pyx":89
  *             ret = aes256_decrypt(self.dec_aeskey,
  *                                  <const unsigned char*>view.buf, buf, length)
  *             return <bytes>buf[:len(ciphertext)]             # <<<<<<<<<<<<<<
@@ -2557,7 +2575,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt(struc
     goto __pyx_L3_return;
   }
 
-  /* "src/misc/security_encrypt.pyx":91
+  /* "src/security/security_encrypt.pyx":91
  *             return <bytes>buf[:len(ciphertext)]
  *         finally:
  *             PyBuffer_Release(&view)             # <<<<<<<<<<<<<<
@@ -2585,7 +2603,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt(struc
       {
         PyBuffer_Release((&__pyx_v_view));
 
-        /* "src/misc/security_encrypt.pyx":92
+        /* "src/security/security_encrypt.pyx":92
  *         finally:
  *             PyBuffer_Release(&view)
  *             free(buf)             # <<<<<<<<<<<<<<
@@ -2612,7 +2630,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt(struc
       __pyx_t_15 = __pyx_r;
       __pyx_r = 0;
 
-      /* "src/misc/security_encrypt.pyx":91
+      /* "src/security/security_encrypt.pyx":91
  *             return <bytes>buf[:len(ciphertext)]
  *         finally:
  *             PyBuffer_Release(&view)             # <<<<<<<<<<<<<<
@@ -2621,7 +2639,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt(struc
  */
       PyBuffer_Release((&__pyx_v_view));
 
-      /* "src/misc/security_encrypt.pyx":92
+      /* "src/security/security_encrypt.pyx":92
  *         finally:
  *             PyBuffer_Release(&view)
  *             free(buf)             # <<<<<<<<<<<<<<
@@ -2635,7 +2653,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt(struc
     }
   }
 
-  /* "src/misc/security_encrypt.pyx":81
+  /* "src/security/security_encrypt.pyx":81
  *             PyBuffer_Release(&view)
  * 
  *     cpdef decrypt(self, ciphertext):             # <<<<<<<<<<<<<<
@@ -2650,7 +2668,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt(struc
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.AESObject.decrypt", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.AESObject.decrypt", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -2659,19 +2677,19 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt(struc
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_9decrypt(PyObject *__pyx_v_self, PyObject *__pyx_v_ciphertext); /*proto*/
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_9decrypt(PyObject *__pyx_v_self, PyObject *__pyx_v_ciphertext) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9AESObject_9decrypt(PyObject *__pyx_v_self, PyObject *__pyx_v_ciphertext); /*proto*/
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9AESObject_9decrypt(PyObject *__pyx_v_self, PyObject *__pyx_v_ciphertext) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("decrypt (wrapper)", 0);
-  __pyx_r = __pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_8decrypt(((struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *)__pyx_v_self), ((PyObject *)__pyx_v_ciphertext));
+  __pyx_r = __pyx_pf_11fluxmonitor_8security_9_security_9AESObject_8decrypt(((struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *)__pyx_v_self), ((PyObject *)__pyx_v_ciphertext));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_8decrypt(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_ciphertext) {
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9AESObject_8decrypt(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_ciphertext) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -2680,7 +2698,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_8decrypt(str
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("decrypt", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt(__pyx_v_self, __pyx_v_ciphertext, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 81; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_f_11fluxmonitor_8security_9_security_9AESObject_decrypt(__pyx_v_self, __pyx_v_ciphertext, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 81; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -2689,7 +2707,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_8decrypt(str
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.AESObject.decrypt", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.AESObject.decrypt", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -2697,7 +2715,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_8decrypt(str
   return __pyx_r;
 }
 
-/* "src/misc/security_encrypt.pyx":94
+/* "src/security/security_encrypt.pyx":94
  *             free(buf)
  * 
  *     cpdef decrypt_into(self, ciphertext, unsigned char[:] plaintext):             # <<<<<<<<<<<<<<
@@ -2705,8 +2723,8 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_8decrypt(str
  *         cdef int length = len(plaintext)
  */
 
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_11decrypt_into(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt_into(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_ciphertext, __Pyx_memviewslice __pyx_v_plaintext, int __pyx_skip_dispatch) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9AESObject_11decrypt_into(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_f_11fluxmonitor_8security_9_security_9AESObject_decrypt_into(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_ciphertext, __Pyx_memviewslice __pyx_v_plaintext, int __pyx_skip_dispatch) {
   Py_buffer __pyx_v_view;
   int __pyx_v_length;
   CYTHON_UNUSED int __pyx_v_ret;
@@ -2740,7 +2758,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt_into(
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
     __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_decrypt_into); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 94; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_11decrypt_into)) {
+    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9AESObject_11decrypt_into)) {
       __Pyx_XDECREF(__pyx_r);
       if (unlikely(!__pyx_v_plaintext.memview)) { __Pyx_RaiseUnboundLocalError("plaintext"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 94; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
       __pyx_t_3 = __pyx_memoryview_fromslice(__pyx_v_plaintext, 1, (PyObject *(*)(char *)) __pyx_memview_get_unsigned_char, (int (*)(char *, PyObject *)) __pyx_memview_set_unsigned_char, 0);; if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 94; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -2781,7 +2799,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt_into(
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "src/misc/security_encrypt.pyx":96
+  /* "src/security/security_encrypt.pyx":96
  *     cpdef decrypt_into(self, ciphertext, unsigned char[:] plaintext):
  *         cdef Py_buffer view
  *         cdef int length = len(plaintext)             # <<<<<<<<<<<<<<
@@ -2794,7 +2812,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt_into(
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_length = __pyx_t_6;
 
-  /* "src/misc/security_encrypt.pyx":98
+  /* "src/security/security_encrypt.pyx":98
  *         cdef int length = len(plaintext)
  * 
  *         if len(plaintext) < len(ciphertext):             # <<<<<<<<<<<<<<
@@ -2809,7 +2827,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt_into(
   __pyx_t_9 = ((__pyx_t_6 < __pyx_t_8) != 0);
   if (__pyx_t_9) {
 
-    /* "src/misc/security_encrypt.pyx":100
+    /* "src/security/security_encrypt.pyx":100
  *         if len(plaintext) < len(ciphertext):
  *             raise Exception("Output buffer too small (%i, %i)" %
  *                             (len(ciphertext), len(plaintext)))             # <<<<<<<<<<<<<<
@@ -2834,7 +2852,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt_into(
     __pyx_t_1 = 0;
     __pyx_t_2 = 0;
 
-    /* "src/misc/security_encrypt.pyx":99
+    /* "src/security/security_encrypt.pyx":99
  * 
  *         if len(plaintext) < len(ciphertext):
  *             raise Exception("Output buffer too small (%i, %i)" %             # <<<<<<<<<<<<<<
@@ -2857,7 +2875,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt_into(
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 99; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "src/misc/security_encrypt.pyx":101
+  /* "src/security/security_encrypt.pyx":101
  *             raise Exception("Output buffer too small (%i, %i)" %
  *                             (len(ciphertext), len(plaintext)))
  *         try:             # <<<<<<<<<<<<<<
@@ -2866,7 +2884,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt_into(
  */
   /*try:*/ {
 
-    /* "src/misc/security_encrypt.pyx":102
+    /* "src/security/security_encrypt.pyx":102
  *                             (len(ciphertext), len(plaintext)))
  *         try:
  *             PyObject_GetBuffer(ciphertext, &view, PyBUF_SIMPLE)             # <<<<<<<<<<<<<<
@@ -2875,7 +2893,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt_into(
  */
     __pyx_t_10 = PyObject_GetBuffer(__pyx_v_ciphertext, (&__pyx_v_view), PyBUF_SIMPLE); if (unlikely(__pyx_t_10 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 102; __pyx_clineno = __LINE__; goto __pyx_L5_error;}
 
-    /* "src/misc/security_encrypt.pyx":105
+    /* "src/security/security_encrypt.pyx":105
  *             ret = aes256_decrypt(self.dec_aeskey,
  *                                  <const unsigned char*>view.buf,
  *                                  &(plaintext[0]), length)             # <<<<<<<<<<<<<<
@@ -2893,7 +2911,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt_into(
       {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L5_error;}
     }
 
-    /* "src/misc/security_encrypt.pyx":103
+    /* "src/security/security_encrypt.pyx":103
  *         try:
  *             PyObject_GetBuffer(ciphertext, &view, PyBUF_SIMPLE)
  *             ret = aes256_decrypt(self.dec_aeskey,             # <<<<<<<<<<<<<<
@@ -2902,7 +2920,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt_into(
  */
     __pyx_v_ret = aes256_decrypt(__pyx_v_self->dec_aeskey, ((unsigned char const *)__pyx_v_view.buf), (&(*((unsigned char *) ( /* dim=0 */ (__pyx_v_plaintext.data + __pyx_t_8 * __pyx_v_plaintext.strides[0]) )))), __pyx_v_length);
 
-    /* "src/misc/security_encrypt.pyx":106
+    /* "src/security/security_encrypt.pyx":106
  *                                  <const unsigned char*>view.buf,
  *                                  &(plaintext[0]), length)
  *             return plaintext             # <<<<<<<<<<<<<<
@@ -2917,7 +2935,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt_into(
     goto __pyx_L4_return;
   }
 
-  /* "src/misc/security_encrypt.pyx":108
+  /* "src/security/security_encrypt.pyx":108
  *             return plaintext
  *         finally:
  *             PyBuffer_Release(&view)             # <<<<<<<<<<<<<<
@@ -2970,7 +2988,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt_into(
     }
   }
 
-  /* "src/misc/security_encrypt.pyx":94
+  /* "src/security/security_encrypt.pyx":94
  *             free(buf)
  * 
  *     cpdef decrypt_into(self, ciphertext, unsigned char[:] plaintext):             # <<<<<<<<<<<<<<
@@ -2986,7 +3004,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt_into(
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_7);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.AESObject.decrypt_into", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.AESObject.decrypt_into", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -2995,8 +3013,8 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt_into(
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_11decrypt_into(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_11decrypt_into(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9AESObject_11decrypt_into(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9AESObject_11decrypt_into(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_ciphertext = 0;
   __Pyx_memviewslice __pyx_v_plaintext = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_lineno = 0;
@@ -3044,18 +3062,18 @@ static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_11decrypt_in
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("decrypt_into", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 94; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("fluxmonitor.misc._security.AESObject.decrypt_into", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.AESObject.decrypt_into", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_10decrypt_into(((struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *)__pyx_v_self), __pyx_v_ciphertext, __pyx_v_plaintext);
+  __pyx_r = __pyx_pf_11fluxmonitor_8security_9_security_9AESObject_10decrypt_into(((struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *)__pyx_v_self), __pyx_v_ciphertext, __pyx_v_plaintext);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_10decrypt_into(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_ciphertext, __Pyx_memviewslice __pyx_v_plaintext) {
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9AESObject_10decrypt_into(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *__pyx_v_self, PyObject *__pyx_v_ciphertext, __Pyx_memviewslice __pyx_v_plaintext) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -3065,7 +3083,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_10decrypt_in
   __Pyx_RefNannySetupContext("decrypt_into", 0);
   __Pyx_XDECREF(__pyx_r);
   if (unlikely(!__pyx_v_plaintext.memview)) { __Pyx_RaiseUnboundLocalError("plaintext"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 94; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
-  __pyx_t_1 = __pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt_into(__pyx_v_self, __pyx_v_ciphertext, __pyx_v_plaintext, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 94; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_f_11fluxmonitor_8security_9_security_9AESObject_decrypt_into(__pyx_v_self, __pyx_v_ciphertext, __pyx_v_plaintext, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 94; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -3074,7 +3092,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_10decrypt_in
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.AESObject.decrypt_into", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.AESObject.decrypt_into", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_plaintext, 1);
@@ -3083,8 +3101,43 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_10decrypt_in
   return __pyx_r;
 }
 
-/* "src/misc/security_encrypt.pyx":115
+/* "src/security/security_encrypt.pyx":115
  *     cdef int privatekey
+ * 
+ *     def __cinit__(self):             # <<<<<<<<<<<<<<
+ *         pass
+ * 
+ */
+
+/* Python wrapper */
+static int __pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_1__cinit__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static int __pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_1__cinit__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__cinit__ (wrapper)", 0);
+  if (unlikely(PyTuple_GET_SIZE(__pyx_args) > 0)) {
+    __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 0, 0, PyTuple_GET_SIZE(__pyx_args)); return -1;}
+  if (unlikely(__pyx_kwds) && unlikely(PyDict_Size(__pyx_kwds) > 0) && unlikely(!__Pyx_CheckKeywordStrings(__pyx_kwds, "__cinit__", 0))) return -1;
+  __pyx_r = __pyx_pf_11fluxmonitor_8security_9_security_9RSAObject___cinit__(((struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static int __pyx_pf_11fluxmonitor_8security_9_security_9RSAObject___cinit__(CYTHON_UNUSED struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self) {
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__cinit__", 0);
+
+  /* function exit code */
+  __pyx_r = 0;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "src/security/security_encrypt.pyx":118
+ *         pass
  * 
  *     def __init__(self, pem=None, der=None, keylength=1024):             # <<<<<<<<<<<<<<
  *         self.privatekey = 0
@@ -3092,8 +3145,8 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9AESObject_10decrypt_in
  */
 
 /* Python wrapper */
-static int __pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static int __pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static int __pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_3__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static int __pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_3__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_pem = 0;
   PyObject *__pyx_v_der = 0;
   PyObject *__pyx_v_keylength = 0;
@@ -3138,7 +3191,7 @@ static int __pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_1__init__(PyObject
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 115; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 118; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -3155,20 +3208,20 @@ static int __pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_1__init__(PyObject
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 0, 0, 3, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 115; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("__init__", 0, 0, 3, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 118; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("fluxmonitor.misc._security.RSAObject.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.RSAObject.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return -1;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject___init__(((struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *)__pyx_v_self), __pyx_v_pem, __pyx_v_der, __pyx_v_keylength);
+  __pyx_r = __pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_2__init__(((struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *)__pyx_v_self), __pyx_v_pem, __pyx_v_der, __pyx_v_keylength);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject___init__(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_pem, PyObject *__pyx_v_der, PyObject *__pyx_v_keylength) {
+static int __pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_2__init__(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_pem, PyObject *__pyx_v_der, PyObject *__pyx_v_keylength) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -3182,7 +3235,7 @@ static int __pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject___init__(struct __
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "src/misc/security_encrypt.pyx":116
+  /* "src/security/security_encrypt.pyx":119
  * 
  *     def __init__(self, pem=None, der=None, keylength=1024):
  *         self.privatekey = 0             # <<<<<<<<<<<<<<
@@ -3191,30 +3244,30 @@ static int __pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject___init__(struct __
  */
   __pyx_v_self->privatekey = 0;
 
-  /* "src/misc/security_encrypt.pyx":117
+  /* "src/security/security_encrypt.pyx":120
  *     def __init__(self, pem=None, der=None, keylength=1024):
  *         self.privatekey = 0
  *         if der != None:             # <<<<<<<<<<<<<<
  *             self.rsakey = import_der(der, len(der), 1)
  *             if self.rsakey:
  */
-  __pyx_t_1 = PyObject_RichCompare(__pyx_v_der, Py_None, Py_NE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 117; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 117; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyObject_RichCompare(__pyx_v_der, Py_None, Py_NE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_2) {
 
-    /* "src/misc/security_encrypt.pyx":118
+    /* "src/security/security_encrypt.pyx":121
  *         self.privatekey = 0
  *         if der != None:
  *             self.rsakey = import_der(der, len(der), 1)             # <<<<<<<<<<<<<<
  *             if self.rsakey:
  *                 self.privatekey = 1
  */
-    __pyx_t_3 = __Pyx_PyObject_AsString(__pyx_v_der); if (unlikely((!__pyx_t_3) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 118; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __pyx_t_4 = PyObject_Length(__pyx_v_der); if (unlikely(__pyx_t_4 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 118; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_AsString(__pyx_v_der); if (unlikely((!__pyx_t_3) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 121; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyObject_Length(__pyx_v_der); if (unlikely(__pyx_t_4 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 121; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __pyx_v_self->rsakey = import_der(__pyx_t_3, __pyx_t_4, 1);
 
-    /* "src/misc/security_encrypt.pyx":119
+    /* "src/security/security_encrypt.pyx":122
  *         if der != None:
  *             self.rsakey = import_der(der, len(der), 1)
  *             if self.rsakey:             # <<<<<<<<<<<<<<
@@ -3224,7 +3277,7 @@ static int __pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject___init__(struct __
     __pyx_t_2 = (__pyx_v_self->rsakey != 0);
     if (__pyx_t_2) {
 
-      /* "src/misc/security_encrypt.pyx":120
+      /* "src/security/security_encrypt.pyx":123
  *             self.rsakey = import_der(der, len(der), 1)
  *             if self.rsakey:
  *                 self.privatekey = 1             # <<<<<<<<<<<<<<
@@ -3236,45 +3289,45 @@ static int __pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject___init__(struct __
     }
     /*else*/ {
 
-      /* "src/misc/security_encrypt.pyx":122
+      /* "src/security/security_encrypt.pyx":125
  *                 self.privatekey = 1
  *             else:
  *                 self.rsakey = import_der(der, len(der), 0)             # <<<<<<<<<<<<<<
  * 
  *         elif pem != None:
  */
-      __pyx_t_3 = __Pyx_PyObject_AsString(__pyx_v_der); if (unlikely((!__pyx_t_3) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __pyx_t_4 = PyObject_Length(__pyx_v_der); if (unlikely(__pyx_t_4 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_3 = __Pyx_PyObject_AsString(__pyx_v_der); if (unlikely((!__pyx_t_3) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 125; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_4 = PyObject_Length(__pyx_v_der); if (unlikely(__pyx_t_4 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 125; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __pyx_v_self->rsakey = import_der(__pyx_t_3, __pyx_t_4, 0);
     }
     __pyx_L4:;
     goto __pyx_L3;
   }
 
-  /* "src/misc/security_encrypt.pyx":124
+  /* "src/security/security_encrypt.pyx":127
  *                 self.rsakey = import_der(der, len(der), 0)
  * 
  *         elif pem != None:             # <<<<<<<<<<<<<<
  *             self.rsakey = import_pem(pem, len(pem), 1)
  *             if self.rsakey:
  */
-  __pyx_t_1 = PyObject_RichCompare(__pyx_v_pem, Py_None, Py_NE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 124; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 124; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyObject_RichCompare(__pyx_v_pem, Py_None, Py_NE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 127; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 127; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_2) {
 
-    /* "src/misc/security_encrypt.pyx":125
+    /* "src/security/security_encrypt.pyx":128
  * 
  *         elif pem != None:
  *             self.rsakey = import_pem(pem, len(pem), 1)             # <<<<<<<<<<<<<<
  *             if self.rsakey:
  *                 self.privatekey = 1
  */
-    __pyx_t_5 = __Pyx_PyObject_AsString(__pyx_v_pem); if (unlikely((!__pyx_t_5) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 125; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __pyx_t_4 = PyObject_Length(__pyx_v_pem); if (unlikely(__pyx_t_4 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 125; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = __Pyx_PyObject_AsString(__pyx_v_pem); if (unlikely((!__pyx_t_5) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 128; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyObject_Length(__pyx_v_pem); if (unlikely(__pyx_t_4 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 128; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __pyx_v_self->rsakey = import_pem(__pyx_t_5, __pyx_t_4, 1);
 
-    /* "src/misc/security_encrypt.pyx":126
+    /* "src/security/security_encrypt.pyx":129
  *         elif pem != None:
  *             self.rsakey = import_pem(pem, len(pem), 1)
  *             if self.rsakey:             # <<<<<<<<<<<<<<
@@ -3284,7 +3337,7 @@ static int __pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject___init__(struct __
     __pyx_t_2 = (__pyx_v_self->rsakey != 0);
     if (__pyx_t_2) {
 
-      /* "src/misc/security_encrypt.pyx":127
+      /* "src/security/security_encrypt.pyx":130
  *             self.rsakey = import_pem(pem, len(pem), 1)
  *             if self.rsakey:
  *                 self.privatekey = 1             # <<<<<<<<<<<<<<
@@ -3296,15 +3349,15 @@ static int __pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject___init__(struct __
     }
     /*else*/ {
 
-      /* "src/misc/security_encrypt.pyx":129
+      /* "src/security/security_encrypt.pyx":132
  *                 self.privatekey = 1
  *             else:
  *                 self.rsakey = import_pem(pem, len(pem), 0)             # <<<<<<<<<<<<<<
  * 
  *         else:
  */
-      __pyx_t_5 = __Pyx_PyObject_AsString(__pyx_v_pem); if (unlikely((!__pyx_t_5) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 129; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __pyx_t_4 = PyObject_Length(__pyx_v_pem); if (unlikely(__pyx_t_4 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 129; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_5 = __Pyx_PyObject_AsString(__pyx_v_pem); if (unlikely((!__pyx_t_5) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 132; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_4 = PyObject_Length(__pyx_v_pem); if (unlikely(__pyx_t_4 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 132; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __pyx_v_self->rsakey = import_pem(__pyx_t_5, __pyx_t_4, 0);
     }
     __pyx_L5:;
@@ -3312,17 +3365,17 @@ static int __pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject___init__(struct __
   }
   /*else*/ {
 
-    /* "src/misc/security_encrypt.pyx":132
+    /* "src/security/security_encrypt.pyx":135
  * 
  *         else:
  *             self.rsakey = create_rsa(keylength)             # <<<<<<<<<<<<<<
  *             self.privatekey = 1
  * 
  */
-    __pyx_t_6 = __Pyx_PyInt_As_int(__pyx_v_keylength); if (unlikely((__pyx_t_6 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 132; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_6 = __Pyx_PyInt_As_int(__pyx_v_keylength); if (unlikely((__pyx_t_6 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 135; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __pyx_v_self->rsakey = create_rsa(__pyx_t_6);
 
-    /* "src/misc/security_encrypt.pyx":133
+    /* "src/security/security_encrypt.pyx":136
  *         else:
  *             self.rsakey = create_rsa(keylength)
  *             self.privatekey = 1             # <<<<<<<<<<<<<<
@@ -3333,7 +3386,7 @@ static int __pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject___init__(struct __
   }
   __pyx_L3:;
 
-  /* "src/misc/security_encrypt.pyx":135
+  /* "src/security/security_encrypt.pyx":138
  *             self.privatekey = 1
  * 
  *         if not self.rsakey:             # <<<<<<<<<<<<<<
@@ -3343,22 +3396,22 @@ static int __pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject___init__(struct __
   __pyx_t_2 = ((!(__pyx_v_self->rsakey != 0)) != 0);
   if (__pyx_t_2) {
 
-    /* "src/misc/security_encrypt.pyx":136
+    /* "src/security/security_encrypt.pyx":139
  * 
  *         if not self.rsakey:
  *             raise TypeError("Can not load rsa key.")             # <<<<<<<<<<<<<<
  * 
- *     def __del__(self):
+ *     def __dealloc__(self):
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 136; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 139; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 136; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 139; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "src/misc/security_encrypt.pyx":115
- *     cdef int privatekey
+  /* "src/security/security_encrypt.pyx":118
+ *         pass
  * 
  *     def __init__(self, pem=None, der=None, keylength=1024):             # <<<<<<<<<<<<<<
  *         self.privatekey = 0
@@ -3370,43 +3423,40 @@ static int __pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject___init__(struct __
   goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.RSAObject.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.RSAObject.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = -1;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "src/misc/security_encrypt.pyx":138
+/* "src/security/security_encrypt.pyx":141
  *             raise TypeError("Can not load rsa key.")
  * 
- *     def __del__(self):             # <<<<<<<<<<<<<<
+ *     def __dealloc__(self):             # <<<<<<<<<<<<<<
  *         if self.rsakey:
  *             RSA_free(self.rsakey)
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_3__del__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_3__del__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
-  PyObject *__pyx_r = 0;
+static void __pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_5__dealloc__(PyObject *__pyx_v_self); /*proto*/
+static void __pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_5__dealloc__(PyObject *__pyx_v_self) {
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("__del__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_2__del__(((struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *)__pyx_v_self));
+  __Pyx_RefNannySetupContext("__dealloc__ (wrapper)", 0);
+  __pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_4__dealloc__(((struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
-  return __pyx_r;
 }
 
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_2__del__(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self) {
-  PyObject *__pyx_r = NULL;
+static void __pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_4__dealloc__(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self) {
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
-  __Pyx_RefNannySetupContext("__del__", 0);
+  __Pyx_RefNannySetupContext("__dealloc__", 0);
 
-  /* "src/misc/security_encrypt.pyx":139
+  /* "src/security/security_encrypt.pyx":142
  * 
- *     def __del__(self):
+ *     def __dealloc__(self):
  *         if self.rsakey:             # <<<<<<<<<<<<<<
  *             RSA_free(self.rsakey)
  * 
@@ -3414,8 +3464,8 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_2__del__(str
   __pyx_t_1 = (__pyx_v_self->rsakey != 0);
   if (__pyx_t_1) {
 
-    /* "src/misc/security_encrypt.pyx":140
- *     def __del__(self):
+    /* "src/security/security_encrypt.pyx":143
+ *     def __dealloc__(self):
  *         if self.rsakey:
  *             RSA_free(self.rsakey)             # <<<<<<<<<<<<<<
  * 
@@ -3426,22 +3476,19 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_2__del__(str
   }
   __pyx_L3:;
 
-  /* "src/misc/security_encrypt.pyx":138
+  /* "src/security/security_encrypt.pyx":141
  *             raise TypeError("Can not load rsa key.")
  * 
- *     def __del__(self):             # <<<<<<<<<<<<<<
+ *     def __dealloc__(self):             # <<<<<<<<<<<<<<
  *         if self.rsakey:
  *             RSA_free(self.rsakey)
  */
 
   /* function exit code */
-  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
-  __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
-  return __pyx_r;
 }
 
-/* "src/misc/security_encrypt.pyx":142
+/* "src/security/security_encrypt.pyx":145
  *             RSA_free(self.rsakey)
  * 
  *     cpdef is_private(self):             # <<<<<<<<<<<<<<
@@ -3449,8 +3496,8 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_2__del__(str
  * 
  */
 
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_5is_private(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_is_private(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, int __pyx_skip_dispatch) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_7is_private(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_is_private(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, int __pyx_skip_dispatch) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -3465,139 +3512,9 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_is_private(st
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_is_private); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 142; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_is_private); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 145; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_5is_private)) {
-      __Pyx_XDECREF(__pyx_r);
-      __Pyx_INCREF(__pyx_t_1);
-      __pyx_t_3 = __pyx_t_1; __pyx_t_4 = NULL;
-      if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_3))) {
-        __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_3);
-        if (likely(__pyx_t_4)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-          __Pyx_INCREF(__pyx_t_4);
-          __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_3, function);
-        }
-      }
-      if (__pyx_t_4) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 142; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      } else {
-        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 142; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      }
-      __Pyx_GOTREF(__pyx_t_2);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __pyx_r = __pyx_t_2;
-      __pyx_t_2 = 0;
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      goto __pyx_L0;
-    }
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  }
-
-  /* "src/misc/security_encrypt.pyx":143
- * 
- *     cpdef is_private(self):
- *         return self.privatekey == 1             # <<<<<<<<<<<<<<
- * 
- *     cpdef size(self):
- */
-  __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->privatekey == 1)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 143; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_r = __pyx_t_1;
-  __pyx_t_1 = 0;
-  goto __pyx_L0;
-
-  /* "src/misc/security_encrypt.pyx":142
- *             RSA_free(self.rsakey)
- * 
- *     cpdef is_private(self):             # <<<<<<<<<<<<<<
- *         return self.privatekey == 1
- * 
- */
-
-  /* function exit code */
-  __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.RSAObject.is_private", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = 0;
-  __pyx_L0:;
-  __Pyx_XGIVEREF(__pyx_r);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-/* Python wrapper */
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_5is_private(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_5is_private(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
-  PyObject *__pyx_r = 0;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("is_private (wrapper)", 0);
-  __pyx_r = __pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_4is_private(((struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *)__pyx_v_self));
-
-  /* function exit code */
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_4is_private(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self) {
-  PyObject *__pyx_r = NULL;
-  __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
-  int __pyx_lineno = 0;
-  const char *__pyx_filename = NULL;
-  int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("is_private", 0);
-  __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_is_private(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 142; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_r = __pyx_t_1;
-  __pyx_t_1 = 0;
-  goto __pyx_L0;
-
-  /* function exit code */
-  __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.RSAObject.is_private", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = NULL;
-  __pyx_L0:;
-  __Pyx_XGIVEREF(__pyx_r);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-/* "src/misc/security_encrypt.pyx":145
- *         return self.privatekey == 1
- * 
- *     cpdef size(self):             # <<<<<<<<<<<<<<
- *         return rsakey_size(self.rsakey)
- * 
- */
-
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_7size(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_size(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, int __pyx_skip_dispatch) {
-  PyObject *__pyx_r = NULL;
-  __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
-  PyObject *__pyx_t_2 = NULL;
-  PyObject *__pyx_t_3 = NULL;
-  PyObject *__pyx_t_4 = NULL;
-  int __pyx_lineno = 0;
-  const char *__pyx_filename = NULL;
-  int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("size", 0);
-  /* Check if called by wrapper */
-  if (unlikely(__pyx_skip_dispatch)) ;
-  /* Check if overridden in Python */
-  else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_size); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 145; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_1);
-    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_7size)) {
+    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_7is_private)) {
       __Pyx_XDECREF(__pyx_r);
       __Pyx_INCREF(__pyx_t_1);
       __pyx_t_3 = __pyx_t_1; __pyx_t_4 = NULL;
@@ -3626,25 +3543,25 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_size(struct _
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "src/misc/security_encrypt.pyx":146
+  /* "src/security/security_encrypt.pyx":146
+ * 
+ *     cpdef is_private(self):
+ *         return self.privatekey == 1             # <<<<<<<<<<<<<<
  * 
  *     cpdef size(self):
- *         return rsakey_size(self.rsakey)             # <<<<<<<<<<<<<<
- * 
- *     cpdef export_der(self):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(rsakey_size(__pyx_v_self->rsakey)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 146; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->privatekey == 1)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 146; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "src/misc/security_encrypt.pyx":145
- *         return self.privatekey == 1
+  /* "src/security/security_encrypt.pyx":145
+ *             RSA_free(self.rsakey)
  * 
- *     cpdef size(self):             # <<<<<<<<<<<<<<
- *         return rsakey_size(self.rsakey)
+ *     cpdef is_private(self):             # <<<<<<<<<<<<<<
+ *         return self.privatekey == 1
  * 
  */
 
@@ -3654,7 +3571,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_size(struct _
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.RSAObject.size", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.RSAObject.is_private", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -3663,28 +3580,28 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_size(struct _
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_7size(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_7size(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_7is_private(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_7is_private(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("size (wrapper)", 0);
-  __pyx_r = __pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_6size(((struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *)__pyx_v_self));
+  __Pyx_RefNannySetupContext("is_private (wrapper)", 0);
+  __pyx_r = __pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_6is_private(((struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_6size(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self) {
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_6is_private(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("size", 0);
+  __Pyx_RefNannySetupContext("is_private", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_size(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 145; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_f_11fluxmonitor_8security_9_security_9RSAObject_is_private(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 145; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -3693,7 +3610,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_6size(struct
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.RSAObject.size", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.RSAObject.is_private", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -3701,34 +3618,33 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_6size(struct
   return __pyx_r;
 }
 
-/* "src/misc/security_encrypt.pyx":148
+/* "src/security/security_encrypt.pyx":148
+ *         return self.privatekey == 1
+ * 
+ *     cpdef size(self):             # <<<<<<<<<<<<<<
  *         return rsakey_size(self.rsakey)
  * 
- *     cpdef export_der(self):             # <<<<<<<<<<<<<<
- *         if self.privatekey == 1:
- *             return export_der(self.rsakey, 0) # export private key
  */
 
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_9export_der(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_der(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, int __pyx_skip_dispatch) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_9size(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_size(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, int __pyx_skip_dispatch) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
   PyObject *__pyx_t_4 = NULL;
-  int __pyx_t_5;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("export_der", 0);
+  __Pyx_RefNannySetupContext("size", 0);
   /* Check if called by wrapper */
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_export_der); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 148; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_size); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 148; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_9export_der)) {
+    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_9size)) {
       __Pyx_XDECREF(__pyx_r);
       __Pyx_INCREF(__pyx_t_1);
       __pyx_t_3 = __pyx_t_1; __pyx_t_4 = NULL;
@@ -3757,53 +3673,26 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_der(st
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "src/misc/security_encrypt.pyx":149
+  /* "src/security/security_encrypt.pyx":149
+ * 
+ *     cpdef size(self):
+ *         return rsakey_size(self.rsakey)             # <<<<<<<<<<<<<<
  * 
  *     cpdef export_der(self):
- *         if self.privatekey == 1:             # <<<<<<<<<<<<<<
- *             return export_der(self.rsakey, 0) # export private key
- *         else:
  */
-  __pyx_t_5 = ((__pyx_v_self->privatekey == 1) != 0);
-  if (__pyx_t_5) {
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = __Pyx_PyInt_From_int(rsakey_size(__pyx_v_self->rsakey)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 149; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
 
-    /* "src/misc/security_encrypt.pyx":150
- *     cpdef export_der(self):
- *         if self.privatekey == 1:
- *             return export_der(self.rsakey, 0) # export private key             # <<<<<<<<<<<<<<
- *         else:
- *             return export_der(self.rsakey, 1) # export public key
- */
-    __Pyx_XDECREF(__pyx_r);
-    __pyx_t_1 = export_der(__pyx_v_self->rsakey, 0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 150; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_r = __pyx_t_1;
-    __pyx_t_1 = 0;
-    goto __pyx_L0;
-  }
-  /*else*/ {
-
-    /* "src/misc/security_encrypt.pyx":152
- *             return export_der(self.rsakey, 0) # export private key
- *         else:
- *             return export_der(self.rsakey, 1) # export public key             # <<<<<<<<<<<<<<
+  /* "src/security/security_encrypt.pyx":148
+ *         return self.privatekey == 1
  * 
- *     cpdef export_pubkey_der(self):
- */
-    __Pyx_XDECREF(__pyx_r);
-    __pyx_t_1 = export_der(__pyx_v_self->rsakey, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 152; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_r = __pyx_t_1;
-    __pyx_t_1 = 0;
-    goto __pyx_L0;
-  }
-
-  /* "src/misc/security_encrypt.pyx":148
+ *     cpdef size(self):             # <<<<<<<<<<<<<<
  *         return rsakey_size(self.rsakey)
  * 
- *     cpdef export_der(self):             # <<<<<<<<<<<<<<
- *         if self.privatekey == 1:
- *             return export_der(self.rsakey, 0) # export private key
  */
 
   /* function exit code */
@@ -3812,7 +3701,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_der(st
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.RSAObject.export_der", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.RSAObject.size", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -3821,28 +3710,28 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_der(st
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_9export_der(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_9export_der(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_9size(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_9size(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("export_der (wrapper)", 0);
-  __pyx_r = __pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_8export_der(((struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *)__pyx_v_self));
+  __Pyx_RefNannySetupContext("size (wrapper)", 0);
+  __pyx_r = __pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_8size(((struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_8export_der(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self) {
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_8size(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("export_der", 0);
+  __Pyx_RefNannySetupContext("size", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_der(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 148; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_f_11fluxmonitor_8security_9_security_9RSAObject_size(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 148; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -3851,7 +3740,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_8export_der(
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.RSAObject.export_der", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.RSAObject.size", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -3859,33 +3748,34 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_8export_der(
   return __pyx_r;
 }
 
-/* "src/misc/security_encrypt.pyx":154
- *             return export_der(self.rsakey, 1) # export public key
+/* "src/security/security_encrypt.pyx":151
+ *         return rsakey_size(self.rsakey)
  * 
- *     cpdef export_pubkey_der(self):             # <<<<<<<<<<<<<<
- *         return export_der(self.rsakey, 1) # export public key
- * 
+ *     cpdef export_der(self):             # <<<<<<<<<<<<<<
+ *         if self.privatekey == 1:
+ *             return export_der(self.rsakey, 0) # export private key
  */
 
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_11export_pubkey_der(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_pubkey_der(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, int __pyx_skip_dispatch) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_11export_der(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_export_der(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, int __pyx_skip_dispatch) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
   PyObject *__pyx_t_4 = NULL;
+  int __pyx_t_5;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("export_pubkey_der", 0);
+  __Pyx_RefNannySetupContext("export_der", 0);
   /* Check if called by wrapper */
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_export_pubkey_der); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 154; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_export_der); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 151; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_11export_pubkey_der)) {
+    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_11export_der)) {
       __Pyx_XDECREF(__pyx_r);
       __Pyx_INCREF(__pyx_t_1);
       __pyx_t_3 = __pyx_t_1; __pyx_t_4 = NULL;
@@ -3899,10 +3789,10 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_pubkey
         }
       }
       if (__pyx_t_4) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 154; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 151; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       } else {
-        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 154; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 151; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       }
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -3914,26 +3804,53 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_pubkey
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "src/misc/security_encrypt.pyx":155
+  /* "src/security/security_encrypt.pyx":152
+ * 
+ *     cpdef export_der(self):
+ *         if self.privatekey == 1:             # <<<<<<<<<<<<<<
+ *             return export_der(self.rsakey, 0) # export private key
+ *         else:
+ */
+  __pyx_t_5 = ((__pyx_v_self->privatekey == 1) != 0);
+  if (__pyx_t_5) {
+
+    /* "src/security/security_encrypt.pyx":153
+ *     cpdef export_der(self):
+ *         if self.privatekey == 1:
+ *             return export_der(self.rsakey, 0) # export private key             # <<<<<<<<<<<<<<
+ *         else:
+ *             return export_der(self.rsakey, 1) # export public key
+ */
+    __Pyx_XDECREF(__pyx_r);
+    __pyx_t_1 = export_der(__pyx_v_self->rsakey, 0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 153; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_r = __pyx_t_1;
+    __pyx_t_1 = 0;
+    goto __pyx_L0;
+  }
+  /*else*/ {
+
+    /* "src/security/security_encrypt.pyx":155
+ *             return export_der(self.rsakey, 0) # export private key
+ *         else:
+ *             return export_der(self.rsakey, 1) # export public key             # <<<<<<<<<<<<<<
  * 
  *     cpdef export_pubkey_der(self):
- *         return export_der(self.rsakey, 1) # export public key             # <<<<<<<<<<<<<<
- * 
- *     cpdef export_pem(self):
  */
-  __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = export_der(__pyx_v_self->rsakey, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 155; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_r = __pyx_t_1;
-  __pyx_t_1 = 0;
-  goto __pyx_L0;
+    __Pyx_XDECREF(__pyx_r);
+    __pyx_t_1 = export_der(__pyx_v_self->rsakey, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 155; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_r = __pyx_t_1;
+    __pyx_t_1 = 0;
+    goto __pyx_L0;
+  }
 
-  /* "src/misc/security_encrypt.pyx":154
- *             return export_der(self.rsakey, 1) # export public key
+  /* "src/security/security_encrypt.pyx":151
+ *         return rsakey_size(self.rsakey)
  * 
- *     cpdef export_pubkey_der(self):             # <<<<<<<<<<<<<<
- *         return export_der(self.rsakey, 1) # export public key
- * 
+ *     cpdef export_der(self):             # <<<<<<<<<<<<<<
+ *         if self.privatekey == 1:
+ *             return export_der(self.rsakey, 0) # export private key
  */
 
   /* function exit code */
@@ -3942,7 +3859,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_pubkey
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.RSAObject.export_pubkey_der", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.RSAObject.export_der", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -3951,28 +3868,28 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_pubkey
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_11export_pubkey_der(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_11export_pubkey_der(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_11export_der(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_11export_der(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("export_pubkey_der (wrapper)", 0);
-  __pyx_r = __pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_10export_pubkey_der(((struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *)__pyx_v_self));
+  __Pyx_RefNannySetupContext("export_der (wrapper)", 0);
+  __pyx_r = __pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_10export_der(((struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_10export_pubkey_der(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self) {
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_10export_der(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("export_pubkey_der", 0);
+  __Pyx_RefNannySetupContext("export_der", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_pubkey_der(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 154; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_f_11fluxmonitor_8security_9_security_9RSAObject_export_der(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 151; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -3981,7 +3898,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_10export_pub
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.RSAObject.export_pubkey_der", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.RSAObject.export_der", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -3989,34 +3906,33 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_10export_pub
   return __pyx_r;
 }
 
-/* "src/misc/security_encrypt.pyx":157
+/* "src/security/security_encrypt.pyx":157
+ *             return export_der(self.rsakey, 1) # export public key
+ * 
+ *     cpdef export_pubkey_der(self):             # <<<<<<<<<<<<<<
  *         return export_der(self.rsakey, 1) # export public key
  * 
- *     cpdef export_pem(self):             # <<<<<<<<<<<<<<
- *         if self.privatekey == 1:
- *             return export_pem(self.rsakey, 0) # export private key
  */
 
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_13export_pem(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_pem(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, int __pyx_skip_dispatch) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_13export_pubkey_der(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_export_pubkey_der(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, int __pyx_skip_dispatch) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
   PyObject *__pyx_t_4 = NULL;
-  int __pyx_t_5;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("export_pem", 0);
+  __Pyx_RefNannySetupContext("export_pubkey_der", 0);
   /* Check if called by wrapper */
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_export_pem); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_export_pubkey_der); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_13export_pem)) {
+    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_13export_pubkey_der)) {
       __Pyx_XDECREF(__pyx_r);
       __Pyx_INCREF(__pyx_t_1);
       __pyx_t_3 = __pyx_t_1; __pyx_t_4 = NULL;
@@ -4045,53 +3961,26 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_pem(st
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "src/misc/security_encrypt.pyx":158
+  /* "src/security/security_encrypt.pyx":158
+ * 
+ *     cpdef export_pubkey_der(self):
+ *         return export_der(self.rsakey, 1) # export public key             # <<<<<<<<<<<<<<
  * 
  *     cpdef export_pem(self):
- *         if self.privatekey == 1:             # <<<<<<<<<<<<<<
- *             return export_pem(self.rsakey, 0) # export private key
- *         else:
  */
-  __pyx_t_5 = ((__pyx_v_self->privatekey == 1) != 0);
-  if (__pyx_t_5) {
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = export_der(__pyx_v_self->rsakey, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 158; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
 
-    /* "src/misc/security_encrypt.pyx":159
- *     cpdef export_pem(self):
- *         if self.privatekey == 1:
- *             return export_pem(self.rsakey, 0) # export private key             # <<<<<<<<<<<<<<
- *         else:
- *             return export_pem(self.rsakey, 1) # export public key
- */
-    __Pyx_XDECREF(__pyx_r);
-    __pyx_t_1 = export_pem(__pyx_v_self->rsakey, 0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 159; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_r = __pyx_t_1;
-    __pyx_t_1 = 0;
-    goto __pyx_L0;
-  }
-  /*else*/ {
-
-    /* "src/misc/security_encrypt.pyx":161
- *             return export_pem(self.rsakey, 0) # export private key
- *         else:
- *             return export_pem(self.rsakey, 1) # export public key             # <<<<<<<<<<<<<<
+  /* "src/security/security_encrypt.pyx":157
+ *             return export_der(self.rsakey, 1) # export public key
  * 
- *     cpdef export_pubkey_pem(self):
- */
-    __Pyx_XDECREF(__pyx_r);
-    __pyx_t_1 = export_pem(__pyx_v_self->rsakey, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 161; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_r = __pyx_t_1;
-    __pyx_t_1 = 0;
-    goto __pyx_L0;
-  }
-
-  /* "src/misc/security_encrypt.pyx":157
+ *     cpdef export_pubkey_der(self):             # <<<<<<<<<<<<<<
  *         return export_der(self.rsakey, 1) # export public key
  * 
- *     cpdef export_pem(self):             # <<<<<<<<<<<<<<
- *         if self.privatekey == 1:
- *             return export_pem(self.rsakey, 0) # export private key
  */
 
   /* function exit code */
@@ -4100,7 +3989,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_pem(st
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.RSAObject.export_pem", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.RSAObject.export_pubkey_der", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -4109,28 +3998,28 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_pem(st
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_13export_pem(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_13export_pem(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_13export_pubkey_der(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_13export_pubkey_der(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("export_pem (wrapper)", 0);
-  __pyx_r = __pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_12export_pem(((struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *)__pyx_v_self));
+  __Pyx_RefNannySetupContext("export_pubkey_der (wrapper)", 0);
+  __pyx_r = __pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_12export_pubkey_der(((struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_12export_pem(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self) {
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_12export_pubkey_der(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("export_pem", 0);
+  __Pyx_RefNannySetupContext("export_pubkey_der", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_pem(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_f_11fluxmonitor_8security_9_security_9RSAObject_export_pubkey_der(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -4139,7 +4028,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_12export_pem
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.RSAObject.export_pem", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.RSAObject.export_pubkey_der", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -4147,33 +4036,34 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_12export_pem
   return __pyx_r;
 }
 
-/* "src/misc/security_encrypt.pyx":163
- *             return export_pem(self.rsakey, 1) # export public key
+/* "src/security/security_encrypt.pyx":160
+ *         return export_der(self.rsakey, 1) # export public key
  * 
- *     cpdef export_pubkey_pem(self):             # <<<<<<<<<<<<<<
- *         return export_pem(self.rsakey, 1) # export public key
- * 
+ *     cpdef export_pem(self):             # <<<<<<<<<<<<<<
+ *         if self.privatekey == 1:
+ *             return export_pem(self.rsakey, 0) # export private key
  */
 
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_15export_pubkey_pem(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_pubkey_pem(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, int __pyx_skip_dispatch) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_15export_pem(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_export_pem(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, int __pyx_skip_dispatch) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
   PyObject *__pyx_t_4 = NULL;
+  int __pyx_t_5;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("export_pubkey_pem", 0);
+  __Pyx_RefNannySetupContext("export_pem", 0);
   /* Check if called by wrapper */
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_export_pubkey_pem); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 163; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_export_pem); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 160; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_15export_pubkey_pem)) {
+    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_15export_pem)) {
       __Pyx_XDECREF(__pyx_r);
       __Pyx_INCREF(__pyx_t_1);
       __pyx_t_3 = __pyx_t_1; __pyx_t_4 = NULL;
@@ -4187,10 +4077,10 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_pubkey
         }
       }
       if (__pyx_t_4) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 163; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 160; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       } else {
-        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 163; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 160; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       }
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -4202,7 +4092,164 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_pubkey
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "src/misc/security_encrypt.pyx":164
+  /* "src/security/security_encrypt.pyx":161
+ * 
+ *     cpdef export_pem(self):
+ *         if self.privatekey == 1:             # <<<<<<<<<<<<<<
+ *             return export_pem(self.rsakey, 0) # export private key
+ *         else:
+ */
+  __pyx_t_5 = ((__pyx_v_self->privatekey == 1) != 0);
+  if (__pyx_t_5) {
+
+    /* "src/security/security_encrypt.pyx":162
+ *     cpdef export_pem(self):
+ *         if self.privatekey == 1:
+ *             return export_pem(self.rsakey, 0) # export private key             # <<<<<<<<<<<<<<
+ *         else:
+ *             return export_pem(self.rsakey, 1) # export public key
+ */
+    __Pyx_XDECREF(__pyx_r);
+    __pyx_t_1 = export_pem(__pyx_v_self->rsakey, 0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_r = __pyx_t_1;
+    __pyx_t_1 = 0;
+    goto __pyx_L0;
+  }
+  /*else*/ {
+
+    /* "src/security/security_encrypt.pyx":164
+ *             return export_pem(self.rsakey, 0) # export private key
+ *         else:
+ *             return export_pem(self.rsakey, 1) # export public key             # <<<<<<<<<<<<<<
+ * 
+ *     cpdef export_pubkey_pem(self):
+ */
+    __Pyx_XDECREF(__pyx_r);
+    __pyx_t_1 = export_pem(__pyx_v_self->rsakey, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 164; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_r = __pyx_t_1;
+    __pyx_t_1 = 0;
+    goto __pyx_L0;
+  }
+
+  /* "src/security/security_encrypt.pyx":160
+ *         return export_der(self.rsakey, 1) # export public key
+ * 
+ *     cpdef export_pem(self):             # <<<<<<<<<<<<<<
+ *         if self.privatekey == 1:
+ *             return export_pem(self.rsakey, 0) # export private key
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_AddTraceback("fluxmonitor.security._security.RSAObject.export_pem", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* Python wrapper */
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_15export_pem(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_15export_pem(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("export_pem (wrapper)", 0);
+  __pyx_r = __pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_14export_pem(((struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_14export_pem(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("export_pem", 0);
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = __pyx_f_11fluxmonitor_8security_9_security_9RSAObject_export_pem(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 160; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("fluxmonitor.security._security.RSAObject.export_pem", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "src/security/security_encrypt.pyx":166
+ *             return export_pem(self.rsakey, 1) # export public key
+ * 
+ *     cpdef export_pubkey_pem(self):             # <<<<<<<<<<<<<<
+ *         return export_pem(self.rsakey, 1) # export public key
+ * 
+ */
+
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_17export_pubkey_pem(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_export_pubkey_pem(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, int __pyx_skip_dispatch) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("export_pubkey_pem", 0);
+  /* Check if called by wrapper */
+  if (unlikely(__pyx_skip_dispatch)) ;
+  /* Check if overridden in Python */
+  else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_export_pubkey_pem); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_1);
+    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_17export_pubkey_pem)) {
+      __Pyx_XDECREF(__pyx_r);
+      __Pyx_INCREF(__pyx_t_1);
+      __pyx_t_3 = __pyx_t_1; __pyx_t_4 = NULL;
+      if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_3))) {
+        __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_3);
+        if (likely(__pyx_t_4)) {
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+          __Pyx_INCREF(__pyx_t_4);
+          __Pyx_INCREF(function);
+          __Pyx_DECREF_SET(__pyx_t_3, function);
+        }
+      }
+      if (__pyx_t_4) {
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      } else {
+        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      }
+      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __pyx_r = __pyx_t_2;
+      __pyx_t_2 = 0;
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      goto __pyx_L0;
+    }
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  }
+
+  /* "src/security/security_encrypt.pyx":167
  * 
  *     cpdef export_pubkey_pem(self):
  *         return export_pem(self.rsakey, 1) # export public key             # <<<<<<<<<<<<<<
@@ -4210,13 +4257,13 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_pubkey
  *     cpdef encrypt(self, message):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = export_pem(__pyx_v_self->rsakey, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 164; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = export_pem(__pyx_v_self->rsakey, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 167; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "src/misc/security_encrypt.pyx":163
+  /* "src/security/security_encrypt.pyx":166
  *             return export_pem(self.rsakey, 1) # export public key
  * 
  *     cpdef export_pubkey_pem(self):             # <<<<<<<<<<<<<<
@@ -4230,7 +4277,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_pubkey
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.RSAObject.export_pubkey_pem", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.RSAObject.export_pubkey_pem", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -4239,19 +4286,19 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_pubkey
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_15export_pubkey_pem(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_15export_pubkey_pem(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_17export_pubkey_pem(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_17export_pubkey_pem(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("export_pubkey_pem (wrapper)", 0);
-  __pyx_r = __pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_14export_pubkey_pem(((struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *)__pyx_v_self));
+  __pyx_r = __pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_16export_pubkey_pem(((struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_14export_pubkey_pem(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self) {
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_16export_pubkey_pem(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -4260,7 +4307,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_14export_pub
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("export_pubkey_pem", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_pubkey_pem(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 163; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_f_11fluxmonitor_8security_9_security_9RSAObject_export_pubkey_pem(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -4269,7 +4316,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_14export_pub
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.RSAObject.export_pubkey_pem", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.RSAObject.export_pubkey_pem", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -4277,7 +4324,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_14export_pub
   return __pyx_r;
 }
 
-/* "src/misc/security_encrypt.pyx":166
+/* "src/security/security_encrypt.pyx":169
  *         return export_pem(self.rsakey, 1) # export public key
  * 
  *     cpdef encrypt(self, message):             # <<<<<<<<<<<<<<
@@ -4285,8 +4332,8 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_14export_pub
  * 
  */
 
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_17encrypt(PyObject *__pyx_v_self, PyObject *__pyx_v_message); /*proto*/
-static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_encrypt(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message, int __pyx_skip_dispatch) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_19encrypt(PyObject *__pyx_v_self, PyObject *__pyx_v_message); /*proto*/
+static PyObject *__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_encrypt(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message, int __pyx_skip_dispatch) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -4304,152 +4351,9 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_encrypt(struc
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_encrypt); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_encrypt); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 169; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_17encrypt)) {
-      __Pyx_XDECREF(__pyx_r);
-      __Pyx_INCREF(__pyx_t_1);
-      __pyx_t_3 = __pyx_t_1; __pyx_t_4 = NULL;
-      if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_3))) {
-        __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_3);
-        if (likely(__pyx_t_4)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-          __Pyx_INCREF(__pyx_t_4);
-          __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_3, function);
-        }
-      }
-      if (!__pyx_t_4) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_message); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-        __Pyx_GOTREF(__pyx_t_2);
-      } else {
-        __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-        __Pyx_GOTREF(__pyx_t_5);
-        PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4); __Pyx_GIVEREF(__pyx_t_4); __pyx_t_4 = NULL;
-        __Pyx_INCREF(__pyx_v_message);
-        PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_v_message);
-        __Pyx_GIVEREF(__pyx_v_message);
-        __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-        __Pyx_GOTREF(__pyx_t_2);
-        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      }
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __pyx_r = __pyx_t_2;
-      __pyx_t_2 = 0;
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      goto __pyx_L0;
-    }
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  }
-
-  /* "src/misc/security_encrypt.pyx":167
- * 
- *     cpdef encrypt(self, message):
- *         return encrypt_message(self.rsakey, message, len(message))             # <<<<<<<<<<<<<<
- * 
- *     cpdef decrypt(self, message):
- */
-  __Pyx_XDECREF(__pyx_r);
-  __pyx_t_6 = __Pyx_PyObject_AsUString(__pyx_v_message); if (unlikely((!__pyx_t_6) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 167; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_7 = PyObject_Length(__pyx_v_message); if (unlikely(__pyx_t_7 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 167; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_1 = encrypt_message(__pyx_v_self->rsakey, __pyx_t_6, __pyx_t_7); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 167; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_r = __pyx_t_1;
-  __pyx_t_1 = 0;
-  goto __pyx_L0;
-
-  /* "src/misc/security_encrypt.pyx":166
- *         return export_pem(self.rsakey, 1) # export public key
- * 
- *     cpdef encrypt(self, message):             # <<<<<<<<<<<<<<
- *         return encrypt_message(self.rsakey, message, len(message))
- * 
- */
-
-  /* function exit code */
-  __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.RSAObject.encrypt", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = 0;
-  __pyx_L0:;
-  __Pyx_XGIVEREF(__pyx_r);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-/* Python wrapper */
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_17encrypt(PyObject *__pyx_v_self, PyObject *__pyx_v_message); /*proto*/
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_17encrypt(PyObject *__pyx_v_self, PyObject *__pyx_v_message) {
-  PyObject *__pyx_r = 0;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("encrypt (wrapper)", 0);
-  __pyx_r = __pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_16encrypt(((struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *)__pyx_v_self), ((PyObject *)__pyx_v_message));
-
-  /* function exit code */
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_16encrypt(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message) {
-  PyObject *__pyx_r = NULL;
-  __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
-  int __pyx_lineno = 0;
-  const char *__pyx_filename = NULL;
-  int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("encrypt", 0);
-  __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_encrypt(__pyx_v_self, __pyx_v_message, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_r = __pyx_t_1;
-  __pyx_t_1 = 0;
-  goto __pyx_L0;
-
-  /* function exit code */
-  __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.RSAObject.encrypt", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = NULL;
-  __pyx_L0:;
-  __Pyx_XGIVEREF(__pyx_r);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-/* "src/misc/security_encrypt.pyx":169
- *         return encrypt_message(self.rsakey, message, len(message))
- * 
- *     cpdef decrypt(self, message):             # <<<<<<<<<<<<<<
- *         return decrypt_message(self.rsakey, message, len(message))
- * 
- */
-
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_19decrypt(PyObject *__pyx_v_self, PyObject *__pyx_v_message); /*proto*/
-static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_decrypt(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message, int __pyx_skip_dispatch) {
-  PyObject *__pyx_r = NULL;
-  __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
-  PyObject *__pyx_t_2 = NULL;
-  PyObject *__pyx_t_3 = NULL;
-  PyObject *__pyx_t_4 = NULL;
-  PyObject *__pyx_t_5 = NULL;
-  unsigned char const *__pyx_t_6;
-  Py_ssize_t __pyx_t_7;
-  int __pyx_lineno = 0;
-  const char *__pyx_filename = NULL;
-  int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("decrypt", 0);
-  /* Check if called by wrapper */
-  if (unlikely(__pyx_skip_dispatch)) ;
-  /* Check if overridden in Python */
-  else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_decrypt); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 169; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_1);
-    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_19decrypt)) {
+    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_19encrypt)) {
       __Pyx_XDECREF(__pyx_r);
       __Pyx_INCREF(__pyx_t_1);
       __pyx_t_3 = __pyx_t_1; __pyx_t_4 = NULL;
@@ -4485,27 +4389,27 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_decrypt(struc
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "src/misc/security_encrypt.pyx":170
+  /* "src/security/security_encrypt.pyx":170
+ * 
+ *     cpdef encrypt(self, message):
+ *         return encrypt_message(self.rsakey, message, len(message))             # <<<<<<<<<<<<<<
  * 
  *     cpdef decrypt(self, message):
- *         return decrypt_message(self.rsakey, message, len(message))             # <<<<<<<<<<<<<<
- * 
- *     cpdef sign(self, message):
  */
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_6 = __Pyx_PyObject_AsUString(__pyx_v_message); if (unlikely((!__pyx_t_6) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 170; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_t_7 = PyObject_Length(__pyx_v_message); if (unlikely(__pyx_t_7 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 170; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_1 = decrypt_message(__pyx_v_self->rsakey, __pyx_t_6, __pyx_t_7); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 170; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = encrypt_message(__pyx_v_self->rsakey, __pyx_t_6, __pyx_t_7); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 170; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "src/misc/security_encrypt.pyx":169
- *         return encrypt_message(self.rsakey, message, len(message))
+  /* "src/security/security_encrypt.pyx":169
+ *         return export_pem(self.rsakey, 1) # export public key
  * 
- *     cpdef decrypt(self, message):             # <<<<<<<<<<<<<<
- *         return decrypt_message(self.rsakey, message, len(message))
+ *     cpdef encrypt(self, message):             # <<<<<<<<<<<<<<
+ *         return encrypt_message(self.rsakey, message, len(message))
  * 
  */
 
@@ -4516,7 +4420,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_decrypt(struc
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.RSAObject.decrypt", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.RSAObject.encrypt", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -4525,28 +4429,28 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_decrypt(struc
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_19decrypt(PyObject *__pyx_v_self, PyObject *__pyx_v_message); /*proto*/
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_19decrypt(PyObject *__pyx_v_self, PyObject *__pyx_v_message) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_19encrypt(PyObject *__pyx_v_self, PyObject *__pyx_v_message); /*proto*/
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_19encrypt(PyObject *__pyx_v_self, PyObject *__pyx_v_message) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("decrypt (wrapper)", 0);
-  __pyx_r = __pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_18decrypt(((struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *)__pyx_v_self), ((PyObject *)__pyx_v_message));
+  __Pyx_RefNannySetupContext("encrypt (wrapper)", 0);
+  __pyx_r = __pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_18encrypt(((struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *)__pyx_v_self), ((PyObject *)__pyx_v_message));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_18decrypt(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message) {
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_18encrypt(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("decrypt", 0);
+  __Pyx_RefNannySetupContext("encrypt", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_decrypt(__pyx_v_self, __pyx_v_message, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 169; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_f_11fluxmonitor_8security_9_security_9RSAObject_encrypt(__pyx_v_self, __pyx_v_message, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 169; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -4555,7 +4459,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_18decrypt(st
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.RSAObject.decrypt", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.RSAObject.encrypt", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -4563,16 +4467,16 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_18decrypt(st
   return __pyx_r;
 }
 
-/* "src/misc/security_encrypt.pyx":172
+/* "src/security/security_encrypt.pyx":172
+ *         return encrypt_message(self.rsakey, message, len(message))
+ * 
+ *     cpdef decrypt(self, message):             # <<<<<<<<<<<<<<
  *         return decrypt_message(self.rsakey, message, len(message))
  * 
- *     cpdef sign(self, message):             # <<<<<<<<<<<<<<
- *         if self.privatekey == 1:
- *             return sign_message(self.rsakey, message, len(message))
  */
 
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_21sign(PyObject *__pyx_v_self, PyObject *__pyx_v_message); /*proto*/
-static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_sign(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message, int __pyx_skip_dispatch) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_21decrypt(PyObject *__pyx_v_self, PyObject *__pyx_v_message); /*proto*/
+static PyObject *__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_decrypt(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message, int __pyx_skip_dispatch) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -4580,20 +4484,19 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_sign(struct _
   PyObject *__pyx_t_3 = NULL;
   PyObject *__pyx_t_4 = NULL;
   PyObject *__pyx_t_5 = NULL;
-  int __pyx_t_6;
-  unsigned char const *__pyx_t_7;
-  Py_ssize_t __pyx_t_8;
+  unsigned char const *__pyx_t_6;
+  Py_ssize_t __pyx_t_7;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("sign", 0);
+  __Pyx_RefNannySetupContext("decrypt", 0);
   /* Check if called by wrapper */
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_sign); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_decrypt); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_21sign)) {
+    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_21decrypt)) {
       __Pyx_XDECREF(__pyx_r);
       __Pyx_INCREF(__pyx_t_1);
       __pyx_t_3 = __pyx_t_1; __pyx_t_4 = NULL;
@@ -4629,7 +4532,151 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_sign(struct _
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "src/misc/security_encrypt.pyx":173
+  /* "src/security/security_encrypt.pyx":173
+ * 
+ *     cpdef decrypt(self, message):
+ *         return decrypt_message(self.rsakey, message, len(message))             # <<<<<<<<<<<<<<
+ * 
+ *     cpdef sign(self, message):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_6 = __Pyx_PyObject_AsUString(__pyx_v_message); if (unlikely((!__pyx_t_6) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 173; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_7 = PyObject_Length(__pyx_v_message); if (unlikely(__pyx_t_7 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 173; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = decrypt_message(__pyx_v_self->rsakey, __pyx_t_6, __pyx_t_7); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 173; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "src/security/security_encrypt.pyx":172
+ *         return encrypt_message(self.rsakey, message, len(message))
+ * 
+ *     cpdef decrypt(self, message):             # <<<<<<<<<<<<<<
+ *         return decrypt_message(self.rsakey, message, len(message))
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_AddTraceback("fluxmonitor.security._security.RSAObject.decrypt", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* Python wrapper */
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_21decrypt(PyObject *__pyx_v_self, PyObject *__pyx_v_message); /*proto*/
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_21decrypt(PyObject *__pyx_v_self, PyObject *__pyx_v_message) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("decrypt (wrapper)", 0);
+  __pyx_r = __pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_20decrypt(((struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *)__pyx_v_self), ((PyObject *)__pyx_v_message));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_20decrypt(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("decrypt", 0);
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = __pyx_f_11fluxmonitor_8security_9_security_9RSAObject_decrypt(__pyx_v_self, __pyx_v_message, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("fluxmonitor.security._security.RSAObject.decrypt", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "src/security/security_encrypt.pyx":175
+ *         return decrypt_message(self.rsakey, message, len(message))
+ * 
+ *     cpdef sign(self, message):             # <<<<<<<<<<<<<<
+ *         if self.privatekey == 1:
+ *             return sign_message(self.rsakey, message, len(message))
+ */
+
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_23sign(PyObject *__pyx_v_self, PyObject *__pyx_v_message); /*proto*/
+static PyObject *__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_sign(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message, int __pyx_skip_dispatch) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
+  PyObject *__pyx_t_5 = NULL;
+  int __pyx_t_6;
+  unsigned char const *__pyx_t_7;
+  Py_ssize_t __pyx_t_8;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("sign", 0);
+  /* Check if called by wrapper */
+  if (unlikely(__pyx_skip_dispatch)) ;
+  /* Check if overridden in Python */
+  else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_sign); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_1);
+    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_23sign)) {
+      __Pyx_XDECREF(__pyx_r);
+      __Pyx_INCREF(__pyx_t_1);
+      __pyx_t_3 = __pyx_t_1; __pyx_t_4 = NULL;
+      if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_3))) {
+        __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_3);
+        if (likely(__pyx_t_4)) {
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+          __Pyx_INCREF(__pyx_t_4);
+          __Pyx_INCREF(function);
+          __Pyx_DECREF_SET(__pyx_t_3, function);
+        }
+      }
+      if (!__pyx_t_4) {
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_message); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __Pyx_GOTREF(__pyx_t_2);
+      } else {
+        __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __Pyx_GOTREF(__pyx_t_5);
+        PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4); __Pyx_GIVEREF(__pyx_t_4); __pyx_t_4 = NULL;
+        __Pyx_INCREF(__pyx_v_message);
+        PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_v_message);
+        __Pyx_GIVEREF(__pyx_v_message);
+        __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __Pyx_GOTREF(__pyx_t_2);
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      }
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __pyx_r = __pyx_t_2;
+      __pyx_t_2 = 0;
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      goto __pyx_L0;
+    }
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  }
+
+  /* "src/security/security_encrypt.pyx":176
  * 
  *     cpdef sign(self, message):
  *         if self.privatekey == 1:             # <<<<<<<<<<<<<<
@@ -4639,7 +4686,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_sign(struct _
   __pyx_t_6 = ((__pyx_v_self->privatekey == 1) != 0);
   if (__pyx_t_6) {
 
-    /* "src/misc/security_encrypt.pyx":174
+    /* "src/security/security_encrypt.pyx":177
  *     cpdef sign(self, message):
  *         if self.privatekey == 1:
  *             return sign_message(self.rsakey, message, len(message))             # <<<<<<<<<<<<<<
@@ -4647,9 +4694,9 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_sign(struct _
  *             raise RuntimeError("Public Key can not sign")
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_7 = __Pyx_PyObject_AsUString(__pyx_v_message); if (unlikely((!__pyx_t_7) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 174; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __pyx_t_8 = PyObject_Length(__pyx_v_message); if (unlikely(__pyx_t_8 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 174; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __pyx_t_1 = sign_message(__pyx_v_self->rsakey, __pyx_t_7, __pyx_t_8); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 174; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = __Pyx_PyObject_AsUString(__pyx_v_message); if (unlikely((!__pyx_t_7) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 177; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = PyObject_Length(__pyx_v_message); if (unlikely(__pyx_t_8 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 177; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = sign_message(__pyx_v_self->rsakey, __pyx_t_7, __pyx_t_8); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 177; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __pyx_r = __pyx_t_1;
     __pyx_t_1 = 0;
@@ -4657,21 +4704,21 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_sign(struct _
   }
   /*else*/ {
 
-    /* "src/misc/security_encrypt.pyx":176
+    /* "src/security/security_encrypt.pyx":179
  *             return sign_message(self.rsakey, message, len(message))
  *         else:
  *             raise RuntimeError("Public Key can not sign")             # <<<<<<<<<<<<<<
  * 
  *     cpdef verify(self, message, sig):
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 176; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 179; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 176; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 179; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "src/misc/security_encrypt.pyx":172
+  /* "src/security/security_encrypt.pyx":175
  *         return decrypt_message(self.rsakey, message, len(message))
  * 
  *     cpdef sign(self, message):             # <<<<<<<<<<<<<<
@@ -4686,7 +4733,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_sign(struct _
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.RSAObject.sign", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.RSAObject.sign", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -4695,19 +4742,19 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_sign(struct _
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_21sign(PyObject *__pyx_v_self, PyObject *__pyx_v_message); /*proto*/
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_21sign(PyObject *__pyx_v_self, PyObject *__pyx_v_message) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_23sign(PyObject *__pyx_v_self, PyObject *__pyx_v_message); /*proto*/
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_23sign(PyObject *__pyx_v_self, PyObject *__pyx_v_message) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("sign (wrapper)", 0);
-  __pyx_r = __pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_20sign(((struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *)__pyx_v_self), ((PyObject *)__pyx_v_message));
+  __pyx_r = __pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_22sign(((struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *)__pyx_v_self), ((PyObject *)__pyx_v_message));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_20sign(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message) {
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_22sign(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -4716,7 +4763,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_20sign(struc
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("sign", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_sign(__pyx_v_self, __pyx_v_message, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_f_11fluxmonitor_8security_9_security_9RSAObject_sign(__pyx_v_self, __pyx_v_message, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -4725,7 +4772,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_20sign(struc
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.RSAObject.sign", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.RSAObject.sign", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -4733,7 +4780,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_20sign(struc
   return __pyx_r;
 }
 
-/* "src/misc/security_encrypt.pyx":178
+/* "src/security/security_encrypt.pyx":181
  *             raise RuntimeError("Public Key can not sign")
  * 
  *     cpdef verify(self, message, sig):             # <<<<<<<<<<<<<<
@@ -4741,8 +4788,8 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_20sign(struc
  *                               sig, len(sig)) == 1
  */
 
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_23verify(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_verify(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message, PyObject *__pyx_v_sig, int __pyx_skip_dispatch) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_25verify(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_verify(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message, PyObject *__pyx_v_sig, int __pyx_skip_dispatch) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -4762,9 +4809,9 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_verify(struct
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_verify); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 178; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_verify); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 181; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_23verify)) {
+    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_25verify)) {
       __Pyx_XDECREF(__pyx_r);
       __Pyx_INCREF(__pyx_t_1);
       __pyx_t_3 = __pyx_t_1; __pyx_t_4 = NULL;
@@ -4779,7 +4826,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_verify(struct
           __pyx_t_5 = 1;
         }
       }
-      __pyx_t_6 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 178; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_6 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 181; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_6);
       if (__pyx_t_4) {
         PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_4); __Pyx_GIVEREF(__pyx_t_4); __pyx_t_4 = NULL;
@@ -4790,7 +4837,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_verify(struct
       __Pyx_INCREF(__pyx_v_sig);
       PyTuple_SET_ITEM(__pyx_t_6, 1+__pyx_t_5, __pyx_v_sig);
       __Pyx_GIVEREF(__pyx_v_sig);
-      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 178; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 181; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -4802,37 +4849,37 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_verify(struct
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "src/misc/security_encrypt.pyx":179
+  /* "src/security/security_encrypt.pyx":182
  * 
  *     cpdef verify(self, message, sig):
  *         return verify_message(self.rsakey, message, len(message),             # <<<<<<<<<<<<<<
  *                               sig, len(sig)) == 1
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_7 = __Pyx_PyObject_AsUString(__pyx_v_message); if (unlikely((!__pyx_t_7) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 179; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_5 = PyObject_Length(__pyx_v_message); if (unlikely(__pyx_t_5 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 179; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_7 = __Pyx_PyObject_AsUString(__pyx_v_message); if (unlikely((!__pyx_t_7) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 182; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = PyObject_Length(__pyx_v_message); if (unlikely(__pyx_t_5 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 182; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/misc/security_encrypt.pyx":180
+  /* "src/security/security_encrypt.pyx":183
  *     cpdef verify(self, message, sig):
  *         return verify_message(self.rsakey, message, len(message),
  *                               sig, len(sig)) == 1             # <<<<<<<<<<<<<<
  */
-  __pyx_t_8 = __Pyx_PyObject_AsUString(__pyx_v_sig); if (unlikely((!__pyx_t_8) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 180; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_9 = PyObject_Length(__pyx_v_sig); if (unlikely(__pyx_t_9 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 180; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_8 = __Pyx_PyObject_AsUString(__pyx_v_sig); if (unlikely((!__pyx_t_8) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 183; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_9 = PyObject_Length(__pyx_v_sig); if (unlikely(__pyx_t_9 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 183; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/misc/security_encrypt.pyx":179
+  /* "src/security/security_encrypt.pyx":182
  * 
  *     cpdef verify(self, message, sig):
  *         return verify_message(self.rsakey, message, len(message),             # <<<<<<<<<<<<<<
  *                               sig, len(sig)) == 1
  */
-  __pyx_t_1 = __Pyx_PyBool_FromLong((verify_message(__pyx_v_self->rsakey, __pyx_t_7, __pyx_t_5, __pyx_t_8, __pyx_t_9) == 1)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 180; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyBool_FromLong((verify_message(__pyx_v_self->rsakey, __pyx_t_7, __pyx_t_5, __pyx_t_8, __pyx_t_9) == 1)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 183; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "src/misc/security_encrypt.pyx":178
+  /* "src/security/security_encrypt.pyx":181
  *             raise RuntimeError("Public Key can not sign")
  * 
  *     cpdef verify(self, message, sig):             # <<<<<<<<<<<<<<
@@ -4847,7 +4894,7 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_verify(struct
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_6);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.RSAObject.verify", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.RSAObject.verify", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -4856,8 +4903,8 @@ static PyObject *__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_verify(struct
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_23verify(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_23verify(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_25verify(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_25verify(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_message = 0;
   PyObject *__pyx_v_sig = 0;
   int __pyx_lineno = 0;
@@ -4886,11 +4933,11 @@ static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_23verify(PyO
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_sig)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("verify", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 178; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("verify", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 181; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "verify") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 178; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "verify") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 181; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -4903,20 +4950,20 @@ static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_23verify(PyO
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("verify", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 178; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("verify", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 181; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("fluxmonitor.misc._security.RSAObject.verify", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.RSAObject.verify", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_22verify(((struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *)__pyx_v_self), __pyx_v_message, __pyx_v_sig);
+  __pyx_r = __pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_24verify(((struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *)__pyx_v_self), __pyx_v_message, __pyx_v_sig);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_22verify(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message, PyObject *__pyx_v_sig) {
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_24verify(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message, PyObject *__pyx_v_sig) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -4925,7 +4972,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_22verify(str
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("verify", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_verify(__pyx_v_self, __pyx_v_message, __pyx_v_sig, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 178; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_f_11fluxmonitor_8security_9_security_9RSAObject_verify(__pyx_v_self, __pyx_v_message, __pyx_v_sig, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 181; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -4934,7 +4981,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_22verify(str
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.RSAObject.verify", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.RSAObject.verify", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -4942,7 +4989,318 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_22verify(str
   return __pyx_r;
 }
 
-/* "src/misc/security.pyx":15
+/* "src/security/security.pyx":23
+ * 
+ * 
+ * def get_rsakey(rescue=False):             # <<<<<<<<<<<<<<
+ *     cdef RSA* key
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_1get_rsakey(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_11fluxmonitor_8security_9_security_1get_rsakey = {"get_rsakey", (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_1get_rsakey, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_1get_rsakey(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  PyObject *__pyx_v_rescue = 0;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("get_rsakey (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_rescue,0};
+    PyObject* values[1] = {0};
+    values[0] = ((PyObject *)Py_False);
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (kw_args > 0) {
+          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_rescue);
+          if (value) { values[0] = value; kw_args--; }
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_rsakey") < 0)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 23; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      }
+    } else {
+      switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+    }
+    __pyx_v_rescue = values[0];
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("get_rsakey", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[1]; __pyx_lineno = 23; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("fluxmonitor.security._security.get_rsakey", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_11fluxmonitor_8security_9_security_get_rsakey(__pyx_self, __pyx_v_rescue);
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_get_rsakey(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_rescue) {
+  RSA *__pyx_v_key;
+  struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_keyobj = 0;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  RSA *__pyx_t_2;
+  PyObject *__pyx_t_3 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("get_rsakey", 0);
+
+  /* "src/security/security.pyx":26
+ *     cdef RSA* key
+ * 
+ *     if rescue:             # <<<<<<<<<<<<<<
+ *         key = get_rescue_machine_rsakey()
+ *     else:
+ */
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_rescue); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 26; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__pyx_t_1) {
+
+    /* "src/security/security.pyx":27
+ * 
+ *     if rescue:
+ *         key = get_rescue_machine_rsakey()             # <<<<<<<<<<<<<<
+ *     else:
+ *         key = get_machine_rsakey()
+ */
+    __pyx_t_2 = get_rescue_machine_rsakey(); if (unlikely(__pyx_t_2 == NULL)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_v_key = __pyx_t_2;
+    goto __pyx_L3;
+  }
+  /*else*/ {
+
+    /* "src/security/security.pyx":29
+ *         key = get_rescue_machine_rsakey()
+ *     else:
+ *         key = get_machine_rsakey()             # <<<<<<<<<<<<<<
+ * 
+ *     cdef RSAObject keyobj = RSAObject()
+ */
+    __pyx_t_2 = get_machine_rsakey(); if (unlikely(__pyx_t_2 == NULL)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 29; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_v_key = __pyx_t_2;
+  }
+  __pyx_L3:;
+
+  /* "src/security/security.pyx":31
+ *         key = get_machine_rsakey()
+ * 
+ *     cdef RSAObject keyobj = RSAObject()             # <<<<<<<<<<<<<<
+ *     keyobj.rsakey = key
+ *     return keyobj
+ */
+  __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)((PyObject*)__pyx_ptype_11fluxmonitor_8security_9_security_RSAObject)), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 31; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_v_keyobj = ((struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *)__pyx_t_3);
+  __pyx_t_3 = 0;
+
+  /* "src/security/security.pyx":32
+ * 
+ *     cdef RSAObject keyobj = RSAObject()
+ *     keyobj.rsakey = key             # <<<<<<<<<<<<<<
+ *     return keyobj
+ * 
+ */
+  __pyx_v_keyobj->rsakey = __pyx_v_key;
+
+  /* "src/security/security.pyx":33
+ *     cdef RSAObject keyobj = RSAObject()
+ *     keyobj.rsakey = key
+ *     return keyobj             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF(((PyObject *)__pyx_v_keyobj));
+  __pyx_r = ((PyObject *)__pyx_v_keyobj);
+  goto __pyx_L0;
+
+  /* "src/security/security.pyx":23
+ * 
+ * 
+ * def get_rsakey(rescue=False):             # <<<<<<<<<<<<<<
+ *     cdef RSA* key
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_AddTraceback("fluxmonitor.security._security.get_rsakey", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XDECREF((PyObject *)__pyx_v_keyobj);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "src/security/security.pyx":36
+ * 
+ * 
+ * def get_uuid(rescue=False):             # <<<<<<<<<<<<<<
+ *     cdef unsigned char[16] buf
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_3get_uuid(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_11fluxmonitor_8security_9_security_3get_uuid = {"get_uuid", (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_3get_uuid, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_3get_uuid(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  PyObject *__pyx_v_rescue = 0;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("get_uuid (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_rescue,0};
+    PyObject* values[1] = {0};
+    values[0] = ((PyObject *)Py_False);
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (kw_args > 0) {
+          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_rescue);
+          if (value) { values[0] = value; kw_args--; }
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_uuid") < 0)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      }
+    } else {
+      switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+    }
+    __pyx_v_rescue = values[0];
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("get_uuid", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[1]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("fluxmonitor.security._security.get_uuid", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_11fluxmonitor_8security_9_security_2get_uuid(__pyx_self, __pyx_v_rescue);
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_2get_uuid(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_rescue) {
+  unsigned char __pyx_v_buf[16];
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  int __pyx_t_2;
+  PyObject *__pyx_t_3 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("get_uuid", 0);
+
+  /* "src/security/security.pyx":39
+ *     cdef unsigned char[16] buf
+ * 
+ *     if rescue:             # <<<<<<<<<<<<<<
+ *         get_machine_uuid(<unsigned char**>&buf)
+ *     else:
+ */
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_rescue); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 39; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__pyx_t_1) {
+
+    /* "src/security/security.pyx":40
+ * 
+ *     if rescue:
+ *         get_machine_uuid(<unsigned char**>&buf)             # <<<<<<<<<<<<<<
+ *     else:
+ *         get_rescue_machine_uuid(<unsigned char**>&buf)
+ */
+    __pyx_t_2 = get_machine_uuid(((unsigned char **)(&__pyx_v_buf))); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 40; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    goto __pyx_L3;
+  }
+  /*else*/ {
+
+    /* "src/security/security.pyx":42
+ *         get_machine_uuid(<unsigned char**>&buf)
+ *     else:
+ *         get_rescue_machine_uuid(<unsigned char**>&buf)             # <<<<<<<<<<<<<<
+ * 
+ *     return buf[:16]
+ */
+    __pyx_t_2 = get_rescue_machine_uuid(((unsigned char **)(&__pyx_v_buf))); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 42; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  }
+  __pyx_L3:;
+
+  /* "src/security/security.pyx":44
+ *         get_rescue_machine_uuid(<unsigned char**>&buf)
+ * 
+ *     return buf[:16]             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_3 = __Pyx_PyBytes_FromStringAndSize(((const char*)__pyx_v_buf) + 0, 16 - 0); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 44; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_r = __pyx_t_3;
+  __pyx_t_3 = 0;
+  goto __pyx_L0;
+
+  /* "src/security/security.pyx":36
+ * 
+ * 
+ * def get_uuid(rescue=False):             # <<<<<<<<<<<<<<
+ *     cdef unsigned char[16] buf
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_AddTraceback("fluxmonitor.security._security.get_uuid", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "src/security/security.pyx":47
  * 
  * 
  * cpdef bint is_rsakey(object pem=None, object der=None):             # <<<<<<<<<<<<<<
@@ -4950,8 +5308,8 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_9RSAObject_22verify(str
  *         return False
  */
 
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_1is_rsakey(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static int __pyx_f_11fluxmonitor_4misc_9_security_is_rsakey(CYTHON_UNUSED int __pyx_skip_dispatch, struct __pyx_opt_args_11fluxmonitor_4misc_9_security_is_rsakey *__pyx_optional_args) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_5is_rsakey(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static int __pyx_f_11fluxmonitor_8security_9_security_is_rsakey(CYTHON_UNUSED int __pyx_skip_dispatch, struct __pyx_opt_args_11fluxmonitor_8security_9_security_is_rsakey *__pyx_optional_args) {
   PyObject *__pyx_v_pem = ((PyObject *)Py_None);
   PyObject *__pyx_v_der = ((PyObject *)Py_None);
   int __pyx_r;
@@ -4979,27 +5337,27 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_is_rsakey(CYTHON_UNUSED int __
     }
   }
 
-  /* "src/misc/security.pyx":16
+  /* "src/security/security.pyx":48
  * 
  * cpdef bint is_rsakey(object pem=None, object der=None):
  *     if not pem and not der:             # <<<<<<<<<<<<<<
  *         return False
  *     try:
  */
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_pem); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_pem); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 48; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_t_3 = ((!__pyx_t_2) != 0);
   if (__pyx_t_3) {
   } else {
     __pyx_t_1 = __pyx_t_3;
     goto __pyx_L4_bool_binop_done;
   }
-  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_v_der); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_v_der); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 48; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_t_2 = ((!__pyx_t_3) != 0);
   __pyx_t_1 = __pyx_t_2;
   __pyx_L4_bool_binop_done:;
   if (__pyx_t_1) {
 
-    /* "src/misc/security.pyx":17
+    /* "src/security/security.pyx":49
  * cpdef bint is_rsakey(object pem=None, object der=None):
  *     if not pem and not der:
  *         return False             # <<<<<<<<<<<<<<
@@ -5010,7 +5368,7 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_is_rsakey(CYTHON_UNUSED int __
     goto __pyx_L0;
   }
 
-  /* "src/misc/security.pyx":18
+  /* "src/security/security.pyx":50
  *     if not pem and not der:
  *         return False
  *     try:             # <<<<<<<<<<<<<<
@@ -5024,23 +5382,23 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_is_rsakey(CYTHON_UNUSED int __
     __Pyx_XGOTREF(__pyx_t_6);
     /*try:*/ {
 
-      /* "src/misc/security.pyx":19
+      /* "src/security/security.pyx":51
  *         return False
  *     try:
  *         RSAObject(pem=pem, der=der)             # <<<<<<<<<<<<<<
  *         return True
  *     except TypeError:
  */
-      __pyx_t_7 = PyDict_New(); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 19; __pyx_clineno = __LINE__; goto __pyx_L6_error;}
+      __pyx_t_7 = PyDict_New(); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 51; __pyx_clineno = __LINE__; goto __pyx_L6_error;}
       __Pyx_GOTREF(__pyx_t_7);
-      if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_pem, __pyx_v_pem) < 0) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 19; __pyx_clineno = __LINE__; goto __pyx_L6_error;}
-      if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_der, __pyx_v_der) < 0) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 19; __pyx_clineno = __LINE__; goto __pyx_L6_error;}
-      __pyx_t_8 = __Pyx_PyObject_Call(((PyObject *)((PyObject*)__pyx_ptype_11fluxmonitor_4misc_9_security_RSAObject)), __pyx_empty_tuple, __pyx_t_7); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 19; __pyx_clineno = __LINE__; goto __pyx_L6_error;}
+      if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_pem, __pyx_v_pem) < 0) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 51; __pyx_clineno = __LINE__; goto __pyx_L6_error;}
+      if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_der, __pyx_v_der) < 0) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 51; __pyx_clineno = __LINE__; goto __pyx_L6_error;}
+      __pyx_t_8 = __Pyx_PyObject_Call(((PyObject *)((PyObject*)__pyx_ptype_11fluxmonitor_8security_9_security_RSAObject)), __pyx_empty_tuple, __pyx_t_7); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 51; __pyx_clineno = __LINE__; goto __pyx_L6_error;}
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
-      /* "src/misc/security.pyx":20
+      /* "src/security/security.pyx":52
  *     try:
  *         RSAObject(pem=pem, der=der)
  *         return True             # <<<<<<<<<<<<<<
@@ -5054,7 +5412,7 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_is_rsakey(CYTHON_UNUSED int __
     __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
 
-    /* "src/misc/security.pyx":21
+    /* "src/security/security.pyx":53
  *         RSAObject(pem=pem, der=der)
  *         return True
  *     except TypeError:             # <<<<<<<<<<<<<<
@@ -5063,13 +5421,13 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_is_rsakey(CYTHON_UNUSED int __
  */
     __pyx_t_9 = PyErr_ExceptionMatches(__pyx_builtin_TypeError);
     if (__pyx_t_9) {
-      __Pyx_AddTraceback("fluxmonitor.misc._security.is_rsakey", __pyx_clineno, __pyx_lineno, __pyx_filename);
-      if (__Pyx_GetException(&__pyx_t_8, &__pyx_t_7, &__pyx_t_10) < 0) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 21; __pyx_clineno = __LINE__; goto __pyx_L8_except_error;}
+      __Pyx_AddTraceback("fluxmonitor.security._security.is_rsakey", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      if (__Pyx_GetException(&__pyx_t_8, &__pyx_t_7, &__pyx_t_10) < 0) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 53; __pyx_clineno = __LINE__; goto __pyx_L8_except_error;}
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_GOTREF(__pyx_t_10);
 
-      /* "src/misc/security.pyx":22
+      /* "src/security/security.pyx":54
  *         return True
  *     except TypeError:
  *         return False             # <<<<<<<<<<<<<<
@@ -5103,7 +5461,7 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_is_rsakey(CYTHON_UNUSED int __
     goto __pyx_L0;
   }
 
-  /* "src/misc/security.pyx":15
+  /* "src/security/security.pyx":47
  * 
  * 
  * cpdef bint is_rsakey(object pem=None, object der=None):             # <<<<<<<<<<<<<<
@@ -5116,7 +5474,7 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_is_rsakey(CYTHON_UNUSED int __
   __Pyx_XDECREF(__pyx_t_7);
   __Pyx_XDECREF(__pyx_t_8);
   __Pyx_XDECREF(__pyx_t_10);
-  __Pyx_WriteUnraisable("fluxmonitor.misc._security.is_rsakey", __pyx_clineno, __pyx_lineno, __pyx_filename, 0);
+  __Pyx_WriteUnraisable("fluxmonitor.security._security.is_rsakey", __pyx_clineno, __pyx_lineno, __pyx_filename, 0);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
@@ -5124,8 +5482,8 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_is_rsakey(CYTHON_UNUSED int __
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_1is_rsakey(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_1is_rsakey(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_5is_rsakey(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_5is_rsakey(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_pem = 0;
   PyObject *__pyx_v_der = 0;
   int __pyx_lineno = 0;
@@ -5162,7 +5520,7 @@ static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_1is_rsakey(PyObject *__
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "is_rsakey") < 0)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 15; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "is_rsakey") < 0)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 47; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -5177,24 +5535,24 @@ static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_1is_rsakey(PyObject *__
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("is_rsakey", 0, 0, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[1]; __pyx_lineno = 15; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("is_rsakey", 0, 0, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[1]; __pyx_lineno = 47; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("fluxmonitor.misc._security.is_rsakey", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.is_rsakey", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_11fluxmonitor_4misc_9_security_is_rsakey(__pyx_self, __pyx_v_pem, __pyx_v_der);
+  __pyx_r = __pyx_pf_11fluxmonitor_8security_9_security_4is_rsakey(__pyx_self, __pyx_v_pem, __pyx_v_der);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_is_rsakey(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_pem, PyObject *__pyx_v_der) {
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_4is_rsakey(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_pem, PyObject *__pyx_v_der) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
-  struct __pyx_opt_args_11fluxmonitor_4misc_9_security_is_rsakey __pyx_t_2;
+  struct __pyx_opt_args_11fluxmonitor_8security_9_security_is_rsakey __pyx_t_2;
   PyObject *__pyx_t_3 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
@@ -5204,8 +5562,8 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_is_rsakey(CYTHON_UNUSED
   __pyx_t_2.__pyx_n = 2;
   __pyx_t_2.pem = __pyx_v_pem;
   __pyx_t_2.der = __pyx_v_der;
-  __pyx_t_1 = __pyx_f_11fluxmonitor_4misc_9_security_is_rsakey(0, &__pyx_t_2); 
-  __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 15; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_f_11fluxmonitor_8security_9_security_is_rsakey(0, &__pyx_t_2); 
+  __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 47; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_r = __pyx_t_3;
   __pyx_t_3 = 0;
@@ -5214,7 +5572,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_is_rsakey(CYTHON_UNUSED
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.is_rsakey", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.is_rsakey", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -5222,7 +5580,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_is_rsakey(CYTHON_UNUSED
   return __pyx_r;
 }
 
-/* "src/misc/security.pyx":25
+/* "src/security/security.pyx":57
  * 
  * 
  * cpdef bint has_password():             # <<<<<<<<<<<<<<
@@ -5230,8 +5588,8 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_is_rsakey(CYTHON_UNUSED
  * 
  */
 
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_3has_password(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static int __pyx_f_11fluxmonitor_4misc_9_security_has_password(CYTHON_UNUSED int __pyx_skip_dispatch) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_7has_password(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static int __pyx_f_11fluxmonitor_8security_9_security_has_password(CYTHON_UNUSED int __pyx_skip_dispatch) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -5242,24 +5600,24 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_has_password(CYTHON_UNUSED int
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("has_password", 0);
 
-  /* "src/misc/security.pyx":26
+  /* "src/security/security.pyx":58
  * 
  * cpdef bint has_password():
  *     return storage.exists(PASSWORD_SYMBOL)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_11fluxmonitor_4misc_9_security_storage, __pyx_n_s_exists); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 26; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_11fluxmonitor_8security_9_security_storage, __pyx_n_s_exists); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__5, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 26; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__5, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely((__pyx_t_3 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 26; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely((__pyx_t_3 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_r = __pyx_t_3;
   goto __pyx_L0;
 
-  /* "src/misc/security.pyx":25
+  /* "src/security/security.pyx":57
  * 
  * 
  * cpdef bint has_password():             # <<<<<<<<<<<<<<
@@ -5271,7 +5629,7 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_has_password(CYTHON_UNUSED int
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_WriteUnraisable("fluxmonitor.misc._security.has_password", __pyx_clineno, __pyx_lineno, __pyx_filename, 0);
+  __Pyx_WriteUnraisable("fluxmonitor.security._security.has_password", __pyx_clineno, __pyx_lineno, __pyx_filename, 0);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
@@ -5279,19 +5637,19 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_has_password(CYTHON_UNUSED int
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_3has_password(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_3has_password(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_7has_password(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_7has_password(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("has_password (wrapper)", 0);
-  __pyx_r = __pyx_pf_11fluxmonitor_4misc_9_security_2has_password(__pyx_self);
+  __pyx_r = __pyx_pf_11fluxmonitor_8security_9_security_6has_password(__pyx_self);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_2has_password(CYTHON_UNUSED PyObject *__pyx_self) {
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_6has_password(CYTHON_UNUSED PyObject *__pyx_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -5300,7 +5658,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_2has_password(CYTHON_UN
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("has_password", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong(__pyx_f_11fluxmonitor_4misc_9_security_has_password(0)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 25; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyBool_FromLong(__pyx_f_11fluxmonitor_8security_9_security_has_password(0)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 57; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -5309,7 +5667,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_2has_password(CYTHON_UN
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.has_password", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.has_password", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -5317,7 +5675,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_2has_password(CYTHON_UN
   return __pyx_r;
 }
 
-/* "src/misc/security.pyx":29
+/* "src/security/security.pyx":61
  * 
  * 
  * cpdef bint validate_password(password):             # <<<<<<<<<<<<<<
@@ -5325,8 +5683,8 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_2has_password(CYTHON_UN
  *         with storage.open(PASSWORD_SYMBOL, "r") as f:
  */
 
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_5validate_password(PyObject *__pyx_self, PyObject *__pyx_v_password); /*proto*/
-static int __pyx_f_11fluxmonitor_4misc_9_security_validate_password(PyObject *__pyx_v_password, CYTHON_UNUSED int __pyx_skip_dispatch) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9validate_password(PyObject *__pyx_self, PyObject *__pyx_v_password); /*proto*/
+static int __pyx_f_11fluxmonitor_8security_9_security_validate_password(PyObject *__pyx_v_password, CYTHON_UNUSED int __pyx_skip_dispatch) {
   PyObject *__pyx_v_f = NULL;
   PyObject *__pyx_v_salt = NULL;
   PyObject *__pyx_v_pwdhash = NULL;
@@ -5353,17 +5711,17 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_validate_password(PyObject *__
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("validate_password", 0);
 
-  /* "src/misc/security.pyx":30
+  /* "src/security/security.pyx":62
  * 
  * cpdef bint validate_password(password):
  *     if has_password():             # <<<<<<<<<<<<<<
  *         with storage.open(PASSWORD_SYMBOL, "r") as f:
  *             salt, pwdhash = f.read().split(";")
  */
-  __pyx_t_1 = (__pyx_f_11fluxmonitor_4misc_9_security_has_password(0) != 0);
+  __pyx_t_1 = (__pyx_f_11fluxmonitor_8security_9_security_has_password(0) != 0);
   if (__pyx_t_1) {
 
-    /* "src/misc/security.pyx":31
+    /* "src/security/security.pyx":63
  * cpdef bint validate_password(password):
  *     if has_password():
  *         with storage.open(PASSWORD_SYMBOL, "r") as f:             # <<<<<<<<<<<<<<
@@ -5371,14 +5729,14 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_validate_password(PyObject *__
  *             inputhash = HMAC(salt, password, sha1).hexdigest()
  */
     /*with:*/ {
-      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_11fluxmonitor_4misc_9_security_storage, __pyx_n_s_open); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 31; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_11fluxmonitor_8security_9_security_storage, __pyx_n_s_open); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__6, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 31; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__6, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_4 = __Pyx_PyObject_LookupSpecial(__pyx_t_3, __pyx_n_s_exit); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 31; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_4 = __Pyx_PyObject_LookupSpecial(__pyx_t_3, __pyx_n_s_exit); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_5 = __Pyx_PyObject_LookupSpecial(__pyx_t_3, __pyx_n_s_enter); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 31; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
+      __pyx_t_5 = __Pyx_PyObject_LookupSpecial(__pyx_t_3, __pyx_n_s_enter); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
       __Pyx_GOTREF(__pyx_t_5);
       __pyx_t_6 = NULL;
       if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_5))) {
@@ -5391,10 +5749,10 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_validate_password(PyObject *__
         }
       }
       if (__pyx_t_6) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_6); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 31; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_6); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       } else {
-        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_5); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 31; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
+        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_5); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
       }
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -5411,14 +5769,14 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_validate_password(PyObject *__
             __pyx_v_f = __pyx_t_5;
             __pyx_t_5 = 0;
 
-            /* "src/misc/security.pyx":32
+            /* "src/security/security.pyx":64
  *     if has_password():
  *         with storage.open(PASSWORD_SYMBOL, "r") as f:
  *             salt, pwdhash = f.read().split(";")             # <<<<<<<<<<<<<<
  *             inputhash = HMAC(salt, password, sha1).hexdigest()
  *             return pwdhash == inputhash
  */
-            __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_f, __pyx_n_s_read); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 32; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
+            __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_f, __pyx_n_s_read); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
             __Pyx_GOTREF(__pyx_t_3);
             __pyx_t_2 = NULL;
             if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_3))) {
@@ -5431,17 +5789,17 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_validate_password(PyObject *__
               }
             }
             if (__pyx_t_2) {
-              __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 32; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
+              __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
               __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
             } else {
-              __pyx_t_5 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 32; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
+              __pyx_t_5 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
             }
             __Pyx_GOTREF(__pyx_t_5);
             __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-            __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_split); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 32; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
+            __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_split); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
             __Pyx_GOTREF(__pyx_t_3);
             __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-            __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple__8, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 32; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
+            __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple__8, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
             __Pyx_GOTREF(__pyx_t_5);
             __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
             if ((likely(PyTuple_CheckExact(__pyx_t_5))) || (PyList_CheckExact(__pyx_t_5))) {
@@ -5454,7 +5812,7 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_validate_password(PyObject *__
               if (unlikely(size != 2)) {
                 if (size > 2) __Pyx_RaiseTooManyValuesError(2);
                 else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-                {__pyx_filename = __pyx_f[1]; __pyx_lineno = 32; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
+                {__pyx_filename = __pyx_f[1]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
               }
               #if CYTHON_COMPILING_IN_CPYTHON
               if (likely(PyTuple_CheckExact(sequence))) {
@@ -5467,15 +5825,15 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_validate_password(PyObject *__
               __Pyx_INCREF(__pyx_t_3);
               __Pyx_INCREF(__pyx_t_2);
               #else
-              __pyx_t_3 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 32; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
+              __pyx_t_3 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
               __Pyx_GOTREF(__pyx_t_3);
-              __pyx_t_2 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 32; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
+              __pyx_t_2 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
               __Pyx_GOTREF(__pyx_t_2);
               #endif
               __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
             } else {
               Py_ssize_t index = -1;
-              __pyx_t_6 = PyObject_GetIter(__pyx_t_5); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 32; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
+              __pyx_t_6 = PyObject_GetIter(__pyx_t_5); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
               __Pyx_GOTREF(__pyx_t_6);
               __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
               __pyx_t_10 = Py_TYPE(__pyx_t_6)->tp_iternext;
@@ -5483,7 +5841,7 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_validate_password(PyObject *__
               __Pyx_GOTREF(__pyx_t_3);
               index = 1; __pyx_t_2 = __pyx_t_10(__pyx_t_6); if (unlikely(!__pyx_t_2)) goto __pyx_L16_unpacking_failed;
               __Pyx_GOTREF(__pyx_t_2);
-              if (__Pyx_IternextUnpackEndCheck(__pyx_t_10(__pyx_t_6), 2) < 0) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 32; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
+              if (__Pyx_IternextUnpackEndCheck(__pyx_t_10(__pyx_t_6), 2) < 0) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
               __pyx_t_10 = NULL;
               __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
               goto __pyx_L17_unpacking_done;
@@ -5491,7 +5849,7 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_validate_password(PyObject *__
               __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
               __pyx_t_10 = NULL;
               if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-              {__pyx_filename = __pyx_f[1]; __pyx_lineno = 32; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
+              {__pyx_filename = __pyx_f[1]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
               __pyx_L17_unpacking_done:;
             }
             __pyx_v_salt = __pyx_t_3;
@@ -5499,16 +5857,16 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_validate_password(PyObject *__
             __pyx_v_pwdhash = __pyx_t_2;
             __pyx_t_2 = 0;
 
-            /* "src/misc/security.pyx":33
+            /* "src/security/security.pyx":65
  *         with storage.open(PASSWORD_SYMBOL, "r") as f:
  *             salt, pwdhash = f.read().split(";")
  *             inputhash = HMAC(salt, password, sha1).hexdigest()             # <<<<<<<<<<<<<<
  *             return pwdhash == inputhash
  *     else:
  */
-            __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_HMAC); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 33; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
+            __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_HMAC); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
             __Pyx_GOTREF(__pyx_t_3);
-            __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_sha1); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 33; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
+            __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_sha1); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
             __Pyx_GOTREF(__pyx_t_6);
             __pyx_t_11 = NULL;
             __pyx_t_12 = 0;
@@ -5522,7 +5880,7 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_validate_password(PyObject *__
                 __pyx_t_12 = 1;
               }
             }
-            __pyx_t_13 = PyTuple_New(3+__pyx_t_12); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 33; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
+            __pyx_t_13 = PyTuple_New(3+__pyx_t_12); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
             __Pyx_GOTREF(__pyx_t_13);
             if (__pyx_t_11) {
               PyTuple_SET_ITEM(__pyx_t_13, 0, __pyx_t_11); __Pyx_GIVEREF(__pyx_t_11); __pyx_t_11 = NULL;
@@ -5536,11 +5894,11 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_validate_password(PyObject *__
             PyTuple_SET_ITEM(__pyx_t_13, 2+__pyx_t_12, __pyx_t_6);
             __Pyx_GIVEREF(__pyx_t_6);
             __pyx_t_6 = 0;
-            __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_13, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 33; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
+            __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_13, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
             __Pyx_GOTREF(__pyx_t_2);
             __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
             __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-            __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_hexdigest); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 33; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
+            __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_hexdigest); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
             __Pyx_GOTREF(__pyx_t_3);
             __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
             __pyx_t_2 = NULL;
@@ -5554,25 +5912,25 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_validate_password(PyObject *__
               }
             }
             if (__pyx_t_2) {
-              __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 33; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
+              __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
               __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
             } else {
-              __pyx_t_5 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 33; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
+              __pyx_t_5 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
             }
             __Pyx_GOTREF(__pyx_t_5);
             __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
             __pyx_v_inputhash = __pyx_t_5;
             __pyx_t_5 = 0;
 
-            /* "src/misc/security.pyx":34
+            /* "src/security/security.pyx":66
  *             salt, pwdhash = f.read().split(";")
  *             inputhash = HMAC(salt, password, sha1).hexdigest()
  *             return pwdhash == inputhash             # <<<<<<<<<<<<<<
  *     else:
  *         return True
  */
-            __pyx_t_5 = PyObject_RichCompare(__pyx_v_pwdhash, __pyx_v_inputhash, Py_EQ); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 34; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
-            __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely((__pyx_t_1 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 34; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
+            __pyx_t_5 = PyObject_RichCompare(__pyx_v_pwdhash, __pyx_v_inputhash, Py_EQ); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 66; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
+            __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely((__pyx_t_1 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 66; __pyx_clineno = __LINE__; goto __pyx_L8_error;}
             __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
             __pyx_r = __pyx_t_1;
             goto __pyx_L12_try_return;
@@ -5585,7 +5943,7 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_validate_password(PyObject *__
           __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
           __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-          /* "src/misc/security.pyx":31
+          /* "src/security/security.pyx":63
  * cpdef bint validate_password(password):
  *     if has_password():
  *         with storage.open(PASSWORD_SYMBOL, "r") as f:             # <<<<<<<<<<<<<<
@@ -5593,21 +5951,21 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_validate_password(PyObject *__
  *             inputhash = HMAC(salt, password, sha1).hexdigest()
  */
           /*except:*/ {
-            __Pyx_AddTraceback("fluxmonitor.misc._security.validate_password", __pyx_clineno, __pyx_lineno, __pyx_filename);
-            if (__Pyx_GetException(&__pyx_t_5, &__pyx_t_3, &__pyx_t_2) < 0) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 31; __pyx_clineno = __LINE__; goto __pyx_L10_except_error;}
+            __Pyx_AddTraceback("fluxmonitor.security._security.validate_password", __pyx_clineno, __pyx_lineno, __pyx_filename);
+            if (__Pyx_GetException(&__pyx_t_5, &__pyx_t_3, &__pyx_t_2) < 0) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L10_except_error;}
             __Pyx_GOTREF(__pyx_t_5);
             __Pyx_GOTREF(__pyx_t_3);
             __Pyx_GOTREF(__pyx_t_2);
-            __pyx_t_13 = PyTuple_Pack(3, __pyx_t_5, __pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 31; __pyx_clineno = __LINE__; goto __pyx_L10_except_error;}
+            __pyx_t_13 = PyTuple_Pack(3, __pyx_t_5, __pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L10_except_error;}
             __Pyx_GOTREF(__pyx_t_13);
             __pyx_t_14 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_13, NULL);
             __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
             __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
-            if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 31; __pyx_clineno = __LINE__; goto __pyx_L10_except_error;}
+            if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L10_except_error;}
             __Pyx_GOTREF(__pyx_t_14);
             __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_14);
             __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
-            if (__pyx_t_1 < 0) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 31; __pyx_clineno = __LINE__; goto __pyx_L10_except_error;}
+            if (__pyx_t_1 < 0) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L10_except_error;}
             __pyx_t_15 = ((!(__pyx_t_1 != 0)) != 0);
             if (__pyx_t_15) {
               __Pyx_GIVEREF(__pyx_t_5);
@@ -5615,7 +5973,7 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_validate_password(PyObject *__
               __Pyx_XGIVEREF(__pyx_t_2);
               __Pyx_ErrRestore(__pyx_t_5, __pyx_t_3, __pyx_t_2);
               __pyx_t_5 = 0; __pyx_t_3 = 0; __pyx_t_2 = 0; 
-              {__pyx_filename = __pyx_f[1]; __pyx_lineno = 31; __pyx_clineno = __LINE__; goto __pyx_L10_except_error;}
+              {__pyx_filename = __pyx_f[1]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L10_except_error;}
             }
             __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
             __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -5646,7 +6004,7 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_validate_password(PyObject *__
           if (__pyx_t_4) {
             __pyx_t_9 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__9, NULL);
             __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-            if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 31; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
             __Pyx_GOTREF(__pyx_t_9);
             __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
           }
@@ -5657,7 +6015,7 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_validate_password(PyObject *__
           if (__pyx_t_4) {
             __pyx_t_9 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__10, NULL);
             __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-            if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 31; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
             __Pyx_GOTREF(__pyx_t_9);
             __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
           }
@@ -5676,7 +6034,7 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_validate_password(PyObject *__
   }
   /*else*/ {
 
-    /* "src/misc/security.pyx":36
+    /* "src/security/security.pyx":68
  *             return pwdhash == inputhash
  *     else:
  *         return True             # <<<<<<<<<<<<<<
@@ -5686,7 +6044,7 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_validate_password(PyObject *__
   }
   __pyx_L3:;
 
-  /* "src/misc/security.pyx":29
+  /* "src/security/security.pyx":61
  * 
  * 
  * cpdef bint validate_password(password):             # <<<<<<<<<<<<<<
@@ -5704,7 +6062,7 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_validate_password(PyObject *__
   __Pyx_XDECREF(__pyx_t_6);
   __Pyx_XDECREF(__pyx_t_11);
   __Pyx_XDECREF(__pyx_t_13);
-  __Pyx_WriteUnraisable("fluxmonitor.misc._security.validate_password", __pyx_clineno, __pyx_lineno, __pyx_filename, 0);
+  __Pyx_WriteUnraisable("fluxmonitor.security._security.validate_password", __pyx_clineno, __pyx_lineno, __pyx_filename, 0);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_f);
@@ -5716,19 +6074,19 @@ static int __pyx_f_11fluxmonitor_4misc_9_security_validate_password(PyObject *__
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_5validate_password(PyObject *__pyx_self, PyObject *__pyx_v_password); /*proto*/
-static PyObject *__pyx_pw_11fluxmonitor_4misc_9_security_5validate_password(PyObject *__pyx_self, PyObject *__pyx_v_password) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9validate_password(PyObject *__pyx_self, PyObject *__pyx_v_password); /*proto*/
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_9validate_password(PyObject *__pyx_self, PyObject *__pyx_v_password) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("validate_password (wrapper)", 0);
-  __pyx_r = __pyx_pf_11fluxmonitor_4misc_9_security_4validate_password(__pyx_self, ((PyObject *)__pyx_v_password));
+  __pyx_r = __pyx_pf_11fluxmonitor_8security_9_security_8validate_password(__pyx_self, ((PyObject *)__pyx_v_password));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_4validate_password(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_password) {
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_8validate_password(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_password) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -5737,7 +6095,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_4validate_password(CYTH
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("validate_password", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong(__pyx_f_11fluxmonitor_4misc_9_security_validate_password(__pyx_v_password, 0)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 29; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyBool_FromLong(__pyx_f_11fluxmonitor_8security_9_security_validate_password(__pyx_v_password, 0)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 61; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -5746,7 +6104,7 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_9_security_4validate_password(CYTH
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("fluxmonitor.misc._security.validate_password", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("fluxmonitor.security._security.validate_password", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -16387,10 +16745,10 @@ static void __pyx_memoryview__slice_assign_scalar(char *__pyx_v_data, Py_ssize_t
 
   /* function exit code */
 }
-static struct __pyx_vtabstruct_11fluxmonitor_4misc_9_security_AESObject __pyx_vtable_11fluxmonitor_4misc_9_security_AESObject;
+static struct __pyx_vtabstruct_11fluxmonitor_8security_9_security_AESObject __pyx_vtable_11fluxmonitor_8security_9_security_AESObject;
 
-static PyObject *__pyx_tp_new_11fluxmonitor_4misc_9_security_AESObject(PyTypeObject *t, CYTHON_UNUSED PyObject *a, CYTHON_UNUSED PyObject *k) {
-  struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *p;
+static PyObject *__pyx_tp_new_11fluxmonitor_8security_9_security_AESObject(PyTypeObject *t, CYTHON_UNUSED PyObject *a, CYTHON_UNUSED PyObject *k) {
+  struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *p;
   PyObject *o;
   if (likely((t->tp_flags & Py_TPFLAGS_IS_ABSTRACT) == 0)) {
     o = (*t->tp_alloc)(t, 0);
@@ -16398,35 +16756,42 @@ static PyObject *__pyx_tp_new_11fluxmonitor_4misc_9_security_AESObject(PyTypeObj
     o = (PyObject *) PyBaseObject_Type.tp_new(t, __pyx_empty_tuple, 0);
   }
   if (unlikely(!o)) return 0;
-  p = ((struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *)o);
-  p->__pyx_vtab = __pyx_vtabptr_11fluxmonitor_4misc_9_security_AESObject;
+  p = ((struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *)o);
+  p->__pyx_vtab = __pyx_vtabptr_11fluxmonitor_8security_9_security_AESObject;
   return o;
 }
 
-static void __pyx_tp_dealloc_11fluxmonitor_4misc_9_security_AESObject(PyObject *o) {
+static void __pyx_tp_dealloc_11fluxmonitor_8security_9_security_AESObject(PyObject *o) {
   #if PY_VERSION_HEX >= 0x030400a1
   if (unlikely(Py_TYPE(o)->tp_finalize) && (!PyType_IS_GC(Py_TYPE(o)) || !_PyGC_FINALIZED(o))) {
     if (PyObject_CallFinalizerFromDealloc(o)) return;
   }
   #endif
+  {
+    PyObject *etype, *eval, *etb;
+    PyErr_Fetch(&etype, &eval, &etb);
+    ++Py_REFCNT(o);
+    __pyx_pw_11fluxmonitor_8security_9_security_9AESObject_3__dealloc__(o);
+    --Py_REFCNT(o);
+    PyErr_Restore(etype, eval, etb);
+  }
   (*Py_TYPE(o)->tp_free)(o);
 }
 
-static PyMethodDef __pyx_methods_11fluxmonitor_4misc_9_security_AESObject[] = {
-  {"__del__", (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_3__del__, METH_NOARGS, 0},
-  {"encrypt", (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_5encrypt, METH_O, 0},
-  {"encrypt_into", (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_7encrypt_into, METH_VARARGS|METH_KEYWORDS, 0},
-  {"decrypt", (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_9decrypt, METH_O, 0},
-  {"decrypt_into", (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_11decrypt_into, METH_VARARGS|METH_KEYWORDS, 0},
+static PyMethodDef __pyx_methods_11fluxmonitor_8security_9_security_AESObject[] = {
+  {"encrypt", (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9AESObject_5encrypt, METH_O, 0},
+  {"encrypt_into", (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9AESObject_7encrypt_into, METH_VARARGS|METH_KEYWORDS, 0},
+  {"decrypt", (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9AESObject_9decrypt, METH_O, 0},
+  {"decrypt_into", (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9AESObject_11decrypt_into, METH_VARARGS|METH_KEYWORDS, 0},
   {0, 0, 0, 0}
 };
 
-static PyTypeObject __pyx_type_11fluxmonitor_4misc_9_security_AESObject = {
+static PyTypeObject __pyx_type_11fluxmonitor_8security_9_security_AESObject = {
   PyVarObject_HEAD_INIT(0, 0)
-  "fluxmonitor.misc._security.AESObject", /*tp_name*/
-  sizeof(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject), /*tp_basicsize*/
+  "fluxmonitor.security._security.AESObject", /*tp_name*/
+  sizeof(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject), /*tp_basicsize*/
   0, /*tp_itemsize*/
-  __pyx_tp_dealloc_11fluxmonitor_4misc_9_security_AESObject, /*tp_dealloc*/
+  __pyx_tp_dealloc_11fluxmonitor_8security_9_security_AESObject, /*tp_dealloc*/
   0, /*tp_print*/
   0, /*tp_getattr*/
   0, /*tp_setattr*/
@@ -16453,7 +16818,7 @@ static PyTypeObject __pyx_type_11fluxmonitor_4misc_9_security_AESObject = {
   0, /*tp_weaklistoffset*/
   0, /*tp_iter*/
   0, /*tp_iternext*/
-  __pyx_methods_11fluxmonitor_4misc_9_security_AESObject, /*tp_methods*/
+  __pyx_methods_11fluxmonitor_8security_9_security_AESObject, /*tp_methods*/
   0, /*tp_members*/
   0, /*tp_getset*/
   0, /*tp_base*/
@@ -16461,9 +16826,9 @@ static PyTypeObject __pyx_type_11fluxmonitor_4misc_9_security_AESObject = {
   0, /*tp_descr_get*/
   0, /*tp_descr_set*/
   0, /*tp_dictoffset*/
-  __pyx_pw_11fluxmonitor_4misc_9_security_9AESObject_1__init__, /*tp_init*/
+  __pyx_pw_11fluxmonitor_8security_9_security_9AESObject_1__init__, /*tp_init*/
   0, /*tp_alloc*/
-  __pyx_tp_new_11fluxmonitor_4misc_9_security_AESObject, /*tp_new*/
+  __pyx_tp_new_11fluxmonitor_8security_9_security_AESObject, /*tp_new*/
   0, /*tp_free*/
   0, /*tp_is_gc*/
   0, /*tp_bases*/
@@ -16477,10 +16842,10 @@ static PyTypeObject __pyx_type_11fluxmonitor_4misc_9_security_AESObject = {
   0, /*tp_finalize*/
   #endif
 };
-static struct __pyx_vtabstruct_11fluxmonitor_4misc_9_security_RSAObject __pyx_vtable_11fluxmonitor_4misc_9_security_RSAObject;
+static struct __pyx_vtabstruct_11fluxmonitor_8security_9_security_RSAObject __pyx_vtable_11fluxmonitor_8security_9_security_RSAObject;
 
-static PyObject *__pyx_tp_new_11fluxmonitor_4misc_9_security_RSAObject(PyTypeObject *t, CYTHON_UNUSED PyObject *a, CYTHON_UNUSED PyObject *k) {
-  struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *p;
+static PyObject *__pyx_tp_new_11fluxmonitor_8security_9_security_RSAObject(PyTypeObject *t, CYTHON_UNUSED PyObject *a, CYTHON_UNUSED PyObject *k) {
+  struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *p;
   PyObject *o;
   if (likely((t->tp_flags & Py_TPFLAGS_IS_ABSTRACT) == 0)) {
     o = (*t->tp_alloc)(t, 0);
@@ -16488,41 +16853,51 @@ static PyObject *__pyx_tp_new_11fluxmonitor_4misc_9_security_RSAObject(PyTypeObj
     o = (PyObject *) PyBaseObject_Type.tp_new(t, __pyx_empty_tuple, 0);
   }
   if (unlikely(!o)) return 0;
-  p = ((struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *)o);
-  p->__pyx_vtab = __pyx_vtabptr_11fluxmonitor_4misc_9_security_RSAObject;
+  p = ((struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *)o);
+  p->__pyx_vtab = __pyx_vtabptr_11fluxmonitor_8security_9_security_RSAObject;
+  if (unlikely(__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_1__cinit__(o, __pyx_empty_tuple, NULL) < 0)) {
+    Py_DECREF(o); o = 0;
+  }
   return o;
 }
 
-static void __pyx_tp_dealloc_11fluxmonitor_4misc_9_security_RSAObject(PyObject *o) {
+static void __pyx_tp_dealloc_11fluxmonitor_8security_9_security_RSAObject(PyObject *o) {
   #if PY_VERSION_HEX >= 0x030400a1
   if (unlikely(Py_TYPE(o)->tp_finalize) && (!PyType_IS_GC(Py_TYPE(o)) || !_PyGC_FINALIZED(o))) {
     if (PyObject_CallFinalizerFromDealloc(o)) return;
   }
   #endif
+  {
+    PyObject *etype, *eval, *etb;
+    PyErr_Fetch(&etype, &eval, &etb);
+    ++Py_REFCNT(o);
+    __pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_5__dealloc__(o);
+    --Py_REFCNT(o);
+    PyErr_Restore(etype, eval, etb);
+  }
   (*Py_TYPE(o)->tp_free)(o);
 }
 
-static PyMethodDef __pyx_methods_11fluxmonitor_4misc_9_security_RSAObject[] = {
-  {"__del__", (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_3__del__, METH_NOARGS, 0},
-  {"is_private", (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_5is_private, METH_NOARGS, 0},
-  {"size", (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_7size, METH_NOARGS, 0},
-  {"export_der", (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_9export_der, METH_NOARGS, 0},
-  {"export_pubkey_der", (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_11export_pubkey_der, METH_NOARGS, 0},
-  {"export_pem", (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_13export_pem, METH_NOARGS, 0},
-  {"export_pubkey_pem", (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_15export_pubkey_pem, METH_NOARGS, 0},
-  {"encrypt", (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_17encrypt, METH_O, 0},
-  {"decrypt", (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_19decrypt, METH_O, 0},
-  {"sign", (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_21sign, METH_O, 0},
-  {"verify", (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_23verify, METH_VARARGS|METH_KEYWORDS, 0},
+static PyMethodDef __pyx_methods_11fluxmonitor_8security_9_security_RSAObject[] = {
+  {"is_private", (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_7is_private, METH_NOARGS, 0},
+  {"size", (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_9size, METH_NOARGS, 0},
+  {"export_der", (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_11export_der, METH_NOARGS, 0},
+  {"export_pubkey_der", (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_13export_pubkey_der, METH_NOARGS, 0},
+  {"export_pem", (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_15export_pem, METH_NOARGS, 0},
+  {"export_pubkey_pem", (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_17export_pubkey_pem, METH_NOARGS, 0},
+  {"encrypt", (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_19encrypt, METH_O, 0},
+  {"decrypt", (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_21decrypt, METH_O, 0},
+  {"sign", (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_23sign, METH_O, 0},
+  {"verify", (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_25verify, METH_VARARGS|METH_KEYWORDS, 0},
   {0, 0, 0, 0}
 };
 
-static PyTypeObject __pyx_type_11fluxmonitor_4misc_9_security_RSAObject = {
+static PyTypeObject __pyx_type_11fluxmonitor_8security_9_security_RSAObject = {
   PyVarObject_HEAD_INIT(0, 0)
-  "fluxmonitor.misc._security.RSAObject", /*tp_name*/
-  sizeof(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject), /*tp_basicsize*/
+  "fluxmonitor.security._security.RSAObject", /*tp_name*/
+  sizeof(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject), /*tp_basicsize*/
   0, /*tp_itemsize*/
-  __pyx_tp_dealloc_11fluxmonitor_4misc_9_security_RSAObject, /*tp_dealloc*/
+  __pyx_tp_dealloc_11fluxmonitor_8security_9_security_RSAObject, /*tp_dealloc*/
   0, /*tp_print*/
   0, /*tp_getattr*/
   0, /*tp_setattr*/
@@ -16549,7 +16924,7 @@ static PyTypeObject __pyx_type_11fluxmonitor_4misc_9_security_RSAObject = {
   0, /*tp_weaklistoffset*/
   0, /*tp_iter*/
   0, /*tp_iternext*/
-  __pyx_methods_11fluxmonitor_4misc_9_security_RSAObject, /*tp_methods*/
+  __pyx_methods_11fluxmonitor_8security_9_security_RSAObject, /*tp_methods*/
   0, /*tp_members*/
   0, /*tp_getset*/
   0, /*tp_base*/
@@ -16557,9 +16932,9 @@ static PyTypeObject __pyx_type_11fluxmonitor_4misc_9_security_RSAObject = {
   0, /*tp_descr_get*/
   0, /*tp_descr_set*/
   0, /*tp_dictoffset*/
-  __pyx_pw_11fluxmonitor_4misc_9_security_9RSAObject_1__init__, /*tp_init*/
+  __pyx_pw_11fluxmonitor_8security_9_security_9RSAObject_3__init__, /*tp_init*/
   0, /*tp_alloc*/
-  __pyx_tp_new_11fluxmonitor_4misc_9_security_RSAObject, /*tp_new*/
+  __pyx_tp_new_11fluxmonitor_8security_9_security_RSAObject, /*tp_new*/
   0, /*tp_free*/
   0, /*tp_is_gc*/
   0, /*tp_bases*/
@@ -16691,7 +17066,7 @@ static PyBufferProcs __pyx_tp_as_buffer_array = {
 
 static PyTypeObject __pyx_type___pyx_array = {
   PyVarObject_HEAD_INIT(0, 0)
-  "fluxmonitor.misc._security.array", /*tp_name*/
+  "fluxmonitor.security._security.array", /*tp_name*/
   sizeof(struct __pyx_array_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_array, /*tp_dealloc*/
@@ -16796,7 +17171,7 @@ static PyMethodDef __pyx_methods_Enum[] = {
 
 static PyTypeObject __pyx_type___pyx_MemviewEnum = {
   PyVarObject_HEAD_INIT(0, 0)
-  "fluxmonitor.misc._security.Enum", /*tp_name*/
+  "fluxmonitor.security._security.Enum", /*tp_name*/
   sizeof(struct __pyx_MemviewEnum_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_Enum, /*tp_dealloc*/
@@ -17042,7 +17417,7 @@ static PyBufferProcs __pyx_tp_as_buffer_memoryview = {
 
 static PyTypeObject __pyx_type___pyx_memoryview = {
   PyVarObject_HEAD_INIT(0, 0)
-  "fluxmonitor.misc._security.memoryview", /*tp_name*/
+  "fluxmonitor.security._security.memoryview", /*tp_name*/
   sizeof(struct __pyx_memoryview_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_memoryview, /*tp_dealloc*/
@@ -17166,7 +17541,7 @@ static struct PyGetSetDef __pyx_getsets__memoryviewslice[] = {
 
 static PyTypeObject __pyx_type___pyx_memoryviewslice = {
   PyVarObject_HEAD_INIT(0, 0)
-  "fluxmonitor.misc._security._memoryviewslice", /*tp_name*/
+  "fluxmonitor.security._security._memoryviewslice", /*tp_name*/
   sizeof(struct __pyx_memoryviewslice_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc__memoryviewslice, /*tp_dealloc*/
@@ -17230,9 +17605,9 @@ static PyTypeObject __pyx_type___pyx_memoryviewslice = {
 };
 
 static PyMethodDef __pyx_methods[] = {
-  {"is_rsakey", (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_1is_rsakey, METH_VARARGS|METH_KEYWORDS, 0},
-  {"has_password", (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_3has_password, METH_NOARGS, 0},
-  {"validate_password", (PyCFunction)__pyx_pw_11fluxmonitor_4misc_9_security_5validate_password, METH_O, 0},
+  {"is_rsakey", (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_5is_rsakey, METH_VARARGS|METH_KEYWORDS, 0},
+  {"has_password", (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_7has_password, METH_NOARGS, 0},
+  {"validate_password", (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_9validate_password, METH_O, 0},
   {0, 0, 0, 0}
 };
 
@@ -17278,10 +17653,12 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_Storage, __pyx_k_Storage, sizeof(__pyx_k_Storage), 0, 0, 1, 1},
   {&__pyx_n_s_TypeError, __pyx_k_TypeError, sizeof(__pyx_k_TypeError), 0, 0, 1, 1},
   {&__pyx_kp_s_Unable_to_convert_item_to_object, __pyx_k_Unable_to_convert_item_to_object, sizeof(__pyx_k_Unable_to_convert_item_to_object), 0, 0, 1, 0},
+  {&__pyx_kp_s_Users_Cerberus_Projects_python, __pyx_k_Users_Cerberus_Projects_python, sizeof(__pyx_k_Users_Cerberus_Projects_python), 0, 0, 1, 0},
   {&__pyx_n_s_ValueError, __pyx_k_ValueError, sizeof(__pyx_k_ValueError), 0, 0, 1, 1},
   {&__pyx_kp_s__7, __pyx_k__7, sizeof(__pyx_k__7), 0, 0, 1, 0},
   {&__pyx_n_s_allocate_buffer, __pyx_k_allocate_buffer, sizeof(__pyx_k_allocate_buffer), 0, 0, 1, 1},
   {&__pyx_n_s_base, __pyx_k_base, sizeof(__pyx_k_base), 0, 0, 1, 1},
+  {&__pyx_n_s_buf, __pyx_k_buf, sizeof(__pyx_k_buf), 0, 0, 1, 1},
   {&__pyx_n_s_c, __pyx_k_c, sizeof(__pyx_k_c), 0, 0, 1, 1},
   {&__pyx_n_u_c, __pyx_k_c, sizeof(__pyx_k_c), 0, 1, 0, 1},
   {&__pyx_n_s_ciphertext, __pyx_k_ciphertext, sizeof(__pyx_k_ciphertext), 0, 0, 1, 1},
@@ -17304,10 +17681,13 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_export_pubkey_der, __pyx_k_export_pubkey_der, sizeof(__pyx_k_export_pubkey_der), 0, 0, 1, 1},
   {&__pyx_n_s_export_pubkey_pem, __pyx_k_export_pubkey_pem, sizeof(__pyx_k_export_pubkey_pem), 0, 0, 1, 1},
   {&__pyx_n_s_flags, __pyx_k_flags, sizeof(__pyx_k_flags), 0, 0, 1, 1},
+  {&__pyx_n_s_fluxmonitor_security__security, __pyx_k_fluxmonitor_security__security, sizeof(__pyx_k_fluxmonitor_security__security), 0, 0, 1, 1},
   {&__pyx_n_s_fluxmonitor_storage, __pyx_k_fluxmonitor_storage, sizeof(__pyx_k_fluxmonitor_storage), 0, 0, 1, 1},
   {&__pyx_n_s_format, __pyx_k_format, sizeof(__pyx_k_format), 0, 0, 1, 1},
   {&__pyx_n_s_fortran, __pyx_k_fortran, sizeof(__pyx_k_fortran), 0, 0, 1, 1},
   {&__pyx_n_u_fortran, __pyx_k_fortran, sizeof(__pyx_k_fortran), 0, 1, 0, 1},
+  {&__pyx_n_s_get_rsakey, __pyx_k_get_rsakey, sizeof(__pyx_k_get_rsakey), 0, 0, 1, 1},
+  {&__pyx_n_s_get_uuid, __pyx_k_get_uuid, sizeof(__pyx_k_get_uuid), 0, 0, 1, 1},
   {&__pyx_kp_s_got_differing_extents_in_dimensi, __pyx_k_got_differing_extents_in_dimensi, sizeof(__pyx_k_got_differing_extents_in_dimensi), 0, 0, 1, 0},
   {&__pyx_n_s_hashlib, __pyx_k_hashlib, sizeof(__pyx_k_hashlib), 0, 0, 1, 1},
   {&__pyx_n_s_hexdigest, __pyx_k_hexdigest, sizeof(__pyx_k_hexdigest), 0, 0, 1, 1},
@@ -17322,6 +17702,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_key, __pyx_k_key, sizeof(__pyx_k_key), 0, 0, 1, 1},
   {&__pyx_kp_s_key_must_be_32_bytes, __pyx_k_key_must_be_32_bytes, sizeof(__pyx_k_key_must_be_32_bytes), 0, 0, 1, 0},
   {&__pyx_n_s_keylength, __pyx_k_keylength, sizeof(__pyx_k_keylength), 0, 0, 1, 1},
+  {&__pyx_n_s_keyobj, __pyx_k_keyobj, sizeof(__pyx_k_keyobj), 0, 0, 1, 1},
   {&__pyx_n_s_main, __pyx_k_main, sizeof(__pyx_k_main), 0, 0, 1, 1},
   {&__pyx_n_s_memview, __pyx_k_memview, sizeof(__pyx_k_memview), 0, 0, 1, 1},
   {&__pyx_n_s_message, __pyx_k_message, sizeof(__pyx_k_message), 0, 0, 1, 1},
@@ -17341,6 +17722,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_r, __pyx_k_r, sizeof(__pyx_k_r), 0, 0, 1, 1},
   {&__pyx_n_s_range, __pyx_k_range, sizeof(__pyx_k_range), 0, 0, 1, 1},
   {&__pyx_n_s_read, __pyx_k_read, sizeof(__pyx_k_read), 0, 0, 1, 1},
+  {&__pyx_n_s_rescue, __pyx_k_rescue, sizeof(__pyx_k_rescue), 0, 0, 1, 1},
   {&__pyx_n_s_security, __pyx_k_security, sizeof(__pyx_k_security), 0, 0, 1, 1},
   {&__pyx_n_s_sha1, __pyx_k_sha1, sizeof(__pyx_k_sha1), 0, 0, 1, 1},
   {&__pyx_n_s_shape, __pyx_k_shape, sizeof(__pyx_k_shape), 0, 0, 1, 1},
@@ -17365,8 +17747,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
 };
 static int __Pyx_InitCachedBuiltins(void) {
   __pyx_builtin_Exception = __Pyx_GetBuiltinName(__pyx_n_s_Exception); if (!__pyx_builtin_Exception) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 42; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 136; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 176; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 139; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 179; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 127; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 142; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 145; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -17388,7 +17770,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "src/misc/security_encrypt.pyx":42
+  /* "src/security/security_encrypt.pyx":42
  *     def __init__(self, key, iv):
  *         if len(key) != 32:
  *             raise Exception("key must be 32 bytes")             # <<<<<<<<<<<<<<
@@ -17399,7 +17781,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple_);
   __Pyx_GIVEREF(__pyx_tuple_);
 
-  /* "src/misc/security_encrypt.pyx":44
+  /* "src/security/security_encrypt.pyx":44
  *             raise Exception("key must be 32 bytes")
  *         if len(iv) != 16:
  *             raise Exception("iv must be 16 bytes")             # <<<<<<<<<<<<<<
@@ -17410,72 +17792,72 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__2);
   __Pyx_GIVEREF(__pyx_tuple__2);
 
-  /* "src/misc/security_encrypt.pyx":136
+  /* "src/security/security_encrypt.pyx":139
  * 
  *         if not self.rsakey:
  *             raise TypeError("Can not load rsa key.")             # <<<<<<<<<<<<<<
  * 
- *     def __del__(self):
+ *     def __dealloc__(self):
  */
-  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_kp_s_Can_not_load_rsa_key); if (unlikely(!__pyx_tuple__3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 136; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_kp_s_Can_not_load_rsa_key); if (unlikely(!__pyx_tuple__3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 139; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__3);
   __Pyx_GIVEREF(__pyx_tuple__3);
 
-  /* "src/misc/security_encrypt.pyx":176
+  /* "src/security/security_encrypt.pyx":179
  *             return sign_message(self.rsakey, message, len(message))
  *         else:
  *             raise RuntimeError("Public Key can not sign")             # <<<<<<<<<<<<<<
  * 
  *     cpdef verify(self, message, sig):
  */
-  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_kp_s_Public_Key_can_not_sign); if (unlikely(!__pyx_tuple__4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 176; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_kp_s_Public_Key_can_not_sign); if (unlikely(!__pyx_tuple__4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 179; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__4);
   __Pyx_GIVEREF(__pyx_tuple__4);
 
-  /* "src/misc/security.pyx":26
+  /* "src/security/security.pyx":58
  * 
  * cpdef bint has_password():
  *     return storage.exists(PASSWORD_SYMBOL)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_tuple__5 = PyTuple_Pack(1, __pyx_kp_u_private_password); if (unlikely(!__pyx_tuple__5)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 26; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__5 = PyTuple_Pack(1, __pyx_kp_u_private_password); if (unlikely(!__pyx_tuple__5)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__5);
   __Pyx_GIVEREF(__pyx_tuple__5);
 
-  /* "src/misc/security.pyx":31
+  /* "src/security/security.pyx":63
  * cpdef bint validate_password(password):
  *     if has_password():
  *         with storage.open(PASSWORD_SYMBOL, "r") as f:             # <<<<<<<<<<<<<<
  *             salt, pwdhash = f.read().split(";")
  *             inputhash = HMAC(salt, password, sha1).hexdigest()
  */
-  __pyx_tuple__6 = PyTuple_Pack(2, __pyx_kp_u_private_password, __pyx_n_s_r); if (unlikely(!__pyx_tuple__6)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 31; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__6 = PyTuple_Pack(2, __pyx_kp_u_private_password, __pyx_n_s_r); if (unlikely(!__pyx_tuple__6)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__6);
   __Pyx_GIVEREF(__pyx_tuple__6);
 
-  /* "src/misc/security.pyx":32
+  /* "src/security/security.pyx":64
  *     if has_password():
  *         with storage.open(PASSWORD_SYMBOL, "r") as f:
  *             salt, pwdhash = f.read().split(";")             # <<<<<<<<<<<<<<
  *             inputhash = HMAC(salt, password, sha1).hexdigest()
  *             return pwdhash == inputhash
  */
-  __pyx_tuple__8 = PyTuple_Pack(1, __pyx_kp_s__7); if (unlikely(!__pyx_tuple__8)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 32; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__8 = PyTuple_Pack(1, __pyx_kp_s__7); if (unlikely(!__pyx_tuple__8)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__8);
   __Pyx_GIVEREF(__pyx_tuple__8);
 
-  /* "src/misc/security.pyx":31
+  /* "src/security/security.pyx":63
  * cpdef bint validate_password(password):
  *     if has_password():
  *         with storage.open(PASSWORD_SYMBOL, "r") as f:             # <<<<<<<<<<<<<<
  *             salt, pwdhash = f.read().split(";")
  *             inputhash = HMAC(salt, password, sha1).hexdigest()
  */
-  __pyx_tuple__9 = PyTuple_Pack(3, Py_None, Py_None, Py_None); if (unlikely(!__pyx_tuple__9)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 31; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__9 = PyTuple_Pack(3, Py_None, Py_None, Py_None); if (unlikely(!__pyx_tuple__9)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__9);
   __Pyx_GIVEREF(__pyx_tuple__9);
-  __pyx_tuple__10 = PyTuple_Pack(3, Py_None, Py_None, Py_None); if (unlikely(!__pyx_tuple__10)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 31; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__10 = PyTuple_Pack(3, Py_None, Py_None, Py_None); if (unlikely(!__pyx_tuple__10)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__10);
   __Pyx_GIVEREF(__pyx_tuple__10);
 
@@ -17600,16 +17982,40 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__21);
   __Pyx_GIVEREF(__pyx_tuple__21);
 
-  /* "src/misc/security.pyx":12
- * DEF PUBKEY_SYMBOL = "pub"
+  /* "src/security/security.pyx":20
+ * 
  * 
  * cdef object storage = Storage("security")             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_tuple__22 = PyTuple_Pack(1, __pyx_n_s_security); if (unlikely(!__pyx_tuple__22)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 12; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__22 = PyTuple_Pack(1, __pyx_n_s_security); if (unlikely(!__pyx_tuple__22)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 20; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__22);
   __Pyx_GIVEREF(__pyx_tuple__22);
+
+  /* "src/security/security.pyx":23
+ * 
+ * 
+ * def get_rsakey(rescue=False):             # <<<<<<<<<<<<<<
+ *     cdef RSA* key
+ * 
+ */
+  __pyx_tuple__23 = PyTuple_Pack(3, __pyx_n_s_rescue, __pyx_n_s_key, __pyx_n_s_keyobj); if (unlikely(!__pyx_tuple__23)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 23; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__23);
+  __Pyx_GIVEREF(__pyx_tuple__23);
+  __pyx_codeobj__24 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__23, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_get_rsakey, 23, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__24)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 23; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+
+  /* "src/security/security.pyx":36
+ * 
+ * 
+ * def get_uuid(rescue=False):             # <<<<<<<<<<<<<<
+ *     cdef unsigned char[16] buf
+ * 
+ */
+  __pyx_tuple__25 = PyTuple_Pack(2, __pyx_n_s_rescue, __pyx_n_s_buf); if (unlikely(!__pyx_tuple__25)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__25);
+  __Pyx_GIVEREF(__pyx_tuple__25);
+  __pyx_codeobj__26 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__25, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_get_uuid, 36, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__26)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "View.MemoryView":276
  *         return self.name
@@ -17618,9 +18024,9 @@ static int __Pyx_InitCachedConstants(void) {
  * cdef strided = Enum("<strided and direct>") # default
  * cdef indirect = Enum("<strided and indirect>")
  */
-  __pyx_tuple__23 = PyTuple_Pack(1, __pyx_kp_s_strided_and_direct_or_indirect); if (unlikely(!__pyx_tuple__23)) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 276; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__23);
-  __Pyx_GIVEREF(__pyx_tuple__23);
+  __pyx_tuple__27 = PyTuple_Pack(1, __pyx_kp_s_strided_and_direct_or_indirect); if (unlikely(!__pyx_tuple__27)) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 276; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__27);
+  __Pyx_GIVEREF(__pyx_tuple__27);
 
   /* "View.MemoryView":277
  * 
@@ -17629,9 +18035,9 @@ static int __Pyx_InitCachedConstants(void) {
  * cdef indirect = Enum("<strided and indirect>")
  * 
  */
-  __pyx_tuple__24 = PyTuple_Pack(1, __pyx_kp_s_strided_and_direct); if (unlikely(!__pyx_tuple__24)) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 277; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__24);
-  __Pyx_GIVEREF(__pyx_tuple__24);
+  __pyx_tuple__28 = PyTuple_Pack(1, __pyx_kp_s_strided_and_direct); if (unlikely(!__pyx_tuple__28)) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 277; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__28);
+  __Pyx_GIVEREF(__pyx_tuple__28);
 
   /* "View.MemoryView":278
  * cdef generic = Enum("<strided and direct or indirect>")
@@ -17640,9 +18046,9 @@ static int __Pyx_InitCachedConstants(void) {
  * 
  * 
  */
-  __pyx_tuple__25 = PyTuple_Pack(1, __pyx_kp_s_strided_and_indirect); if (unlikely(!__pyx_tuple__25)) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 278; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__25);
-  __Pyx_GIVEREF(__pyx_tuple__25);
+  __pyx_tuple__29 = PyTuple_Pack(1, __pyx_kp_s_strided_and_indirect); if (unlikely(!__pyx_tuple__29)) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 278; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__29);
+  __Pyx_GIVEREF(__pyx_tuple__29);
 
   /* "View.MemoryView":281
  * 
@@ -17651,9 +18057,9 @@ static int __Pyx_InitCachedConstants(void) {
  * cdef indirect_contiguous = Enum("<contiguous and indirect>")
  * 
  */
-  __pyx_tuple__26 = PyTuple_Pack(1, __pyx_kp_s_contiguous_and_direct); if (unlikely(!__pyx_tuple__26)) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 281; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__26);
-  __Pyx_GIVEREF(__pyx_tuple__26);
+  __pyx_tuple__30 = PyTuple_Pack(1, __pyx_kp_s_contiguous_and_direct); if (unlikely(!__pyx_tuple__30)) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 281; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__30);
+  __Pyx_GIVEREF(__pyx_tuple__30);
 
   /* "View.MemoryView":282
  * 
@@ -17662,9 +18068,9 @@ static int __Pyx_InitCachedConstants(void) {
  * 
  * 
  */
-  __pyx_tuple__27 = PyTuple_Pack(1, __pyx_kp_s_contiguous_and_indirect); if (unlikely(!__pyx_tuple__27)) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 282; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__27);
-  __Pyx_GIVEREF(__pyx_tuple__27);
+  __pyx_tuple__31 = PyTuple_Pack(1, __pyx_kp_s_contiguous_and_indirect); if (unlikely(!__pyx_tuple__31)) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 282; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__31);
+  __Pyx_GIVEREF(__pyx_tuple__31);
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -17745,14 +18151,14 @@ PyMODINIT_FUNC PyInit__security(void)
   #if PY_MAJOR_VERSION < 3 && (__PYX_DEFAULT_STRING_ENCODING_IS_ASCII || __PYX_DEFAULT_STRING_ENCODING_IS_DEFAULT)
   if (__Pyx_init_sys_getdefaultencoding_params() < 0) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   #endif
-  if (__pyx_module_is_main_fluxmonitor__misc___security) {
+  if (__pyx_module_is_main_fluxmonitor__security___security) {
     if (PyObject_SetAttrString(__pyx_m, "__name__", __pyx_n_s_main) < 0) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   }
   #if PY_MAJOR_VERSION >= 3
   {
     PyObject *modules = PyImport_GetModuleDict(); if (unlikely(!modules)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    if (!PyDict_GetItemString(modules, "fluxmonitor.misc._security")) {
-      if (unlikely(PyDict_SetItemString(modules, "fluxmonitor.misc._security", __pyx_m) < 0)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (!PyDict_GetItemString(modules, "fluxmonitor.security._security")) {
+      if (unlikely(PyDict_SetItemString(modules, "fluxmonitor.security._security", __pyx_m) < 0)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
   }
   #endif
@@ -17761,7 +18167,7 @@ PyMODINIT_FUNC PyInit__security(void)
   /*--- Constants init code ---*/
   if (unlikely(__Pyx_InitCachedConstants() < 0)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   /*--- Global init code ---*/
-  __pyx_v_11fluxmonitor_4misc_9_security_storage = Py_None; Py_INCREF(Py_None);
+  __pyx_v_11fluxmonitor_8security_9_security_storage = Py_None; Py_INCREF(Py_None);
   generic = Py_None; Py_INCREF(Py_None);
   strided = Py_None; Py_INCREF(Py_None);
   indirect = Py_None; Py_INCREF(Py_None);
@@ -17770,32 +18176,32 @@ PyMODINIT_FUNC PyInit__security(void)
   /*--- Variable export code ---*/
   /*--- Function export code ---*/
   /*--- Type init code ---*/
-  __pyx_vtabptr_11fluxmonitor_4misc_9_security_AESObject = &__pyx_vtable_11fluxmonitor_4misc_9_security_AESObject;
-  __pyx_vtable_11fluxmonitor_4misc_9_security_AESObject.encrypt = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *, PyObject *, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt;
-  __pyx_vtable_11fluxmonitor_4misc_9_security_AESObject.encrypt_into = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *, PyObject *, __Pyx_memviewslice, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_encrypt_into;
-  __pyx_vtable_11fluxmonitor_4misc_9_security_AESObject.decrypt = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *, PyObject *, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt;
-  __pyx_vtable_11fluxmonitor_4misc_9_security_AESObject.decrypt_into = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_4misc_9_security_AESObject *, PyObject *, __Pyx_memviewslice, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_4misc_9_security_9AESObject_decrypt_into;
-  if (PyType_Ready(&__pyx_type_11fluxmonitor_4misc_9_security_AESObject) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_type_11fluxmonitor_4misc_9_security_AESObject.tp_print = 0;
-  if (__Pyx_SetVtable(__pyx_type_11fluxmonitor_4misc_9_security_AESObject.tp_dict, __pyx_vtabptr_11fluxmonitor_4misc_9_security_AESObject) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  if (PyObject_SetAttrString(__pyx_m, "AESObject", (PyObject *)&__pyx_type_11fluxmonitor_4misc_9_security_AESObject) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_ptype_11fluxmonitor_4misc_9_security_AESObject = &__pyx_type_11fluxmonitor_4misc_9_security_AESObject;
-  __pyx_vtabptr_11fluxmonitor_4misc_9_security_RSAObject = &__pyx_vtable_11fluxmonitor_4misc_9_security_RSAObject;
-  __pyx_vtable_11fluxmonitor_4misc_9_security_RSAObject.is_private = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_is_private;
-  __pyx_vtable_11fluxmonitor_4misc_9_security_RSAObject.size = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_size;
-  __pyx_vtable_11fluxmonitor_4misc_9_security_RSAObject.export_der = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_der;
-  __pyx_vtable_11fluxmonitor_4misc_9_security_RSAObject.export_pubkey_der = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_pubkey_der;
-  __pyx_vtable_11fluxmonitor_4misc_9_security_RSAObject.export_pem = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_pem;
-  __pyx_vtable_11fluxmonitor_4misc_9_security_RSAObject.export_pubkey_pem = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_export_pubkey_pem;
-  __pyx_vtable_11fluxmonitor_4misc_9_security_RSAObject.encrypt = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *, PyObject *, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_encrypt;
-  __pyx_vtable_11fluxmonitor_4misc_9_security_RSAObject.decrypt = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *, PyObject *, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_decrypt;
-  __pyx_vtable_11fluxmonitor_4misc_9_security_RSAObject.sign = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *, PyObject *, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_sign;
-  __pyx_vtable_11fluxmonitor_4misc_9_security_RSAObject.verify = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_4misc_9_security_RSAObject *, PyObject *, PyObject *, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_4misc_9_security_9RSAObject_verify;
-  if (PyType_Ready(&__pyx_type_11fluxmonitor_4misc_9_security_RSAObject) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_type_11fluxmonitor_4misc_9_security_RSAObject.tp_print = 0;
-  if (__Pyx_SetVtable(__pyx_type_11fluxmonitor_4misc_9_security_RSAObject.tp_dict, __pyx_vtabptr_11fluxmonitor_4misc_9_security_RSAObject) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  if (PyObject_SetAttrString(__pyx_m, "RSAObject", (PyObject *)&__pyx_type_11fluxmonitor_4misc_9_security_RSAObject) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_ptype_11fluxmonitor_4misc_9_security_RSAObject = &__pyx_type_11fluxmonitor_4misc_9_security_RSAObject;
+  __pyx_vtabptr_11fluxmonitor_8security_9_security_AESObject = &__pyx_vtable_11fluxmonitor_8security_9_security_AESObject;
+  __pyx_vtable_11fluxmonitor_8security_9_security_AESObject.encrypt = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *, PyObject *, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_8security_9_security_9AESObject_encrypt;
+  __pyx_vtable_11fluxmonitor_8security_9_security_AESObject.encrypt_into = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *, PyObject *, __Pyx_memviewslice, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_8security_9_security_9AESObject_encrypt_into;
+  __pyx_vtable_11fluxmonitor_8security_9_security_AESObject.decrypt = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *, PyObject *, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_8security_9_security_9AESObject_decrypt;
+  __pyx_vtable_11fluxmonitor_8security_9_security_AESObject.decrypt_into = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_8security_9_security_AESObject *, PyObject *, __Pyx_memviewslice, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_8security_9_security_9AESObject_decrypt_into;
+  if (PyType_Ready(&__pyx_type_11fluxmonitor_8security_9_security_AESObject) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_type_11fluxmonitor_8security_9_security_AESObject.tp_print = 0;
+  if (__Pyx_SetVtable(__pyx_type_11fluxmonitor_8security_9_security_AESObject.tp_dict, __pyx_vtabptr_11fluxmonitor_8security_9_security_AESObject) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetAttrString(__pyx_m, "AESObject", (PyObject *)&__pyx_type_11fluxmonitor_8security_9_security_AESObject) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_ptype_11fluxmonitor_8security_9_security_AESObject = &__pyx_type_11fluxmonitor_8security_9_security_AESObject;
+  __pyx_vtabptr_11fluxmonitor_8security_9_security_RSAObject = &__pyx_vtable_11fluxmonitor_8security_9_security_RSAObject;
+  __pyx_vtable_11fluxmonitor_8security_9_security_RSAObject.is_private = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_is_private;
+  __pyx_vtable_11fluxmonitor_8security_9_security_RSAObject.size = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_size;
+  __pyx_vtable_11fluxmonitor_8security_9_security_RSAObject.export_der = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_export_der;
+  __pyx_vtable_11fluxmonitor_8security_9_security_RSAObject.export_pubkey_der = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_export_pubkey_der;
+  __pyx_vtable_11fluxmonitor_8security_9_security_RSAObject.export_pem = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_export_pem;
+  __pyx_vtable_11fluxmonitor_8security_9_security_RSAObject.export_pubkey_pem = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_export_pubkey_pem;
+  __pyx_vtable_11fluxmonitor_8security_9_security_RSAObject.encrypt = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *, PyObject *, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_encrypt;
+  __pyx_vtable_11fluxmonitor_8security_9_security_RSAObject.decrypt = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *, PyObject *, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_decrypt;
+  __pyx_vtable_11fluxmonitor_8security_9_security_RSAObject.sign = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *, PyObject *, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_sign;
+  __pyx_vtable_11fluxmonitor_8security_9_security_RSAObject.verify = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *, PyObject *, PyObject *, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_8security_9_security_9RSAObject_verify;
+  if (PyType_Ready(&__pyx_type_11fluxmonitor_8security_9_security_RSAObject) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_type_11fluxmonitor_8security_9_security_RSAObject.tp_print = 0;
+  if (__Pyx_SetVtable(__pyx_type_11fluxmonitor_8security_9_security_RSAObject.tp_dict, __pyx_vtabptr_11fluxmonitor_8security_9_security_RSAObject) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetAttrString(__pyx_m, "RSAObject", (PyObject *)&__pyx_type_11fluxmonitor_8security_9_security_RSAObject) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_ptype_11fluxmonitor_8security_9_security_RSAObject = &__pyx_type_11fluxmonitor_8security_9_security_RSAObject;
   if (PyType_Ready(&__pyx_type___pyx_array) < 0) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 99; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_type___pyx_array.tp_print = 0;
   __pyx_array_type = &__pyx_type___pyx_array;
@@ -17828,7 +18234,7 @@ PyMODINIT_FUNC PyInit__security(void)
   /*--- Function import code ---*/
   /*--- Execution code ---*/
 
-  /* "src/misc/security.pyx":2
+  /* "src/security/security.pyx":2
  * 
  * from fluxmonitor.storage import Storage             # <<<<<<<<<<<<<<
  * from hashlib import sha1
@@ -17848,7 +18254,7 @@ PyMODINIT_FUNC PyInit__security(void)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "src/misc/security.pyx":3
+  /* "src/security/security.pyx":3
  * 
  * from fluxmonitor.storage import Storage
  * from hashlib import sha1             # <<<<<<<<<<<<<<
@@ -17869,7 +18275,7 @@ PyMODINIT_FUNC PyInit__security(void)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/misc/security.pyx":4
+  /* "src/security/security.pyx":4
  * from fluxmonitor.storage import Storage
  * from hashlib import sha1
  * from hmac import HMAC             # <<<<<<<<<<<<<<
@@ -17890,7 +18296,7 @@ PyMODINIT_FUNC PyInit__security(void)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "src/misc/security_encrypt.pyx":2
+  /* "src/security/security_encrypt.pyx":2
  * 
  * from cpython.buffer cimport PyBUF_SIMPLE, PyObject_GetBuffer, PyBuffer_Release             # <<<<<<<<<<<<<<
  * from libc.stdlib cimport malloc, free
@@ -17901,24 +18307,48 @@ PyMODINIT_FUNC PyInit__security(void)
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_os, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 4; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "src/misc/security.pyx":12
- * DEF PUBKEY_SYMBOL = "pub"
+  /* "src/security/security.pyx":20
+ * 
  * 
  * cdef object storage = Storage("security")             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_Storage); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 12; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_Storage); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 20; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__22, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 12; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__22, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 20; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __Pyx_XGOTREF(__pyx_v_11fluxmonitor_4misc_9_security_storage);
-  __Pyx_DECREF_SET(__pyx_v_11fluxmonitor_4misc_9_security_storage, __pyx_t_1);
+  __Pyx_XGOTREF(__pyx_v_11fluxmonitor_8security_9_security_storage);
+  __Pyx_DECREF_SET(__pyx_v_11fluxmonitor_8security_9_security_storage, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "src/misc/security.pyx":2
+  /* "src/security/security.pyx":23
+ * 
+ * 
+ * def get_rsakey(rescue=False):             # <<<<<<<<<<<<<<
+ *     cdef RSA* key
+ * 
+ */
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_11fluxmonitor_8security_9_security_1get_rsakey, NULL, __pyx_n_s_fluxmonitor_security__security); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 23; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_rsakey, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 23; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "src/security/security.pyx":36
+ * 
+ * 
+ * def get_uuid(rescue=False):             # <<<<<<<<<<<<<<
+ *     cdef unsigned char[16] buf
+ * 
+ */
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_11fluxmonitor_8security_9_security_3get_uuid, NULL, __pyx_n_s_fluxmonitor_security__security); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_uuid, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "src/security/security.pyx":2
  * 
  * from fluxmonitor.storage import Storage             # <<<<<<<<<<<<<<
  * from hashlib import sha1
@@ -17949,7 +18379,7 @@ PyMODINIT_FUNC PyInit__security(void)
  * cdef strided = Enum("<strided and direct>") # default
  * cdef indirect = Enum("<strided and indirect>")
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)((PyObject *)__pyx_MemviewEnum_type)), __pyx_tuple__23, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 276; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)((PyObject *)__pyx_MemviewEnum_type)), __pyx_tuple__27, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 276; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_XGOTREF(generic);
   __Pyx_DECREF_SET(generic, __pyx_t_1);
@@ -17963,7 +18393,7 @@ PyMODINIT_FUNC PyInit__security(void)
  * cdef indirect = Enum("<strided and indirect>")
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)((PyObject *)__pyx_MemviewEnum_type)), __pyx_tuple__24, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 277; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)((PyObject *)__pyx_MemviewEnum_type)), __pyx_tuple__28, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 277; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_XGOTREF(strided);
   __Pyx_DECREF_SET(strided, __pyx_t_1);
@@ -17977,7 +18407,7 @@ PyMODINIT_FUNC PyInit__security(void)
  * 
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)((PyObject *)__pyx_MemviewEnum_type)), __pyx_tuple__25, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 278; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)((PyObject *)__pyx_MemviewEnum_type)), __pyx_tuple__29, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 278; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_XGOTREF(indirect);
   __Pyx_DECREF_SET(indirect, __pyx_t_1);
@@ -17991,7 +18421,7 @@ PyMODINIT_FUNC PyInit__security(void)
  * cdef indirect_contiguous = Enum("<contiguous and indirect>")
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)((PyObject *)__pyx_MemviewEnum_type)), __pyx_tuple__26, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 281; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)((PyObject *)__pyx_MemviewEnum_type)), __pyx_tuple__30, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 281; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_XGOTREF(contiguous);
   __Pyx_DECREF_SET(contiguous, __pyx_t_1);
@@ -18005,7 +18435,7 @@ PyMODINIT_FUNC PyInit__security(void)
  * 
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)((PyObject *)__pyx_MemviewEnum_type)), __pyx_tuple__27, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 282; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)((PyObject *)__pyx_MemviewEnum_type)), __pyx_tuple__31, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 282; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_XGOTREF(indirect_contiguous);
   __Pyx_DECREF_SET(indirect_contiguous, __pyx_t_1);
@@ -18054,11 +18484,11 @@ PyMODINIT_FUNC PyInit__security(void)
   __Pyx_XDECREF(__pyx_t_2);
   if (__pyx_m) {
     if (__pyx_d) {
-      __Pyx_AddTraceback("init fluxmonitor.misc._security", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("init fluxmonitor.security._security", __pyx_clineno, __pyx_lineno, __pyx_filename);
     }
     Py_DECREF(__pyx_m); __pyx_m = 0;
   } else if (!PyErr_Occurred()) {
-    PyErr_SetString(PyExc_ImportError, "init fluxmonitor.misc._security");
+    PyErr_SetString(PyExc_ImportError, "init fluxmonitor.security._security");
   }
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
@@ -19292,6 +19722,45 @@ static CYTHON_INLINE void __Pyx_XDEC_MEMVIEW(__Pyx_memviewslice *memslice,
     } else {
         memslice->memview = NULL;
     }
+}
+
+static CYTHON_INLINE int __Pyx_CheckKeywordStrings(
+    PyObject *kwdict,
+    const char* function_name,
+    int kw_allowed)
+{
+    PyObject* key = 0;
+    Py_ssize_t pos = 0;
+#if CYTHON_COMPILING_IN_PYPY
+    if (!kw_allowed && PyDict_Next(kwdict, &pos, &key, 0))
+        goto invalid_keyword;
+    return 1;
+#else
+    while (PyDict_Next(kwdict, &pos, &key, 0)) {
+        #if PY_MAJOR_VERSION < 3
+        if (unlikely(!PyString_CheckExact(key)) && unlikely(!PyString_Check(key)))
+        #endif
+            if (unlikely(!PyUnicode_Check(key)))
+                goto invalid_keyword_type;
+    }
+    if ((!kw_allowed) && unlikely(key))
+        goto invalid_keyword;
+    return 1;
+invalid_keyword_type:
+    PyErr_Format(PyExc_TypeError,
+        "%.200s() keywords must be strings", function_name);
+    return 0;
+#endif
+invalid_keyword:
+    PyErr_Format(PyExc_TypeError,
+    #if PY_MAJOR_VERSION < 3
+        "%.200s() got an unexpected keyword argument '%.200s'",
+        function_name, PyString_AsString(key));
+    #else
+        "%s() got an unexpected keyword argument '%U'",
+        function_name, key);
+    #endif
+    return 0;
 }
 
 #if CYTHON_COMPILING_IN_CPYTHON
