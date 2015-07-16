@@ -17,7 +17,7 @@
 
 
 #elif defined(FLUX_MODEL_G1)
-#define FLUX_MODEL_ID "model-1";
+#define FLUX_MODEL_ID "model-1"
 #define FLUX_PLATFORM "linux"
 #define FLUX_DEV_MODEL 0
 #define FLUX_CAMERA0_ID 0

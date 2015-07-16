@@ -1,5 +1,6 @@
 
-from halprofile import FLUX_MODEL_ID, FLUX_PLATFORM, FLUX_DEV_MODEL
+include "halprofile.pxd"
+
 
 model_id = FLUX_MODEL_ID
 platform = FLUX_PLATFORM
