@@ -1,13 +1,15 @@
 
 from subprocess import Popen, PIPE
 from io import BytesIO
-from time import time
+from time import time, sleep
+import logging
 import fcntl
 import os
 
 from fluxmonitor.misc import AsyncIO
 
 __all__ = ["Process"]
+logger = logging.getLogger(__name__)
 
 
 class Process(Popen):
@@ -65,10 +67,26 @@ class Process(Popen):
             self._close(sender)
 
     def _close(self, sender):
-        self.manager.server.remove_read_event(sender)
+        try:
+            if self.poll() is None:
+                logger.warn("%s stdout closed but still alive." % self)
+                self.kill()
 
-        if not self._closed and self.poll() is not None:
+            timeout = time() + 3.0
+            while self.poll() is None:
+                sleep(0.01)
+
+            if self.poll() is None:
+                logger.critical("%s became zombe." % self)
+        except Exception:
+            logger.exception("%s became zombe." % self)
+
+        if not self._closed:
+            # First _closed be invoked
             self._closed = True
+            self.manager.server.remove_read_event(sender)
+
+            # Make callback
             self.manager.on_daemon_closed(self)
 
     def __repr__(self):
