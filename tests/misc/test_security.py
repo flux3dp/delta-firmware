@@ -5,6 +5,7 @@ import unittest
 
 from fluxmonitor import security
 from fluxmonitor.security import _security
+from fluxmonitor.security.passwd import validate_timestemp, reset_timestemp
 from tests import _utils as U
 from tests._utils.memcache import MemcacheTestClient
 
@@ -42,22 +43,16 @@ class MiscSecurityTest(unittest.TestCase):
         self.assertTrue(security.is_trusted_remote(access_id=access_id))
 
     def test_validate_timestemp(self):
-        self.assertFalse(security.validate_timestemp(self.memcache,
-                                                     (time() - 40, b"a"*128)))
-        self.assertFalse(security.validate_timestemp(self.memcache,
-                                                     (time() - 40, b"a"*128)))
+        t = time()
+        self.assertFalse(validate_timestemp((t - 40, b"a"*128)))
+        self.assertFalse(validate_timestemp((t - 40, b"a"*128)))
 
-        t = str(time())
-        self.assertTrue(
-            security.validate_timestemp(self.memcache, (t, b"a"*128)))
-        self.assertFalse(
-            security.validate_timestemp(self.memcache, (t, b"a"*128)))
-        self.memcache.erase()
+        self.assertTrue(validate_timestemp((t, b"a"*128)))
+        self.assertFalse(validate_timestemp((t, b"a"*128)))
+        reset_timestemp()
 
-        self.assertTrue(security.validate_timestemp(self.memcache,
-                                                    (t, b"b"*128), expire=-1))
-        self.assertTrue(security.validate_timestemp(self.memcache,
-                                                    (t, b"b"*128)))
+        self.assertTrue(validate_timestemp((60, b"c"*128), now=60))
+        self.assertTrue(validate_timestemp((100, b"c"*128), now=100))
 
     def test_password(self):
         self.assertFalse(security.has_password())

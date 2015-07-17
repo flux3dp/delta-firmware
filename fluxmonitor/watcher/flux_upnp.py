@@ -247,7 +247,7 @@ class UpnpSocket(object):
 
         message = self.server.pkey.decrypt(payload[21:])
 
-        bin_access_id, ts, salt = struct.unpack("<20sf4s", message[:28])
+        bin_access_id, ts, salt = struct.unpack("<20sfi", message[:28])
 
         # Check client key
         access_id = binascii.b2a_hex(bin_access_id)
@@ -267,8 +267,7 @@ class UpnpSocket(object):
             return False, access_id, None
 
         # Check Timestemp
-        if security.validate_timestemp(self.server.memcache,
-                                       (ts, salt + bin_access_id)):
+        if security.validate_timestemp((ts, salt + bin_access_id)):
             logger.debug("Timestemp error for '%s'" % access_id)
             return False, access_id, None
 
