@@ -267,7 +267,7 @@ class UpnpSocket(object):
             return False, access_id, None
 
         # Check Timestemp
-        if security.validate_timestemp((ts, salt + bin_access_id)):
+        if security.validate_timestemp((ts, salt)):
             logger.debug("Timestemp error for '%s'" % access_id)
             return False, access_id, None
 
