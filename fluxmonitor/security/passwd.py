@@ -20,15 +20,19 @@ def has_password():
 
 def set_password(password, old_password):
     if validate_password(old_password):
-        salt = randstr(8)
-        pwdhash = HMAC(salt, password, sha1).hexdigest()
-        with _storage.open("password", "w") as f:
-            f.write(salt + ";" + pwdhash)
+        _set_password(password)
         untrust_all()
 
         return True
     else:
         return False
+
+
+def _set_password(password):
+    salt = randstr(8)
+    pwdhash = HMAC(salt, password, sha1).hexdigest()
+    with _storage.open("password", "w") as f:
+        f.write(salt + ";" + pwdhash)
 
 
 def validate_password(password):

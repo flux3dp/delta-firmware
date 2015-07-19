@@ -106,7 +106,7 @@ class UpnpServicesMix(object):
                 "access_id": security.get_access_id(der=pubkey),
                 "status": "ok"}
 
-        elif security.validate_password(self.memcache, passwd):
+        elif security.validate_password(passwd):
             security.add_trusted_keyobj(keyobj)
             return {"access_id": access_id, "status": "ok"}
         else:
