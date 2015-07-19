@@ -21,4 +21,4 @@ if pw1 != pw2:
 
 
 from fluxmonitor.security.passwd import _set_password
-security._set_password(pw1)
+_set_password(pw1)
