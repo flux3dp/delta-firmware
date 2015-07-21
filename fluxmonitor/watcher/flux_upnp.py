@@ -232,10 +232,10 @@ class UpnpSocket(object):
 
     def parse_signed_request(self, payload):
         """Message struct:
-         +-----------+-----+------+-------------+---------+
-         | Access ID | TS  | Salt | Body    (n) | sign (k)|
-         +-----------+-----+------+-------------+---------+
-         0          20    24     28          28+n      28+k
+         +-----------+---------+------+-------------+---------+
+         | Access ID | TS      | Salt | Body    (n) | sign (k)|
+         +-----------+---------+------+-------------+---------+
+         0          20        28     32          32+n      32+k
         21+
 
         Salt: 4 random char, do not send same salt in 15 min
@@ -247,7 +247,7 @@ class UpnpSocket(object):
 
         message = self.server.pkey.decrypt(payload[21:])
 
-        bin_access_id, ts, salt = struct.unpack("<20sfi", message[:28])
+        bin_access_id, ts, salt = struct.unpack("<20sdi", message[:32])
 
         # Check client key
         access_id = binascii.b2a_hex(bin_access_id)
@@ -272,7 +272,7 @@ class UpnpSocket(object):
                          access_id, salt, time() - ts))
             return False, access_id, None
 
-        return True, access_id, body[28:]
+        return True, access_id, body[32:]
 
     def on_read(self, sender):
         """Payload struct:

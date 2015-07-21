@@ -45,7 +45,7 @@ def validate_timestemp(timestemp, now=None):
         now = time()
     t, salt = timestemp
 
-    if abs(float(t) - now) > 15:
+    if abs(t - now) > 15:
         return False
     else:
         while __ts_time and __ts_time[0] < now:
