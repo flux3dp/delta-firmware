@@ -268,8 +268,8 @@ class UpnpSocket(object):
 
         # Check Timestemp
         if security.validate_timestemp((ts, salt)):
-            logger.debug("%.3f/%.3f/Timestemp error for '%s'" % (ts, time(), 
-                         access_id))
+            logger.debug("Timestemp error for '%s' (salt=%i, d=%.2f)" % ( 
+                         access_id, salt, time() - ts))
             return False, access_id, None
 
         return True, access_id, body[28:]
