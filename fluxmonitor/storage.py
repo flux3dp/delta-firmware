@@ -62,3 +62,17 @@ class CommonMetadata(object):
     def set_nickname(self, name):
         with self.storage.open("nickname", "w") as f:
             f.write(name)
+
+    @property
+    def play_bufsize(self):
+        try:
+            with self.storage.open("play_bufsize", "r") as f:
+                val = int(f.read())
+                return val if val >= 1 else 1
+        except Exception:
+            return 2
+
+    @play_bufsize.setter
+    def play_bufsize(self, val):
+        with self.storage.open("play_bufsize", "w") as f:
+            return f.write(str(val))

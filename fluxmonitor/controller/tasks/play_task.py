@@ -5,6 +5,7 @@ import os
 
 from fluxmonitor.err_codes import UNKNOW_COMMAND, ALREADY_RUNNING, \
     NOT_RUNNING, NO_TASK, RESOURCE_BUSY
+from fluxmonitor.storage import CommonMetadata
 
 from .base import CommandMixIn, DeviceOperationMixIn
 from .misc import TaskLoader
@@ -19,6 +20,9 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
     def __init__(self, server, sender, task_file):
         self.server = server
         self.connect()
+
+        settings = CommonMetadata()
+        self._bufsize = settings.play_bufsize
 
         self._task_file = TaskLoader(task_file)
         self._task_total = os.fstat(task_file.fileno()).st_size
@@ -36,7 +40,7 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
         self.disconnect()
 
     def next_cmd(self):
-        while self._task_in_queue < 2:
+        while self._task_in_queue < self._bufsize:
             buf = self._task_file.readline()
             if not buf:
                 if self._task_in_queue == 0:

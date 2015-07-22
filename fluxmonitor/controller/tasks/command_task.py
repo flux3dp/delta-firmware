@@ -5,8 +5,9 @@ import glob
 import os
 
 from fluxmonitor.config import robot_config
+from fluxmonitor.storage import CommonMetadata
 from fluxmonitor.err_codes import UNKNOW_COMMAND, NOT_EXIST, \
-    TOO_LARGE, NO_TASK
+    TOO_LARGE, NO_TASK, BAD_PARAMS
 
 from .base import CommandMixIn
 from .play_task import PlayTask
@@ -27,6 +28,7 @@ class CommandTask(CommandMixIn):
 
     def __init__(self, server):
         self.server = server
+        self.settings = CommonMetadata()
         self.filepool = os.path.abspath(robot_config["filepool"])
 
     def dispatch_cmd(self, cmd, sender):
@@ -46,6 +48,11 @@ class CommandTask(CommandMixIn):
             return self.raw_access(sender)
         elif cmd == "maintain":
             return self.maintain(sender)
+        elif cmd.startswith("set "):
+            params = cmd.split(" ", 2)[1:]
+            if len(params) != 2:
+                raise RuntimeError(BAD_PARAMS)
+            return self.setting_setter(*params)
         else:
             logger.debug("Can not handle: %s" % repr(cmd))
             raise RuntimeError(UNKNOW_COMMAND)
@@ -120,3 +127,16 @@ class CommandTask(CommandMixIn):
         task = MaintainTask(self.server, sender)
         self.server.enter_task(task, empty_callback)
         return "ok"
+
+    def setting_setter(self, key, raw_value):
+        try:
+            if key == "playbuf":
+                self.settings.play_bufsize = int(raw_value)
+                return "ok"
+            else:
+                raise RuntimeError(BAD_PARAMS, "NO_KEY %s" % key)
+        except ValueError:
+            raise RuntimeError(BAD_PARAMS)
+
+    def setting_getter(self):
+        pass
