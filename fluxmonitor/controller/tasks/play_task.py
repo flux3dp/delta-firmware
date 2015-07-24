@@ -6,6 +6,7 @@ import os
 from fluxmonitor.err_codes import UNKNOW_COMMAND, ALREADY_RUNNING, \
     NOT_RUNNING, NO_TASK, RESOURCE_BUSY
 from fluxmonitor.storage import CommonMetadata
+from fluxmonitor.config import DEBUG
 
 from .base import CommandMixIn, DeviceOperationMixIn
 from .misc import TaskLoader
@@ -49,7 +50,8 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
                 return
 
             self._task_executed += len(buf)
-            logger.debug("GCODE: %s" % buf.decode("ascii").strip())
+            if DEBUG:
+                logger.debug("GCODE: %s" % buf.decode("ascii").strip())
 
             cmd = buf.split(b";", 1)[0].rstrip()
 
@@ -78,7 +80,8 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
         messages = re.split("\r\n|\n", self._mb_swap)
         self._mb_swap = messages.pop()
         for msg in messages:
-            logger.debug("MB: %s" % msg)
+            if DEBUG:
+                logger.debug("MB: %s" % msg)
             if msg.startswith("ok"):
                 if self._task_in_queue is not None:
                     self._task_in_queue -= 1
@@ -96,7 +99,8 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
         messages = re.split("\r\n|\n", self._hb_swap)
         self._hb_swap = messages.pop()
         for msg in messages:
-            logger.debug("HB: %s" % msg)
+            if DEBUG:
+                logger.debug("HB: %s" % msg)
 
     def dispatch_cmd(self, cmd, sender):
         if cmd == "pause":
