@@ -13,17 +13,26 @@ from .base import UartHalBase, BaseOnSerial
 
 L = logging.getLogger("hal.uart.rasp")
 
+GPIO_HEAD_POW =  13
 GPIO_USB_SERIAL = 15
+GPIO_MAINBOARD = 16
+HEAD_POWER_ON = GPIO.HIGH
+HEAD_POWER_OFF = GPIO.LOW
 USB_SERIAL_ON = GPIO.HIGH
 USB_SERIAL_OFF = GPIO.LOW
+MAINBOARD_ON = GPIO.HIGH
+MAINBOARD_OFF = GPIO.LOW
 
 
-class AMA0Routing(object):
-    __gpio_val__ = USB_SERIAL_OFF
+class GPIOConteol(object):
+    __usb_serial_gpio__ = USB_SERIAL_OFF
     head_enabled = True
 
-    def init_ama0_routing(self):
+    def init_gpio_control(self):
         GPIO.setmode(GPIO.BOARD)
+        GPIO.setwarnings(False)
+        GPIO.setup(GPIO_HEAD_POW, GPIO.OUT, initial=HEAD_POWER_ON)
+        GPIO.setup(GPIO_MAINBOARD, GPIO.OUT, initial=MAINBOARD_ON)
         GPIO.setup(GPIO_USB_SERIAL, GPIO.OUT)
         L.debug("GPIO configured")
 
@@ -33,22 +42,27 @@ class AMA0Routing(object):
         L.debug("GPIO cleanup")
         GPIO.cleanup()
 
+    def reset_mainboard(self):
+        GPIO.output(GPIO_MAINBOARD, MAINBOARD_OFF)
+        sleep(0.1)
+        GPIO.output(GPIO_MAINBOARD, MAINBOARD_ON)
+
     def update_ama0_routing(self):
         if len(self.headboard_socks) > 0:
-            if self.__gpio_val__ == USB_SERIAL_ON:
+            if self.__usb_serial_gpio__ == USB_SERIAL_ON:
                 L.debug("Headboard ON / USB OFF")
                 self.head_enabled = True
-                self.__gpio_val__ = USB_SERIAL_OFF
-                GPIO.output(GPIO_USB_SERIAL, self.__gpio_val__)
+                self.__usb_serial_gpio__ = USB_SERIAL_OFF
+                GPIO.output(GPIO_USB_SERIAL, self.__usb_serial_gpio__)
         else:
-            if self.__gpio_val__ == USB_SERIAL_OFF:
+            if self.__usb_serial_gpio__ == USB_SERIAL_OFF:
                 L.debug("Headboard OFF / USB ON")
                 self.head_enabled = False
-                self.__gpio_val__ = USB_SERIAL_ON
-                GPIO.output(GPIO_USB_SERIAL, self.__gpio_val__)
+                self.__usb_serial_gpio__ = USB_SERIAL_ON
+                GPIO.output(GPIO_USB_SERIAL, self.__usb_serial_gpio__)
 
 
-class UartHal(UartHalBase, BaseOnSerial, AMA0Routing):
+class UartHal(UartHalBase, BaseOnSerial, GPIOConteol):
     mainboard_uart = raspi_uart = None
     mainboard_io = raspi_io = None
 
@@ -57,7 +71,7 @@ class UartHal(UartHalBase, BaseOnSerial, AMA0Routing):
 
     def __init__(self, server):
         super(UartHal, self).__init__(server)
-        self.init_ama0_routing()
+        self.init_gpio_control()
         self._connect()
 
     def on_recvfrom_raspi_io(self, obj):

@@ -14,28 +14,22 @@ class UartHalBase(object):
     support_hal = []
 
     def __init__(self, server):
-        self.mainboard = self.create_socket(uart_config["mainboard"])
-        self.headboard = self.create_socket(uart_config["headboard"])
-        self.pc = self.create_socket(uart_config["pc"])
+        self.server = server
+
+        self.mainboard = self.create_socket(
+            uart_config["mainboard"], callback=self.on_connected_mainboard)
+        self.headboard = self.create_socket(
+            uart_config["headboard"], callback=self.on_connected_headboard)
+        self.pc = self.create_socket(
+            uart_config["pc"], callback=self.on_connected_pc)
+        self.control = self.create_socket(
+            uart_config["control"], callback=self.on_control_message, udp=True)
 
         self.mainboard_socks = []
         self.headboard_socks = []
         self.pc_socks = []
 
-        server.add_read_event(
-            AsyncIO(self.mainboard, self.on_connected_mainboard))
-        server.add_read_event(
-            AsyncIO(self.headboard, self.on_connected_headboard))
-        server.add_read_event(
-            AsyncIO(self.pc, self.on_connected_pc))
-
-        self.control = self.create_socket(uart_config["control"], udp=True)
-        server.add_read_event(
-            AsyncIO(self.control, self.on_control_message))
-
-        self.server = server
-
-    def create_socket(self, path, udp=False):
+    def create_socket(self, path, udp=False, callback=None):
         if os.path.exists(path):
             os.unlink(path)
 
@@ -47,6 +41,9 @@ class UartHalBase(object):
             s.bind(path)
             s.listen(1)
 
+        if callback:
+            self.server.add_read_event(AsyncIO(s, callback))
+
         return s
 
     def on_control_message(self, sender):
@@ -55,6 +52,8 @@ class UartHalBase(object):
 
         if cmd == "reconnect":
             self.reconnect()
+        elif cmd == "reset mb":
+            self.reset_mainboard()
 
     def on_connected_mainboard(self, sender):
         logger.debug("Connect to mainboard")
