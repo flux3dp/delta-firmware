@@ -32,7 +32,7 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
                 raise RuntimeError(NOT_SUPPORT, "Camera id nog given")
 
         self.quality = 80
-        self.step_length = 0.46545
+        self.step_length = 0.45
 
         self.check_opencv()
         self.server = server
@@ -68,6 +68,19 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
             self._take_image(sock)
             return "ok"
 
+        elif cmd == "scanlaser":
+            return self.change_laser(left=False, right=False)
+
+        elif cmd.startswith("scanlaser "):
+            params = cmd.split(" ")[-1]
+            l_on = "l" in params
+            r_on = "r" in params
+            return self.change_laser(left=l_on, right=r_on)
+
+        elif cmd == "set steplen ":
+            self.step_length = float(cmd.split(" ")[-1])
+            return "ok"
+
         elif cmd == "scanimages":
             self.take_images(sock)
             return "ok"
@@ -94,13 +107,17 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
             logger.debug("Can not handle: '%s'" % cmd)
             raise RuntimeError(UNKNOW_COMMAND)
 
+    def change_laser(self, left, right):
+        self.make_gcode_cmd("X1O" if left else "X1F")
+        self.make_gcode_cmd("X2O" if right else "X2F")
+        return "ok"
+
     def take_images(self, sock):
-        self.make_gcode_cmd("@X1O")
+        self.change_laser(left=True, right=False)
         self._take_image(sock)
-        self.make_gcode_cmd("@X2O")
-        self.make_gcode_cmd("@X1F")
+        self.change_laser(left=False, right=True)
         self._take_image(sock)
-        self.make_gcode_cmd("@X2F")
+        self.change_laser(left=False, right=False)
         self._take_image(sock)
         return "ok"
 
