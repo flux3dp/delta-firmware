@@ -15,6 +15,9 @@ class Storage(object):
     def get_path(self, filename):
         return os.path.join(self.path, filename)
 
+    def get_mtime(self, filename):
+        return os.path.getmtime(self.get_path(filename))
+
     def exists(self, filename):
         return os.path.exists(self.get_path(filename))
 
@@ -49,6 +52,9 @@ NICKNAMES = ["Apple", "Apricot", "Avocado", "Banana", "Bilberry", "Blackberry",
 
 
 class CommonMetadata(object):
+    _nickname = None
+    _nickname_mtime = None
+
     def __init__(self):
         self.storage = Storage("general", "meta")
 
@@ -56,8 +62,13 @@ class CommonMetadata(object):
         if not self.storage.exists("nickname"):
             self.set_nickname("Flux 3D Printer (%s)" % choice(NICKNAMES))
 
-        with self.storage.open("nickname", "r") as f:
-            return f.read()
+        mtime = self.storage.get_mtime("nickname")
+        if mtime != self._nickname_mtime:
+            with self.storage.open("nickname", "r") as f:
+                self._nickname = f.read()
+                self._nickname_mtime = mtime
+
+        return self._nickname
 
     def set_nickname(self, name):
         with self.storage.open("nickname", "w") as f:

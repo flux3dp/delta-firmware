@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 from fluxmonitor.misc import network_config_encoder as NCE
 from fluxmonitor.halprofile import get_model_id
+from fluxmonitor.storage import CommonMetadata
 from fluxmonitor.config import network_config
 from fluxmonitor.misc import control_mutex
 from fluxmonitor.err_codes import ALREADY_RUNNING, BAD_PASSWORD, NOT_RUNNING, \
@@ -51,8 +52,7 @@ class UpnpServicesMix(object):
 
     def cmd_discover(self, payload):
         """Return IP Address in array"""
-        # TODO: NOT CONFIRM
-        return {"ver": VERSION,
+        return {"ver": VERSION, "name": self.meta.get_nickname(),
                 "model": MODEL_ID, "serial": SERIAL_HEX,
                 "time": time(), "ip": self.ipaddress,
                 "pwd": security.has_password()}
@@ -351,6 +351,8 @@ class UpnpWatcher(WatcherBase, UpnpServicesMix, NetworkMonitorMix):
 
     def __init__(self, server):
         self.debug = server.options.debug
+
+        self.meta = CommonMetadata()
 
         # Create RSA key if not exist. This will prevent upnp create key during
         # upnp is running (Its takes times and will cause timeout)
