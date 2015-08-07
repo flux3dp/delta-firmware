@@ -77,7 +77,7 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
             r_on = "r" in params
             return self.change_laser(left=l_on, right=r_on)
 
-        elif cmd == "set steplen ":
+        elif cmd.startswith("set steplen "):
             self.step_length = float(cmd.split(" ")[-1])
             return "ok"
 
