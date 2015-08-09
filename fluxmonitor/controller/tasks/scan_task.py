@@ -1,5 +1,6 @@
 
 from importlib import import_module
+from threading import Thread
 import logging
 
 from fluxmonitor.config import hal_config
@@ -65,8 +66,10 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
 
     def dispatch_cmd(self, cmd, sock):
         if cmd == "oneshot":
-            self._take_image(sock)
-            return "ok"
+            self.oneshot(sock)
+
+        elif cmd == "scanimages":
+            self.take_images(sock)
 
         elif cmd == "scanlaser":
             return self.change_laser(left=False, right=False)
@@ -79,10 +82,6 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
 
         elif cmd.startswith("set steplen "):
             self.step_length = float(cmd.split(" ")[-1])
-            return "ok"
-
-        elif cmd == "scanimages":
-            self.take_images(sock)
             return "ok"
 
         elif cmd == "scan_forword":
@@ -112,14 +111,38 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
         self.make_gcode_cmd("X2O" if right else "X2F")
         return "ok"
 
+    def oneshot(self, sock):
+        self.server.remove_read_event(sock)
+        t = Thread(target=self._oneshot_worker, args=(sock, ))
+        t.daemon = True
+        t.start()
+
+    def _oneshot_worker(self, sock):
+        try:
+            self._take_image(sock)
+            sock.send_text("ok")
+        finally:
+            self.server.add_read_event(sock)
+
     def take_images(self, sock):
-        self.change_laser(left=True, right=False)
-        self._take_image(sock)
-        self.change_laser(left=False, right=True)
-        self._take_image(sock)
-        self.change_laser(left=False, right=False)
-        self._take_image(sock)
-        return "ok"
+        self.server.remove_read_event(sock)
+        self.server.remove_read_event(self._async_mb)
+        t = Thread(target=self._take_images_worker, args=(sock, ))
+        t.daemon = True
+        t.start()
+
+    def _take_images_worker(self, sock):
+        try:
+            self.change_laser(left=True, right=False)
+            self._take_image(sock)
+            self.change_laser(left=False, right=True)
+            self._take_image(sock)
+            self.change_laser(left=False, right=False)
+            self._take_image(sock)
+            sock.send_text("ok")
+        finally:
+            self.server.add_read_event(self._async_mb)
+            self.server.add_read_event(sock)
 
     def _take_image(self, sock):
         try:

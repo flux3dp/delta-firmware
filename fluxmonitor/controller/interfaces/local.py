@@ -208,7 +208,6 @@ class LocalConnectionAsyncIO(object):
         self._recv_handler = None
         self.server.remove_read_event(self)
         self.server.remove_loop_event(self)
-        self.sock.shutdown(socket.SHUT_RDWR)
         self.sock.close()
         self.logger.debug("Client %s disconnected (reason=%s)" %
                           (self.client[0], reason))
