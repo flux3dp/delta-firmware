@@ -1,6 +1,7 @@
 
 from time import sleep
 import logging
+import os
 
 from serial import Serial
 from RPi import GPIO
@@ -72,7 +73,8 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOConteol):
     def __init__(self, server):
         super(UartHal, self).__init__(server)
         self.init_gpio_control()
-        self._connect()
+        self._rasp_connect()
+        self._mainboard_connect()
 
     def on_recvfrom_raspi_io(self, obj):
         if self.head_enabled:
@@ -94,25 +96,21 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOConteol):
             self.raspi_uart.write(buf)
 
     def reconnect(self):
-        self._disconnect()
-        self._connect()
+        self._mainboard_disconnect()
+        self._mainboard_connect()
 
-    def _connect(self):
-        self.mainboard_uart = Serial(port=hal_config["mainboard_uart"],
-                                     baudrate=115200, timeout=0)
-
-        self.raspi_uart = Serial(port="/dev/ttyAMA0",
-                                 baudrate=115200, timeout=0)
-
+    def _mainboard_connect(self):
+        if os.path.exists("/dev/ttyACM0"):
+            self.mainboard_uart = Serial(port="/dev/ttyACM0",
+                                         baudrate=115200, timeout=0)
+        elif os.path.exists("/dev/ttyACM0"):
+            self.mainboard_uart = Serial(port="/dev/ttyACM0",
+                                         baudrate=115200, timeout=0)
         self.mainboard_io = AsyncIO(self.mainboard_uart,
                                     self.on_recvfrom_mainboard)
-        self.raspi_io = AsyncIO(self.raspi_uart,
-                                self.on_recvfrom_raspi_io)
-
         self.server.add_read_event(self.mainboard_io)
-        self.server.add_read_event(self.raspi_io)
 
-    def _disconnect(self):
+    def _mainboard_disconnect(self):
         if self.mainboard_uart:
             try:
                 self.server.remove_read_event(self.mainboard_io)
@@ -121,6 +119,14 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOConteol):
             except Exception:
                 pass
 
+    def _rasp_connect(self):
+        self.raspi_uart = Serial(port="/dev/ttyAMA0",
+                                 baudrate=115200, timeout=0)
+        self.raspi_io = AsyncIO(self.raspi_uart,
+                                self.on_recvfrom_raspi_io)
+        self.server.add_read_event(self.raspi_io)
+
+    def _rasp_disconnect(self):
         if self.raspi_uart:
             try:
                 self.server.remove_read_event(self.raspi_io)
@@ -128,6 +134,12 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOConteol):
                 self.raspi_uart = None
             except Exception:
                 pass
+
+    def on_recvfrom_mainboard(self, sender):
+        try:
+            BaseOnSerial.on_recvfrom_mainboard(self, sender)
+        except SerialException as e:
+            self.reconnect()
 
     def on_connected_headboard(self, sender):
         UartHalBase.on_connected_headboard(self, sender)
