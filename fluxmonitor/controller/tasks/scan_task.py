@@ -1,6 +1,7 @@
 
 from importlib import import_module
 from threading import Thread
+from time import sleep
 import logging
 
 from fluxmonitor.config import hal_config
@@ -38,11 +39,34 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
         self.check_opencv()
         self.server = server
         self.init_device(camera_id)
+
         ExclusiveMixIn.__init__(self, server, sock)
+
+        self._background_job = None
+        t = Thread(target=self._background_thread)
+        t.daemon = True
+        t.start()
+
+    def _background_thread(self):
+        while self.camera:
+            if self._background_job:
+                logger.debug("Proc %s" % repr(self._background_job))
+                try:
+                    self._background_job[0](*self._background_job[1])
+                except Exception:
+                    logger.exception("Unhandle Error")
+                finally:
+                    self._background_job = None
+            else:
+                sleep(0.1)
+        logger.debug("Scan background thread quit")
+
 
     def on_exit(self, sender):
         self.disconnect()
-        self.camera.release()
+        if self.camera:
+            self.camera.release()
+            self.camera = None
 
     def init_device(self, camera_id):
         self.connect(mainboard_only=True)
@@ -113,9 +137,7 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
 
     def oneshot(self, sock):
         self.server.remove_read_event(sock)
-        t = Thread(target=self._oneshot_worker, args=(sock, ))
-        t.daemon = True
-        t.start()
+        self._background_job = (self._oneshot_worker, (sock, ))
 
     def _oneshot_worker(self, sock):
         try:
@@ -127,9 +149,7 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
     def take_images(self, sock):
         self.server.remove_read_event(sock)
         self.server.remove_read_event(self._async_mb)
-        t = Thread(target=self._take_images_worker, args=(sock, ))
-        t.daemon = True
-        t.start()
+        self._background_job = (self._take_images_worker, (sock, ))
 
     def _take_images_worker(self, sock):
         try:
