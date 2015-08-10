@@ -60,7 +60,7 @@ class UsbWatcher(WatcherBase):
                 logger.exception("USB Connection error")
 
     def close_usb_serial(self, *args):
-        self.server.remove_read_event(self.usb_id)
+        self.server.remove_read_event(self.usb_io)
         self.usb = None
         self.usb_io = None
 
@@ -157,6 +157,9 @@ class UsbIO(object):
                 handler(self._recv_view[7:7 + length].tobytes())
             else:
                 logger.debug("handler not found %i" % req)
+        except Exception:
+            logger.exception("Unhandle Error")
+
         finally:
             remnant = self._recv_offset - length - 7
             if remnant:
@@ -224,7 +227,7 @@ class UsbIO(object):
 
     def on_config_general(self, buf):
         raw_opts = dict([i.split(b"=", 1) for i in buf.split(b"\x00")])
-        name = raw_opts.get(b"nickname").decode("utf8", "ignore")
+        name = raw_opts.get(b"name", "").decode("utf8", "ignore")
         if name:
             self.meta.set_nickname(name)
         self.send_response(MSG_CONFIG_GENERAL, True, b"OK")
