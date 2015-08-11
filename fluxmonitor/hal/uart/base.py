@@ -47,13 +47,18 @@ class UartHalBase(object):
         return s
 
     def on_control_message(self, sender):
-        buf = self.sender.obj.recv(4096)
-        cmd = buf.decode("ascii")
+        try:
+            buf = sender.obj.recv(4096)
+            cmd = buf.decode("ascii")
 
-        if cmd == "reconnect":
-            self.reconnect()
-        elif cmd == "reset mb":
-            self.reset_mainboard()
+            if cmd == "reconnect":
+                self.reconnect()
+            elif cmd == "reset mb":
+                self.reset_mainboard()
+            elif cmd == "update_fw":
+                self.update_fw()
+        except Exception:
+            logger.exception("Unhandle error")
 
     def on_connected_mainboard(self, sender):
         logger.debug("Connect to mainboard")

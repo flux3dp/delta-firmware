@@ -8,6 +8,7 @@ from RPi import GPIO
 
 from fluxmonitor.misc.async_signal import AsyncIO
 from fluxmonitor.halprofile import MODEL_G1
+from fluxmonitor.storage import Storage
 from fluxmonitor.config import hal_config
 
 from .base import UartHalBase, BaseOnSerial
@@ -62,6 +63,48 @@ class GPIOConteol(object):
                 self.__usb_serial_gpio__ = USB_SERIAL_ON
                 GPIO.output(GPIO_USB_SERIAL, self.__usb_serial_gpio__)
 
+    def update_fw(self):
+        L.debug("Update mainboard fireware")
+        self._mainboard_disconnect()
+
+        GPIO.output(GPIO_MAINBOARD, MAINBOARD_OFF)
+        sleep(0.5)
+        GPIO.output(GPIO_MAINBOARD, MAINBOARD_ON)
+        sleep(1.0)
+
+        storage = Storage("update_fw")
+        tty = self.get_mainboard_port()
+        L.debug("Mainboard at %s" % tty)
+
+        try:
+            if not storage.exists("mainboard.bin"):
+                L.debug("mainboard.bin not found")
+                return
+
+            if os.system("stty -F %s 1200" % tty) != 0:
+                L.debug("stty exec failed")
+                return
+
+            sleep(3.0)
+
+            fw_path = storage.get_path("mainboard.bin")
+            if os.system("bossac -p %s -e -w -v -b %s" % (
+                         tty.split("/")[-1], fw_path)) != 0:
+                L.debug("bossac exec failed")
+                return
+
+            os.rename(fw_path, fw_path + ".updated")
+
+            GPIO.output(GPIO_MAINBOARD, MAINBOARD_OFF)
+            sleep(0.5)
+            GPIO.output(GPIO_MAINBOARD, MAINBOARD_ON)
+            sleep(1.0)
+
+            self._mainboard_connect()
+
+        except Exception as e:
+            L.exception("Error while update fireware")
+
 
 class UartHal(UartHalBase, BaseOnSerial, GPIOConteol):
     mainboard_uart = raspi_uart = None
@@ -99,13 +142,17 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOConteol):
         self._mainboard_disconnect()
         self._mainboard_connect()
 
-    def _mainboard_connect(self):
+    def get_mainboard_port(self):
         if os.path.exists("/dev/ttyACM0"):
-            self.mainboard_uart = Serial(port="/dev/ttyACM0",
-                                         baudrate=115200, timeout=0)
-        elif os.path.exists("/dev/ttyACM0"):
-            self.mainboard_uart = Serial(port="/dev/ttyACM0",
-                                         baudrate=115200, timeout=0)
+            return "/dev/ttyACM0"
+        elif os.path.exists("/dev/ttyACM1"):
+            return "/dev/ttyACM1"
+        else:
+            raise Exception("Can not find mainboard device")
+
+    def _mainboard_connect(self):
+        self.mainboard_uart = Serial(port=self.get_mainboard_port(),
+                                     baudrate=115200, timeout=0)
         self.mainboard_io = AsyncIO(self.mainboard_uart,
                                     self.on_recvfrom_mainboard)
         self.server.add_read_event(self.mainboard_io)
