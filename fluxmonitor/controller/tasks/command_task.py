@@ -15,6 +15,7 @@ from .scan_task import ScanTask
 from .upload_task import UploadTask
 from .raw_task import RawTask
 from .maintain_task import MaintainTask
+from .update_fw_task import UpdateFwTask
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +49,9 @@ class CommandTask(CommandMixIn):
             return self.raw_access(sender)
         elif cmd == "maintain":
             return self.maintain(sender)
+        elif cmd.startswith("update_fw "):
+            filesize = cmd.split(" ", 1)[-1]
+            return self.update_fw(int(filesize, 10), sender)
         elif cmd.startswith("set "):
             params = cmd.split(" ", 2)[1:]
             if len(params) != 2:
@@ -90,7 +94,7 @@ class CommandTask(CommandMixIn):
 
         self._task_file = TemporaryFile()
 
-        logger.info("Upload task file size: %i" % filesize)
+        logger.debug("Upload task file size: %i" % filesize)
 
         task = UploadTask(self.server, sender, self._task_file, filesize)
         self.server.enter_task(task, self.end_upload_file)
@@ -103,6 +107,16 @@ class CommandTask(CommandMixIn):
         else:
             self._task_file.close()
             self._task_file = None
+
+    def update_fw(self, filesize, sender):
+        if filesize > 2 ** 20:
+            raise RuntimeError(TOO_LARGE)
+
+        logger.info("Upload fireware file size: %i" % filesize)
+        task = UpdateFwTask(self.server, sender, filesize)
+        self.server.enter_task(task, empty_callback)
+
+        return "continue"
 
     def raw_access(self, sender):
         task = RawTask(self.server, sender)
