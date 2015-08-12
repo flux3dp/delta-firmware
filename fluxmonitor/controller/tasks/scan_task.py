@@ -58,7 +58,7 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
                 finally:
                     self._background_job = None
             else:
-                sleep(0.1)
+                sleep(0.005)
         logger.debug("Scan background thread quit")
 
 
@@ -109,14 +109,38 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
             return "ok"
 
         elif cmd == "scan_forword":
+            ret = self.make_gcode_cmd("X3O4")
+            if ret == "ok":
+                return ret
+            else:
+                raise RuntimeError(DEVICE_ERROR, ret)
+
             ret = self.make_gcode_cmd("G1 F500 E-%.5f" % self.step_length)
             if ret == "ok":
                 return ret
             else:
                 raise RuntimeError(DEVICE_ERROR, ret)
 
+            ret = self.make_gcode_cmd("X3F4")
+            if ret == "ok":
+                return ret
+            else:
+                raise RuntimeError(DEVICE_ERROR, ret)
+
         elif cmd == "scan_next":
+            ret = self.make_gcode_cmd("X3O4")
+            if ret == "ok":
+                return ret
+            else:
+                raise RuntimeError(DEVICE_ERROR, ret)
+
             ret = self.make_gcode_cmd("G1 F500 E%.5f" % self.step_length)
+            if ret == "ok":
+                return ret
+            else:
+                raise RuntimeError(DEVICE_ERROR, ret)
+
+            ret = self.make_gcode_cmd("X3F4")
             if ret == "ok":
                 return ret
             else:
