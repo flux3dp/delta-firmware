@@ -110,41 +110,33 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
 
         elif cmd == "scan_forword":
             ret = self.make_gcode_cmd("X3O4")
-            if ret == "ok":
-                return ret
-            else:
+            if ret != "ok":
                 raise RuntimeError(DEVICE_ERROR, ret)
 
             ret = self.make_gcode_cmd("G1 F500 E-%.5f" % self.step_length)
-            if ret == "ok":
-                return ret
-            else:
+            if ret != "ok":
                 raise RuntimeError(DEVICE_ERROR, ret)
 
             ret = self.make_gcode_cmd("X3F4")
-            if ret == "ok":
-                return ret
-            else:
+            if ret != "ok":
                 raise RuntimeError(DEVICE_ERROR, ret)
+
+            return ret
 
         elif cmd == "scan_next":
             ret = self.make_gcode_cmd("X3O4")
-            if ret == "ok":
-                return ret
-            else:
+            if ret != "ok":
                 raise RuntimeError(DEVICE_ERROR, ret)
 
             ret = self.make_gcode_cmd("G1 F500 E%.5f" % self.step_length)
-            if ret == "ok":
-                return ret
-            else:
+            if ret != "ok":
                 raise RuntimeError(DEVICE_ERROR, ret)
 
             ret = self.make_gcode_cmd("X3F4")
-            if ret == "ok":
-                return ret
-            else:
+            if ret != "ok":
                 raise RuntimeError(DEVICE_ERROR, ret)
+
+            return ret
 
         elif cmd == "quit":
             self.server.exit_task(self)
