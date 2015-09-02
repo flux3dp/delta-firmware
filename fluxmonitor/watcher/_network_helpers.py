@@ -5,9 +5,11 @@ import socket
 import json
 import os
 
-from fluxmonitor.config import network_config, general_config
-from fluxmonitor.sys.net.monitor import Monitor
-from fluxmonitor.sys import nl80211
+from fluxmonitor.misc import network_config_encoder as NCE
+from fluxmonitor.hal.net import config as net_config
+from fluxmonitor.config import network_config
+from fluxmonitor.hal.net.monitor import Monitor
+from fluxmonitor.storage import Storage
 
 DEBUG = network_config.get("debug", False)
 
@@ -75,33 +77,26 @@ class NetworkMonitorMix(object):
 class ConfigMix(object):
     """ConfigMix provide get/set network config"""
 
-    __CONFIG_KEYS = ["method", "ipaddr", "mask", "route", "ns",
-                     "ssid", "security", "wepkey", "psk"]
-
-    def __config_path(self, ifname):
-        return os.path.join(general_config["db"], "net", ifname)
+    _storage = None
+    @property
+    def storage(self):
+        if not self._storage:
+            self._storage = Storage("net")
+        return self._storage
 
     def set_config(self, ifname, config):
-        new_config = {k: v
-                      for k, v in config.items() if k in self.__CONFIG_KEYS}
-        config_file = self.__config_path(ifname)
-        dirname = os.path.dirname(config_file)
-
+        config = NCE.validate_options(config)
         try:
-            if not os.path.isdir(dirname):
-                os.makedirs(dirname)
-            with open(config_file, "w") as f:
+            with self.storage.open(ifname, "w") as f:
                 json.dump(config, f)
         except Exception:
             self.logger.exception("Write network config error")
-
-        return new_config
+        return config
 
     def get_config(self, ifname):
-        config_file = self.__config_path(ifname)
-        if os.path.exists(config_file):
+        if self.storage.exists(ifname):
             try:
-                with open(config_file, "r") as f:
+                with self.storage.open(ifname, "r") as f:
                     return json.load(f)
             except Exception:
                 self.logger.exception("Read network config error")
@@ -125,15 +120,15 @@ class ControlSocketMix(object):
         ifstatus = self.nic_status.get(ifname, {}).get('ifstatus')
         if ifstatus == 'UP':
             if forcus_restart:
-                nl80211.ifdown(ifname)
+                net_config.ifdown(ifname)
                 sleep(delay)
             else:
                 return
         elif ifstatus != 'DOWN' or forcus_restart:
-            nl80211.ifdown(ifname)
+            net_config.ifdown(ifname)
             sleep(delay)
 
-        nl80211.ifup(ifname)
+        net_config.ifup(ifname)
 
     def is_device_alive(self, ifname):
         """Return if device is UP or not.
@@ -143,10 +138,6 @@ class ControlSocketMix(object):
         """
         if self.nic_status.get(ifname, {}).get('ifstatus') != 'UP':
             return False
-
-        if self.is_wireless(ifname) and \
-           not nl80211.ping_wpa_supplicant(ifname):
-                return False
 
         return True
 
@@ -172,16 +163,19 @@ class WlanWatcherSocket(socket.socket):
         self.master.logger.debug(
             "network command socket created at: %s" % path)
 
-    def on_read(self):
-        try:
-            buf = self.recv(4096)
-            payload = json.loads(buf)
-            cmd, data = payload
-        except (ValueError, TypeError):
-            self.logger.error("Can not process request: %s" % buf)
+    def on_read(self, sender):
+        buf = self.recv(4096)
+        payloads = buf.split("\x00", 1)
 
-        if cmd == "config_network":
-            self.config_network(data)
+        if len(payloads) == 2:
+            cmd, data = payloads
+            if cmd == "config_network":
+                self.config_network(NCE.parse_bytes(data))
+            else:
+                self.master.logger.error("Unknow cmd: %s" % cmd)
+        else:
+            self.master.logger.error("Can not process request: %s" % buf)
+            return
 
     def config_network(self, payload):
         ifname = payload.pop("ifname")

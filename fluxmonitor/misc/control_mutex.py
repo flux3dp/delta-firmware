@@ -27,9 +27,9 @@ def locking_status():
     if os.path.isfile(fn):
         try:
             with open(fn, "a+") as f:
-                 fcntl.lockf(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-                 fcntl.lockf(f.fileno(), fcntl.LOCK_UN)
-                 return 0, None
+                fcntl.lockf(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                fcntl.lockf(f.fileno(), fcntl.LOCK_UN)
+                return 0, None
         except IOError:
             with open(fn, "r") as f:
                 pid, label = f.read().split("\n", 1)
@@ -69,7 +69,7 @@ class ControlLock(object):
 
         return self
 
-    def __exit__(self ,type, value, traceback):
+    def __exit__(self, type, value, traceback):
         fcntl.lockf(self.f.fileno(), fcntl.LOCK_UN)
         self.f.close()
         os.unlink(self.mutex_file)

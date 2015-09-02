@@ -1,11 +1,15 @@
 
 from shutil import rmtree
 import socket
+import imp
 import os
 
-
 from fluxmonitor.config import general_config
-from fluxmonitor import security
+
+
+def create_dir(*args):
+    d = os.path.join(general_config["db"], *args)
+    os.makedirs(d)
 
 
 def clean_db(default_privatekey=True):
@@ -13,9 +17,12 @@ def clean_db(default_privatekey=True):
                     os.path.join(general_config["db"], "net")):
         if os.path.isdir(del_dir):
             rmtree(del_dir)
+    create_dir("security", "private")
+    create_dir("security", "pub")
 
     if default_privatekey:
-        with open(security._get_key_filename(), "w") as f:
+        bd = os.path.join(general_config["db"], "security", "private")
+        with open(os.path.join(bd, "key.pem"), "w") as f:
             f.write("""-----BEGIN RSA PRIVATE KEY-----
 MIICXAIBAAKBgQDGTG+rsxKCy52sjsc8dr4O0WcuZpFWIKNRj8OdUi9KJLuNknaX
 bEHQ/MP/AC2fUi01pDgNi9/DNxz+P2d+DdJuMt1staDDgP3ZrfxDWqcXKJi33oXe

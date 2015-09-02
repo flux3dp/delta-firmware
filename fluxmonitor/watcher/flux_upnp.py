@@ -1,4 +1,5 @@
 
+from signal import signal, SIGCHLD
 from itertools import chain
 from time import time
 import uuid as _uuid
@@ -11,6 +12,9 @@ import json
 
 logger = logging.getLogger(__name__)
 
+from fluxmonitor.misc import network_config_encoder as NCE
+from fluxmonitor.halprofile import get_model_id
+from fluxmonitor.storage import CommonMetadata
 from fluxmonitor.config import network_config
 from fluxmonitor.misc import control_mutex
 from fluxmonitor.err_codes import ALREADY_RUNNING, BAD_PASSWORD, NOT_RUNNING, \
@@ -21,7 +25,9 @@ from fluxmonitor import security
 from .base import WatcherBase
 from ._network_helpers import NetworkMonitorMix
 
-MODEL = "flux3dp:1"
+
+SERIAL_HEX = security.get_uuid()
+MODEL_ID = get_model_id()
 DEFAULT_PORT = 3310
 
 
@@ -42,14 +48,12 @@ GLOBAL_SERIAL = _uuid.UUID(int=0)
 
 class UpnpServicesMix(object):
     padding_request_pubkey = None
-
-    network_config_buf = None
+    _control_proc = None
 
     def cmd_discover(self, payload):
         """Return IP Address in array"""
-        # TODO: NOT CONFIRM
-        return {"ver": VERSION,
-                "model": MODEL, "serial": security.get_serial(),
+        return {"ver": VERSION, "name": self.meta.get_nickname(),
+                "model": MODEL_ID, "serial": SERIAL_HEX,
                 "time": time(), "ip": self.ipaddress,
                 "pwd": security.has_password()}
 
@@ -89,7 +93,7 @@ class UpnpServicesMix(object):
         rawdata = self.pkey.decrypt(payload)
         b_ts, b_passwd, pubkey = rawdata.split(b"\x00", 2)
 
-        ts = float(b_ts)
+        # ts = float(b_ts)
         passwd = b_passwd.decode("utf8")
 
         keyobj = security.get_keyobj(der=pubkey)
@@ -99,10 +103,10 @@ class UpnpServicesMix(object):
         access_id = security.get_access_id(keyobj=keyobj)
         if security.is_trusted_remote(keyobj=keyobj):
             return {
-                "access_id": security.get_access_id(pubkey),
+                "access_id": security.get_access_id(der=pubkey),
                 "status": "ok"}
 
-        elif security.validate_password(self.memcache, passwd):
+        elif security.validate_password(passwd):
             security.add_trusted_keyobj(keyobj)
             return {"access_id": access_id, "status": "ok"}
         else:
@@ -112,7 +116,7 @@ class UpnpServicesMix(object):
         keyobj = security.get_keyobj(access_id=access_id)
         passwd, old_passwd = message.split("\x00", 1)
 
-        if security.set_password(self.memcache, passwd, old_passwd):
+        if security.set_password(passwd, old_passwd):
             security.add_trusted_keyobj(keyobj)
             return {"timestemp": time()}
 
@@ -121,7 +125,6 @@ class UpnpServicesMix(object):
 
     def cmd_set_network(self, access_id, message):
         raw_opts = dict([i.split("=", 1) for i in message.split("\x00")])
-
         options = {"ifname": "wlan0"}
         method = raw_opts.get("method")
         if method == "dhcp":
@@ -149,16 +152,18 @@ class UpnpServicesMix(object):
         elif "ssid" in raw_opts:
             options["ssid"] = raw_opts["ssid"]
 
-        self.network_config_buf = json.dumps(["config_network", options])
+        nw_config = ("config_network" + "\x00" + \
+                     NCE.to_bytes(options)).encode()
+        self.server.add_loop_event(DelayNetworkConfigure(nw_config))
 
-        return {"timestemp:": time()}
+        return {"timestemp": time()}
 
     def cmd_control_status(self, access_id, message):
         _, label = control_mutex.locking_status()
         if not label:
             label = "idel"
 
-        return {"timestemp:": time(), "onthefly": label}
+        return {"timestemp": time(), "onthefly": label}
 
     def cmd_require_robot(self, access_id, message):
         pid, label = control_mutex.locking_status()
@@ -169,9 +174,14 @@ class UpnpServicesMix(object):
             raise RuntimeError(RESOURCE_BUSY)
 
         # TODO: not good
-        subprocess.Popen(["fluxrobot"])
+        if self.debug:
+            self._control_proc = subprocess.Popen(["fluxrobot", "--debug"],
+                                                  close_fds=True)
+        else:
+            self._control_proc = subprocess.Popen(["fluxrobot"],
+                                                  close_fds=True)
 
-        return {"timestemp:": time()}
+        return {"timestemp": time()}
 
     def cmd_reset_control(self, access_id, message):
         do_kill = message == b"\x01"
@@ -182,12 +192,11 @@ class UpnpServicesMix(object):
         else:
             raise RuntimeError(NOT_RUNNING)
 
-    def _clean_network_config_buf(self):
-        if self.network_config_buf:
-            sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-            sock.connect(network_config["unixsocket"])
-            sock.send(self.network_config_buf)
-            self.network_config_buf = None
+    def on_control_terminate(self, signum, frame):
+        if self._control_proc:
+            poll = self._control_proc.poll()
+            self._control_proc = None
+            logger.debug("Control program terminated with %s", poll)
 
 
 class UpnpSocket(object):
@@ -222,47 +231,73 @@ class UpnpSocket(object):
             return ("255.255.255.255", orig[1])
 
     def parse_signed_request(self, payload):
-        rawdata = self.server.pkey.decrypt(payload)
+        """Message struct:
+         +-----------+---------+------+-------------+---------+
+         | Access ID | TS      | Salt | Body    (n) | sign (k)|
+         +-----------+---------+------+-------------+---------+
+         0          20        28     32          32+n      32+k
+        21+
 
-        # access id (20) + sign (sing length) + (timestemp (8) + message)
-        access_id = binascii.b2a_hex(rawdata[:20])
-        client_keyobj = security.get_keyobj(access_id=access_id)
+        Salt: 4 random char, do not send same salt in 15 min
+        Access ID: sha1 hash for public key
+        TS: Timestemp
+        Body: as title (length n)
+        Sign: signature (length k), signature range: 'serial(16) + 0 ~ (28+n)'
+        """
 
-        if client_keyobj:
-            keylen = client_keyobj.size()
+        message = self.server.pkey.decrypt(payload[21:])
 
-            signature = rawdata[20:20 + keylen]
-            timestemp = struct.unpack("<d",
-                                      rawdata[20 + keylen:28 + keylen])[0]
-            message = rawdata[28 + keylen:]
+        bin_access_id, ts, salt = struct.unpack("<20sdi", message[:32])
 
-            if client_keyobj.verify(rawdata[20 + keylen:], signature):
-                if security.validate_timestemp(self.server.memcache,
-                                               (timestemp, signature)):
-                    return True, access_id, message
-                else:
-                    logger.debug("Timestemp error for '%s'" % access_id)
-            else:
-                logger.debug("Signuture error for '%s'" % access_id)
-        else:
+        # Check client key
+        access_id = binascii.b2a_hex(bin_access_id)
+        cli_keyobj = security.get_keyobj(access_id=access_id)
+        cli_keylen = cli_keyobj.size()
+        body, sign = message[:-cli_keylen], message[-cli_keylen:]
+
+        serial = payload[4:20]
+        cli_keylen = cli_keyobj.size()
+
+        if not cli_keyobj:
             logger.debug("Access id '%s' not found" % access_id)
+            return False, access_id, None
 
-        return False, access_id, None
+        if not cli_keyobj.verify(serial + body, sign):
+            logger.debug("Signuture error for '%s'" % access_id)
+            return False, access_id, None
 
-    def on_read(self):
+        # Check Timestemp
+        if not security.validate_timestemp((ts, salt)):
+            logger.debug("Timestemp error for '%s' (salt=%i, d=%.2f)" % ( 
+                         access_id, salt, time() - ts))
+            return False, access_id, None
+
+        return True, access_id, body[32:]
+
+    def on_read(self, sender):
+        """Payload struct:
+        +----+---------------+----+
+        | MN | Device Serial | OP |
+        +----+---------------+----+
+        0    4              20   21
+
+        MN: Magic Number, always be "FLUX"
+        Device Serial: device 16 (binary format). be 0 for broadcase.
+        OP: Request code, looks for CODE_* consts
+        """
         buf, remote = self.sock.recvfrom(4096)
         if len(buf) < 21:
             return  # drop if payload length too short
 
-        magic_num, bid, code = struct.unpack("<4s16sB", buf[:21])
-        serial = _uuid.UUID(bytes=bid).hex
+        magic_num, bserial, code = struct.unpack("<4s16sB", buf[:21])
+        serial = _uuid.UUID(bytes=bserial).hex
         if magic_num != "FLUX" or \
-           (serial != security.get_serial() and serial != GLOBAL_SERIAL.hex):
+           (serial != SERIAL_HEX and serial != GLOBAL_SERIAL.hex):
             return  # drop if payload is wrong syntax
 
-        self.handle_request(code, buf[21:], remote)
+        self.handle_request(code, buf, remote)
 
-    def handle_request(self, request_code, raw_msg, remote):
+    def handle_request(self, request_code, buf, remote):
         callback = self._callback.get(request_code)
         if not callback:
             logger.debug("Recive unhandle request code: %i" % request_code)
@@ -271,13 +306,13 @@ class UpnpSocket(object):
         try:
             t1 = time()
             if request_code == 0x00:
-                response = json.dumps(callback(raw_msg))
+                response = json.dumps(callback(buf[21:]))
                 self.send_response(request_code, 0, response, remote, False)
             elif request_code < 0x80:
-                response = json.dumps(callback(raw_msg))
+                response = json.dumps(callback(buf[21:]))
                 self.send_response(request_code, 0, response, remote, True)
             else:
-                ok, access_id, message = self.parse_signed_request(raw_msg)
+                ok, access_id, message = self.parse_signed_request(buf)
                 if ok:
                     response = json.dumps(callback(access_id, message))
                     self.send_response(request_code, 0, response, remote, True)
@@ -287,10 +322,13 @@ class UpnpSocket(object):
                                  (remote[0], access_id, request_code))
                     raise RuntimeError(AUTH_ERROR)
 
-            logger.debug("Handle request 0x%x (%f)" % (request_code, 
-                                                     time() - t1))
+            logger.debug("Handle request 0x%x (%f)" % (request_code,
+                                                       time() - t1))
         except RuntimeError as e:
             self.send_response(request_code, 1, e.args[0], remote, True)
+
+        except Exception as e:
+            logger.exception("Unhandle exception")
 
     def send_response(self, request_code, response_code, message, remote,
                       require_sign):
@@ -312,11 +350,16 @@ class UpnpWatcher(WatcherBase, UpnpServicesMix, NetworkMonitorMix):
     sock = None
 
     def __init__(self, server):
+        self.debug = server.options.debug
+
+        self.meta = CommonMetadata()
+
         # Create RSA key if not exist. This will prevent upnp create key during
         # upnp is running (Its takes times and will cause timeout)
         self.pkey = security.get_private_key()
         self.pubkey_pem = self.pkey.export_pubkey_pem()
 
+        signal(SIGCHLD, self.on_control_terminate)
         super(UpnpWatcher, self).__init__(server, logger)
 
     def _on_status_changed(self, status):
@@ -358,7 +401,19 @@ class UpnpWatcher(WatcherBase, UpnpServicesMix, NetworkMonitorMix):
         self._on_status_changed(self._monitor.full_status())
 
     def shutdown(self):
-        pass
+        self._try_close_upnp_sock()
 
     def each_loop(self):
-        self._clean_network_config_buf()
+        pass
+
+
+class DelayNetworkConfigure(object):
+    def __init__(self, config):
+        self.config = config
+
+    def on_loop(self, caller):
+        caller.remove_loop_event(self)
+        sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+        sock.connect(network_config["unixsocket"])
+        sock.send(self.config)
+        sock.close()

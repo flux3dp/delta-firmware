@@ -2,6 +2,7 @@
 from fluxmonitor import halprofile
 
 
+
 def get_uart_hal(require_model=None):
     if not require_model:
         require_model = halprofile.CURRENT_MODEL
@@ -15,7 +16,8 @@ def get_uart_hal(require_model=None):
     elif require_model == "smoothie":
         from .smoothie import UartHal
         return UartHal
-    elif require_model == halprofile.MODEL_MODEL_G1:
-        raise RuntimeError("NOT READY")
+    elif require_model == halprofile.MODEL_G1:
+        from .raspberry_1 import UartHal
+        return UartHal
 
     raise RuntimeError("NOT IMPLEMENT")

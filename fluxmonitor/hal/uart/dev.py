@@ -5,6 +5,7 @@ import os
 logger = logging.getLogger(__name__)
 
 
+from fluxmonitor.halprofile import MODEL_DARWIN_DEV, MODEL_LINUX_DEV
 from fluxmonitor.misc.async_signal import AsyncIO
 from fluxmonitor.config import general_config
 from .base import UartHalBase
@@ -12,6 +13,7 @@ from .base import UartHalBase
 
 class UartHal(UartHalBase):
     hal_name = "dev"
+    support_hal = [MODEL_DARWIN_DEV, MODEL_LINUX_DEV]
 
     def __init__(self, server):
         super(UartHal, self).__init__(server)

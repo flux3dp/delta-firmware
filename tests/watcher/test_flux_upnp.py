@@ -16,7 +16,6 @@ from fluxmonitor import security as S
 from fluxmonitor.config import network_config
 from fluxmonitor.watcher.flux_upnp import CODE_DISCOVER, \
     CODE_SET_NETWORK, DEFAULT_PORT
-
 from fluxmonitor.watcher.flux_upnp import UpnpWatcher, UpnpSocket
 
 
@@ -26,7 +25,12 @@ class UpnpServicesMixTest(unittest.TestCase):
     def setUp(self):
         U.clean_db()
         self.cache = MemcacheTestClient()
-        self.w = UpnpWatcher(ServerSimulator())
+        self.server = ServerSimulator()
+        self.w = UpnpWatcher(self.server)
+
+    def tearDown(self):
+        self.w.shutdown()
+        self.w = None
 
     def test_fetch_rsa_key(self):
         resp = self.w.cmd_rsa_key({})
@@ -68,7 +72,7 @@ class UpnpServicesMixTest(unittest.TestCase):
 
         # Set password access
         self.cache.erase()
-        S.set_password(self.cache, "fluxmonitor", None)
+        S.set_password("fluxmonitor", None)
         # User 2, blocked
         raw_req = struct.pack("<d%ss" % len(U.PUBLICKEY_2),
                               time(), U.PUBLICKEY_2)
@@ -76,14 +80,14 @@ class UpnpServicesMixTest(unittest.TestCase):
         self.assertEqual(resp["status"], "deny")
 
     def test_change_pwd(self):
-        self.assertTrue(S.set_password(self.cache, "fluxmonitor", None))
+        self.assertTrue(S.set_password("fluxmonitor", None))
         S.add_trusted_keyobj(S.get_keyobj(der=U.PUBLICKEY_3))
 
         # OK
         self.cache.erase()
         req = b"\x00".join((b"new_fluxmonitor", b"fluxmonitor"))
         resp = self.w.cmd_change_pwd(None, req)
-        self.assertIn("access_id", resp)
+        self.assertIn("timestemp", resp)
 
         # Fail
         self.cache.erase()
@@ -100,8 +104,8 @@ class UpnpServicesMixTest(unittest.TestCase):
 
         us = U.create_unix_socket(network_config['unixsocket'])
         resp = self.w.cmd_set_network(None, req)
-        self.assertIn("access_id", resp)
-        self.w.each_loop()  # each_loop will clean buffer
+        self.assertIn("timestemp", resp)
+        self.server.do_loops()  # each_loop will clean buffer
 
         # ensure data sent or raise exception
         us.recv(4096)
@@ -115,21 +119,24 @@ class UpnpWatcherNetworkMonitorMixTest(unittest.TestCase):
         self.cache = MemcacheTestClient()
         self.w = UpnpWatcher(ServerSimulator())
 
+    def tearDown(self):
+        self.w.shutdown()
+        self.w = None
+
     def test_socket_status_on_status_changed(self):
         # Test disable socket
         self.w._on_status_changed({})
         self.assertEqual(self.w.ipaddress, [])
-        self.assertIsNone(self.w.sock)
 
         # Test enable socket
         self.w._on_status_changed({'wlan0': {'ipaddr': ['192.168.1.1']}})
         self.assertEqual(self.w.ipaddress, ['192.168.1.1'])
-        self.assertIsInstance(self.w.sock, UpnpSocket)
 
         # Test disable socket
         self.w._on_status_changed({})
         self.assertEqual(self.w.ipaddress, [])
-        self.assertIsNone(self.w.sock)
+
+        self.assertIsInstance(self.w.sock, UpnpSocket)
 
 
 class UpnpSocketTest(unittest.TestCase):
@@ -142,7 +149,6 @@ class UpnpSocketTest(unittest.TestCase):
     logger = logging.getLogger()
 
     def __init__(self, *args, **kw):
-        self.pkey = S.get_private_key()
         super(UpnpSocketTest, self).__init__(*args, **kw)
 
         for hook_name in ["cmd_discover", "cmd_rsa_key", "cmd_nopwd_access",
@@ -156,11 +162,13 @@ class UpnpSocketTest(unittest.TestCase):
         return self.hook(*args)
 
     def setUp(self):
+        self.pkey = S.get_private_key()
         self.memcache = MemcacheTestClient()
-        self.sock = UpnpSocket(self)
+        self.sock = UpnpSocket(self, "")
 
     def tearDown(self):
         self.sock.close()
+        self.sock = None
 
     def create_client(self):
         client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -172,13 +180,13 @@ class UpnpSocketTest(unittest.TestCase):
 
     def retrieve_message_from_server(self, client_sock):
         """Let self.sock read and process data"""
-        while select.select((self.sock, ), (), (), 0)[0]:
-            self.sock.on_read()
+        while select.select((self.sock, ), (), (), 0.01)[0]:
+            self.sock.on_read(self)
 
         buf, remote = None, (None, None)
 
         while self.is_local_addr(remote[0]):
-            if select.select((client_sock, ), (), (), 0)[0] == []:
+            if select.select((client_sock, ), (), (), 1.0)[0] == []:
                 return None, None, (None, None)
             else:
                 buf, remote = client_sock.recvfrom(4096)
@@ -207,16 +215,16 @@ class UpnpSocketTest(unittest.TestCase):
         client.close()
 
     def _create_message(self, keypair, code, timestemp, *args):
-        head = struct.pack("<4s16sB", "FLUX", "\x00"*16, code)
-        access_id = S.get_access_id(der=keypair[1])
-        message = struct.pack("<d", timestemp) + "\x00".join(args)
-
         keyobj = S.get_keyobj(pem=keypair[0])
 
-        signature = keyobj.sign(message)
-        payload = binascii.a2b_hex(access_id) + signature + message
+        head = struct.pack("<4s16sB", "FLUX", "\x00"*16, code)
+        access_id = binascii.a2b_hex(S.get_access_id(der=keypair[1]))
+        body = "\x00".join(args)
 
-        return head + S.get_private_key().encrypt(payload)
+        message = struct.pack("<20sf4s", access_id, timestemp, "abc") + body
+        signature = keyobj.sign(head[4:20] + message)
+        encrypt_message = S.get_private_key().encrypt(message + signature)
+        return head + encrypt_message
 
     def test_cmd_set_network(self):
         S.add_trusted_keyobj(

@@ -1,0 +1,48 @@
+#!/usr/bin/env python
+
+__doc__ = """
+flux_wlan_scan is a wlan scanning tool for fluxmonitor.
+
+Because scanning wifi access point require root privilege. fluxmonitor
+split wifi scanning function to a standalone script.
+
+Attention:
+On linux, flux_wlan_scan will use wpa_cli and sudo commands below:
+# sudo -n wpa_cli scan
+# sudo -n wpa_cli scan_result
+Please ensure user has such privilege to execute command in sudoer
+list and remember allow execute these command with out `PASSWORD`
+"""
+
+import json
+import sys
+
+from fluxmonitor.hal.nl80211.scan import scan
+
+if sys.argv[-1] == "h":
+    def show(result):
+        if result["status"]:
+            sys.stdout.write("%17s %5s %23s %s\n" %
+                             ("bssid", "rssi", "security", "ssid"))
+            for row in result["data"]:
+                sys.stdout.write("%17s %5s %23s %s\n" % (
+                    row["bssid"],
+                    row["rssi"],
+                    row["security"],
+                    row["ssid"]))
+        else:
+            sys.stdout.write("Error: %s\n" % result["message"])
+else:
+    def show(result):
+        sys.stdout.write(json.dumps(result))
+
+try:
+    show({"status": True, "data": scan()})
+    sys.exit(0)
+except RuntimeError as error:
+    show({
+        "status": False,
+        "message": error.args[0],
+        "exitcode": error.args[1]
+    })
+    sys.exit(error.args[1])

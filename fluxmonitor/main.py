@@ -1,4 +1,5 @@
 
+import importlib
 import logging
 
 logger = logging.getLogger(__name__)
@@ -10,7 +11,7 @@ from fluxmonitor.misc import AsyncSignal
 
 
 class FluxMonitor(EventBase):
-    def __init__(self, options, module):
+    def __init__(self, options, watcher_name):
         super(FluxMonitor, self).__init__()
 
         self.options = options
@@ -20,7 +21,10 @@ class FluxMonitor(EventBase):
         self.signal = AsyncSignal()
         self.add_read_event(self.signal)
 
-        self.watcher = module(self)
+        module_name, klass_name = watcher_name.rsplit(".", 1)
+        module = importlib.import_module(module_name)
+        watcher_klass = module.__getattribute__(klass_name)
+        self.watcher = watcher_klass(self)
 
     def run(self):
         self.watcher.start()

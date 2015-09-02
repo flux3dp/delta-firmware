@@ -42,7 +42,7 @@ class UartHal(UartHalBase, BaseOnSerial):
         self.smoothie_io = AsyncIO(self.smoothie,
                                    self.on_recvfrom_mainboard)
 
-        server.add_read_event(self.smoothie_io)
+        self.server.add_read_event(self.smoothie_io)
 
     def _disconnect(self):
         if self.smoothie:

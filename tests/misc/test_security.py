@@ -4,7 +4,8 @@ from time import time
 import unittest
 
 from fluxmonitor import security
-from fluxmonitor.misc import _security
+from fluxmonitor.security import _security
+from fluxmonitor.security.passwd import validate_timestemp, reset_timestemp
 from tests import _utils as U
 from tests._utils.memcache import MemcacheTestClient
 
@@ -42,29 +43,23 @@ class MiscSecurityTest(unittest.TestCase):
         self.assertTrue(security.is_trusted_remote(access_id=access_id))
 
     def test_validate_timestemp(self):
-        self.assertFalse(security.validate_timestemp(self.memcache,
-                                                     (time() - 40, b"a"*128)))
-        self.assertFalse(security.validate_timestemp(self.memcache,
-                                                     (time() - 40, b"a"*128)))
+        t = time()
+        self.assertFalse(validate_timestemp((t - 40, b"a"*128)))
+        self.assertFalse(validate_timestemp((t - 40, b"a"*128)))
 
-        t = str(time())
-        self.assertTrue(
-            security.validate_timestemp(self.memcache, (t, b"a"*128)))
-        self.assertFalse(
-            security.validate_timestemp(self.memcache, (t, b"a"*128)))
-        self.memcache.erase()
+        self.assertTrue(validate_timestemp((t, b"a"*128)))
+        self.assertFalse(validate_timestemp((t, b"a"*128)))
+        reset_timestemp()
 
-        self.assertTrue(security.validate_timestemp(self.memcache,
-                                                    (t, b"b"*128), expire=-1))
-        self.assertTrue(security.validate_timestemp(self.memcache,
-                                                    (t, b"b"*128)))
+        self.assertTrue(validate_timestemp((60, b"c"*128), now=60))
+        self.assertTrue(validate_timestemp((100, b"c"*128), now=100))
 
     def test_password(self):
         self.assertFalse(security.has_password())
 
-        self.assertTrue(security.set_password(self.memcache, "HELLO", ""))
-        self.assertTrue(security.validate_password(self.memcache, "HELLO"))
-        self.assertFalse(security.validate_password(self.memcache, "HEIIO"))
+        self.assertTrue(security.set_password("HELLO", ""))
+        self.assertTrue(security.validate_password("HELLO"))
+        self.assertFalse(security.validate_password("HEIIO"))
 
         self.assertTrue(security.has_password())
 
@@ -72,6 +67,7 @@ class MiscSecurityTest(unittest.TestCase):
 class C_RSAObjectTest(unittest.TestCase):
     def encrypt(self, pem, message):
         key = RSA.importKey(pem)
+
         chip = PKCS1_OAEP.new(key)
         size = ((key.size() + 1) / 8) - 42
         in_buf = BytesIO(message)
@@ -111,7 +107,7 @@ class C_RSAObjectTest(unittest.TestCase):
 
         self.assertEqual(rsaobj.export_pem(), pem)
 
-        self.assertRaises(RuntimeError, _security.RSAObject, pem="123")
+        self.assertRaises(TypeError, _security.RSAObject, pem="123")
 
     def test_encrype_decrypt(self):
         rsaobj = _security.RSAObject(keylength=1024)
@@ -141,3 +137,15 @@ class C_RSAObjectTest(unittest.TestCase):
         self.assertFalse(rsaobj.verify(buf, "b"*127))
         self.assertFalse(rsaobj.verify(buf, "b"*128))
         self.assertFalse(rsaobj.verify(buf, "b"*129))
+
+    def test_export_der(self):
+        rsaobj = _security.RSAObject()
+        der_buffer = rsaobj.export_der()
+
+        new_rsaobj = _security.RSAObject(der=der_buffer)
+        self.assertEqual(der_buffer, new_rsaobj.export_der())
+        self.assertEqual(rsaobj.export_pem(), new_rsaobj.export_pem())
+
+        pub_rsakey = _security.RSAObject(der=rsaobj.export_pubkey_der())
+        self.assertEqual(rsaobj.export_pubkey_pem(),
+                         pub_rsakey.export_pubkey_pem())

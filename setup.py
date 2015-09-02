@@ -1,56 +1,65 @@
 #!/usr/bin/env python
 
 from setuptools import setup, Extension
-from pkgutil import walk_packages
 
-import setup_util
-
-VERSION = setup_util.get_version()
+import setup_utils
 
 
-# Process install_requires
-install_requires = ['setuptools', 'psutil', 'python-memcached']
+setup_utils.checklibs()
 
-if setup_util.is_linux():
-    install_requires += ['pyroute2', 'RPi.GPIO']
-
-# Process libraries
-libraries = ['crypto']
-
-setup_util.checklib('crypto', 'OpenSSL')
-
-
-# Process packages
-packages = setup_util.get_packages()
-
-
-# Process scripts
-scripts = setup_util.get_scripts()
-
-
-if setup_util.is_test():
-    install_requires += ['pycrypto']
-    setup_util.setup_test()
+if setup_utils.is_test():
+    setup_utils.setup_test()
 
 
 setup(
     name="fluxmonitor",
-    version=VERSION,
+    version=setup_utils.VERSION,
     author="Flux Crop.",
     author_email="cerberus@flux3dp.com",
     description="",
     license="?",
-    packages=packages,
+    packages=setup_utils.get_packages(),
     test_suite="tests.main.everything",
-    scripts=scripts,
-    install_requires=install_requires,
+    entry_points=setup_utils.ENTRY_POINTS,
+    install_requires=setup_utils.get_install_requires(),
+    tests_require=setup_utils.TEST_REQUIRE,
+    libraries=[
+        ("flux_hal", {
+            "sources": ["src/libflux_hal/halprofile.c"],
+            "include_dirs": [],
+            "macros": setup_utils.DEFAULT_MACROS
+        }),
+        ("flux_crypto", {
+            "sources": [
+                "src/libflux_crypto/flux_crypto_rsa.c",
+                "src/libflux_crypto/flux_crypto_aes.c"],
+            "include_dirs": setup_utils.PY_INCLUDES,
+            "macros": setup_utils.DEFAULT_MACROS
+        }),
+        ("flux_identify", {
+            "sources": [
+                "src/libflux_identify/rescue.c",
+                "src/libflux_identify/model_dev.c",
+                "src/libflux_identify/model_rasp.c",
+            ],
+            "include_dirs": ["src"] + setup_utils.PY_INCLUDES,
+            "macros": setup_utils.DEFAULT_MACROS
+        })
+    ],
     ext_modules=[
         Extension(
-            'fluxmonitor.misc._security', sources=[
-                "src/misc/security.c",
-                "src/misc/openssl_bridge.c"],
+            'fluxmonitor._halprofile', sources=[
+                "src/halprofile/halprofile.c"],
             extra_compile_args=["-std=c99"],
-            libraries=["crypto"],
-            extra_objects=[], include_dirs=[])
+            define_macros=setup_utils.DEFAULT_MACROS,
+            include_dirs=["src"]
+        ),
+        Extension(
+            'fluxmonitor.security._security', sources=[
+                "src/security/security.c", ],
+            extra_compile_args=["-std=c99"],
+            define_macros=setup_utils.DEFAULT_MACROS,
+            libraries=["crypto"], extra_objects=[], include_dirs=["src"]
+        )
     ]
 )

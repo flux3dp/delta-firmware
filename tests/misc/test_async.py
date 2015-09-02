@@ -9,7 +9,7 @@ import os
 
 from fluxmonitor.misc.async_signal import make_nonblock, close_fds
 from fluxmonitor.misc.async_signal import read_without_error
-from fluxmonitor.misc.async_signal import AsyncIO, AsyncQueue, AsyncSignal
+from fluxmonitor.misc.async_signal import AsyncIO, AsyncSignal
 
 
 class AsyncSingleFunctionTest(unittest.TestCase):
@@ -59,38 +59,16 @@ class AsyncSingleFunctionTest(unittest.TestCase):
         self.assertEqual(rl, [sig])
 
         sig.send()
-        sig.on_read()
-        sig.on_read()
+        sig.on_read(self)
+        sig.on_read(self)
 
         rl = select((sig, ), (), (), 0.)[0]
         self.assertEqual(rl, [])
         sig.callback = lambda *a: self.raise_exception("Should not be call")
-        sig.on_read()
+        sig.on_read(self)
 
         sig.close()
-        self.assertRaises(OSError, sig.on_read)
-
-    def test_async_queue(self):
-        def cb(sender):
-            self.assertEqual(sender.get(), b"MN")
-
-        q = AsyncQueue(callback=cb)
-
-        rl = select((q,), (), (), 0)[0]
-        self.assertEqual(rl, [])
-
-        q.put(b"M1")
-        rl = select((q,), (), (), 0)[0]
-        self.assertEqual(rl, [q])
-        self.assertEqual(q.get(), b"M1")
-
-        q.put(b"M2")
-        q.put(b"MN")
-        self.assertEqual(q.get(), b"M2")
-        rl = select((q,), (), (), 0)[0]
-        self.assertEqual(rl, [])
-        self.assertEqual(q.qsize(), 1)
-        q.on_read()
+        self.assertRaises(OSError, sig.on_read, (self, ))
 
     def test_async_io(self):
         def reader(sender):
@@ -104,8 +82,8 @@ class AsyncSingleFunctionTest(unittest.TestCase):
         async_io = AsyncIO(s1, reader, writer)
 
         s2.send(b"PING")
-        self.assertRaises(RuntimeError, async_io.on_read)
-        async_io.on_write()
+        self.assertRaises(RuntimeError, async_io.on_read, (self, ))
+        async_io.on_write(self)
 
         s2.setblocking(False)
         self.assertEqual(s2.recv(4), b"PONG")
