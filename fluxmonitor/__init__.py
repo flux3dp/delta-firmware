@@ -1,3 +1,3 @@
 
-VERSION = ("0", "9a1")
+VERSION = ("0", "10a1")
 STR_VERSION = ".".join((str(i) for i in VERSION))

@@ -63,6 +63,15 @@ setup(
             extra_compile_args=["-std=c99"],
             define_macros=setup_utils.DEFAULT_MACROS,
             libraries=["crypto"], extra_objects=[], include_dirs=["src"]
+        ),
+        Extension(
+            'fluxmonitor.code_executor._device_fsm', sources=[
+                "src/device_fsm/device_fsm.cpp",
+                "src/device_fsm/fsm.pyx", ],
+            language="c++",
+            extra_compile_args=["-std=c++11"],
+            define_macros=setup_utils.DEFAULT_MACROS,
+            libraries=[], extra_objects=[], include_dirs=["src"]
         )
     ]
 )
