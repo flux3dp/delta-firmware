@@ -7,6 +7,7 @@ import struct
 
 from fluxmonitor.hal.nl80211.config import get_wlan_ssid
 from fluxmonitor.misc import network_config_encoder as NCE
+from fluxmonitor.security.passwd import _set_password
 from fluxmonitor.halprofile import get_model_id
 from fluxmonitor.config import network_config
 from fluxmonitor.config import uart_config
@@ -89,7 +90,8 @@ class UsbIO(object):
             MSG_AUTH: self.on_auth,
             MSG_CONFIG_GENERAL: self.on_config_general,
             MSG_CONFIG_NETWORK: self.on_config_network,
-            MSG_GET_SSID: self.on_query_ssid
+            MSG_GET_SSID: self.on_query_ssid,
+            MSG_SET_PASSWORD: self.on_set_password
         }
 
     def fileno(self):
@@ -264,3 +266,7 @@ class UsbIO(object):
         except Exception:
             logger.exception("Error while getting ssid %s" % "wlan0")
             self.send_response(MSG_GET_SSID, False, "NOT_FOUND")
+
+    def on_set_password(self, buf):
+        _set_password(buf)
+        self.send_response(MSG_SET_PASSWORD, True, "ok")
