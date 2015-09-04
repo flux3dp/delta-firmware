@@ -159,7 +159,7 @@ class FcodeExecutor(BaseExecutor):
             logger.exception("Unhandle error")
             self.abort(UNKNOW_ERROR, "HEADBOARD_MESSAGE")
 
-    def on_loop(self):
+    def on_loop(self, sender):
         try:
             self.main_ctrl.patrol(self)
             self.head_ctrl.patrol(self)

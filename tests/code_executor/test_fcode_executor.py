@@ -77,7 +77,7 @@ class CodeExecutorTest(unittest.TestCase):
                 elif buf.startswith(b"F"):
                     self.ex.on_headboard_message(b"ok@" + buf)
 
-            self.ex.on_loop()
+            self.ex.on_loop(self)
 
             if self.ex.get_status()["status"] == ST_ABORT:
                 if not self.ex.head_ctrl.ready:
@@ -100,7 +100,7 @@ class CodeExecutorTest(unittest.TestCase):
                 if r.recv(4096) == b"X17O\n":
                     self.ex.on_mainboard_message(b"CTRL LINECHECK_ENABLED")
                     self.ex.on_mainboard_message(b"ok")
-            self.ex.on_loop()
+            self.ex.on_loop(self)
 
             if self.ex.get_status()["status"] in [ST_PAUSED, ST_PAUSING]:
                 if not self.ex.main_ctrl.ready:
@@ -153,7 +153,7 @@ class CodeExecutorTest(unittest.TestCase):
                 else:
                     self.send_to_headboard(b"ok@%s" % m)
 
-            self.ex.on_loop()
+            self.ex.on_loop(self)
             if self.ex._status != st:
                 st = self.ex._status
                 if "debug" in TEST_FLAGS:
@@ -206,7 +206,7 @@ class CodeExecutorTest(unittest.TestCase):
                 else:
                     self.send_to_headboard(b"ok@%s" % m)
 
-            self.ex.on_loop()
+            self.ex.on_loop(self)
             if self.ex._status != st:
                 st = self.ex._status
                 if "debug" in TEST_FLAGS:

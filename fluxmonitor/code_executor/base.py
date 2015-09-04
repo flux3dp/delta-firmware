@@ -69,7 +69,7 @@ class BaseExecutor(object):
         self._status = ST_RUNNING
 
     def abort(self, main_err, minor_err=None):
-        if self._status not in [ST_COMPLETE, ST_ABORT]:
+        if self._status not in [ST_COMPLETED, ST_ABORT]:
             L.debug("Abort: %s %s" % (main_err, minor_err))
             self._status = ST_ABORT
             self._err_symbol = (main_err, minor_err)
@@ -79,6 +79,9 @@ class BaseExecutor(object):
             return {"status": ST_ABORT, "error": self._err_symbol[0]}
         else:
             return {"status": self._status}
+
+    def is_closed(self):
+        return self._status in [ST_ABORTED, ST_COMPLETED]
 
     def send_mainboard(self, msg):
         if self.__mbio.send(msg) != len(msg):
