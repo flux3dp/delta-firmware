@@ -11,10 +11,12 @@ from fluxmonitor.launcher import deamon_entry
 def main():
     parser = argparse.ArgumentParser(description='flux hal uart deamon')
     add_daemon_arguments("fluxhal-uartd", parser)
-    parser.add_argument('--smoothie', dest='smoothie', action='store_const',
+    parser.add_argument('--manually', dest='manually', action='store_const',
                         const=True, default=False, help='Connect to smoothie')
-    parser.add_argument("--port", dest='serial_port', type=str, default=None,
-                        help='Printer Serial Port')
+    parser.add_argument("--mb", dest='mb', type=str, default=None,
+                        help='Mainboard Serial Port')
+    parser.add_argument("--hb", dest='hb', type=str, default=None,
+                        help='Headboard Serial Port')
     options = parser.parse_args()
     apply_daemon_arguments(options)
 

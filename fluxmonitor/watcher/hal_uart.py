@@ -12,8 +12,8 @@ class HalUartWatcher(WatcherBase):
         self.server = server
         super(HalUartWatcher, self).__init__(server, logger)
 
-        if server.options.smoothie:
-            klass = get_uart_hal("smoothie")
+        if server.options.manually:
+            klass = get_uart_hal("manually")
         else:
             klass = get_uart_hal()
 

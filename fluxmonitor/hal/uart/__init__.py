@@ -13,7 +13,7 @@ def get_uart_hal(require_model=None):
     elif require_model == halprofile.MODEL_LINUX_DEV:
         from .dev import UartHal
         return UartHal
-    elif require_model == "smoothie":
+    elif require_model == "manually":
         from .smoothie import UartHal
         return UartHal
     elif require_model == halprofile.MODEL_G1:

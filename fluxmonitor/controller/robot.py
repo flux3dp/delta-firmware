@@ -15,6 +15,8 @@ logger = logging.getLogger(__name__)
 
 
 class Robot(EventBase):
+    POLL_TIMEOUT = 0.5
+
     @T.update_time
     def __init__(self, options):
         EventBase.__init__(self)
