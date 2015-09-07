@@ -82,21 +82,26 @@ class FileManagerMixIn(object):
         return abspath
 
     def list_files(self, path, sender):
-        abspath = self._storage_dispatch(path, require_dir=True)
+        abspath = self._storage_dispatch(path, require_dir=True).decode("utf8")
 
         buf_obj = StringIO()
         for n in os.listdir(abspath):
-            node = os.path.join(abspath, n)
+            # python2 encoding issue ...
+            if not isinstance(n, unicode):
+                # python2 encoding issue ...
+                n = n.decode("utf8")
+            # python2 encoding issue ...
+            node = os.path.join(abspath, n).encode("utf8")
             if os.path.isdir(node):
-                buf_obj.write("D%s\x00" % n)
+                buf_obj.write(u"D%s\x00" % n)
             elif node.endswith(".fcode"):
-                buf_obj.write("F%s\x00" % n)
+                buf_obj.write(u"F%s\x00" % n)
             elif node.endswith(".gcode"):
-                buf_obj.write("F%s\x00" % n)
+                buf_obj.write(u"F%s\x00" % n)
 
         buf = buf_obj.getvalue()
         sender.send_text("continue")
-        sender.send_text(buf)
+        sender.send_text(buf.encode("utf8"))
         sender.send_text("ok")
 
     def select_file(self, path, sender, raw=False):

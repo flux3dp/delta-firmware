@@ -200,8 +200,12 @@ class LocalConnectionAsyncIO(object):
         return length
 
     def send_text(self, message):
-        l = len(message)
-        buf = struct.pack("<H", l) + message.encode()
+        if isinstance(message, unicode):
+            bmessage = message.encode("utf8")
+        else:
+            bmessage = message
+        l = len(bmessage)
+        buf = struct.pack("<H", l) + bmessage
         return self.send(buf)
 
     def close(self, reason=""):
