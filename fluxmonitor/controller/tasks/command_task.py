@@ -1,13 +1,14 @@
 
 from tempfile import TemporaryFile
+from io import StringIO
 import logging
-import glob
 import os
 
 from fluxmonitor.config import robot_config
 from fluxmonitor.storage import CommonMetadata
 from fluxmonitor.err_codes import UNKNOW_COMMAND, NOT_EXIST, \
     TOO_LARGE, NO_TASK, BAD_PARAMS
+from fluxmonitor.hal.usbmount import get_usbmount_hal
 
 from .base import CommandMixIn
 from .play_task import PlayTask
@@ -30,14 +31,14 @@ class CommandTask(CommandMixIn):
     def __init__(self, server):
         self.server = server
         self.settings = CommonMetadata()
+        self.usbmount = get_usbmount_hal()
         self.filepool = os.path.abspath(robot_config["filepool"])
 
     def dispatch_cmd(self, cmd, sender):
-        if cmd == "ls":
-            return self.list_files(sender)
+        if cmd.startswith("ls "):
+            return self.list_files(cmd[3:], sender)
         elif cmd.startswith("select "):
-            filename = cmd.split(" ", 1)[-1]
-            return self.select_file(filename)
+            return self.select_file(cmd[7:], sender)
         elif cmd.startswith("upload "):
             filesize = cmd.split(" ", 1)[-1]
             return self.upload_file(int(filesize, 10), sender)
@@ -61,32 +62,63 @@ class CommandTask(CommandMixIn):
             logger.debug("Can not handle: %s" % repr(cmd))
             raise RuntimeError(UNKNOW_COMMAND)
 
-    def list_files(self, sender):
-        # TODO: a rough method
-        pool = self.filepool
+    def list_files(self, path, sender):
+        if path.startswith("SD "):
+            return self._list_files(self.filepool, path[3:], sender)
+        elif path.startswith("USB "):
+            filepool = self.usbmount.get_entry()
+            if filepool:
+                return self._list_files(filepool, path[4:], sender)
+            else:
+                raise RuntimeError(NOT_EXIST, "BAD_NODE")
+        else:
+            raise RuntimeError(NOT_EXIST, "BAD_NODE")
 
-        files = glob.glob(os.path.join(pool, "*.gcode")) + \
-            glob.glob(os.path.join(pool, "*", "*.gcode")) + \
-            glob.glob(os.path.join(pool, "*", "*", "*.gcode"))
+    def _list_files(self, entry, path, sender):
+        abspath = os.path.abspath(os.path.join(entry, path))
+        if not abspath.startswith(entry):
+            raise RuntimeError(NOT_EXIST, "SECURITY_ISSUE")
+        if not os.path.isdir(abspath):
+            raise RuntimeError(NOT_EXIST, "NOT_DIR")
 
-        for file in files:
-            sender.send_text("file " + file)
+        buf_obj = StringIO()
+        for n in os.listdir(abspath):
+            node = os.path.join(abspath, n)
+            if os.path.isdir(node):
+                buf_obj.write("D%s\x00" % n)
+            elif node.endswith(".fcode"):
+                buf_obj.write("F%s\x00" % n)
+            elif node.endswith(".gcode"):
+                buf_obj.write("F%s\x00" % n)
 
+        buf = buf_obj.getvalue()
+        sender.send_text("continue")
+        sender.send_text(buf)
         return "ok"
 
-    def select_file(self, filename, raw=False):
-        abs_filename = os.path.abspath(
-            os.path.join(robot_config["filepool"], filename))
-
-        if not raw and not abs_filename.startswith(self.filepool):
-            raise RuntimeError(NOT_EXIST)
-
-        if not os.path.isfile(abs_filename) or \
-           not abs_filename.endswith(".fcode"):
-                raise RuntimeError(NOT_EXIST)
-
-        self._task_file = open(filename, "rb")
+    def select_file(self, path, sender, raw=False):
+        if path.startswith("SD "):
+            self._select_file(self.filepool, path[3:], sender)
+        elif path.startswith("USB "):
+            filepool = self.usbmount.get_entry()
+            if filepool:
+                self._select_file(filepool, path[4:], sender)
+            else:
+                raise RuntimeError(NOT_EXIST, "BAD_NODE")
+        elif raw:
+            self._select_file("", path, sender)
+        else:
+            raise RuntimeError(NOT_EXIST, "BAD_ENTRY")
         return "ok"
+
+    def _select_file(self, entry, path, sender):
+        abspath = os.path.abspath(os.path.join(entry, path))
+        if not abspath.startswith(entry):
+            raise RuntimeError(NOT_EXIST, "SECURITY_ISSUE")
+        if not os.path.isfile(abspath):
+            raise RuntimeError(NOT_EXIST, "NOT_FILE")
+
+        self._task_file = open(abspath, "rb")
 
     def upload_file(self, filesize, sender):
         if filesize > 2 ** 30:

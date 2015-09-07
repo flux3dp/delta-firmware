@@ -31,8 +31,10 @@ class Robot(EventBase):
 
         try:
             if options.taskfile:
-                assert cmd_task.select_file(options.taskfile, raw=True) == "ok"
-                assert cmd_task.play(sender=None) == "ok"
+                sender = NullSender()
+                assert cmd_task.select_file(options.taskfile, sender,
+                                            raw=True) == "ok"
+                assert cmd_task.play(sender=sender) == "ok"
         except Exception:
             logger.exception("Error while setting task at init")
 
@@ -74,3 +76,8 @@ class Robot(EventBase):
     def close(self):
         self.local_control.close()
         self.running = False
+
+
+class NullSender(object):
+    def send_text(self, *args):
+        pass
