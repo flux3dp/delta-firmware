@@ -1,4 +1,7 @@
 
+import socket
+
+from fluxmonitor.config import uart_config
 from .base import CommandMixIn, ExclusiveMixIn, DeviceOperationMixIn
 
 
@@ -18,6 +21,13 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
     def dispatch_cmd(self, cmd, sock):
         if cmd == "home":
             return self.make_mainboard_cmd("G28")
+        elif cmd == "reset_mb":
+            s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+            s.connect(uart_config["control"])
+            s.send(b"reset mb")
+            s.close()
+            return "ok"
+
         elif cmd == "quit":
             self.disconnect()
             self.server.exit_task(self)

@@ -46,7 +46,7 @@ class GPIOConteol(object):
 
     def reset_mainboard(self):
         GPIO.output(GPIO_MAINBOARD, MAINBOARD_OFF)
-        sleep(0.1)
+        sleep(0.3)
         GPIO.output(GPIO_MAINBOARD, MAINBOARD_ON)
 
     def update_ama0_routing(self):

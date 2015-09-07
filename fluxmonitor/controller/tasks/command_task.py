@@ -82,7 +82,7 @@ class CommandTask(CommandMixIn):
             raise RuntimeError(NOT_EXIST)
 
         if not os.path.isfile(abs_filename) or \
-           not abs_filename.endswith(".gcode"):
+           not abs_filename.endswith(".fcode"):
                 raise RuntimeError(NOT_EXIST)
 
         self._task_file = open(filename, "rb")

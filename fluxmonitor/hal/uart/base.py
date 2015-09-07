@@ -126,13 +126,16 @@ class BaseOnSerial(object):
         buf = sender.obj.read(4096)
         for sock in self.mainboard_socks:
             sock.send(buf)
+        return buf
 
     def on_recvfrom_headboard(self, sender):
         buf = sender.obj.read(4096)
         for sock in self.headboard_socks:
             sock.send(buf)
+        return buf
 
     def on_recvfrom_pc(self, sender):
         buf = sender.obj.readall()
         for sock in self.pc_socks:
             sock.send(buf)
+        return buf

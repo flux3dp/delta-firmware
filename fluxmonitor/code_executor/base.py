@@ -6,6 +6,7 @@ import logging
 from .main_controller import MainController
 from .head_controller import ExtruderController
 
+L = logging.getLogger(__name__)
 ST_STARTING = "STARTING"
 
 ST_WAITTING_HEADER = "WAITTING_HEADER"
@@ -46,6 +47,7 @@ class BaseExecutor(object):
             self._status = ST_PAUSING
             return True
         else:
+            L.debug("Pause: %s Failed" % reason)
             return False
 
     def paused(self):
@@ -69,14 +71,15 @@ class BaseExecutor(object):
         self._status = ST_RUNNING
 
     def abort(self, main_err, minor_err=None):
-        if self._status not in [ST_COMPLETED, ST_ABORT]:
+        if self._status not in [ST_COMPLETED, ST_ABORTED]:
             L.debug("Abort: %s %s" % (main_err, minor_err))
-            self._status = ST_ABORT
+            #TODO
+            self._status = ST_ABORTED
             self._err_symbol = (main_err, minor_err)
 
     def get_status(self):
-        if self._status == ST_ABORT:
-            return {"status": ST_ABORT, "error": self._err_symbol[0]}
+        if self._status == ST_ABORTED:
+            return {"status": ST_ABORTED, "error": self._err_symbol[0]}
         else:
             return {"status": self._status}
 

@@ -40,7 +40,7 @@ class MainController(object):
         self.bufsize = bufsize
 
         self._last_recv_ts = time()
-        executor.send_mainboard("X17O\n")
+        executor.send_mainboard("C1O\n")
 
     @property
     def ready(self):
@@ -68,27 +68,23 @@ class MainController(object):
             self._bufsize = val
 
     def _process_init(self, msg, executor):
-        if self._ln is not None:
-            if msg == "ok":
-                self._ready = True
-                if self.callback_ready:
-                    self.callback_ready(self)
-                    self.callback_ready = None
-            else:
-                L.deubg("Unhandle MB MSG: %s" % msg)
-        else:
-            if msg == "CTRL LINECHECK_ENABLED":
-                self._ln = 0
-                self._ln_ack = 0
+        if msg == "CTRL LINECHECK_ENABLED":
+            self._ln = 0
+            self._ln_ack = 0
+            self._ready = True
+            if self.callback_ready:
+                self.callback_ready(self)
+                self.callback_ready = None
 
-            elif msg.startswith("ER MISSING_LINENUMBER "):
-                L.error("Mainboard linecheck already enabled")
-                # Try re-enbale line check
-                ln = int(msg.split(" ")[2])
-                self._send_cmd(executor, ln, "X17F")
-                executor.send_mainboard("X17O\n")
-            else:
-                L.debug("Unhandle MB MSG: %s" % msg)
+        elif msg.startswith("ER MISSING_LINENUMBER "):
+            L.error("Mainboard linecheck already enabled")
+            # Try re-enbale line check
+            ln = int(msg.split(" ")[2])
+            self._send_cmd(executor, ln, "C1F")
+        elif msg == "CTRL LINECHECK_DISABLED":
+            executor.send_mainboard("C1O\n")
+        else:
+            L.debug("Unhandle MB MSG: %s" % msg)
 
     def on_message(self, msg, executor):
         if self._ready:
@@ -193,7 +189,6 @@ class MainController(object):
 
     def reset_mainboard(self):
         s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-        L.error("Mainboard no response, restart it")
         try:
             s.connect(uart_config["control"])
             s.send(b"reset mb")
@@ -212,7 +207,7 @@ class MainController(object):
                 self._resend_counter += 1
                 self._last_recv_ts = time()
                 # Resend, let ttl_offset takes no effect
-                executor.send_mainboard("X17O\n")
+                executor.send_mainboard("C1O\n")
 
         if self._cmd_sent:
             if self._resend_counter >= 3:

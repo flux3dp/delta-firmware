@@ -6,7 +6,7 @@ import os
 
 from fluxmonitor.err_codes import UNKNOW_ERROR
 from .base import BaseExecutor, ST_STARTING, ST_WAITTING_HEADER, ST_RUNNING, \
-    ST_PAUSING, ST_PAUSED, ST_RESUMING, ST_ABORTING, ST_ABORTED, \
+    ST_PAUSED, ST_RESUMING, ST_ABORTING, ST_ABORTED, \
     ST_COMPLETING, ST_COMPLETED
 from .misc import TaskLoader
 from ._device_fsm import PyDeviceFSM
@@ -136,7 +136,8 @@ class FcodeExecutor(BaseExecutor):
             self.main_ctrl.on_message(msg, self)
             self.fire()
         except RuntimeError as err:
-            self.pause(err.args[0])
+            if not self.pause(err.args[0]):
+                raise SystemError("BAD_LOGIC")
         except SystemError as err:
             self.abort(*err.args)
         except Exception as err:
@@ -150,7 +151,8 @@ class FcodeExecutor(BaseExecutor):
             self.head_ctrl.on_message(msg, self)
             self.fire()
         except RuntimeError as err:
-            self.pause(err.args[0])
+            if not self.pause(err.args[0]):
+                raise SystemError("BAD_LOGIC")
         except SystemError as err:
             self.abort(*err.args)
         except Exception as err:
@@ -164,7 +166,8 @@ class FcodeExecutor(BaseExecutor):
             self.main_ctrl.patrol(self)
             self.head_ctrl.patrol(self)
         except RuntimeError as err:
-            self.pause(err.args[0])
+            if not self.pause(err.args[0]):
+                self.abort("BAD_LOGIC", err.args[0])
         except SystemError as err:
             self.abort(*err.args)
         except Exception as err:
