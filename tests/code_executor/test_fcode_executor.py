@@ -97,9 +97,8 @@ class CodeExecutorTest(unittest.TestCase):
         while True:
             rl = select(*select_args)[0]
             for r in rl:
-                if r.recv(4096) == b"X17O\n":
+                if r.recv(4096) == b"C1O\n":
                     self.ex.on_mainboard_message(b"CTRL LINECHECK_ENABLED")
-                    self.ex.on_mainboard_message(b"ok")
             self.ex.on_loop(self)
 
             if self.ex.get_status()["status"] in [ST_PAUSED, ST_PAUSING]:
@@ -128,9 +127,8 @@ class CodeExecutorTest(unittest.TestCase):
 
         while True:
             for m in self.read_from_mainboard():
-                if m == "X17O":
+                if m == "C1O":
                     self.send_to_mainboard(b"CTRL LINECHECK_ENABLED")
-                    self.send_to_mainboard(b"ok")
                 else:
                     self.send_to_mainboard(b"LN %i %i" % (ln_recv + 1,
                                                           ln_recv - ln_done))
@@ -179,9 +177,8 @@ class CodeExecutorTest(unittest.TestCase):
 
         while True:
             for m in self.read_from_mainboard():
-                if m == "X17O":
+                if m == "C1O":
                     self.send_to_mainboard(b"CTRL LINECHECK_ENABLED")
-                    self.send_to_mainboard(b"ok")
                 else:
                     self.send_to_mainboard(b"LN %i %i" % (ln_recv + 1,
                                                           ln_recv - ln_done))
@@ -213,34 +210,3 @@ class CodeExecutorTest(unittest.TestCase):
                     print(" >>> %s <<< %s" % (st, self.ex._err_symbol))
                 if st == ST_COMPLETED:
                     return
-
-
-#         messages = (
-#             (b"X17O\n", None, ("CTRL LINECHECK_ENABLED", "ok"), None),
-#             (b"N1 T0 *27\n", None, ("LN 1", "ok"), None),
-#             (b"N2 G28 *49\n", None, ("LN 2", "ok"), None),
-#             (b"N3 M114 *4\n", None, ("LN 3", "X:0.00 Y:0.00 Z:240.00 E:0.00 ",
-#                                      "ok"), None),
-#         )
-#         ex = LinearExecutor(self.mainboard_endpoint, self.headboard_endpoint,
-#                             self.exec_file())
-#         ex.start()
-#
-#         for mb_in, hb_in, mb_out, hb_out in messages:
-#             try:
-#                 if mb_in:
-#                     buf = self.mainboard.recv(4096)
-#                     self.assertEqual(buf, mb_in)
-#                 if hb_in:
-#                     buf = self.headboard.recv(4096)
-#                     self.assertEqual(buf, hb_in)
-#                 if mb_out:
-#                     for m in mb_out:
-#                         ex.on_mainboard_message(m)
-#                 if hb_out:
-#                     for m in hb_out:
-#                         ex.on_headboard_message(m)
-#             except socket.error:
-#                 raise RuntimeError("error at", mb_in, hb_in, mb_out, hb_out)
-#
-#
