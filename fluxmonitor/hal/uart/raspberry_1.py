@@ -45,9 +45,11 @@ class GPIOConteol(object):
         GPIO.cleanup()
 
     def reset_mainboard(self):
+        self.mainboard_disconnect()
         GPIO.output(GPIO_MAINBOARD, MAINBOARD_OFF)
         sleep(0.3)
         GPIO.output(GPIO_MAINBOARD, MAINBOARD_ON)
+        self.mainboard_connect()
 
     def update_ama0_routing(self):
         if len(self.headboard_socks) > 0:
@@ -65,7 +67,7 @@ class GPIOConteol(object):
 
     def update_fw(self):
         L.debug("Update mainboard fireware")
-        self._mainboard_disconnect()
+        self.mainboard_disconnect()
 
         GPIO.output(GPIO_MAINBOARD, MAINBOARD_OFF)
         sleep(0.5)
@@ -100,7 +102,7 @@ class GPIOConteol(object):
             GPIO.output(GPIO_MAINBOARD, MAINBOARD_ON)
             sleep(1.0)
 
-            self._mainboard_connect()
+            self.mainboard_connect()
 
         except Exception as e:
             L.exception("Error while update fireware")
@@ -117,7 +119,7 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOConteol):
         super(UartHal, self).__init__(server)
         self.init_gpio_control()
         self._rasp_connect()
-        self._mainboard_connect()
+        self.mainboard_connect()
 
     def on_recvfrom_raspi_io(self, obj):
         if self.head_enabled:
@@ -139,8 +141,8 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOConteol):
             self.raspi_uart.write(buf)
 
     def reconnect(self):
-        self._mainboard_disconnect()
-        self._mainboard_connect()
+        self.mainboard_disconnect()
+        self.mainboard_connect()
 
     def get_mainboard_port(self):
         if os.path.exists("/dev/ttyACM0"):
@@ -150,14 +152,14 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOConteol):
         else:
             raise Exception("Can not find mainboard device")
 
-    def _mainboard_connect(self):
+    def mainboard_connect(self):
         self.mainboard_uart = Serial(port=self.get_mainboard_port(),
                                      baudrate=115200, timeout=0)
         self.mainboard_io = AsyncIO(self.mainboard_uart,
                                     self.on_recvfrom_mainboard)
         self.server.add_read_event(self.mainboard_io)
 
-    def _mainboard_disconnect(self):
+    def mainboard_disconnect(self):
         if self.mainboard_uart:
             try:
                 self.server.remove_read_event(self.mainboard_io)

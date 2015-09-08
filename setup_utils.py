@@ -142,11 +142,15 @@ def get_install_requires():
     return packages
 
 
-if "CFLAGS" in os.environ:
-    os.environ["CFLAGS"] += " -std=c99"
-else:
-    os.environ["CFLAGS"] = "-std=c99"
-
+# if "CFLAGS" in os.environ:
+#     os.environ["CFLAGS"] += " -std=c99"
+# else:
+#     os.environ["CFLAGS"] = "-std=c99"
 
 if is_darwin():
     os.environ["ARCHFLAGS"] = "-arch x86_64"
+
+    # if "CXXFLAGS" in os.environ:
+    #     os.environ["CXXFLAGS"] += " -std=c++11"
+    # else:
+    #     os.environ["CXXFLAGS"] = "-std=c++11"
