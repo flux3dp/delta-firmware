@@ -1,5 +1,5 @@
 
-from time import time
+from time import time, sleep
 import logging
 import re
 
@@ -77,7 +77,7 @@ class ExtruderController(HeaderController):
         self._update_retry = 0
         self._wait_update = False
 
-        queue = ["R\n"]
+        queue = ["RM\n"]
         if self._temperatures[0] > 0:
             queue.append("H%i\n" % (self._temperatures[0] * 10))
         queue.append("F1%i\n" % (self._fanspeed * 255))
@@ -127,6 +127,11 @@ class ExtruderController(HeaderController):
             return
         if self._ready and self._parse_cmd_response(msg, executor):
             return
+        elif "ok@T" in msg:
+            self._current_temp[0] = 100
+            self._update_retry = 0
+            self._wait_update = False
+            self._lastupdate = time()
         elif "adc" in msg:
             m = TEMP_PARSER.search(msg)
             if m:
@@ -135,7 +140,7 @@ class ExtruderController(HeaderController):
                 self._update_retry = 0
                 self._wait_update = False
                 self._lastupdate = time()
-                
+
                 if self._heaters_callback:
                     if not (self._temperatures[0] > 0):
                         self._heaters_callback(self)
@@ -146,11 +151,9 @@ class ExtruderController(HeaderController):
                         self._heaters_callback = None
                 return
         else:
-            if self._padding_cmd == "R\n":
+            if self._padding_cmd == "RM\n":
                 m = IDENTIFY_PARSER.search(msg)
                 if m:
-                    from time import sleep
-                    sleep(1)
                     self.module = module_name_conv(m.groupdict().get('module'))
                     if self.module == "extruder":
                         self._cmd_sent_at = 0
@@ -162,9 +165,7 @@ class ExtruderController(HeaderController):
                             self._padding_cmd = self._recover_queue.pop(0)
                             self._send_cmd(executor)
                         else:
-                            self._ready = True
-                            if self._ready_callback:
-                                self._ready_callback(self)
+                            self._on_ready(executor)
                     else:
                         self._raise_error(EXEC_WRONG_HEADER)
                 return
@@ -172,18 +173,16 @@ class ExtruderController(HeaderController):
                 if self._parse_cmd_response(msg, executor):
                     if self._recover_queue:
                         self._padding_cmd = self._recover_queue.pop(0)
-                        self._send_cmd(executor)
+                        self._cmd(executor)
                     else:
-                        self._ready = True
-                        if self._ready_callback:
-                            self._ready_callback(self)
+                        self._on_ready(executor)
                     return
 
         if "Boot" in msg:
             L.error("Recive header boot")
             self._raise_error(EXEC_HEADER_OFFLINE)
 
-        L.info("RECV_UH: '%s'" % msg)
+        L.debug("Recv unknow msg: '%s'", msg)
 
     def send_cmd(self, cmd, executor, waitting_callback=None):
         if cmd.startswith("H"):
@@ -197,29 +196,52 @@ class ExtruderController(HeaderController):
         else:
             raise SystemError("UNKNOW_COMMAND", "HEAD_MESSAGE")
 
+    def _on_ready(self, executor):
+        self._ready = True
+        if self._ready_callback:
+            self._ready_callback(self)
+
+    def _make_delay(self):
+        delay = 0.75 - (time() - max(self._lastupdate, self._cmd_sent_at))
+        if delay > 0:
+            # Make a delay to prevent head crash
+            sleep(delay)
+
     def _send_cmd(self, executor):
+        self._make_delay()
         executor.send_headboard(self._padding_cmd)
         self._cmd_sent_at = time()
 
-    def _parse_cmd_response(self, msg, executor):
-        if msg.startswith("ok@"):
-            if self._padding_cmd and self._padding_cmd[0] == msg[3]:
-                # Clear padding cmd
-                try:
-                    if self._cmd_callback:
-                        self._cmd_callback(executor)
-                finally:
-                    self._cmd_sent_at = 0
-                    self._cmd_retry = 0
-                    self._padding_cmd = None
-                    self._cmd_callback = None
-                return True
-        return False
-
     def _send_update(self, executor):
+        self._make_delay()
         executor.send_headboard("T\n")
         self._wait_update = True
         self._lastupdate = time()
+
+    def _parse_cmd_response(self, msg, executor):
+        if self._padding_cmd and self._padding_cmd.strip() in msg:
+            try:
+                if self._cmd_callback:
+                    self._cmd_callback(executor)
+            finally:
+                self._cmd_sent_at = 0
+                self._cmd_retry = 0
+                self._padding_cmd = None
+                self._cmd_callback = None
+            return True
+        # if msg.endswith("ok@"):
+        #     if self._padding_cmd and self._padding_cmd[0] == msg[3]:
+        #         # Clear padding cmd
+        #         try:
+        #             if self._cmd_callback:
+        #                 self._cmd_callback(executor)
+        #         finally:
+        #             self._cmd_sent_at = 0
+        #             self._cmd_retry = 0
+        #             self._padding_cmd = None
+        #             self._cmd_callback = None
+        #         return True
+        return False
 
     def patrol(self, executor):
         if self._ready:
@@ -239,7 +261,7 @@ class ExtruderController(HeaderController):
         if self._padding_cmd:
             if self._cmd_retry > 2:
                 self._raise_error(EXEC_HEADER_OFFLINE)
-            elif time() - self._cmd_sent_at > 1.0:
+            elif time() - self._cmd_sent_at > 1.5:
                 self._send_cmd(executor)
                 self._cmd_retry += 1
                 L.debug("Header no response, retry (%i)", self._update_retry)

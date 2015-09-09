@@ -190,8 +190,10 @@ class MainController(object):
                 if not self._cmd_sent:
                     self._last_recv_ts = time()
                 self._cmd_sent.append((self._ln, cmd))
+            else:
+                raise RuntimeError(EXEC_OPERATION_ERROR, "BUF_FULL")
         else:
-            raise RuntimeError(EXEC_OPERATION_ERROR, "BUF_FULL")
+            raise RuntimeError(EXEC_OPERATION_ERROR, "NOT_READY")
 
     def _send_cmd(self, executor, lineno, cmd):
         executor.send_mainboard(self.create_cmd(lineno, cmd))

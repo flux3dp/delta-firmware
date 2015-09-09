@@ -47,8 +47,11 @@ class MainboardControlStartupTest(ControlTestBase):
         with self.assertSendMainboard(b"C1O\n") as executor:
             mc = MainController(executor, ready_callback=self.raiseException)
 
-        with self.assertSendMainboard(b"C1F N3*105\n", b"C1O\n") as executor:
+        with self.assertSendMainboard(b"C1F N3*105\n") as executor:
             mc.on_message("ER MISSING_LINENUMBER 3", executor)
+
+        with self.assertSendMainboard(b"C1O\n") as executor:
+            mc.on_message("CTRL LINECHECK_DISABLED", executor)
 
 class MainboardControlTest(ControlTestBase):
     def setUp(self):
@@ -59,7 +62,7 @@ class MainboardControlTest(ControlTestBase):
 
         mc._ln = 0
         mc._waitting_ok = False
-        mc._ready = True
+        mc._flags = 1
         mc.callback_ready = None
         self.mc = mc
 

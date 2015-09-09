@@ -159,8 +159,6 @@ class UsbIO(object):
                 handler(self._recv_view[7:7 + length].tobytes())
             else:
                 logger.debug("handler not found %i" % req)
-        except Exception:
-            logger.exception("Unhandle Error")
 
         finally:
             remnant = self._recv_offset - length - 7

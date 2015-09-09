@@ -221,7 +221,7 @@ class UpnpSocketTest(unittest.TestCase):
         access_id = binascii.a2b_hex(S.get_access_id(der=keypair[1]))
         body = "\x00".join(args)
 
-        message = struct.pack("<20sf4s", access_id, timestemp, "abc") + body
+        message = struct.pack("<20sd4s", access_id, timestemp, "abc") + body
         signature = keyobj.sign(head[4:20] + message)
         encrypt_message = S.get_private_key().encrypt(message + signature)
         return head + encrypt_message

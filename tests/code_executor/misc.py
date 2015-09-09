@@ -9,20 +9,8 @@ class ControlTestBase(unittest.TestCase):
     def raiseException(self, sender):
         raise RuntimeWarning("UNITTEST")
 
-    def send_headboard(self, msg):
-        if not self._send_headboard_sequence:
-            raise AssertionError("send_mainboard message queue is empty, use "
-                                 "setHeadboardSendSequence preset excepted "
-                                 "send_maiboard call. (Recive %s)" % repr(msg))
-
-        match = self._send_headboard_sequence.pop(0)
-        self.assertEqual(msg, match)
-
-    def setHeadboardSendSequence(self, *args):
-        self._send_headboard_sequence = list(args)
-
-    def assertSendHeadboardCalled(self):
-        self.assertItemsEqual(self._send_headboard_sequence, ())
+    def assertSendHeadboard(self, *args):
+        return AssertControllerSendHelper(self, headboard_send_sequence=args)
 
     def assertSendMainboard(self, *args):
         return AssertControllerSendHelper(self, mainboard_send_sequence=args)
@@ -38,6 +26,14 @@ class AssertControllerSendHelper(object):
             self.mseq = list(mainboard_send_sequence)
         if headboard_send_sequence:
             self.hseq = list(headboard_send_sequence)
+
+    def send_headboard(self, msg):
+        if self.hseq:
+            match = self.hseq.pop(0)
+            self.tc.assertEqual(msg, match)
+        else:
+            raise AssertionError(
+                "Headboard send non-excepted message: %s" % repr(msg))
 
     def send_mainboard(self, msg):
         if self.mseq:

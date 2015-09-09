@@ -5,120 +5,109 @@ from fluxmonitor.code_executor.head_controller import ExtruderController
 from .misc import ControlTestBase
 
 
-R_MESSAGES = """*************************************************
-FLUX Printer Module
-FW_Version : v1.0
-
-Current Temprature :2006
-Temperature Limit :100
-Kp :300
-Ki :90
-Kd :5000
-Heater Status : ON
-Setpoint :2005
-t flag :0
-Fan1 Status : ON
-Fan2 Status : ON
-
-s flag :0
-k flag :0
-sensor calibration :0
-*************************************************"""
+R_MESSAGES = "FLUX Printer Module"
 
 
 class ExtruderHeadControlTest(ControlTestBase):
     def setUp(self):
         super(ExtruderHeadControlTest, self).setUp()
 
-        self.setHeadboardSendSequence("R\n")
-        ec = ExtruderController(self, ready_callback=self.raiseException)
+        with self.assertSendHeadboard(b"RM\n") as executor:
+            ec = ExtruderController(executor,
+                                    ready_callback=self.raiseException)
 
-        self.assertSendHeadboardCalled()
+        with self.assertSendHeadboard(b"F10\n") as executor:
+            for msg in R_MESSAGES.split("\n"):
+                ec.on_message(msg, executor)
 
-        self.setHeadboardSendSequence("F10\n")
-        for msg in R_MESSAGES.split("\n"):
-            ec.on_message(msg, self)
-        self.assertSendHeadboardCalled()
-
-        self.assertRaises(RuntimeWarning, ec.on_message, "ok@F", self)
-        self.assertSendHeadboardCalled()
+        with self.assertSendHeadboard() as executor:
+            self.assertRaises(RuntimeWarning, ec.on_message, "ok@F10",
+                              executor)
         self.assertTrue(ec.ready)
-
         self.ec = ec
 
     def test_standard_operation(self):
-        self.setHeadboardSendSequence("H2000\n")
-        self.ec.set_heater(self, 0, 200, callback=self.raiseException)
-        self.assertSendHeadboardCalled()
-        self.assertRaises(RuntimeWarning, self.ec.on_message, "ok@H", self)
+        with self.assertSendHeadboard(b"H2000\n") as executor:
+            self.ec.set_heater(executor, 0, 200, callback=self.raiseException)
+
+        with self.assertSendHeadboard() as executor:
+            self.assertRaises(RuntimeWarning, self.ec.on_message, "ok@H2000",
+                              executor)
 
     def test_cmd_complete_callback(self):
-        self.setHeadboardSendSequence(b"H2010\n")
-        self.ec.set_heater(self, 0, 201, self.raiseException)
+        with self.assertSendHeadboard(b"H2010\n") as executor:
+            self.ec.set_heater(executor, 0, 201, self.raiseException)
 
-        self.ec.on_message("DARA", self)
-        self.ec.on_message("DA~RA~", self)
-        self.assertRaises(RuntimeWarning, self.ec.on_message, "ok@H2010", self)
+        with self.assertSendHeadboard() as executor:
+            self.ec.on_message("DARA", executor)
+            self.ec.on_message("DA~RA~", executor)
+
+        with self.assertSendHeadboard() as executor:
+            self.assertRaises(RuntimeWarning, self.ec.on_message, "ok@H2010",
+                              executor)
 
     def test_wait_heaters(self):
-        self.setHeadboardSendSequence(b"H2000\n")
-        self.ec.set_heater(self, 0, 200)
-        self.assertSendHeadboardCalled()
+        with self.assertSendHeadboard(b"H2000\n") as executor:
+            self.ec.set_heater(executor, 0, 200)
 
         self.ec.wait_heaters(self.raiseException)
-        self.setHeadboardSendSequence(b"T\n")
-        self.ec.patrol(self)
 
-        self.assertRaises(RuntimeWarning, self.ec.on_message,
-                          " abc: 123 >>> 2000", self)
+        with self.assertSendHeadboard(b"T\n") as executor:
+            self.ec.patrol(executor)
+
+        with self.assertSendHeadboard() as executor:
+            self.assertRaises(RuntimeWarning, self.ec.on_message,
+                              " adc: 123 >>> 2000", executor)
 
     def test_cmd_timeout(self):
         self.ec._lastupdate = time()
 
-        self.setHeadboardSendSequence(b"H2000\n")
-        self.ec.set_heater(self, 0, 200)
-        self.assertSendHeadboardCalled()
+        with self.assertSendHeadboard(b"H2000\n") as executor:
+            self.ec.set_heater(executor, 0, 200)
 
         # Error because command not ready
-        self.assertRaises(RuntimeError, self.ec.set_heater, self, 0, 200)
+        with self.assertSendHeadboard() as executor:
+            self.assertRaises(RuntimeError,
+                              self.ec.set_heater, executor, 0, 200)
 
-        self.setHeadboardSendSequence(b"H2000\n", "H2000\n", "H2000\n")
-        for i in range(1, 4):
-            self.ec._cmd_sent_at = -1
-            self.ec.patrol(self)
-            self.assertEqual(self.ec._cmd_retry, i)
-        self.assertSendHeadboardCalled()
+        with self.assertSendHeadboard(b"H2000\n", b"H2000\n",
+                                      b"H2000\n") as executor:
+            for i in range(1, 4):
+                self.ec._cmd_sent_at = -1
+                self.ec.patrol(executor)
+                self.assertEqual(self.ec._cmd_retry, i)
 
         self.ec._cmd_sent_at = -1
-        self.assertRaises(RuntimeError, self.ec.patrol, self)
+        with self.assertSendHeadboard() as executor:
+            self.assertRaises(RuntimeError, self.ec.patrol, executor)
 
     def test_update_timeout(self):
-        self.setHeadboardSendSequence(b"T\n", b"T\n", b"T\n", b"T\n")
-
-        for i in range(4):
-            # 1(first) + 3(retry) = call 4 times
-            self.ec._lastupdate = -1
-            self.ec.patrol(self)
-            self.assertEqual(self.ec._update_retry, i)
-        self.assertSendHeadboardCalled()
+        with self.assertSendHeadboard(b"T\n", b"T\n", b"T\n",
+                                      b"T\n") as executor:
+            for i in range(4):
+                # 1(first) + 3(retry) = call 4 times
+                self.ec._lastupdate = -1
+                self.ec.patrol(executor)
+                self.assertEqual(self.ec._update_retry, i)
 
         self.ec._lastupdate = -1
-        self.assertRaises(RuntimeError, self.ec.patrol, self)
+        with self.assertSendHeadboard() as executor:
+            self.assertRaises(RuntimeError, self.ec.patrol, executor)
 
     def test_rebootstrap(self):
         self.assertTrue(self.ec.ready)
-        self.assertRaises(RuntimeError, self.ec.on_message, "Boot", self)
+        with self.assertSendHeadboard() as executor:
+            self.assertRaises(RuntimeError,
+                              self.ec.on_message, b"Boot", executor)
         self.assertFalse(self.ec.ready)
 
-        self.setHeadboardSendSequence("R\n")
-        self.ec.bootstrap(self)
-        self.assertSendHeadboardCalled()
+        with self.assertSendHeadboard(b"RM\n") as executor:
+            self.ec.bootstrap(executor)
 
-        self.setHeadboardSendSequence("F10\n")
-        for msg in R_MESSAGES.split("\n"):
-            self.ec.on_message(msg, self)
+        with self.assertSendHeadboard(b"F10\n") as executor:
+            for msg in R_MESSAGES.split("\n"):
+                self.ec.on_message(msg, executor)
 
-        self.assertSendHeadboardCalled()
-
-        self.assertRaises(RuntimeWarning, self.ec.on_message, "ok@F", self)
-        self.assertSendHeadboardCalled()
+        with self.assertSendHeadboard() as executor:
+            self.assertRaises(RuntimeWarning,
+                              self.ec.on_message, "ok@F10", executor)
