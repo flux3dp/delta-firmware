@@ -29,18 +29,9 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
         self.executor = FcodeExecutor(self._uart_mb, self._uart_hb, task_file,
                                       settings.play_bufsize)
         self.server.add_loop_event(self)
-        # self._task_file = TaskLoader(task_file)
-        # self._task_total = os.fstat(task_file.fileno()).st_size
-        # self._task_executed = 0
-        # self._task_in_queue = 0
-        # logger.info("Start task with size %i", (self._task_total))
-        #
-        # self._status = "RUNNING"
-        # self.next_cmd()
 
     def on_exit(self, sender):
         self.server.remove_loop_event(self)
-        self._task_file.close()
         self.disconnect()
 
     def on_mainboard_message(self, sender):
@@ -86,6 +77,7 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
         elif cmd == "abort":
             if self.executor.abort("USER_OPERATION"):
                 return "ok"
+            else:
                 raise RuntimeError(RESOURCE_BUSY)
 
         elif cmd == "quit":

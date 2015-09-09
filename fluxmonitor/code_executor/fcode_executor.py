@@ -73,6 +73,13 @@ class FcodeExecutor(BaseExecutor):
         self._fsm = PyDeviceFSM()
         self.fire()
 
+    def abort(self, *args):
+        if BaseExecutor.abort(self, *args):
+            self.main_ctrl.close(self)
+            return True
+        else:
+            return False
+
     def fire(self):
         if self._status == ST_RUNNING:
             while (not self._eof) and len(self._cmd_queue) < 24:
@@ -124,6 +131,7 @@ class FcodeExecutor(BaseExecutor):
             self._status = ST_COMPLETING
             self.main_ctrl.send_cmd("G28", self)
         elif self._status == ST_COMPLETING:
+            self.main_ctrl.close(self)
             self._status = ST_COMPLETED
         else:
             self.fire()

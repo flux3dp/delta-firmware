@@ -4,11 +4,14 @@ from time import time
 import logging
 import socket
 
-L = logging.getLogger(__name__)
-
 from fluxmonitor.err_codes import EXEC_OPERATION_ERROR, EXEC_INTERNAL_ERROR,\
     EXEC_MAINBOARD_OFFLINE
 from fluxmonitor.config import uart_config
+
+L = logging.getLogger(__name__)
+
+FLAG_READY = 1
+FLAG_CLOSED = 2
 
 
 class MainController(object):
@@ -21,7 +24,8 @@ class MainController(object):
     _resend_counter = 0  # Resend counter
 
     # Booean
-    _ready = False
+    _flags = 0
+
     # Callable object
     _callback_ready = None
     # Tuple: (ttl(int), time(float), ln(int))
@@ -44,7 +48,11 @@ class MainController(object):
 
     @property
     def ready(self):
-        return self._ready
+        return (self._flags & FLAG_READY) > 0
+
+    @property
+    def closed(self):
+        return (self._flags & FLAG_CLOSED) > 0
 
     @property
     def buffered_cmd_size(self):
@@ -71,7 +79,7 @@ class MainController(object):
         if msg == "CTRL LINECHECK_ENABLED":
             self._ln = 0
             self._ln_ack = 0
-            self._ready = True
+            self._flags |= FLAG_READY
             if self.callback_ready:
                 self.callback_ready(self)
                 self.callback_ready = None
@@ -84,10 +92,10 @@ class MainController(object):
         elif msg == "CTRL LINECHECK_DISABLED":
             executor.send_mainboard("C1O\n")
         else:
-            L.debug("Unhandle MB MSG: %s" % msg)
+            L.debug("Recv unknow msg: '%s'", msg)
 
     def on_message(self, msg, executor):
-        if self._ready:
+        if self.ready:
             if msg.startswith("LN "):
                 recv_ln, cmd_in_queue = (int(x) for x in msg.split(" ", 2)[1:])
                 self._ln_ack = recv_ln
@@ -129,7 +137,7 @@ class MainController(object):
 
             else:
                 L.info("Unhandle MB MSG: %s" % msg)
-        else:
+        elif not self.closed:
             self._process_init(msg, executor)
 
 
@@ -174,13 +182,14 @@ class MainController(object):
                 return False
         return False
 
-    def send_cmd(self, cmd, executor):
-        if self.ready and self.buffered_cmd_size < self._bufsize:
-            self._ln += 1
-            self._send_cmd(executor, self._ln, cmd)
-            if not self._cmd_sent:
-                self._last_recv_ts = time()
-            self._cmd_sent.append((self._ln, cmd))
+    def send_cmd(self, cmd, executor, force=False):
+        if self.ready:
+            if self.buffered_cmd_size < self._bufsize or force:
+                self._ln += 1
+                self._send_cmd(executor, self._ln, cmd)
+                if not self._cmd_sent:
+                    self._last_recv_ts = time()
+                self._cmd_sent.append((self._ln, cmd))
         else:
             raise RuntimeError(EXEC_OPERATION_ERROR, "BUF_FULL")
 
@@ -189,15 +198,24 @@ class MainController(object):
 
     def reset_mainboard(self):
         s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+        self._flags &= ~FLAG_READY
+        self._flags |= FLAG_CLOSED
         try:
             s.connect(uart_config["control"])
             s.send(b"reset mb")
-            s.close()
         except Exception:
             L.exception("Error while send resset mb signal")
 
+    def close(self, executor):
+        if self.ready:
+            self.send_cmd("G28", executor, force=True)
+            self.send_cmd("M84", executor, force=True)
+            self.send_cmd("C1F", executor, force=True)
+            self._flags &= ~FLAG_READY
+            self._flags |= FLAG_CLOSED
+
     def patrol(self, executor):
-        if not self._ready:
+        if not self.ready and not self.closed:
             if self._resend_counter >= 3:
                 L.error("Mainboard no response, restart it")
                 self.reset_mainboard()
@@ -211,7 +229,6 @@ class MainController(object):
 
         if self._cmd_sent:
             if self._resend_counter >= 3:
-                self._ready = False
                 L.error("Mainboard no response, restart it")
                 self.reset_mainboard()
                 raise SystemError(EXEC_MAINBOARD_OFFLINE)

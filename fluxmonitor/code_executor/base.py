@@ -28,10 +28,11 @@ L = logging.getLogger(__name__)
 
 
 class BaseExecutor(object):
-    main_lineno = -1
-    time_used = 0
     _status = None
     _err_symbol = None
+    time_used = 0
+    main_ctrl = None
+    head_ctrl = None
 
     def __init__(self, mainboard_io, headboard_io):
         self.__mbio = mainboard_io
@@ -76,6 +77,9 @@ class BaseExecutor(object):
             #TODO
             self._status = ST_ABORTED
             self._err_symbol = (main_err, minor_err)
+            return True
+        else:
+            return False
 
     def get_status(self):
         if self._status == ST_ABORTED:

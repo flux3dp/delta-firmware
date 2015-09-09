@@ -137,3 +137,33 @@ class DeviceOperationMixIn(object):
             self._uart_hb = None
 
         self.connected = False
+
+
+class DeviceMessageReceiverMixIn(object):
+    _mb_swap = _hb_swap = None
+
+    def recv_from_mainboard(self, sender):
+        buf = sender.obj.recv(4096)
+        if self._mb_swap:
+            self._mb_swap += buf.decode("ascii", "ignore")
+        else:
+            self._mb_swap = buf.decode("ascii", "ignore")
+
+        messages = re.split("\r\n|\n", self._mb_swap)
+        self._mb_swap = messages.pop()
+
+        for msg in messages:
+            yield msg
+
+    def recv_from_headboard(self, sender):
+        buf = sender.obj.recv(4096)
+        if self._hb_swap:
+            self._hb_swap += buf.decode("ascii", "ignore")
+        else:
+            self._hb_swap = buf.decode("ascii", "ignore")
+
+        messages = re.split("\r\n|\n", self._hb_swap)
+        self._hb_swap = messages.pop()
+
+        for msg in messages:
+            yield msg

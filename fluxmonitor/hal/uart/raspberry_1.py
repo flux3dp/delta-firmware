@@ -49,6 +49,7 @@ class GPIOConteol(object):
         GPIO.output(GPIO_MAINBOARD, MAINBOARD_OFF)
         sleep(0.3)
         GPIO.output(GPIO_MAINBOARD, MAINBOARD_ON)
+        sleep(1.5)
         self.mainboard_connect()
 
     def update_ama0_routing(self):
@@ -134,7 +135,7 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOConteol):
         if self.head_enabled:
             for c in buf:
                 self.raspi_uart.write(c)
-                sleep(0.02)
+                sleep(0.005)
 
     def sendto_pc(self, buf):
         if not self.head_enabled:
