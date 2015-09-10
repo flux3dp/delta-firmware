@@ -15,7 +15,7 @@ from fluxmonitor.config import robot_config
 from fluxmonitor.misc import mimetypes
 
 from .base import CommandMixIn
-from .old_upload_task import PlayTask as OldPlayTask
+from .old_play_task import PlayTask as OldPlayTask
 from .play_task import PlayTask
 from .scan_task import ScanTask
 from .upload_task import UploadTask
