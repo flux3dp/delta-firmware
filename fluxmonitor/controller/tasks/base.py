@@ -1,5 +1,5 @@
 
-from errno import ECONNREFUSED
+from errno import ECONNREFUSED, ENOENT
 import weakref
 import logging
 import socket
@@ -104,7 +104,7 @@ class DeviceOperationMixIn(object):
             logger.exception("Connect to %s failed" % uart_config["mainboard"])
             self.disconnect()
 
-            if err.args[0] == ECONNREFUSED:
+            if err.args[0] in [ECONNREFUSED, ENOENT]:
                 raise RuntimeError(NO_RESPONSE)
             else:
                 raise
