@@ -3,9 +3,11 @@
 
 
 from tempfile import TemporaryFile
+from errno import errorcode
 import logging
 import socket
 
+from fluxmonitor.err_codes import SUBSYSTEM_ERROR
 from fluxmonitor.storage import Storage
 from .base import ExclusiveMixIn
 
@@ -21,6 +23,14 @@ class UpdateFwTask(ExclusiveMixIn):
 
     def on_exit(self, sender):
         pass
+
+    def send_upload_request(self):
+        try:
+            s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+            s.connect("/tmp/.uart-control")
+            s.send("update_fw")
+        except socket.error:
+            raise RuntimeError(SUBSYSTEM_ERROR)
 
     def on_owner_message(self, message, sender):
         try:
@@ -44,12 +54,13 @@ class UpdateFwTask(ExclusiveMixIn):
                     f.write(self.tmpfile.read())
 
                 logging.warn("Fireware uploaded, start processing")
-                s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-                s.connect("/tmp/.uart-control")
-                s.send("update_fw")
-            
+                self.send_upload_request()
                 sender.send_text("ok")
 
                 self.server.exit_task(self, True)
+        except RuntimeError as e:
+            sender.send_text(("error %s" % e.args[0]).encode())
         except Exception:
             logger.exception("Unhandle Error")
+            sender.send_text("error %s" % UNKNOW_ERROR)
+

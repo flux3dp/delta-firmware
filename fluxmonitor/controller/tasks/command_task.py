@@ -2,15 +2,17 @@
 from tempfile import TemporaryFile
 from errno import errorcode
 from io import StringIO
+from md5 import md5
 import logging
 import shutil
 import os
 
-from fluxmonitor.config import robot_config
-from fluxmonitor.storage import CommonMetadata
 from fluxmonitor.err_codes import UNKNOW_COMMAND, NOT_EXIST, \
     TOO_LARGE, NO_TASK, BAD_PARAMS, BAD_FILE_FORMAT
 from fluxmonitor.hal.usbmount import get_usbmount_hal
+from fluxmonitor.storage import CommonMetadata
+from fluxmonitor.config import robot_config
+from fluxmonitor.misc import mimetypes
 
 from .base import CommandMixIn
 from .play_task import PlayTask
@@ -51,8 +53,12 @@ class FileManagerMixIn(object):
             self.rmfile(cmd[3:], sender)
             return True
         elif cmd.startswith("upload "):
-            filesize = cmd.split(" ", 1)[-1]
-            self.upload_file(int(filesize, 10), sender)
+            # upload [mimetype] [size] [filename]
+            _, mimetype, filesize, filename = cmd.split(" ", 3)
+            self.upload_file(mimetype, int(filesize, 10), filename, sender)
+            return True
+        elif cmd.startswith("md5 "):
+            self.md5(cmd[4:], sender)
             return True
         else:
             return False
@@ -165,13 +171,39 @@ class FileManagerMixIn(object):
         except OSError as e:
             raise RuntimeError("OSERR_" + errorcode.get(e.args[0], "UNKNOW"))
 
-    def upload_file(self, filesize, sender):
+    def md5(self, path, sender):
+        try:
+            with open(self._storage_dispatch(path,
+                                             require_file=True), "rb") as f:
+                buf = bytearray(4096)
+                l = f.readinto(buf)
+                m = md5()
+                while l > 0:
+                    if l == 4096:
+                        m.update(buf)
+                    else:
+                        m.update(buf[:l])
+                    l = f.readinto(buf)
+            sender.send_text("md5 %s" % m.hexdigest())
+        except OSError as e:
+            raise RuntimeError("OSERR_" + errorcode.get(e.args[0], "UNKNOW"))
+
+    def upload_file(self, mimetype, filesize, filename, sender):
         if filesize > 2 ** 30:
             raise RuntimeError(TOO_LARGE)
 
-        self._task_file = TemporaryFile()
+        if filename == "#":
+            self._task_file = TemporaryFile()
+            self._task_mimetype = mimetype
+        else:
+            abspath = self._storage_dispatch(filename, sd_only=True)
+            if mimetypes.validate_ext(abspath, mimetype):
+                self._task_file = open(abspath, "wb")
+            else:
+                logger.debug("Upload filename ext not match to mimetype")
+                raise RuntimeError(BAD_FILE_FORMAT)
 
-        logger.debug("Upload task file size: %i" % filesize)
+        logger.debug("Upload task file '%s', size %i", mimetype, filesize)
 
         task = UploadTask(self.server, sender, self._task_file, filesize)
         self.server.enter_task(task, self.end_upload_file)
@@ -206,7 +238,7 @@ class CommandTask(CommandMixIn, FileManagerMixIn):
         elif cmd == "maintain":
             return self.maintain(sender)
         elif cmd.startswith("update_fw "):
-            filesize = cmd.split(" ", 1)[-1]
+            _, mimetype, filesize, upload_to = cmd.split(" ")
             return self.update_fw(int(filesize, 10), sender)
         elif cmd.startswith("set "):
             params = cmd.split(" ", 2)[1:]
