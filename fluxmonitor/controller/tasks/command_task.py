@@ -15,6 +15,7 @@ from fluxmonitor.config import robot_config
 from fluxmonitor.misc import mimetypes
 
 from .base import CommandMixIn
+from .old_upload_task import PlayTask as OldPlayTask
 from .play_task import PlayTask
 from .scan_task import ScanTask
 from .upload_task import UploadTask
@@ -266,7 +267,7 @@ class CommandTask(CommandMixIn, FileManagerMixIn):
 
     def play(self, sender):
         if self._task_file:
-            task = PlayTask(self.server, sender, self._task_file)
+            task = OldPlayTask(self.server, sender, self._task_file)
             self.server.enter_task(task, empty_callback)
             self._task_file = None
             return "ok"
