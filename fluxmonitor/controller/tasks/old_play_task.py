@@ -126,6 +126,7 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
 
         elif cmd == "abort":
             if self._status in ["RUNNING", "PAUSE"]:
+                self._uart_mb.send(b"G28\nM84\n")
                 self._status = "ABORT"
                 return "ok"
             else:
