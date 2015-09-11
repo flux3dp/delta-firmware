@@ -1,4 +1,6 @@
 
+from __future__ import absolute_import
+
 from tempfile import TemporaryFile
 from errno import errorcode
 from io import StringIO
@@ -7,8 +9,8 @@ import logging
 import shutil
 import os
 
-from fluxmonitor.err_codes import UNKNOW_COMMAND, NOT_EXIST, \
-    TOO_LARGE, NO_TASK, BAD_PARAMS, BAD_FILE_FORMAT
+from fluxmonitor.err_codes import (UNKNOW_COMMAND, NOT_EXIST,
+    TOO_LARGE, NO_TASK, BAD_PARAMS, BAD_FILE_FORMAT)
 from fluxmonitor.hal.usbmount import get_usbmount_hal
 from fluxmonitor.storage import CommonMetadata
 from fluxmonitor.config import robot_config
@@ -121,6 +123,7 @@ class FileManagerMixIn(object):
             raise RuntimeError(NOT_EXIST, "NOT_FILE")
 
         self._task_file = open(abspath, "rb")
+        self._task_mimetype, _ = mimetype.guess_type(abspath)
         sender.send_text("ok")
 
     def fileinfo(self, path, sender):
@@ -220,6 +223,7 @@ class FileManagerMixIn(object):
 
 class CommandTask(CommandMixIn, FileManagerMixIn):
     _task_file = None
+    _task_mimetype = None
 
     def __init__(self, server):
         self.server = server
@@ -267,9 +271,18 @@ class CommandTask(CommandMixIn, FileManagerMixIn):
 
     def play(self, sender):
         if self._task_file:
-            task = OldPlayTask(self.server, sender, self._task_file)
-            self.server.enter_task(task, empty_callback)
-            self._task_file = None
+            if self._task_mimetype == "text/gcode":
+                task = OldPlayTask(self.server, sender, self._task_file)
+                self.server.enter_task(task, empty_callback)
+                self._task_file = None
+                self._task_mimetype = None
+            elif self._task_mimetype == "application/fcode":
+                task = PlayTask(self.server, sender, self._task_file)
+                self.server.enter_task(task, empty_callback)
+                self._task_file = None
+                self._task_mimetype = None
+            else:
+                raise RuntimeError(BAD_FILE_FORMAT, self._task_mimetype)
             return "ok"
         else:
             raise RuntimeError(NO_TASK)
