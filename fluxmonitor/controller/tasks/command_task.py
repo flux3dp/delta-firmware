@@ -9,6 +9,7 @@ import logging
 import shutil
 import os
 
+from fluxmonitor.code_executor.fcode_parser import fast_read_metata
 from fluxmonitor.err_codes import (UNKNOW_COMMAND, NOT_EXIST,
     TOO_LARGE, NO_TASK, BAD_PARAMS, BAD_FILE_FORMAT)
 from fluxmonitor.hal.usbmount import get_usbmount_hal
@@ -128,12 +129,15 @@ class FileManagerMixIn(object):
 
     def fileinfo(self, path, sender):
         abspath = self._storage_dispatch(path, require_file=True)
-        if abspath.endswith(".gcode"):
-            sender.send_text("ok size=%i" % os.path.getsize(abspath))
-        elif abspath.endswith(".fcode"):
-            sender.send_text("ok size=%i" % os.path.getsize(abspath))
+        if mimetypes.guess_type(abspath)[0] == mimetypes.MIMETYPE_FCODE:
+            metadata, image = fast_read_metata(abspath)
+            metadata["size"] = os.path.getsize(abspath)
+            sender.send_text("binary image/png %i" % len(image))
+            sender.send(image)
+            sender.send_text(
+                "ok %s" % "\x00".join("%s=%s" % (k, v) for k, v in metadata.items()))
         else:
-            raise RuntimeError(BAD_FILE_FORMAT)
+            sender.send_text("ok size=%i" % os.path.getsize(abspath))
 
     def mkdir(self, path, sender):
         abspath = self._storage_dispatch(path, sd_only=True)
@@ -271,12 +275,12 @@ class CommandTask(CommandMixIn, FileManagerMixIn):
 
     def play(self, sender):
         if self._task_file:
-            if self._task_mimetype == "text/gcode":
+            if self._task_mimetype == mimetypes.MIMETYPE_GCODE:
                 task = OldPlayTask(self.server, sender, self._task_file)
                 self.server.enter_task(task, empty_callback)
                 self._task_file = None
                 self._task_mimetype = None
-            elif self._task_mimetype == "application/fcode":
+            elif self._task_mimetype == mimetypes.MIMETYPE_FCODE:
                 task = PlayTask(self.server, sender, self._task_file)
                 self.server.enter_task(task, empty_callback)
                 self._task_file = None
