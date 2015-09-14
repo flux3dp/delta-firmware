@@ -13,7 +13,7 @@ from fluxmonitor.config import hal_config
 
 from .base import UartHalBase, BaseOnSerial
 
-L = logging.getLogger("hal.uart.rasp")
+L = logging.getLogger("halservice.rasp")
 
 GPIO_HEAD_POW =  13
 GPIO_USB_SERIAL = 15

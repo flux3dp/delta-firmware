@@ -9,8 +9,8 @@ from fluxmonitor.launcher import deamon_entry
 
 
 def main():
-    parser = argparse.ArgumentParser(description='flux hal uart deamon')
-    add_daemon_arguments("fluxhal-uartd", parser)
+    parser = argparse.ArgumentParser(description='flux hal deamon')
+    add_daemon_arguments("fluxhald", parser)
     parser.add_argument('--manually', dest='manually', action='store_const',
                         const=True, default=False, help='Connect to smoothie')
     parser.add_argument("--mb", dest='mb', type=str, default=None,
@@ -38,7 +38,7 @@ def main():
     else:
         return_code = deamon_entry(
             options,
-            watcher="fluxmonitor.watcher.hal_uart.HalUartWatcher")
+            service ="fluxmonitor.services.hal.HalService")
         sys.exit(return_code)
 
 

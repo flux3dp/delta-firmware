@@ -6,7 +6,7 @@ import os
 from fluxmonitor.misc.async_signal import AsyncIO
 from fluxmonitor.config import uart_config
 
-logger = logging.getLogger("hal.uart.base")
+logger = logging.getLogger("halservice.base")
 
 
 class UartHalBase(object):

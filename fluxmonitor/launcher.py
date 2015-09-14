@@ -63,7 +63,7 @@ def create_logger(options):
     })
 
 
-def deamon_entry(options, watcher=None):
+def deamon_entry(options, service=None):
     pid_handler = open(options.pidfile, 'w', 0)
 
     try:
@@ -105,7 +105,7 @@ def deamon_entry(options, watcher=None):
         pid_handler.write(repr(os.getpid()))
 
     create_logger(options)
-    server = FluxMonitor(options, watcher)
+    server = FluxMonitor(options, service)
 
     def sigTerm(watcher, revent):
         sys.stderr.write("\n")

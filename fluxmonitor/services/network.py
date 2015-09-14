@@ -3,18 +3,19 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from .base import WatcherBase
-from ._network_helpers import NetworkMonitorMix, ConfigMix, ControlSocketMix
 from fluxmonitor.hal.nl80211 import config as nl80211_config
 from fluxmonitor.hal.net import config as net_config
+
+from .base import ServiceBase
+from ._network_helpers import NetworkMonitorMix, ConfigMix, ControlSocketMix
 
 FLUX_ST_STARTED = "flux_started"
 
 
-class NetworkWatcher(WatcherBase, NetworkMonitorMix, ConfigMix,
+class NetworkService(ServiceBase, NetworkMonitorMix, ConfigMix,
                      ControlSocketMix):
     def __init__(self, server):
-        super(NetworkWatcher, self).__init__(server, logger)
+        super(NetworkService, self).__init__(server, logger)
 
         self.server.POLL_TIMEOUT = 1.0
         self.daemons = {}

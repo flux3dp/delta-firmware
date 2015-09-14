@@ -32,7 +32,7 @@ def main():
     else:
         return_code = deamon_entry(
             options,
-            watcher="fluxmonitor.watcher.usb_serial.UsbWatcher")
+            service="fluxmonitor.services.usb.UsbService")
         sys.exit(return_code)
 
 

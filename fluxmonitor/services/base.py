@@ -1,6 +1,6 @@
 
 
-class WatcherBase(object):
+class ServiceBase(object):
     def __init__(self, server, logger):
         self.server = server
         self.memcache = server.cache

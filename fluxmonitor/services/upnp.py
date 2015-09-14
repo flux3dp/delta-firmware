@@ -22,7 +22,7 @@ from fluxmonitor.err_codes import ALREADY_RUNNING, BAD_PASSWORD, NOT_RUNNING, \
 
 from fluxmonitor import STR_VERSION as VERSION
 from fluxmonitor import security
-from .base import WatcherBase
+from .base import ServiceBase
 from ._network_helpers import NetworkMonitorMix
 
 
@@ -46,7 +46,7 @@ CODE_SET_NETWORK = 0xa2
 GLOBAL_SERIAL = _uuid.UUID(int=0)
 
 
-class UpnpServicesMix(object):
+class UpnpServiceMix(object):
     padding_request_pubkey = None
     # _discover_history
     _control_proc = None
@@ -378,7 +378,7 @@ class UpnpSocket(object):
         self.sock.close()
 
 
-class UpnpWatcher(WatcherBase, UpnpServicesMix, NetworkMonitorMix):
+class UpnpService(ServiceBase, UpnpServiceMix, NetworkMonitorMix):
     _discover_history = None
     ipaddress = None
     sock = None
@@ -395,7 +395,7 @@ class UpnpWatcher(WatcherBase, UpnpServicesMix, NetworkMonitorMix):
         self.pubkey_pem = self.pkey.export_pubkey_pem()
 
         signal(SIGCHLD, self.on_control_terminate)
-        super(UpnpWatcher, self).__init__(server, logger)
+        super(UpnpService, self).__init__(server, logger)
 
     def _on_status_changed(self, status):
         """Overwrite _on_status_changed witch called by `NetworkMonitorMix`

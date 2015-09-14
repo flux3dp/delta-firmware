@@ -14,7 +14,7 @@ from fluxmonitor.config import uart_config
 from fluxmonitor.storage import CommonMetadata
 from fluxmonitor import security
 from fluxmonitor import STR_VERSION as VERSION
-from .base import WatcherBase
+from .base import ServiceBase
 
 logger = logging.getLogger(__name__)
 
@@ -32,12 +32,12 @@ MSG_SET_PASSWORD = 0x06
 
 
 
-class UsbWatcher(WatcherBase):
+class UsbService(ServiceBase):
     usb = None
     usb_io = None
 
     def __init__(self, server):
-        super(UsbWatcher, self).__init__(server, logger)
+        super(UsbService, self).__init__(server, logger)
 
     def start(self):
         self.connect_usb_serial()

@@ -93,7 +93,8 @@ PY_INCLUDES = [distutils.sysconfig.get_python_inc()]
 ENTRY_POINTS = {
     "console_scripts": [
         "fluxupnpd=fluxmonitor.bin.fluxupnpd:main",
-        "fluxhal-uartd=fluxmonitor.bin.fluxuartd:main",
+        "fluxhal-uartd=fluxmonitor.bin.fluxhald:main",  # Remove in next ver
+        "fluxhald=fluxmonitor.bin.fluxhald:main",
         "fluxnetworkd=fluxmonitor.bin.fluxnetworkd:main",
         "fluxusbd=fluxmonitor.bin.fluxusbd:main",
 

@@ -32,7 +32,7 @@ def main():
     else:
         return_code = deamon_entry(
             options,
-            watcher="fluxmonitor.watcher.flux_upnp.UpnpWatcher")
+            service="fluxmonitor.services.upnp.UpnpService")
         sys.exit(return_code)
 
 

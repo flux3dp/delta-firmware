@@ -3,19 +3,19 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from fluxmonitor.watcher.base import WatcherBase
-from fluxmonitor.hal.uart import get_uart_hal
+from fluxmonitor.hal.halservice import get_halservice
+from .base import ServiceBase
 
 
-class HalUartWatcher(WatcherBase):
+class HalService(ServiceBase):
     def __init__(self, server):
         self.server = server
-        super(HalUartWatcher, self).__init__(server, logger)
+        super(HalService, self).__init__(server, logger)
 
         if server.options.manually:
-            klass = get_uart_hal("manually")
+            klass = get_halservice("manually")
         else:
-            klass = get_uart_hal()
+            klass = get_halservice()
 
         self.hal = klass(server)
         logger.info("UART %s HAL selected" % self.hal.hal_name)

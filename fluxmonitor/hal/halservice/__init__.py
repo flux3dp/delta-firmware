@@ -3,7 +3,7 @@ from fluxmonitor import halprofile
 
 
 
-def get_uart_hal(require_model=None):
+def get_halservice(require_model=None):
     if not require_model:
         require_model = halprofile.CURRENT_MODEL
 
