@@ -1,5 +1,6 @@
 
 from __future__ import absolute_import
+from errno import EAGAIN, errorcode
 import logging.config
 import signal
 import fcntl
@@ -7,7 +8,7 @@ import sys
 import os
 
 from fluxmonitor.config import general_config
-from fluxmonitor.main import FluxMonitor
+from fluxmonitor.main import FluxMonitor, FatalException
 
 
 LOG_FORMAT = "[%(asctime)s,%(levelname)s,%(name)s] %(message)s"
@@ -63,18 +64,48 @@ def create_logger(options):
     })
 
 
+def lock_pidfile(options):
+    try:
+        if os.path.exists(options.pidfile):
+            old_pid_handler = open(options.pidfile, 'a+')
+            dup_fd = os.dup(old_pid_handler.fileno())
+            fcntl.lockf(dup_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            pid_handler = os.fdopen(dup_fd, 'w', 0)
+        else:
+            pid_handler = open(options.pidfile, 'w', 0)
+            fcntl.lockf(pid_handler.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+
+        return pid_handler
+    except IOError as e:
+        if options.debug:
+            raise
+        elif e.args[0] == EAGAIN:
+            sys.stderr.write('Can not lock pidfile %s\n' % options.pidfile)
+            raise FatalException(0x80)
+        else:
+            sys.stderr.write('Can not open pidfile %s (%s)\n' %
+                             (options.pidfile, errorcode.get(e.args[0], "?")))
+            raise FatalException(0x81)
+
+
+def close_fd():
+    # Close all file descriptor except stdin/stdout/stderr and pid file
+    # descriptor
+    os.closerange(4, 1024)
+
+
 def deamon_entry(options, service=None):
-    pid_handler = open(options.pidfile, 'w', 0)
+    close_fd()
 
     try:
-        fcntl.lockf(pid_handler.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except IOError:
-        sys.stderr.write('Can not start daemon, daemon maybe already running '
-                         'in somewhere?\n')
-        raise
+        pid_handler = lock_pidfile(options)
+        create_logger(options)
+        server = FluxMonitor(options, service)
+
+    except FatalException as e:
+        return e.args[0]
 
     if options.daemon:
-        pid_handler.close()
         pid_t = os.fork()
         if pid_t == 0:
             os.setsid()
@@ -84,13 +115,9 @@ def deamon_entry(options, service=None):
             sys.stdout.close()
             sys.stderr.close()
 
-            os.closerange(0, 1024)
-
             sys.stdin = open(os.devnull, 'r')
             sys.stdout = open(os.devnull, 'r')
             sys.stderr = open(os.devnull, 'r')
-            # sys.stdout = open(options.logfile, 'a')
-            # sys.stderr = sys.stdout
 
             pid_handler = open(options.pidfile, 'w', 0)
             pid_handler.write(repr(os.getpid()))
@@ -103,9 +130,6 @@ def deamon_entry(options, service=None):
             return 0x10
     else:
         pid_handler.write(repr(os.getpid()))
-
-    create_logger(options)
-    server = FluxMonitor(options, service)
 
     def sigTerm(watcher, revent):
         sys.stderr.write("\n")
@@ -126,9 +150,7 @@ def deamon_entry(options, service=None):
             return 1
 
     finally:
-        if options.daemon:
-            fcntl.lockf(pid_handler.fileno(), fcntl.LOCK_UN)
-
+        fcntl.lockf(pid_handler.fileno(), fcntl.LOCK_UN)
         pid_handler.close()
         os.unlink(options.pidfile)
 

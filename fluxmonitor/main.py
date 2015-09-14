@@ -48,3 +48,7 @@ class FluxMonitor(EventBase):
 We found fluxmonitord is not running as root. fluxmonitord can not
 run without root privilege under linux.
 """)
+
+
+class FatalException(Exception):
+    pass
