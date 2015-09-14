@@ -121,15 +121,16 @@ def deamon_entry(options, service=None):
     signal.signal(signal.SIGTERM, sigTerm)
     signal.signal(signal.SIGINT, sigTerm)
 
-    if server.run() is False:
-        return 1
+    try:
+        if server.run() is False:
+            return 1
 
-    if options.daemon:
-        fcntl.lockf(pid_handler.fileno(), fcntl.LOCK_UN)
+    finally:
+        if options.daemon:
+            fcntl.lockf(pid_handler.fileno(), fcntl.LOCK_UN)
+
         pid_handler.close()
-        try:
-            os.unlink(options.pidfile)
-        except Exception:
-            pass
+        os.unlink(options.pidfile)
+
 
     return 0
