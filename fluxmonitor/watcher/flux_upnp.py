@@ -48,14 +48,43 @@ GLOBAL_SERIAL = _uuid.UUID(int=0)
 
 class UpnpServicesMix(object):
     padding_request_pubkey = None
+    # _discover_history
     _control_proc = None
 
-    def cmd_discover(self, payload):
-        """Return IP Address in array"""
-        return {"ver": VERSION, "name": self.meta.get_nickname(),
-                "model": MODEL_ID, "serial": SERIAL_HEX,
-                "time": time(), "ip": self.ipaddress,
-                "pwd": security.has_password()}
+    def _in_discover_history(self, remote):
+        identify = socket.inet_aton(remote[0]) + struct.pack("I", remote[1])
+        if identify in self._discover_history:
+            ts, counter = self._discover_history[identify]
+            counter -= (time() - ts) // 15
+            if counter < 0:
+                counter = 0
+
+            if counter >= 6:
+                self._discover_history[identify] = (ts, counter)
+                return True
+            else:
+                self._discover_history[identify] = (time(), counter + 1)
+                return False
+
+        else:
+            if len(self._discover_history) > 512:
+                min_key, min_ts = None, time()
+                for key, val in self._discover_history.items():
+                    min_ts = val[0]
+                    if ts < min_ts:
+                        min_key, min_ts = key, ts
+                self._discover_history.pop(key)
+
+            self._discover_history[identify] = (time(), 1)
+
+        return False
+
+    def cmd_discover(self, remote):
+        if not self._in_discover_history(remote):
+            return {"ver": VERSION, "name": self.meta.get_nickname(),
+                    "model": MODEL_ID, "serial": SERIAL_HEX,
+                    "time": time(), "ip": self.ipaddress,
+                    "pwd": security.has_password()}
 
     def cmd_rsa_key(self, payload):
         return self.pubkey_pem
@@ -306,8 +335,12 @@ class UpnpSocket(object):
         try:
             t1 = time()
             if request_code == 0x00:
-                response = json.dumps(callback(buf[21:]))
-                self.send_response(request_code, 0, response, remote, False)
+                message = callback(remote)
+                if message:
+                    resp = json.dumps(message)
+                    self.send_response(request_code, 0, resp, remote, False)
+                else:
+                    return
             elif request_code < 0x80:
                 response = json.dumps(callback(buf[21:]))
                 self.send_response(request_code, 0, response, remote, True)
@@ -346,12 +379,14 @@ class UpnpSocket(object):
 
 
 class UpnpWatcher(WatcherBase, UpnpServicesMix, NetworkMonitorMix):
+    _discover_history = None
     ipaddress = None
     sock = None
 
     def __init__(self, server):
         self.debug = server.options.debug
 
+        self._discover_history = {}
         self.meta = CommonMetadata()
 
         # Create RSA key if not exist. This will prevent upnp create key during
