@@ -1,7 +1,7 @@
 
 from signal import signal, SIGCHLD
 from itertools import chain
-from time import time
+from time import time, sleep
 import uuid as _uuid
 import subprocess
 import binascii
@@ -18,7 +18,7 @@ from fluxmonitor.storage import CommonMetadata
 from fluxmonitor.config import network_config
 from fluxmonitor.misc import control_mutex
 from fluxmonitor.err_codes import ALREADY_RUNNING, BAD_PASSWORD, NOT_RUNNING, \
-    RESOURCE_BUSY, AUTH_ERROR
+    RESOURCE_BUSY, AUTH_ERROR, UNKNOW_ERROR
 
 from fluxmonitor import STR_VERSION as VERSION
 from fluxmonitor import security
@@ -202,15 +202,20 @@ class UpnpServiceMix(object):
         elif pid:
             raise RuntimeError(RESOURCE_BUSY)
 
-        # TODO: not good
-        if self.debug:
-            self._control_proc = subprocess.Popen(["fluxrobot", "--debug"],
-                                                  close_fds=True)
-        else:
-            self._control_proc = subprocess.Popen(["fluxrobot"],
-                                                  close_fds=True)
-
-        return {"timestemp": time()}
+        deamon = subprocess.Popen(["fluxrobot", "--daemon"], close_fds=True)
+        timestemp = time()
+        # TODO: Upnp service will blocked untile timeout.
+        while True:
+            ret = deamon.poll()
+            if ret == None:
+                if time() - timestemp > 16:
+                    daemon.kill()
+                else:
+                    sleep(0.05)
+            elif ret == 0:
+                return {"timestemp": time()}
+            else:
+                raise RuntimeError(UNKNOW_ERROR, "%i" % daemon.poll())
 
     def cmd_reset_control(self, access_id, message):
         do_kill = message == b"\x01"
@@ -394,7 +399,6 @@ class UpnpService(ServiceBase, UpnpServiceMix, NetworkMonitorMix):
         self.pkey = security.get_private_key()
         self.pubkey_pem = self.pkey.export_pubkey_pem()
 
-        signal(SIGCHLD, self.on_control_terminate)
         super(UpnpService, self).__init__(logger)
 
     def _on_status_changed(self, status):
