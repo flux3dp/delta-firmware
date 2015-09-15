@@ -40,9 +40,9 @@ class Process(Popen):
         self._make_nonblock(self.stdout)
         self._make_nonblock(self.stderr)
 
-        self.manager.server.add_read_event(
+        self.manager.add_read_event(
             AsyncIO(self.stdout, self._on_stdout))
-        self.manager.server.add_read_event(
+        self.manager.add_read_event(
             AsyncIO(self.stderr, self._on_stderr))
 
         self._closed = False
@@ -84,7 +84,7 @@ class Process(Popen):
         if not self._closed:
             # First _closed be invoked
             self._closed = True
-            self.manager.server.remove_read_event(sender)
+            self.manager.remove_read_event(sender)
 
             # Make callback
             self.manager.on_daemon_closed(self)

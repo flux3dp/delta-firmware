@@ -23,8 +23,8 @@ class HalService(ServiceBase):
     def each_loop(self):
         pass
 
-    def start(self):
+    def on_start(self):
         pass
 
-    def shutdown(self):
+    def on_shutdown(self):
         pass
