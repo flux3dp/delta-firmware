@@ -202,11 +202,11 @@ class UpnpServiceMix(object):
         elif pid:
             raise RuntimeError(RESOURCE_BUSY)
 
-        deamon = subprocess.Popen(["fluxrobot", "--daemon"], close_fds=True)
+        daemon = subprocess.Popen(["fluxrobot", "--daemon"], close_fds=True)
         timestemp = time()
         # TODO: Upnp service will blocked untile timeout.
         while True:
-            ret = deamon.poll()
+            ret = daemon.poll()
             if ret == None:
                 if time() - timestemp > 16:
                     daemon.kill()
