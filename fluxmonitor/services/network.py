@@ -14,13 +14,13 @@ FLUX_ST_STARTED = "flux_started"
 
 class NetworkService(ServiceBase, NetworkMonitorMix, ConfigMix,
                      ControlSocketMix):
-    def __init__(self, server):
-        super(NetworkService, self).__init__(server, logger)
+    def __init__(self, options):
+        super(NetworkService, self).__init__(logger)
 
-        self.server.POLL_TIMEOUT = 1.0
+        self.POLL_TIMEOUT = 1.0
         self.daemons = {}
 
-    def start(self):
+    def on_start(self):
         self.bootstrap_network_monitor(self.memcache)
         self.bootstrap_control_socket(self.memcache)
 
@@ -30,13 +30,13 @@ class NetworkService(ServiceBase, NetworkMonitorMix, ConfigMix,
             except Exception:
                 self.logger.exception("Error while bootstrap %s" % ifname)
 
-    def shutdown(self):
+    def on_shutdown(self):
         for ifname, daemons in self.daemons.items():
             for dname, instance in daemons.items():
                 instance.kill()
 
     def each_loop(self):
-        self.server.POLL_TIMEOUT = min(self.server.POLL_TIMEOUT * 2, 300.)
+        self.POLL_TIMEOUT = min(self.POLL_TIMEOUT * 2, 300.)
 
     def bootstrap(self, ifname, rebootstrap=False):
         """start network interface and apply its configurations"""

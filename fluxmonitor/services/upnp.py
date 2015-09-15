@@ -183,7 +183,7 @@ class UpnpServiceMix(object):
 
         nw_config = ("config_network" + "\x00" + \
                      NCE.to_bytes(options)).encode()
-        self.server.add_loop_event(DelayNetworkConfigure(nw_config))
+        self.add_loop_event(DelayNetworkConfigure(nw_config))
 
         return {"timestemp": time()}
 
@@ -383,8 +383,8 @@ class UpnpService(ServiceBase, UpnpServiceMix, NetworkMonitorMix):
     ipaddress = None
     sock = None
 
-    def __init__(self, server):
-        self.debug = server.options.debug
+    def __init__(self, options):
+        self.debug = options.debug
 
         self._discover_history = {}
         self.meta = CommonMetadata()
@@ -395,7 +395,7 @@ class UpnpService(ServiceBase, UpnpServiceMix, NetworkMonitorMix):
         self.pubkey_pem = self.pkey.export_pubkey_pem()
 
         signal(SIGCHLD, self.on_control_terminate)
-        super(UpnpService, self).__init__(server, logger)
+        super(UpnpService, self).__init__(logger)
 
     def _on_status_changed(self, status):
         """Overwrite _on_status_changed witch called by `NetworkMonitorMix`
@@ -415,7 +415,7 @@ class UpnpService(ServiceBase, UpnpServiceMix, NetworkMonitorMix):
 
         try:
             self.sock = UpnpSocket(self, ipaddr=ipaddr)
-            self.server.add_read_event(self.sock)
+            self.add_read_event(self.sock)
             self.logger.info("Upnp going UP")
         except socket.error:
             self.logger.exception("")
@@ -424,18 +424,18 @@ class UpnpService(ServiceBase, UpnpServiceMix, NetworkMonitorMix):
     def _try_close_upnp_sock(self):
         if self.sock:
             self.logger.info("Upnp going DOWN")
-            self.server.remove_read_event(self.sock)
+            self.remove_read_event(self.sock)
             try:
                 self.sock.close()
             except Exception:
                 pass
             self.sock = None
 
-    def start(self):
+    def on_start(self):
         self.bootstrap_network_monitor(self.memcache)
         self._on_status_changed(self._monitor.full_status())
 
-    def shutdown(self):
+    def on_shutdown(self):
         self._try_close_upnp_sock()
 
     def each_loop(self):

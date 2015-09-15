@@ -5,7 +5,8 @@ from fluxmonitor.misc import timer as T
 from fluxmonitor.event_base import EventBase
 from fluxmonitor.controller.interfaces.local import LocalControl
 from fluxmonitor.controller.tasks.command_task import CommandTask
-
+from fluxmonitor.misc.control_mutex import ControlLock
+from fluxmonitor.services.base import ServiceBase
 
 STATUS_IDLE = 0x0
 STATUS_RUNNING = 0x1
@@ -14,12 +15,15 @@ STATUS_PAUSE = 0x3
 logger = logging.getLogger(__name__)
 
 
-class Robot(EventBase):
+class Robot(ServiceBase):
     POLL_TIMEOUT = 0.5
 
     @T.update_time
     def __init__(self, options):
-        EventBase.__init__(self)
+        self.ctrl_mutex = ControlLock("robot")
+        self.ctrl_mutex.lock()
+
+        ServiceBase.__init__(self, logger)
         self.debug = options.debug
         self.local_control = LocalControl(self, logger=logger)
 
@@ -73,9 +77,13 @@ class Robot(EventBase):
         if T.time_since_update(self) > 1800:
             self.close()
 
-    def close(self):
-        self.local_control.close()
+    def on_start(self):
+        pass
+
+    def on_shutdown(self):
         self.running = False
+        self.local_control.close()
+        self.ctrl_mutex.unlock()
 
 
 class NullSender(object):

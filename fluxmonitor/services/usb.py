@@ -36,8 +36,9 @@ class UsbService(ServiceBase):
     usb = None
     usb_io = None
 
-    def __init__(self, server):
-        super(UsbService, self).__init__(server, logger)
+    def __init__(self, options):
+        self.options = options
+        super(UsbService, self).__init__(logger)
 
     def start(self):
         self.connect_usb_serial()
@@ -49,7 +50,7 @@ class UsbService(ServiceBase):
             io = UsbIO(self, s)
 
             self.usb_io = io
-            self.server.add_read_event(io)
+            self.add_read_event(io)
             logger.info("Ready on port %s" % uart_config["pc"])
 
         except socket.error as e:
@@ -61,11 +62,14 @@ class UsbService(ServiceBase):
                 logger.exception("USB Connection error")
 
     def close_usb_serial(self, *args):
-        self.server.remove_read_event(self.usb_io)
+        self.remove_read_event(self.usb_io)
         self.usb = None
         self.usb_io = None
 
-    def shutdown(self):
+    def on_start(self):
+        pass
+
+    def on_shutdown(self):
         pass
 
     def each_loop(self):

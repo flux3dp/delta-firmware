@@ -54,7 +54,7 @@ class ControlLock(object):
         self.label = program_label
         self.mutex_file = _get_control_file()
 
-    def __enter__(self):
+    def lock(self):
         self.f = f = open(self.mutex_file, 'w')
         try:
             fcntl.lockf(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -67,9 +67,14 @@ class ControlLock(object):
         f.write("%i\n%s\n" % (os.getpid(), self.label))
         f.flush()
 
-        return self
-
-    def __exit__(self, type, value, traceback):
+    def unlock(self):
         fcntl.lockf(self.f.fileno(), fcntl.LOCK_UN)
         self.f.close()
         os.unlink(self.mutex_file)
+
+    def __enter__(self):
+        self.lock()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.unlock()

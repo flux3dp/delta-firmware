@@ -2,13 +2,13 @@
 from __future__ import absolute_import
 from errno import EAGAIN, errorcode
 import logging.config
+import importlib
 import signal
 import fcntl
 import sys
 import os
 
 from fluxmonitor.config import general_config
-from fluxmonitor.main import FluxMonitor, FatalException
 
 
 LOG_FORMAT = "[%(asctime)s,%(levelname)s,%(name)s] %(message)s"
@@ -94,13 +94,20 @@ def close_fd():
     os.closerange(4, 1024)
 
 
+def load_service_klass(klass_name):
+    module_name, klass_name = klass_name.rsplit(".", 1)
+    module = importlib.import_module(module_name)
+    return module.__getattribute__(klass_name)
+
+
 def deamon_entry(options, service=None):
     close_fd()
 
     try:
         pid_handler = lock_pidfile(options)
         create_logger(options)
-        server = FluxMonitor(options, service)
+        service_klass = load_service_klass(service)
+        server = service_klass(options)
 
     except FatalException as e:
         return e.args[0]
@@ -156,3 +163,7 @@ def deamon_entry(options, service=None):
 
 
     return 0
+
+
+class FatalException(Exception):
+    pass
