@@ -215,8 +215,7 @@ class UpnpServiceMix(object):
             elif ret == 0:
                 return {"timestemp": time()}
             else:
-                return {"timestemp": time()}
-                # raise RuntimeError(UNKNOW_ERROR, "%i" % daemon.poll())
+                raise RuntimeError(UNKNOW_ERROR, "%i" % daemon.poll())
 
     def cmd_reset_control(self, access_id, message):
         do_kill = message == b"\x01"

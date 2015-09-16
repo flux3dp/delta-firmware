@@ -55,17 +55,26 @@ class ControlLock(object):
         self.mutex_file = _get_control_file()
 
     def lock(self):
-        self.f = f = open(self.mutex_file, 'w')
         try:
-            fcntl.lockf(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            if os.path.exists(self.mutex_file):
+                old_pid_handler = open(self.mutex_file, 'a+')
+                dup_fd = os.dup(old_pid_handler.fileno())
+                fcntl.lockf(dup_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                pid_handler = os.fdopen(dup_fd, 'w', 0)
+            else:
+                pid_handler = open(self.mutex_file, 'w', 0)
+                fcntl.lockf(pid_handler.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+
         except IOError as e:
+            os.close(dup_fd)
             if e.args[0] == EAGAIN:
                 raise RuntimeError("Another control program is running")
             else:
                 raise
 
-        f.write("%i\n%s\n" % (os.getpid(), self.label))
-        f.flush()
+        self.f = pid_handler
+        self.f.write("%i\n%s\n" % (os.getpid(), self.label))
+        self.f.flush()
 
     def unlock(self):
         fcntl.lockf(self.f.fileno(), fcntl.LOCK_UN)
