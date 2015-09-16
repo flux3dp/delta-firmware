@@ -4,87 +4,47 @@ from errno import EAGAIN
 import fcntl
 import os
 
-from fluxmonitor.config import general_config
+from fluxmonitor.storage import Storage
 
-"""
-control_mutex use file lock to prevent two program run at sametime
-"""
+_PIDFILE = None
 
-
-def _get_control_file():
-    return os.path.join(general_config["db"], "control.pid")
+def pidfile():
+    global _PIDFILE
+    if not _PIDFILE:
+        s = Storage()
+        _PIDFILE = s.get_path("control.pid")
+    return _PIDFILE
 
 
 def locking_status():
     """
-    return [pid, label]
+    return [pid]
 
     Return control program when pid and label, if no program is running, return
-    [0, None]
+    0
     """
 
-    fn = _get_control_file()
+    fn = pidfile()
     if os.path.isfile(fn):
         try:
             with open(fn, "a+") as f:
                 fcntl.lockf(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
                 fcntl.lockf(f.fileno(), fcntl.LOCK_UN)
-                return 0, None
+                return 0
         except IOError:
             with open(fn, "r") as f:
-                pid, label = f.read().split("\n", 1)
-                return int(pid, 10), label.strip()
+                pid = int(f.read())
+                return pid
     else:
-        return 0, None
+        return 0
 
 
 def terminate(kill=False):
-    pid, label = locking_status()
+    pid = locking_status()
     if pid:
         if kill:
             os.kill(pid, SIGKILL)
         else:
             os.kill(pid, SIGTERM)
-        return label
-    return None
-
-
-class ControlLock(object):
-    def __init__(self, program_label):
-        self.label = program_label
-        self.mutex_file = _get_control_file()
-
-    def lock(self):
-        try:
-            if os.path.exists(self.mutex_file):
-                old_pid_handler = open(self.mutex_file, 'a+')
-                dup_fd = os.dup(old_pid_handler.fileno())
-                fcntl.lockf(dup_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                pid_handler = os.fdopen(dup_fd, 'w', 0)
-            else:
-                pid_handler = open(self.mutex_file, 'w', 0)
-                fcntl.lockf(pid_handler.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-
-        except IOError as e:
-            os.close(dup_fd)
-            if e.args[0] == EAGAIN:
-                raise RuntimeError("Another control program is running")
-            else:
-                raise
-
-        self.f = pid_handler
-        self.f.seek(0)
-        self.f.write("%i\n%s\n" % (os.getpid(), self.label))
-        self.f.flush()
-
-    def unlock(self):
-        fcntl.lockf(self.f.fileno(), fcntl.LOCK_UN)
-        self.f.close()
-        os.unlink(self.mutex_file)
-
-    def __enter__(self):
-        self.lock()
-        return self
-
-    def __exit__(self, type, value, traceback):
-        self.unlock()
+        return True
+    return False

@@ -188,18 +188,21 @@ class UpnpServiceMix(object):
         return {"timestemp": time()}
 
     def cmd_control_status(self, access_id, message):
-        _, label = control_mutex.locking_status()
-        if not label:
-            label = "idel"
+        pid = control_mutex.locking_status()
+        if pid:
+            status = "running"
+        else:
+            status = "idel"
 
-        return {"timestemp": time(), "onthefly": label}
+        return {"timestemp": time(), "onthefly": status}
 
     def cmd_require_robot(self, access_id, message):
-        pid, label = control_mutex.locking_status()
+        pid = control_mutex.locking_status()
         if pid:
             raise RuntimeError(ALREADY_RUNNING)
 
-        daemon = subprocess.Popen(["fluxrobot", "--daemon"], close_fds=True)
+        daemon = subprocess.Popen(["fluxrobot", "--daemon", "--pid",
+                                  control_mutex.pidfile()], close_fds=True)
         timestemp = time()
         # TODO: Upnp service will blocked untile timeout.
         while True:
@@ -211,6 +214,8 @@ class UpnpServiceMix(object):
                     sleep(0.05)
             elif ret == 0:
                 return {"timestemp": time()}
+            elif ret == 0x80:
+                raise RuntimeError(ALREADY_RUNNING)
             else:
                 raise RuntimeError(UNKNOW_ERROR, "%i" % daemon.poll())
 
@@ -219,7 +224,7 @@ class UpnpServiceMix(object):
         label = control_mutex.terminate(kill=do_kill)
 
         if label:
-            return {"task": label}
+            return {"timestemp": timestemp()}
         else:
             raise RuntimeError(NOT_RUNNING)
 

@@ -5,7 +5,6 @@ from fluxmonitor.misc import timer as T
 from fluxmonitor.event_base import EventBase
 from fluxmonitor.controller.interfaces.local import LocalControl
 from fluxmonitor.controller.tasks.command_task import CommandTask
-from fluxmonitor.misc.control_mutex import ControlLock, locking_status
 from fluxmonitor.services.base import ServiceBase
 
 STATUS_IDLE = 0x0
@@ -20,10 +19,6 @@ class Robot(ServiceBase):
 
     @T.update_time
     def __init__(self, options):
-        pid, label = locking_status()
-        if pid:
-            raise SystemError("Service mutex is locked")
-
         ServiceBase.__init__(self, logger)
         self.debug = options.debug
         self.local_control = LocalControl(self, logger=logger)
@@ -79,13 +74,11 @@ class Robot(ServiceBase):
             self.shutdown(log="Idle")
 
     def on_start(self):
-        self.ctrl_mutex = ControlLock("robot")
-        self.ctrl_mutex.lock()
+        pass
 
     def on_shutdown(self):
         self.running = False
         self.local_control.close()
-        self.ctrl_mutex.unlock()
 
 
 class NullSender(object):
