@@ -196,11 +196,8 @@ class UpnpServiceMix(object):
 
     def cmd_require_robot(self, access_id, message):
         pid, label = control_mutex.locking_status()
-
-        if label == "robot":
+        if pid:
             raise RuntimeError(ALREADY_RUNNING)
-        elif pid:
-            raise RuntimeError(RESOURCE_BUSY)
 
         daemon = subprocess.Popen(["fluxrobot", "--daemon"], close_fds=True)
         timestemp = time()

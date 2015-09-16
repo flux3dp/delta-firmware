@@ -73,6 +73,7 @@ class ControlLock(object):
                 raise
 
         self.f = pid_handler
+        self.f.seek(0)
         self.f.write("%i\n%s\n" % (os.getpid(), self.label))
         self.f.flush()
 
