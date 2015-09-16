@@ -100,14 +100,17 @@ def load_service_klass(klass_name):
     return module.__getattribute__(klass_name)
 
 
+def init_service(klass_name, options):
+    service_klass = load_service_klass(klass_name)
+    return service_klass(options)
+
+
 def deamon_entry(options, service=None):
     pid_handler = None
+    server = None
 
     close_fd()
-
     create_logger(options)
-    service_klass = load_service_klass(service)
-    server = service_klass(options)
 
     if options.daemon:
         rfd, wfd = os.pipe()
@@ -127,10 +130,14 @@ def deamon_entry(options, service=None):
                     pid_handler.write(repr(os.getpid()))
                     pid_handler.flush()
 
+                    server = init_service(service, options)
+
                     os.write(wfd, b"\x00")
                 except FatalException as e:
                     os.write(wfd, chr(e.args[0]))
                     return e.args[0]
+                except Exception:
+                    os.write(wfd, chr(255))
                 finally:
                     os.close(wfd)
 
@@ -141,6 +148,7 @@ def deamon_entry(options, service=None):
                 sys.stdin = open(os.devnull, 'r')
                 sys.stdout = open(os.devnull, 'r')
                 sys.stderr = open(os.devnull, 'r')
+
 
             elif pid_l > 0:
                 # Second process (fork success, do nothing)
@@ -173,6 +181,9 @@ def deamon_entry(options, service=None):
             pid_handler.write(repr(os.getpid()))
         except FatalException as e:
             return e.args[0]
+
+        server = init_service(service, options)
+
 
     def sigTerm(watcher, revent):
         sys.stderr.write("\n")
