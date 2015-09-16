@@ -224,7 +224,7 @@ class UpnpServiceMix(object):
         label = control_mutex.terminate(kill=do_kill)
 
         if label:
-            return {"timestemp": timestemp()}
+            return {"timestemp": time()}
         else:
             raise RuntimeError(NOT_RUNNING)
 
