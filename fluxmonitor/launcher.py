@@ -101,42 +101,78 @@ def load_service_klass(klass_name):
 
 
 def deamon_entry(options, service=None):
+    pid_handler = None
+
     close_fd()
 
-    try:
-        pid_handler = lock_pidfile(options)
-        create_logger(options)
-        service_klass = load_service_klass(service)
-        server = service_klass(options)
-
-    except FatalException as e:
-        return e.args[0]
+    create_logger(options)
+    service_klass = load_service_klass(service)
+    server = service_klass(options)
 
     if options.daemon:
+        rfd, wfd = os.pipe()
+
         pid_t = os.fork()
         if pid_t == 0:
+            # Second process
+            os.close(rfd)
             os.setsid()
-            os.umask(0o27)
+            pid_l = os.fork()
+            if pid_l == 0:
+                # Third process
+                os.umask(0o27)
 
-            sys.stdin.close()
-            sys.stdout.close()
-            sys.stderr.close()
+                try:
+                    pid_handler = lock_pidfile(options)
+                    pid_handler.write(repr(os.getpid()))
+                    pid_handler.flush()
 
-            sys.stdin = open(os.devnull, 'r')
-            sys.stdout = open(os.devnull, 'r')
-            sys.stderr = open(os.devnull, 'r')
+                    os.write(wfd, b"\x00")
+                except FatalException as e:
+                    os.write(wfd, chr(e.args[0]))
+                    return e.args[0]
+                finally:
+                    os.close(wfd)
 
-            pid_handler = open(options.pidfile, 'w', 0)
-            pid_handler.write(repr(os.getpid()))
-            pid_handler.flush()
-            fcntl.lockf(pid_handler.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                sys.stdin.close()
+                sys.stdout.close()
+                sys.stderr.close()
+
+                sys.stdin = open(os.devnull, 'r')
+                sys.stdout = open(os.devnull, 'r')
+                sys.stderr = open(os.devnull, 'r')
+
+            elif pid_l > 0:
+                # Second process (fork success, do nothing)
+                os.close(wfd)
+                return 0
+            else:
+                # Second process (fork failed)
+                sys.stderr.write('Fork failed\n')
+                os.write(wfd, b"\x10")
+                os.close(wfd)
+                return 0x10
+
         elif pid_t > 0:
-            return 0
+            # Main process
+            os.close(wfd)
+            flag = os.read(rfd, 1)
+            os.close(rfd)
+
+            if flag == '':
+                return 256
+            else:
+                return ord(flag)
         else:
-            sys.stderr.write('Fork failed, fluxmonitord dead~\n')
+            # Main process (fork failed)
+            sys.stderr.write('Fork failed\n')
             return 0x10
     else:
-        pid_handler.write(repr(os.getpid()))
+        try:
+            pid_handler = lock_pidfile(options)
+            pid_handler.write(repr(os.getpid()))
+        except FatalException as e:
+            return e.args[0]
 
     def sigTerm(watcher, revent):
         sys.stderr.write("\n")
