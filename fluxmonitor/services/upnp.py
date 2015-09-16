@@ -145,7 +145,7 @@ class UpnpServiceMix(object):
         keyobj = security.get_keyobj(access_id=access_id)
         passwd, old_passwd = message.split("\x00", 1)
 
-        if security.set_password(passwd, old_passwd):
+        if security.validate_and_set_password(passwd, old_passwd):
             security.add_trusted_keyobj(keyobj)
             return {"timestemp": time()}
 

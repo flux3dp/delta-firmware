@@ -7,7 +7,9 @@ import struct
 
 from fluxmonitor.hal.nl80211.config import get_wlan_ssid
 from fluxmonitor.misc import network_config_encoder as NCE
-from fluxmonitor.security.passwd import _set_password
+from fluxmonitor.security.passwd import set_password
+from fluxmonitor.security.access_control import is_rsakey, get_keyobj, \
+    add_trusted_keyobj, untrust_all
 from fluxmonitor.halprofile import get_model_id
 from fluxmonitor.config import network_config
 from fluxmonitor.config import uart_config
@@ -270,5 +272,12 @@ class UsbIO(object):
             self.send_response(MSG_GET_SSID, False, "NOT_FOUND")
 
     def on_set_password(self, buf):
-        _set_password(buf)
-        self.send_response(MSG_SET_PASSWORD, True, "ok")
+        pwd, pem = buf.split(b"\x00")
+        if is_rsakey(pem=pem):
+            pubkey = get_keyobj(pem=pem)
+            set_password(pwd)
+            untrust_all()
+            add_trusted_keyobj(pubkey)
+            self.send_response(MSG_SET_PASSWORD, True, "ok")
+        else:
+            self.send_response(MSG_SET_PASSWORD, False, "bad pubkey")
