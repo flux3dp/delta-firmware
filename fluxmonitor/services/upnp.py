@@ -17,6 +17,7 @@ from fluxmonitor.halprofile import get_model_id
 from fluxmonitor.storage import CommonMetadata
 from fluxmonitor.config import network_config
 from fluxmonitor.misc import control_mutex
+from fluxmonitor.storage import Storage
 from fluxmonitor.err_codes import ALREADY_RUNNING, BAD_PASSWORD, NOT_RUNNING, \
     RESOURCE_BUSY, AUTH_ERROR, UNKNOW_ERROR
 
@@ -201,8 +202,10 @@ class UpnpServiceMix(object):
         if pid:
             raise RuntimeError(ALREADY_RUNNING)
 
-        daemon = subprocess.Popen(["fluxrobot", "--daemon", "--pid",
-                                  control_mutex.pidfile()], close_fds=True)
+        logfile = Storage("log").get_path("robot.log")
+        pidfile = control_mutex.pidfile()
+        daemon = subprocess.Popen(["fluxrobot", "--pid", pidfile, "--log",
+                                   logfile, "--daemon"], close_fds=True)
         timestemp = time()
         # TODO: Upnp service will blocked untile timeout.
         while True:
@@ -217,7 +220,8 @@ class UpnpServiceMix(object):
             elif ret == 0x80:
                 raise RuntimeError(ALREADY_RUNNING)
             else:
-                raise RuntimeError(UNKNOW_ERROR, "%i" % daemon.poll())
+                logger.error("Robot daemon return statuscode %i" % ret)
+                raise RuntimeError(UNKNOW_ERROR, "%i" % ret)
 
     def cmd_reset_control(self, access_id, message):
         do_kill = message == b"\x01"

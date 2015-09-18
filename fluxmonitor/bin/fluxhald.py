@@ -38,7 +38,7 @@ def main():
     else:
         return_code = deamon_entry(
             options,
-            service ="fluxmonitor.services.hal.HalService")
+            service="fluxmonitor.services.hal.HalService")
         sys.exit(return_code)
 
 

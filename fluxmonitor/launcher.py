@@ -88,12 +88,6 @@ def lock_pidfile(options):
             raise FatalException(0x81)
 
 
-def close_fd():
-    # Close all file descriptor except stdin/stdout/stderr and pid file
-    # descriptor
-    os.closerange(4, 1024)
-
-
 def load_service_klass(klass_name):
     module_name, klass_name = klass_name.rsplit(".", 1)
     module = importlib.import_module(module_name)
@@ -101,6 +95,7 @@ def load_service_klass(klass_name):
 
 
 def init_service(klass_name, options):
+    create_logger(options)
     service_klass = load_service_klass(klass_name)
     return service_klass(options)
 
@@ -109,8 +104,9 @@ def deamon_entry(options, service=None):
     pid_handler = None
     server = None
 
-    close_fd()
-    create_logger(options)
+    # Close all file descriptor except stdin/stdout/stderr and pid file
+    # descriptor
+    os.closerange(4, 1024)
 
     if options.daemon:
         rfd, wfd = os.pipe()
@@ -130,25 +126,28 @@ def deamon_entry(options, service=None):
                     pid_handler.write(repr(os.getpid()))
                     pid_handler.flush()
 
+                    sys.stdin.close()
+                    sys.stdout.close()
+                    sys.stderr.close()
+
+                    os.closerange(0, 3)
+
+                    sys.stdin = open(os.devnull, 'r')
+                    sys.stdout = open(os.devnull, 'w')
+                    sys.stderr = open(os.devnull, 'w')
+
                     server = init_service(service, options)
 
                     os.write(wfd, b"\x00")
                 except FatalException as e:
                     os.write(wfd, chr(e.args[0]))
                     return e.args[0]
-                except Exception:
+                except Exception as e:
                     os.write(wfd, chr(255))
+                    os.write(wfd, repr(e))
+                    return 255
                 finally:
                     os.close(wfd)
-
-                sys.stdin.close()
-                sys.stdout.close()
-                sys.stderr.close()
-
-                sys.stdin = open(os.devnull, 'r')
-                sys.stdout = open(os.devnull, 'r')
-                sys.stderr = open(os.devnull, 'r')
-
 
             elif pid_l > 0:
                 # Second process (fork success, do nothing)
@@ -164,13 +163,17 @@ def deamon_entry(options, service=None):
         elif pid_t > 0:
             # Main process
             os.close(wfd)
-            flag = os.read(rfd, 1)
+            flag = os.read(rfd, 4096)
             os.close(rfd)
 
             if flag == '':
+                sys.stderr.write("Daemon no response\n")
                 return 256
+
             else:
-                return ord(flag)
+                if len(flag) > 1:
+                    sys.stderr.write("%s\n" % flag[1:])
+                return ord(flag[0])
         else:
             # Main process (fork failed)
             sys.stderr.write('Fork failed\n')

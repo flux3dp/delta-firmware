@@ -124,7 +124,7 @@ class FileManagerMixIn(object):
             raise RuntimeError(NOT_EXIST, "NOT_FILE")
 
         self._task_file = open(abspath, "rb")
-        self._task_mimetype, _ = mimetype.guess_type(abspath)
+        self._task_mimetype, _ = mimetypes.guess_type(abspath)
         sender.send_text("ok")
 
     def fileinfo(self, path, sender):
