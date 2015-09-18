@@ -24,6 +24,8 @@ SERIAL_HEX = security.get_uuid()
 MODEL_ID = get_model_id()
 COMMON_ERRNO = (ENOENT, ENOTSOCK)
 
+MSG_OK = b"OK"
+
 MSG_IDENTIFY = 0x00
 MSG_RSAKEY = 0x01
 MSG_AUTH = 0x02
@@ -221,12 +223,12 @@ class UsbIO(object):
                 if security.has_password():
                     if security.validate_password(pwd):
                         security.add_trusted_keyobj(keyobj)
-                        self.send_response(MSG_AUTH, True, b"OK")
+                        self.send_response(MSG_AUTH, True, MSG_OK)
                     else:
                         self.send_response(MSG_AUTH, False, b"BAD_PASSWORD")
                 else:
                     security.add_trusted_keyobj(keyobj)
-                    self.send_response(MSG_AUTH, True, b"OK")
+                    self.send_response(MSG_AUTH, True, MSG_OK)
         else:
             logger.error("Get bad rsa key: %s" % pem.decode("ascii", "ignore"))
             self.send_response(MSG_AUTH, False, b"BAD_KEY", )
@@ -236,7 +238,7 @@ class UsbIO(object):
         name = raw_opts.get(b"name", "").decode("utf8", "ignore")
         if name:
             self.meta.set_nickname(name)
-        self.send_response(MSG_CONFIG_GENERAL, True, b"OK")
+        self.send_response(MSG_CONFIG_GENERAL, True, MSG_OK)
 
     def on_config_network(self, buf):
         try:
@@ -258,7 +260,7 @@ class UsbIO(object):
         sock.send(nw_request)
         sock.close()
 
-        self.send_response(MSG_CONFIG_NETWORK, True, b"OK")
+        self.send_response(MSG_CONFIG_NETWORK, True, MSG_OK)
 
     def on_query_ssid(self, buf):
         try:
@@ -278,6 +280,6 @@ class UsbIO(object):
             set_password(pwd)
             untrust_all()
             add_trusted_keyobj(pubkey)
-            self.send_response(MSG_SET_PASSWORD, True, "ok")
+            self.send_response(MSG_SET_PASSWORD, True, MSG_OK)
         else:
             self.send_response(MSG_SET_PASSWORD, False, "bad pubkey")
