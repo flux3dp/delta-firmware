@@ -36,6 +36,8 @@ class RawTask(ExclusiveMixIn, DeviceOperationMixIn):
             self._uart_hb.send(buf)
         elif buf == b"quit":
             sender.binary_mode = False
+            sender.send(b"\x00" * 64)
+            sender.send(b"\x01")
             sender.send_text(b"ok")
             self.server.exit_task(self, True)
         else:
