@@ -30,11 +30,17 @@ def locking_status():
             with open(fn, "a+") as f:
                 fcntl.lockf(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
                 fcntl.lockf(f.fileno(), fcntl.LOCK_UN)
+
+                with open(fn, "r" as f):
+                    # Double check if process is alive
+                    return psutil.pid_exists(int(f.read()))
                 return 0
         except IOError:
             with open(fn, "r") as f:
                 pid = int(f.read())
                 return pid
+        except ValueError:
+            return 0
     else:
         return 0
 
