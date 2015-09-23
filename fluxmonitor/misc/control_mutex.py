@@ -4,6 +4,8 @@ from errno import EAGAIN
 import fcntl
 import os
 
+import psutil
+
 from fluxmonitor.storage import Storage
 
 _PIDFILE = None
@@ -33,7 +35,11 @@ def locking_status():
 
                 with open(fn, "r") as f:
                     # Double check if process is alive
-                    return psutil.pid_exists(int(f.read()))
+                    pid = int(f.read())
+                    if pid < 65536:
+                        return psutil.pid_exists(int(f.read()))
+                    else:
+                        return False
                 return 0
         except IOError:
             with open(fn, "r") as f:

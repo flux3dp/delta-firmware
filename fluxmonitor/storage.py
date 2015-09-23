@@ -32,6 +32,13 @@ class Storage(object):
     def open(self, filename, *args):
         return open(self.get_path(filename), *args)
 
+    def readall(self, filename):
+        if self.exists(filename):
+            with self.open(filename, "rb") as f:
+                return f.read()
+        else:
+            return None
+
 
 NICKNAMES = ["Apple", "Apricot", "Avocado", "Banana", "Bilberry", "Blackberry",
              "Blackcurrant", "Blueberry", "Boysenberry", "Cantaloupe",

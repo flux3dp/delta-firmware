@@ -5,6 +5,7 @@ import os
 
 from fluxmonitor.misc.async_signal import AsyncIO
 from fluxmonitor.config import uart_config
+from fluxmonitor.storage import Storage
 
 logger = logging.getLogger("halservice.base")
 
@@ -15,6 +16,7 @@ class UartHalBase(object):
 
     def __init__(self, server):
         self.server = server
+        self.storage = Storage("general", "mainboard")
 
         self.mainboard = self.create_socket(
             uart_config["mainboard"], callback=self.on_connected_mainboard)

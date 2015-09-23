@@ -3,6 +3,7 @@ from errno import ECONNREFUSED, ENOENT
 import weakref
 import logging
 import socket
+import re
 
 logger = logging.getLogger(__name__)
 

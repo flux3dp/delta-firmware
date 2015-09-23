@@ -136,7 +136,7 @@ class MainController(object):
                                       "IMPOSSIBLE_SYNC_LN")
 
             else:
-                L.info("Unhandle MB MSG: %s" % msg)
+                L.debug("Unhandle MB MSG: %s" % msg)
         elif not self.closed:
             self._process_init(msg, executor)
 
