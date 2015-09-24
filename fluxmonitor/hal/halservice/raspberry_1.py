@@ -8,8 +8,8 @@ from RPi import GPIO
 
 from fluxmonitor.misc.async_signal import AsyncIO
 from fluxmonitor.halprofile import MODEL_G1
-from fluxmonitor.storage import Storage
 from fluxmonitor.config import hal_config
+from fluxmonitor.storage import Storage
 
 from .base import UartHalBase, BaseOnSerial
 
@@ -104,6 +104,7 @@ class GPIOConteol(object):
             sleep(1.0)
 
             self.mainboard_connect()
+            self._init_mainboard_status()
 
         except Exception as e:
             L.exception("Error while update fireware")
@@ -121,6 +122,16 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOConteol):
         self.init_gpio_control()
         self._rasp_connect()
         self.mainboard_connect()
+
+        self._init_mainboard_status()
+
+    def _init_mainboard_status(self):
+        buf = self.storage.readall("on_boot")
+        if buf:
+            self.sendto_mainboard(buf)
+        buf = self.storage.readall("adj")
+        if buf:
+            self.sendto_mainboard(buf)
 
     def on_recvfrom_raspi_io(self, obj):
         if self.head_enabled:
@@ -144,6 +155,9 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOConteol):
     def reconnect(self):
         self.mainboard_disconnect()
         self.mainboard_connect()
+        buf = self.storage.readall("on_connect")
+        if buf:
+            self.sendto_mainboard(buf)
 
     def get_mainboard_port(self):
         if os.path.exists("/dev/ttyACM0"):
@@ -156,6 +170,7 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOConteol):
     def mainboard_connect(self):
         self.mainboard_uart = Serial(port=self.get_mainboard_port(),
                                      baudrate=115200, timeout=0)
+
         self.mainboard_io = AsyncIO(self.mainboard_uart,
                                     self.on_recvfrom_mainboard)
         self.server.add_read_event(self.mainboard_io)
