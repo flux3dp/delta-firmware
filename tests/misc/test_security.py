@@ -57,7 +57,7 @@ class MiscSecurityTest(unittest.TestCase):
     def test_password(self):
         self.assertFalse(security.has_password())
 
-        self.assertTrue(security.set_password("HELLO", ""))
+        security.set_password("HELLO")
         self.assertTrue(security.validate_password("HELLO"))
         self.assertFalse(security.validate_password("HEIIO"))
 

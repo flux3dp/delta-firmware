@@ -7,7 +7,7 @@ import os
 
 from Crypto.PublicKey import RSA
 
-from fluxmonitor.watcher.usb_serial import UsbIO
+from fluxmonitor.services.usb import UsbIO
 from fluxmonitor.halprofile import get_model_id, get_platform
 from fluxmonitor.config import network_config
 from fluxmonitor import security
@@ -97,7 +97,7 @@ class UsbIoTest(unittest.TestCase):
         self.assertEqual(buf, b"ALREADY_TRUSTED")
 
         self.assertFalse(security.has_password())
-        self.assertTrue(security.set_password("TESTPASS", ""))
+        security.set_password("TESTPASS")
 
         rsa = RSA.generate(1024)
         self.usbio.on_auth(rsa.exportKey().encode())
