@@ -307,7 +307,7 @@ class UsbIO(object):
 
             self.send_response(REQ_MAINBOARD_TUNNEL, True, MSG_CONTINUE)
             usb2mainboard(self.sock, uart_config["mainboard"])
-            self.send_response(REQ_SET_PASSWORD, True, MSG_OK)
+            self.send_response(REQ_MAINBOARD_TUNNEL, True, MSG_OK)
 
         else:
             self.send_response(REQ_MAINBOARD_TUNNEL, False, "Signature Error")
@@ -319,11 +319,11 @@ class UsbIO(object):
         salt, signature = buf.split(b"$", 1)
 
         if rsakey.verify(salt + self._vector, signature):
-            self.send_response(REQ_MAINBOARD_TUNNEL, True, MSG_CONTINUE)
+            self.send_response(REQ_PHOTO, True, MSG_CONTINUE)
 
             from fluxmonitor.diagnosis.usb2device import usb2camera
             usb2camera(self.sock)
 
-            self.send_response(REQ_SET_PASSWORD, True, MSG_OK)
+            self.send_response(REQ_PHOTO, True, MSG_OK)
         else:
-            self.send_response(REQ_MAINBOARD_TUNNEL, False, "Signature Error")
+            self.send_response(REQ_PHOTO, False, "Signature Error")
