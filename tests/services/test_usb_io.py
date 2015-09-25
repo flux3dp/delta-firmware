@@ -1,4 +1,5 @@
 
+from threading import Thread
 from time import time
 import unittest
 import socket
@@ -7,10 +8,14 @@ import os
 
 from Crypto.PublicKey import RSA
 
-from fluxmonitor.services.usb import UsbIO
 from fluxmonitor.halprofile import get_model_id, get_platform
+from fluxmonitor.security import access_control
 from fluxmonitor.config import network_config
+from fluxmonitor.services.usb import UsbIO
+from fluxmonitor.config import uart_config
 from fluxmonitor import security
+
+from tests._utils.echo_server import EchoServer
 
 SERIAL_HEX = security.get_uuid()
 MODEL_ID = get_model_id()
@@ -27,9 +32,10 @@ class UsbIoTest(unittest.TestCase):
         self.sock = self.usbio = None
 
     def recv_response(self):
-        buf = self.sock.recv(4096)
-        mn, req, l, flag = struct.unpack("<3sHHb", buf[:8])
-        return mn, req, l, flag, buf[8:]
+        head = self.sock.recv(8)
+        mn, req, l, flag = struct.unpack("<3sHHb", head)
+        buf = self.sock.recv(l)
+        return mn, req, l, flag, buf
 
     def test_single_check_recv_buffer(self):
         REQ0_PAYLOAD = b'\x97\xae\x02\x00\x00\x02\x00HI'
@@ -88,6 +94,7 @@ class UsbIoTest(unittest.TestCase):
 
     def test_on_auth(self):
         rsa = RSA.generate(1024)
+
         self.usbio.on_auth(rsa.exportKey().encode())
         mn, req, l, flag, buf = self.recv_response()
         self.assertEqual(buf, b"OK")
@@ -146,3 +153,70 @@ class UsbIoTest(unittest.TestCase):
     def test_on_query_ssid_simulate(self):
         self.usbio.on_query_ssid(b"")
         mn, req, l, flag, buf = self.recv_response()
+
+    @unittest.skipUnless(os.path.exists(os.path.expanduser("~/.fluxdev.pem")),
+                         "dev key require")
+    def test_on_mainboard_tunnel(self):
+        self.usbio.on_identify(b"")
+        mn, req, l, flag, buf = self.recv_response()
+        identify = dict(pair.split("=", 1) for pair in buf.split(b"\x00"))
+
+        with open(os.path.expanduser("~/.fluxdev.pem")) as f:
+            keyobj = access_control.get_keyobj(pem=f.read())
+        salt = b"FafAS0So"
+        signature = keyobj.sign(salt + identify["vector"])
+
+        echo_server = EchoServer(uart_config["mainboard"])
+
+        t = Thread(target=self.usbio.on_mainboard_tunnel,
+                   args=(salt + b"$" + signature, ))
+        t.setDaemon(True)
+        t.start()
+
+        mn, req, l, flag, buf = self.recv_response()
+        self.assertEqual(buf, "continue")
+
+        self.sock.settimeout(3)
+        self.sock.send("WAWAWA")
+        self.assertEqual(self.sock.recv(6, socket.MSG_WAITALL), "WAWAWA")
+
+        self.sock.send("\x00" * 16)
+        t.join(1)
+
+        try:
+            if t.isAlive():
+                raise SystemError("on_mainboard_tunnel not exist!")
+
+            mn, req, l, flag, buf = self.recv_response()
+            self.assertEqual(buf, b"OK")
+        finally:
+            echo_server.shutdown()
+
+    @unittest.skipUnless(os.path.exists(os.path.expanduser("~/.fluxdev.pem")),
+                         "dev key require")
+    def test_on_take_pic(self):
+        self.usbio.on_identify(b"")
+        mn, req, l, flag, buf = self.recv_response()
+        identify = dict(pair.split("=", 1) for pair in buf.split(b"\x00"))
+
+        with open(os.path.expanduser("~/.fluxdev.pem")) as f:
+            keyobj = access_control.get_keyobj(pem=f.read())
+        salt = b"FafAS0So"
+        signature = keyobj.sign(salt + identify["vector"])
+
+        self.sock.settimeout(8)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 2**22)
+        self.usbio.sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2**22)
+        self.usbio.on_take_pic(salt + b"$" + signature)
+        mn, req, l, flag, buf = self.recv_response()
+        self.assertEqual(buf, "continue")
+
+        status = self.sock.recv(1)
+        hex_length = self.sock.recv(8, socket.MSG_WAITALL)
+        body = self.sock.recv(int(hex_length, 16),  socket.MSG_WAITALL)
+
+        mn, req, l, flag, buf = self.recv_response()
+        self.assertEqual(buf, b"OK")
+
+        if status == "N":
+            raise RuntimeError(body.decode("utf8", "ignore"))

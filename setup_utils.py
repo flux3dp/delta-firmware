@@ -40,16 +40,18 @@ def checklib(lib_name, package_name):
 
 
 def setup_test():
+    from tempfile import mkdtemp
+    tempbase = mkdtemp()
+
     from fluxmonitor import config
-    config.general_config["db"] = "./tmp/test_db"
-    config.general_config["logfile"] = "./tmp/test_log"
+    config.general_config["db"] = os.path.join(tempbase, "db")
     config.general_config["keylength"] = 512
     config.general_config["debug"] = True
-    config.network_config["unixsocket"] = "./tmp/network-sock"
-    config.uart_config["headboard"] = "./tmp/headboard-uart"
-    config.uart_config["mainboard"] = "./tmp/mainboard-uart"
-    config.uart_config["pc"] = "./tmp/pc-uart"
-    config.robot_config["filepool"] = "./tmp/test_filepool"
+    config.network_config["unixsocket"] = os.path.join(tempbase, "network-us")
+    config.uart_config["headboard"] = os.path.join(tempbase, "headboard-us")
+    config.uart_config["mainboard"] = os.path.join(tempbase, "mainboard-us")
+    config.uart_config["pc"] = os.path.join(tempbase, "pc-us")
+    config.robot_config["filepool"] = os.path.join(tempbase, "filepool")
 
     import logging.config
     logging.config.dictConfig({
@@ -74,6 +76,12 @@ def setup_test():
             'propagate': True
         }
     })
+
+    def on_exit():
+        import shutil
+        shutil.rmtree(tempbase)
+    import atexit
+    atexit.register(on_exit)
 
 
 def get_packages():

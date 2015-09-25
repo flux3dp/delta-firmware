@@ -1,4 +1,5 @@
 
+from pkg_resources import resource_string
 from errno import ENOENT, ENOTSOCK
 from time import time
 import logging
@@ -10,6 +11,8 @@ from fluxmonitor.misc import network_config_encoder as NCE
 from fluxmonitor.security.passwd import set_password
 from fluxmonitor.security.access_control import is_rsakey, get_keyobj, \
     add_trusted_keyobj, untrust_all
+from fluxmonitor.security.passwd import set_password
+from fluxmonitor.security.misc import randstr
 from fluxmonitor.halprofile import get_model_id
 from fluxmonitor.config import network_config
 from fluxmonitor.config import uart_config
@@ -25,15 +28,18 @@ MODEL_ID = get_model_id()
 COMMON_ERRNO = (ENOENT, ENOTSOCK)
 
 MSG_OK = b"OK"
+MSG_CONTINUE = b"continue"
 
-MSG_IDENTIFY = 0x00
-MSG_RSAKEY = 0x01
-MSG_AUTH = 0x02
-MSG_CONFIG_GENERAL = 0x03
-MSG_CONFIG_NETWORK = 0x04
-MSG_GET_SSID = 0x05
-MSG_SET_PASSWORD = 0x06
+REQ_IDENTIFY = 0x00
+REQ_RSAKEY = 0x01
+REQ_AUTH = 0x02
+REQ_CONFIG_GENERAL = 0x03
+REQ_CONFIG_NETWORK = 0x04
+REQ_GET_SSID = 0x05
+REQ_SET_PASSWORD = 0x06
 
+REQ_MAINBOARD_TUNNEL = 0x80
+REQ_PHOTO = 0x81
 
 
 class UsbService(ServiceBase):
@@ -82,6 +88,8 @@ class UsbService(ServiceBase):
 
 
 class UsbIO(object):
+    _vector = None
+
     def __init__(self, server, sock):
         self.sock = sock
         self.server = server
@@ -93,13 +101,16 @@ class UsbIO(object):
         self._request_len = None
 
         self.callbacks = {
-            MSG_IDENTIFY: self.on_identify,
-            MSG_RSAKEY: self.on_rsakey,
-            MSG_AUTH: self.on_auth,
-            MSG_CONFIG_GENERAL: self.on_config_general,
-            MSG_CONFIG_NETWORK: self.on_config_network,
-            MSG_GET_SSID: self.on_query_ssid,
-            MSG_SET_PASSWORD: self.on_set_password
+            REQ_IDENTIFY: self.on_identify,
+            REQ_RSAKEY: self.on_rsakey,
+            REQ_AUTH: self.on_auth,
+            REQ_CONFIG_GENERAL: self.on_config_general,
+            REQ_CONFIG_NETWORK: self.on_config_network,
+            REQ_GET_SSID: self.on_query_ssid,
+            REQ_SET_PASSWORD: self.on_set_password,
+
+            REQ_MAINBOARD_TUNNEL: self.on_mainboard_tunnel,
+            REQ_PHOTO: self.on_take_pic
         }
 
     def fileno(self):
@@ -188,16 +199,17 @@ class UsbIO(object):
         self.sock.send(header + buf)
 
     def on_identify(self, buf):
+        self._vector = randstr(8)
         resp = ("ver=%s\x00model=%s\x00serial=%s\x00name=%s\x00"
-                "time=%.2f\x00pwd=%i") % (
+                "time=%.2f\x00pwd=%i\x00vector=%s") % (
                     VERSION, MODEL_ID, SERIAL_HEX, self.meta.get_nickname(),
-                    time(), security.has_password(),)
-        self.send_response(MSG_IDENTIFY, True, resp.encode())
+                    time(), security.has_password(), self._vector)
+        self.send_response(REQ_IDENTIFY, True, resp.encode())
 
     def on_rsakey(self, buf):
         pkey = security.get_private_key()
         pem = pkey.export_pubkey_pem()
-        self.send_response(MSG_RSAKEY, True, pem)
+        self.send_response(REQ_RSAKEY, True, pem)
 
     def on_auth(self, buf):
         """
@@ -218,37 +230,37 @@ class UsbIO(object):
 
         if keyobj:
             if security.is_trusted_remote(keyobj=keyobj):
-                self.send_response(MSG_AUTH, True, b"ALREADY_TRUSTED")
+                self.send_response(REQ_AUTH, True, b"ALREADY_TRUSTED")
             else:
                 if security.has_password():
                     if security.validate_password(pwd):
                         security.add_trusted_keyobj(keyobj)
-                        self.send_response(MSG_AUTH, True, MSG_OK)
+                        self.send_response(REQ_AUTH, True, MSG_OK)
                     else:
-                        self.send_response(MSG_AUTH, False, b"BAD_PASSWORD")
+                        self.send_response(REQ_AUTH, False, b"BAD_PASSWORD")
                 else:
                     security.add_trusted_keyobj(keyobj)
-                    self.send_response(MSG_AUTH, True, MSG_OK)
+                    self.send_response(REQ_AUTH, True, MSG_OK)
         else:
             logger.error("Get bad rsa key: %s" % pem.decode("ascii", "ignore"))
-            self.send_response(MSG_AUTH, False, b"BAD_KEY", )
+            self.send_response(REQ_AUTH, False, b"BAD_KEY", )
 
     def on_config_general(self, buf):
         raw_opts = dict([i.split(b"=", 1) for i in buf.split(b"\x00")])
         name = raw_opts.get(b"name", "").decode("utf8", "ignore")
         if name:
             self.meta.set_nickname(name)
-        self.send_response(MSG_CONFIG_GENERAL, True, MSG_OK)
+        self.send_response(REQ_CONFIG_GENERAL, True, MSG_OK)
 
     def on_config_network(self, buf):
         try:
             options = NCE.parse_bytes(buf)
             options["ifname"] = "wlan0"
         except ValueError as e:
-            self.send_response(MSG_CONFIG_NETWORK, False, b"BAD_PARAMS syntax")
+            self.send_response(REQ_CONFIG_NETWORK, False, b"BAD_PARAMS syntax")
             return
         except KeyError as e:
-            self.send_response(MSG_CONFIG_NETWORK, False,
+            self.send_response(REQ_CONFIG_NETWORK, False,
                                ("BAD_PARAMS %s" % e.args[0]).encode())
             return
 
@@ -260,18 +272,18 @@ class UsbIO(object):
         sock.send(nw_request)
         sock.close()
 
-        self.send_response(MSG_CONFIG_NETWORK, True, MSG_OK)
+        self.send_response(REQ_CONFIG_NETWORK, True, MSG_OK)
 
     def on_query_ssid(self, buf):
         try:
             ssid = get_wlan_ssid("wlan0")
             if ssid:
-                self.send_response(MSG_GET_SSID, True, ssid.encode())
+                self.send_response(REQ_GET_SSID, True, ssid.encode())
             else:
-                self.send_response(MSG_GET_SSID, False, "NOT_FOUND")
+                self.send_response(REQ_GET_SSID, False, "NOT_FOUND")
         except Exception:
             logger.exception("Error while getting ssid %s" % "wlan0")
-            self.send_response(MSG_GET_SSID, False, "NOT_FOUND")
+            self.send_response(REQ_GET_SSID, False, "NOT_FOUND")
 
     def on_set_password(self, buf):
         pwd, pem = buf.split(b"\x00")
@@ -280,6 +292,38 @@ class UsbIO(object):
             set_password(pwd)
             untrust_all()
             add_trusted_keyobj(pubkey)
-            self.send_response(MSG_SET_PASSWORD, True, MSG_OK)
+            self.send_response(REQ_SET_PASSWORD, True, MSG_OK)
         else:
-            self.send_response(MSG_SET_PASSWORD, False, "bad pubkey")
+            self.send_response(REQ_SET_PASSWORD, False, "bad pubkey")
+
+    def on_mainboard_tunnel(self, buf):
+        pem = resource_string("fluxmonitor", "data/develope.pem")
+        rsakey = get_keyobj(pem=pem)
+
+        salt, signature = buf.split(b"$", 1)
+
+        if rsakey.verify(salt + self._vector, signature):
+            from fluxmonitor.diagnosis.usb2device import usb2mainboard
+
+            self.send_response(REQ_MAINBOARD_TUNNEL, True, MSG_CONTINUE)
+            usb2mainboard(self.sock, uart_config["mainboard"])
+            self.send_response(REQ_SET_PASSWORD, True, MSG_OK)
+
+        else:
+            self.send_response(REQ_MAINBOARD_TUNNEL, False, "Signature Error")
+
+    def on_take_pic(self, buf):
+        pem = resource_string("fluxmonitor", "data/develope.pem")
+        rsakey = get_keyobj(pem=pem)
+
+        salt, signature = buf.split(b"$", 1)
+
+        if rsakey.verify(salt + self._vector, signature):
+            self.send_response(REQ_MAINBOARD_TUNNEL, True, MSG_CONTINUE)
+
+            from fluxmonitor.diagnosis.usb2device import usb2camera
+            usb2camera(self.sock)
+
+            self.send_response(REQ_SET_PASSWORD, True, MSG_OK)
+        else:
+            self.send_response(REQ_MAINBOARD_TUNNEL, False, "Signature Error")
