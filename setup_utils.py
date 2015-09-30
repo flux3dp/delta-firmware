@@ -159,6 +159,10 @@ if is_linux():
 
 if is_darwin():
     os.environ["ARCHFLAGS"] = "-arch x86_64"
+    if "CXXFLAGS" in os.environ:
+        os.environ["CXXFLAGS"] += " -std=c++11"
+    else:
+        os.environ["CXXFLAGS"] = "-std=c++11"
 
     # if "CXXFLAGS" in os.environ:
     #     os.environ["CXXFLAGS"] += " -std=c++11"

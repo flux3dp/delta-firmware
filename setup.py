@@ -66,7 +66,6 @@ setup(
                 "src/device_fsm/device_fsm.cpp",
                 "src/device_fsm/fsm.cpp", ],
             language="c++",
-            extra_compile_args=["-std=c++11"],
             define_macros=setup_utils.DEFAULT_MACROS,
             libraries=[], extra_objects=[], include_dirs=["src"]
         )

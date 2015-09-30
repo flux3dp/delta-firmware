@@ -81,7 +81,7 @@ int get_rescue_machine_uuid(unsigned char *uuid_buf[16]) {
     PyObject* hashlib_module = PyImport_ImportModule("hashlib");
     if(!hashlib_module) return -1;
 
-    PyObject* sha1_chip = PyObject_GetAttrString(hashlib_module, "sha1");
+    PyObject* sha1_chip = PyObject_GetAttrString(hashlib_module, "sha512");
     if(!sha1_chip) return -1;
 
     PyObject* sha1 = PyEval_CallObject(sha1_chip, Py_BuildValue("(O)", pybuf));
@@ -97,6 +97,7 @@ int get_rescue_machine_uuid(unsigned char *uuid_buf[16]) {
 
     memcpy(uuid_buf, view.buf, 16);
     PyBuffer_Release(&view);
+    memset(uuid_buf, 0, 8);
 
     return 0;
 }

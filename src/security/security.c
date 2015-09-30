@@ -5263,7 +5263,7 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_2get_uuid(CYTHON_UN
  *     cdef unsigned char[16] buf
  * 
  *     if rescue:             # <<<<<<<<<<<<<<
- *         get_machine_uuid(<unsigned char**>&buf)
+ *         get_rescue_machine_uuid(<unsigned char**>&buf)
  *     else:
  */
   __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_rescue); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 39; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -5272,28 +5272,28 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_2get_uuid(CYTHON_UN
     /* "src/security/security.pyx":40
  * 
  *     if rescue:
- *         get_machine_uuid(<unsigned char**>&buf)             # <<<<<<<<<<<<<<
+ *         get_rescue_machine_uuid(<unsigned char**>&buf)             # <<<<<<<<<<<<<<
  *     else:
- *         get_rescue_machine_uuid(<unsigned char**>&buf)
+ *         get_machine_uuid(<unsigned char**>&buf)
  */
-    __pyx_t_2 = get_machine_uuid(((unsigned char **)(&__pyx_v_buf))); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 40; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = get_rescue_machine_uuid(((unsigned char **)(&__pyx_v_buf))); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 40; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     goto __pyx_L3;
   }
   /*else*/ {
 
     /* "src/security/security.pyx":42
- *         get_machine_uuid(<unsigned char**>&buf)
+ *         get_rescue_machine_uuid(<unsigned char**>&buf)
  *     else:
- *         get_rescue_machine_uuid(<unsigned char**>&buf)             # <<<<<<<<<<<<<<
+ *         get_machine_uuid(<unsigned char**>&buf)             # <<<<<<<<<<<<<<
  * 
  *     return buf[:16]
  */
-    __pyx_t_2 = get_rescue_machine_uuid(((unsigned char **)(&__pyx_v_buf))); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 42; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = get_machine_uuid(((unsigned char **)(&__pyx_v_buf))); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 42; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __pyx_L3:;
 
   /* "src/security/security.pyx":44
- *         get_rescue_machine_uuid(<unsigned char**>&buf)
+ *         get_machine_uuid(<unsigned char**>&buf)
  * 
  *     return buf[:16]             # <<<<<<<<<<<<<<
  * 

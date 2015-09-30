@@ -1,7 +1,7 @@
 
 #include "libflux_hal/halprofile.h"
 
-#ifdef FLUX_DEV_MODEL
+#if defined(FLUX_MODEL_LINUX_DEV) || defined(FLUX_MODEL_DARWIN_DEV)
 
 #include <Python.h>
 #include "flux_identify.h"

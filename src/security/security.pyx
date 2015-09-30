@@ -37,9 +37,9 @@ def get_uuid(rescue=False):
     cdef unsigned char[16] buf
 
     if rescue:
-        get_machine_uuid(<unsigned char**>&buf)
-    else:
         get_rescue_machine_uuid(<unsigned char**>&buf)
+    else:
+        get_machine_uuid(<unsigned char**>&buf)
 
     return buf[:16]
 

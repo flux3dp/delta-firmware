@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from hashlib import sha1
+from hashlib import sha512
 from time import sleep
 import argparse
 import spidev
@@ -10,12 +10,11 @@ DUMMY_BYTE = 255
 MEMORY_SIZE = 256 * 256 * 256
 
 
-# 
-
 def task_read_rsa_key(spi):
     from fluxmonitor.misc import _security
 
     payload = read(spi, 31)
+    real_opt = read_OPT(spi)
     l = struct.unpack("<H", payload[:2])[0]
 
     try:
@@ -25,28 +24,38 @@ def task_read_rsa_key(spi):
         print("len", l)
         print(repr(payload[2:2 + l]))
         raise
+
     print(rsaobj.export_pem())
+    print("")
+    print(rsaobj.export_pubkey_pem())
+    print("")
+    hashedopt = sha512(rsaobj.export_pubkey_der())
+    if hashedopt.digest() == real_opt:
+        print("OPT OK: %s" % hashedopt.hexdigest())
+    else:
+        print("OPT Fail")
 
 
 def task_write_rsa_key(spi):
     from fluxmonitor.misc import _security
 
-    der = read_private_key_in_filesystem()
-    if not der:
-        print("*" * 30)
-        print("* Create new RSA key         *")
-        print("*" * 30)
-        print("")
-        rsakey = _security.RSAObject()
-        der = rsakey.export_der()
+    print("*" * 30)
+    print("* Create new RSA key         *")
+    print("*" * 30)
+    print("")
+
+    rsakey = _security.RSAObject()
+    der = rsakey.export_der()
 
     rsakey = _security.RSAObject(der=der)
-    serial = sha1(rsakey.export_pubkey_der()).digest()[:16]
+    serial = sha512(rsakey.export_pubkey_der()).digest()
 
     print(">> Dumped to SPI flash")
     spi = get_spi()
     payload = struct.pack("<H", len(der)) + der
     write(spi, 31, payload)
+
+    write_OPT(spi, serial)
     print(">> OK")
 
 
@@ -57,8 +66,6 @@ def main():
                         const=True, default=False, help='Write RSA key')
     mutex_group.add_argument('-rr', dest='read_rsa', action='store_const',
                         const=True, default=False, help='Read RSA key')
-    mutex_group.add_argument('-ss', dest='ss', action='store_const',
-                        const=True, default=False, help='Read RSA key')
     options = parser.parse_args()
 
     spi = get_spi()
@@ -66,25 +73,8 @@ def main():
         task_write_rsa_key(spi)
     elif options.read_rsa:
         task_read_rsa_key(spi)
-    elif options.ss:
-        write_OPT(spi, "wa"*32)
-        sleep(0.2)
-        print(repr(read_OPT(spi)))
     else:
         print("Select a task")
-
-
-def read_private_key_in_filesystem():
-    from fluxmonitor.storage import Storage
-    from fluxmonitor.misc import _security
-    storage = Storage("security", "private")
-
-    if storage.exists("key.pem"):
-        with storage.open("key.pem", "rb") as f:
-            rsakey = _security.RSAObject(pem=f.read())
-            return rsakey.export_der()
-    else:
-        return None
 
 
 def read_OPT(spi):
@@ -96,26 +86,23 @@ def read_OPT(spi):
 
 def write_OPT(spi, data):
     if len(data) != 64:
-        raise RuntimeError("OPE len error")
+        raise RuntimeError("OPE len error", len(data))
 
     # Enter OTP
     spi.xfer([0xB1])
-    sleep(0.2)
 
-    # Earse
     spi.xfer([0x06])
-    spi.xfer([0x52, 0x00, 0x00, 0x00])
+    payload = [0x02, 0x00, 0x00, 0x00] + [ord(c) for c in data]
+    spi.xfer(payload)
     spi.xfer([0x04])
     sleep(0.2)
 
-    # spi.xfer([0x06])
-    # payload = [0x02, 0x00, 0x00, 0x00] + [ord(c) for c in data]
-    # spi.xfer(payload)
-    # spi.xfer([0x04])
-    # sleep(0.2)
-
     # Quit OTP
     spi.xfer([0xC1])
+
+    spi.xfer([0x06])
+    spi.xfer([0x2F, 0x03])
+    spi.xfer([0x04])
 
 
 def write(spi, sector, data):
