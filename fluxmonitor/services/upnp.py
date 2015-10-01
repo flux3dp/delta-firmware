@@ -12,6 +12,7 @@ import json
 
 logger = logging.getLogger(__name__)
 
+from fluxmonitor.misc._process import Process
 from fluxmonitor.misc import network_config_encoder as NCE
 from fluxmonitor.halprofile import get_model_id
 from fluxmonitor.storage import CommonMetadata
@@ -49,8 +50,7 @@ GLOBAL_SERIAL = _uuid.UUID(int=0)
 
 class UpnpServiceMix(object):
     padding_request_pubkey = None
-    # _discover_history
-    _control_proc = None
+    robot_agent = None
 
     def _in_discover_history(self, remote):
         identify = socket.inet_aton(remote[0]) + struct.pack("I", remote[1])
@@ -198,16 +198,29 @@ class UpnpServiceMix(object):
         return {"timestemp": time(), "onthefly": status}
 
     def cmd_require_robot(self, access_id, message):
-        pid = control_mutex.locking_status()
-        if pid:
-            raise RuntimeError(ALREADY_RUNNING)
+        if self.robot_agent:
+            ret = self.robot_agent.poll()
+            if ret is None:
+                return {"status": "launching"}
+            else:
+                self.robot_agent = None
 
-        logfile = Storage("log").get_path("robot.log")
-        pidfile = control_mutex.pidfile()
-        daemon = subprocess.Popen(["fluxrobot", "--pid", pidfile, "--log",
-                                   logfile, "--daemon"], close_fds=True)
-        timestemp = time()
-        # TODO: Upnp service will blocked untile timeout.
+                if ret == 0:
+                    return {"status": "launched"}
+                elif ret == 0x80:
+                    return {"status": "launched", "info": "double launch"}
+                else:
+                    logger.error("Robot daemon return statuscode %i" % ret)
+                    raise RuntimeError(UNKNOW_ERROR, "%i" % ret)
+
+        else:
+            pid = control_mutex.locking_status()
+            if pid:
+                return {"status": "launched", "info": "already running"}
+            else:
+                self.robot_agent = RobotLaunchAgent(self)
+                return {"status": "initial"}
+
         while True:
             ret = daemon.poll()
             if ret == None:
@@ -231,12 +244,6 @@ class UpnpServiceMix(object):
             return {"timestemp": time()}
         else:
             raise RuntimeError(NOT_RUNNING)
-
-    def on_control_terminate(self, signum, frame):
-        if self._control_proc:
-            poll = self._control_proc.poll()
-            self._control_proc = None
-            logger.debug("Control program terminated with %s", poll)
 
 
 class UpnpSocket(object):
@@ -450,6 +457,41 @@ class UpnpService(ServiceBase, UpnpServiceMix, NetworkMonitorMix):
 
     def each_loop(self):
         pass
+
+
+class RobotLaunchAgent(Process):
+    
+    @classmethod
+    def init(cls, service):
+        logfile = Storage("log").get_path("robot.log")
+        pidfile = control_mutex.pidfile()
+        return cls(services, ["fluxrobot", "--pid", pidfile, "--log", logfile,
+                              "--daemon"],
+                   )
+        daemon = subprocess.Popen(["fluxrobot", "--pid", pidfile, "--log",
+                                   logfile, "--daemon"], close_fds=True)
+
+    def __init__(self, services):
+        pid = control_mutex.locking_status()
+        if pid:
+            raise RuntimeError(ALREADY_RUNNING)
+
+        logfile = Storage("log").get_path("robot.log")
+        pidfile = control_mutex.pidfile()
+
+        Process.__init__(self, services, ["fluxrobot", "--pid", pidfile,
+                                          "--log", logfile, "--daemon"])
+
+    def on_daemon_closed(self):
+        timestemp = time()
+
+        ret = self.poll()
+        while ret == None and (time() - timestemp) < 3:
+            sleep(0.05)
+            ret = self.poll()
+
+        if ret == None:
+            self.kill()
 
 
 class DelayNetworkConfigure(object):

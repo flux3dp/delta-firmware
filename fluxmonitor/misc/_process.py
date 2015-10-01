@@ -30,9 +30,9 @@ class Process(Popen):
             if proc.poll() is None:
                 proc.kill()
 
-    def __init__(self, manager, cmd):
+    def __init__(self, service, cmd):
         self.cmd = " ".join(cmd)
-        self.manager = manager
+        self.service = service
 
         super(Process, self).__init__(cmd, stdin=PIPE, stdout=PIPE,
                                       stderr=PIPE)
@@ -40,9 +40,9 @@ class Process(Popen):
         self._make_nonblock(self.stdout)
         self._make_nonblock(self.stderr)
 
-        self.manager.add_read_event(
+        self.service.add_read_event(
             AsyncIO(self.stdout, self._on_stdout))
-        self.manager.add_read_event(
+        self.service.add_read_event(
             AsyncIO(self.stderr, self._on_stderr))
 
         self._closed = False
@@ -55,14 +55,14 @@ class Process(Popen):
     def _on_stdout(self, sender):
         buf = sender.obj.read(4096)
         if buf:
-            self.manager.logger.debug(buf)
+            self.service.logger.debug(buf)
         else:
             self._close(sender)
 
     def _on_stderr(self, sender):
         buf = sender.obj.read(4096)
         if buf:
-            self.manager.logger.debug(buf)
+            self.service.logger.debug(buf)
         else:
             self._close(sender)
 
@@ -84,10 +84,12 @@ class Process(Popen):
         if not self._closed:
             # First _closed be invoked
             self._closed = True
-            self.manager.remove_read_event(sender)
+            self.service.remove_read_event(sender)
 
-            # Make callback
-            self.manager.on_daemon_closed(self)
+            self.on_daemon_closed()
+
+    def on_daemon_closed(self):
+        self.service.on_daemon_closed(self)
 
     def __repr__(self):
         return "<Process: %s>" % self.cmd
