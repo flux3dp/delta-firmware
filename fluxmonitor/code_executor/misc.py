@@ -103,12 +103,13 @@ class TaskLoader(Process):
                 offset = 0
                 while offset < l:
                     rl, wl, _ = select((self.io_in, ), (self.io_in, ), (), 3.0)
-                    if wl:
-                        offset += self.io_in.send(view[offset:l])
                     if rl:
                         # Remote should not send anything, close socket
                         # directory
                         return
+                    if wl:
+                            offset += self.io_in.send(view[offset:l])
+
         except KeyboardInterrupt:
             pass
         finally:

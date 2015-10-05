@@ -79,7 +79,7 @@ class CodeExecutorTest(unittest.TestCase):
 
             self.ex.on_loop(self)
 
-            if self.ex.get_status()["status"] == ST_ABORT:
+            if self.ex.get_status()["status"] == ST_ABORTED:
                 if not self.ex.head_ctrl.ready:
                     raise RuntimeError("Headboard not ready")
                 break

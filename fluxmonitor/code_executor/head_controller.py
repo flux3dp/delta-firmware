@@ -6,8 +6,10 @@ import re
 from fluxmonitor.err_codes import EXEC_HEADER_OFFLINE, EXEC_OPERATION_ERROR, \
     EXEC_WRONG_HEADER
 
+NAN = float("nan")
+
 IDENTIFY_PARSER = re.compile("FLUX (?P<module>\w+) Module")
-TEMP_PARSER = re.compile("adc(\W)*:(\W)*\d*(\W)*(>)*(\W)*(?P<temp>\d+)")
+TEMP_PARSER = re.compile("ok@RT: (?P<temp>\d+)")
 
 TYPE_3DPRINT = 0
 TYPE_LASER = 1
@@ -94,6 +96,12 @@ class ExtruderController(HeaderController):
     def is_busy(self):
         return self._padding_cmd != None
 
+    def status(self):
+        return {
+            "module": "executor",
+            "t": (self._temperatures[0], )
+        }
+
     def set_heater(self, executor, heater_id, temperature, callback=None):
         if self._padding_cmd:
             self._raise_error(EXEC_OPERATION_ERROR,
@@ -101,11 +109,15 @@ class ExtruderController(HeaderController):
 
         if temperature < 5:
             raise RuntimeError(EXEC_OPERATION_ERROR, "BAD TEMP")
-        elif temperature > 280:
+        elif temperature > 245:
             raise SystemError(EXEC_OPERATION_ERROR, "BAD TEMP")
 
         self._temperatures[0] = temperature
-        self._padding_cmd = "H%i\n" % (temperature * 10)
+        if temperature is NAN:
+            self._padding_cmd = "HF%i\n" % (temperature * 10)
+        else:
+            self._padding_cmd = "HO%i\n" % (temperature * 10)
+
         self._send_cmd(executor)
         self._cmd_callback = callback
 
@@ -125,14 +137,11 @@ class ExtruderController(HeaderController):
     def on_message(self, msg, executor):
         if not msg:
             return
+
         if self._ready and self._parse_cmd_response(msg, executor):
             return
-        elif "ok@T" in msg:
-            self._current_temp[0] = 100
-            self._update_retry = 0
-            self._wait_update = False
-            self._lastupdate = time()
-        elif "adc" in msg:
+
+        elif "ok@RT" in msg:
             m = TEMP_PARSER.search(msg)
             if m:
                 temp = float(m.groupdict()['temp']) / 10.0
@@ -142,6 +151,10 @@ class ExtruderController(HeaderController):
                 self._lastupdate = time()
 
                 if self._heaters_callback:
+                    if self._temperatures[0] is None:
+                        self._heaters_callback(self)
+                        self._heaters_callback = None
+
                     if not (self._temperatures[0] > 0):
                         self._heaters_callback(self)
                         self._heaters_callback = None
@@ -178,7 +191,7 @@ class ExtruderController(HeaderController):
                         self._on_ready(executor)
                     return
 
-        if "Boot" in msg:
+        if msg == "[Event]:1":
             L.error("Recive header boot")
             self._raise_error(EXEC_HEADER_OFFLINE)
 
@@ -214,7 +227,7 @@ class ExtruderController(HeaderController):
 
     def _send_update(self, executor):
         self._make_delay()
-        executor.send_headboard("T\n")
+        executor.send_headboard("RT\n")
         self._wait_update = True
         self._lastupdate = time()
 
@@ -229,18 +242,6 @@ class ExtruderController(HeaderController):
                 self._padding_cmd = None
                 self._cmd_callback = None
             return True
-        # if msg.endswith("ok@"):
-        #     if self._padding_cmd and self._padding_cmd[0] == msg[3]:
-        #         # Clear padding cmd
-        #         try:
-        #             if self._cmd_callback:
-        #                 self._cmd_callback(executor)
-        #         finally:
-        #             self._cmd_sent_at = 0
-        #             self._cmd_retry = 0
-        #             self._padding_cmd = None
-        #             self._cmd_callback = None
-        #         return True
         return False
 
     def patrol(self, executor):

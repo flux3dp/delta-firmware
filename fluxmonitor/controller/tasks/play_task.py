@@ -32,6 +32,7 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
 
     def on_exit(self, sender):
         self.server.remove_loop_event(self)
+        self.executor.close()
         self.disconnect()
 
     def on_mainboard_message(self, sender):

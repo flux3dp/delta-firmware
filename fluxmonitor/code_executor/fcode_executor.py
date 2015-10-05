@@ -45,6 +45,9 @@ class FcodeExecutor(BaseExecutor):
 
         self.start()
 
+    def close(self):
+        self._task_loader.close()
+
     def on_controller_ready(self, controller):
         if self.main_ctrl.ready and self.head_ctrl.ready:
             if self._status == ST_STARTING:
