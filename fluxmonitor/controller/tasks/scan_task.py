@@ -112,10 +112,12 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
             ret = self.make_gcode_cmd("X3F4")
             if ret != "ok":
                 raise RuntimeError(DEVICE_ERROR, ret)
+            sleep(0.09)
 
             ret = self.make_gcode_cmd("G1 F500 E-%.5f" % self.step_length)
             if ret != "ok":
                 raise RuntimeError(DEVICE_ERROR, ret)
+            sleep(0.05)
 
             ret = self.make_gcode_cmd("X3O4")
             if ret != "ok":
@@ -127,10 +129,12 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
             ret = self.make_gcode_cmd("X3F4")
             if ret != "ok":
                 raise RuntimeError(DEVICE_ERROR, ret)
+            sleep(0.09)
 
             ret = self.make_gcode_cmd("G1 F500 E%.5f" % self.step_length)
             if ret != "ok":
                 raise RuntimeError(DEVICE_ERROR, ret)
+            sleep(0.05)
 
             ret = self.make_gcode_cmd("X3O4")
             if ret != "ok":
@@ -147,8 +151,9 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
             raise RuntimeError(UNKNOW_COMMAND)
 
     def change_laser(self, left, right):
-        self.make_gcode_cmd("X1O" if left else "X1F")
-        self.make_gcode_cmd("X2O" if right else "X2F")
+        self.make_gcode_cmd("X1O1" if left else "X1F1")
+        self.make_gcode_cmd("X2O2" if right else "X2F2")
+        sleep(0.01)
         return "ok"
 
     def oneshot(self, sock):
