@@ -103,7 +103,7 @@ def init_service(klass_name, options):
 def deamon_entry(options, service=None):
     pid_handler = None
     server = None
-    pid = os.getpid()
+    pid = None
 
     # Close all file descriptor except stdin/stdout/stderr and pid file
     # descriptor
@@ -124,6 +124,7 @@ def deamon_entry(options, service=None):
 
                 try:
                     pid_handler = lock_pidfile(options)
+                    pid = os.getpid()
                     pid_handler.write(repr(pid))
                     pid_handler.flush()
 
@@ -182,6 +183,7 @@ def deamon_entry(options, service=None):
     else:
         try:
             pid_handler = lock_pidfile(options)
+            pid = os.getpid()
             pid_handler.write(repr(pid))
         except FatalException as e:
             return e.args[0]
