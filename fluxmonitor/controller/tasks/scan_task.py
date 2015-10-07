@@ -73,7 +73,7 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
         self.camera = cv2.VideoCapture(camera_id)
 
         try:
-            init_gcodes = ["G28", "M302", "M907 Y0.4", "T1", "G91"]
+            init_gcodes = ["G28", "M302", "M907 Y0.4", "T2", "G91"]
             for cmd in init_gcodes:
                 ret = self.make_gcode_cmd(cmd)
                 if not ret.endswith("ok"):
@@ -112,7 +112,7 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
             ret = self.make_gcode_cmd("X3F4")
             if ret != "ok":
                 raise RuntimeError(DEVICE_ERROR, ret)
-            sleep(0.09)
+            sleep(0.1)
 
             ret = self.make_gcode_cmd("G1 F500 E-%.5f" % self.step_length)
             if ret != "ok":
@@ -129,7 +129,7 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
             ret = self.make_gcode_cmd("X3F4")
             if ret != "ok":
                 raise RuntimeError(DEVICE_ERROR, ret)
-            sleep(0.09)
+            sleep(0.1)
 
             ret = self.make_gcode_cmd("G1 F500 E%.5f" % self.step_length)
             if ret != "ok":
