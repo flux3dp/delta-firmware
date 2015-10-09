@@ -15,6 +15,8 @@ cdef extern from "libflux_identify/flux_identify.h":
     int get_machine_uuid(unsigned char* [16]) except -1
     RSA* get_rescue_machine_rsakey() except NULL
     int get_rescue_machine_uuid(unsigned char* [16]) except -1
+    void generate_wpa_psk(const unsigned char*, int, const unsigned char*,
+                          int, unsigned char [64])
 
 
 cdef object storage = Storage("security")
@@ -66,3 +68,10 @@ cpdef bint validate_password(password):
             return pwdhash == inputhash
     else:
         return True
+
+
+def get_wpa_psk(ssid, passphrase):
+  cdef unsigned char[64] buf
+  generate_wpa_psk(passphrase, len(passphrase), ssid, len(ssid),
+                   <unsigned char*>buf)
+  return buf[:64]

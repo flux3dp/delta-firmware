@@ -35,7 +35,8 @@ setup(
         ("flux_crypto", {
             "sources": [
                 "src/libflux_crypto/flux_crypto_rsa.c",
-                "src/libflux_crypto/flux_crypto_aes.c"],
+                "src/libflux_crypto/flux_crypto_aes.c",
+                "src/libflux_crypto/pbkdf2.c"],
             "include_dirs": setup_utils.PY_INCLUDES,
             "macros": setup_utils.DEFAULT_MACROS
         }),
