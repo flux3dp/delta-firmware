@@ -8,6 +8,7 @@ import os
 from fluxmonitor.misc import network_config_encoder as NCE
 from fluxmonitor.hal.net import config as net_config
 from fluxmonitor.config import network_config
+from fluxmonitor.security import _security
 from fluxmonitor.hal.net.monitor import Monitor
 from fluxmonitor.storage import Storage
 
@@ -86,6 +87,12 @@ class ConfigMix(object):
 
     def set_config(self, ifname, config):
         config = NCE.validate_options(config)
+
+        # Encrypt password
+        if "psk" in config and "ssid" in config:
+            plain_passwd = config["psk"]
+            config["psk"] = _security.get_wpa_psk(config["ssid"], plain_passwd)
+
         try:
             with self.storage.open(ifname, "w") as f:
                 json.dump(config, f)
