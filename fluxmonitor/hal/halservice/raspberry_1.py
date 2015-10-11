@@ -1,21 +1,26 @@
 
-from time import sleep
+from multiprocessing import Process
+from time import time, sleep
 import logging
 import os
 
-from serial import Serial
+from serial import Serial, SerialException
 from RPi import GPIO
 
 from fluxmonitor.misc.async_signal import AsyncIO
 from fluxmonitor.halprofile import MODEL_G1
-from fluxmonitor.config import hal_config
 from fluxmonitor.storage import Storage
 
 from .base import UartHalBase, BaseOnSerial
 
 L = logging.getLogger("halservice.rasp")
 
-GPIO_HEAD_POW =  13
+GPIO_TOGGLE = (GPIO.LOW, GPIO.HIGH)
+
+GPIO_FRONT_BUTTON = 12
+GPIO_MAINBOARD_SIG = 3
+GPIO_ACTIVE_SIG = 5
+GPIO_HEAD_POW = 13
 GPIO_USB_SERIAL = 15
 GPIO_MAINBOARD = 16
 HEAD_POWER_ON = GPIO.HIGH
@@ -24,21 +29,92 @@ USB_SERIAL_ON = GPIO.HIGH
 USB_SERIAL_OFF = GPIO.LOW
 MAINBOARD_ON = GPIO.HIGH
 MAINBOARD_OFF = GPIO.LOW
+MAIN_BUTTON_DOWN = 0
+MAIN_BUTTON_UP = 1
+
+
+class FrontButtonMonitor(object):
+    def __init__(self, trigger_list):
+        GPIO.setup(12, GPIO.IN)
+
+        self.trigger_list = trigger_list
+        self._rfd, self._wfd = os.pipe()
+        self._proc = Process(target=self.serve_forever)
+        self._proc.daemon = True
+        self.running = True
+        self._proc.start()
+        os.close(self._wfd)
+
+    def fileno(self):
+        return self._rfd
+
+    def serve_forever(self):
+        try:
+            os.close(self._rfd)
+            while self.running:
+                abort_sent = False
+
+                GPIO.wait_for_edge(12, GPIO.FALLING)
+                d = time()
+                while GPIO.input(12) == 0:
+                    sleep(0.002)
+
+                    if not abort_sent and time() - d > 3:
+                        abort_sent = True
+                        os.write(self._wfd, '9')
+                        L.debug("Btn long press event triggered")
+
+                if time() - d < 3:
+                    os.write(self._wfd, '1')
+                    L.debug("Btn press event triggered")
+        finally:
+            os.close(self._wfd)
+
+    def on_read(self, kernel):
+        buf = os.read(self._rfd, 1)
+        if buf:
+            if buf == '1':
+                for sock in self.trigger_list:
+                    sock.send('RUNTOGL ')  # RUN-TOGGLE
+            elif buf == '9':
+                for sock in self.trigger_list:
+                    sock.send('ABORT   ')
+        else:
+            L.error("ButtonInterface is down")
+            kernel.remove_read_event(self)
+
+    def close(self):
+        self.running = False
+        os.close(self._rfd)
 
 
 class GPIOConteol(object):
+    _last_mainboard_sig = GPIO_TOGGLE[0]
+    _last_active_sig = GPIO_TOGGLE[0]
+    _last_sig_timestemp = 0
     __usb_serial_gpio__ = USB_SERIAL_OFF
     head_enabled = True
 
     def init_gpio_control(self):
         GPIO.setmode(GPIO.BOARD)
         GPIO.setwarnings(False)
+        GPIO.setup(GPIO_MAINBOARD_SIG, GPIO.OUT, initial=GPIO_TOGGLE[0])
+        GPIO.setup(GPIO_ACTIVE_SIG, GPIO.OUT, initial=GPIO_TOGGLE[0])
+
         GPIO.setup(GPIO_HEAD_POW, GPIO.OUT, initial=HEAD_POWER_ON)
         GPIO.setup(GPIO_MAINBOARD, GPIO.OUT, initial=MAINBOARD_ON)
         GPIO.setup(GPIO_USB_SERIAL, GPIO.OUT)
         L.debug("GPIO configured")
 
         self.update_ama0_routing()
+
+    def proc_sig(self):
+        if time() - self._last_sig_timestemp > 0.5:
+            _1 = self._last_mainboard_sig = (self._last_mainboard_sig + 1) % 2
+            _2 = self._last_active_sig = (self._last_active_sig + 1) % 2
+            GPIO.output(GPIO_MAINBOARD_SIG, GPIO_TOGGLE[_1])
+            GPIO.output(GPIO_ACTIVE_SIG, GPIO_TOGGLE[_2])
+            self._last_sig_timestemp = time()
 
     def __del__(self):
         L.debug("GPIO cleanup")
@@ -106,7 +182,7 @@ class GPIOConteol(object):
             self.mainboard_connect()
             self._init_mainboard_status()
 
-        except Exception as e:
+        except Exception:
             L.exception("Error while update fireware")
 
 
@@ -122,8 +198,11 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOConteol):
         self.init_gpio_control()
         self._rasp_connect()
         self.mainboard_connect()
-
         self._init_mainboard_status()
+        self.btn_monitor = FrontButtonMonitor(self.control_socks)
+
+        server.add_loop_event(self)
+        server.add_read_event(self.btn_monitor)
 
     def _init_mainboard_status(self):
         buf = self.storage.readall("on_boot")
@@ -203,7 +282,7 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOConteol):
     def on_recvfrom_mainboard(self, sender):
         try:
             BaseOnSerial.on_recvfrom_mainboard(self, sender)
-        except SerialException as e:
+        except SerialException:
             self.reconnect()
 
     def on_connected_headboard(self, sender):
@@ -213,3 +292,10 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOConteol):
     def on_disconnect_headboard(self, ref):
         UartHalBase.on_disconnect_headboard(self, ref)
         self.update_ama0_routing()
+
+    def close(self):
+        UartHalBase.close(self)
+        self.btn_monitor.close()
+
+    def on_loop(self, kernel):
+        self.proc_sig()

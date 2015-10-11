@@ -25,11 +25,12 @@ class UartHalBase(object):
         self.pc = self.create_socket(
             uart_config["pc"], callback=self.on_connected_pc)
         self.control = self.create_socket(
-            uart_config["control"], callback=self.on_control_message, udp=True)
+            uart_config["control"], callback=self.on_connected_control)
 
         self.mainboard_socks = []
         self.headboard_socks = []
         self.pc_socks = []
+        self.control_socks = []
 
     def create_socket(self, path, udp=False, callback=None):
         if os.path.exists(path):
@@ -48,11 +49,24 @@ class UartHalBase(object):
 
         return s
 
+    def on_connected_control(self, sender):
+        logger.debug("Connected to control")
+        request, _ = sender.obj.accept()
+        self.control_socks.append(request)
+        self.server.add_read_event(AsyncIO(request, self.on_control_message))
+
+    def on_disconnect_control(self, ref):
+        logger.debug("Disconnect from control")
+        self.server.remove_read_event(ref)
+        self.control_socks.remove(ref.obj)
+
     def on_control_message(self, sender):
         try:
             buf = sender.obj.recv(4096)
-            cmd = buf.decode("ascii")
+            if not buf:
+                self.on_disconnect_control(sender)
 
+            cmd = buf.decode("ascii").strip()
             if cmd == "reconnect":
                 self.reconnect()
             elif cmd == "reset mb":
@@ -121,6 +135,16 @@ class UartHalBase(object):
 
     def sendto_pc(self, buf):
         pass
+
+    def close(self):
+        for sock in self.mainboard_socks:
+            sock.close()
+        for sock in self.headboard_socks:
+            sock.close()
+        for sock in self.pc_socks:
+            sock.close()
+        for sock in self.control_socks:
+            sock.close()
 
 
 class BaseOnSerial(object):
