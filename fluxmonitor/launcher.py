@@ -66,16 +66,10 @@ def create_logger(options):
 
 def lock_pidfile(options):
     try:
-        if os.path.exists(options.pidfile):
-            old_pid_handler = open(options.pidfile, 'a+')
-            dup_fd = os.dup(old_pid_handler.fileno())
-            fcntl.lockf(dup_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            pid_handler = os.fdopen(dup_fd, 'w', 0)
-        else:
-            pid_handler = open(options.pidfile, 'w', 0)
-            fcntl.lockf(pid_handler.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-
-        return pid_handler
+        pid_handler = os.open(options.pidfile,
+                              os.O_CREAT | os.O_RDONLY | os.O_WRONLY, 0o644)
+        fcntl.lockf(pid_handler, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return os.fdopen(pid_handler, "w")
     except IOError as e:
         if options.debug:
             raise
@@ -107,7 +101,7 @@ def deamon_entry(options, service=None):
 
     # Close all file descriptor except stdin/stdout/stderr and pid file
     # descriptor
-    os.closerange(4, 1024)
+    os.closerange(3, 1024)
 
     if options.daemon:
         rfd, wfd = os.pipe()
@@ -125,6 +119,7 @@ def deamon_entry(options, service=None):
                 try:
                     pid_handler = lock_pidfile(options)
                     pid = os.getpid()
+
                     pid_handler.write(repr(pid))
                     pid_handler.flush()
 
@@ -185,6 +180,7 @@ def deamon_entry(options, service=None):
             pid_handler = lock_pidfile(options)
             pid = os.getpid()
             pid_handler.write(repr(pid))
+            pid_handler.flush()
         except FatalException as e:
             return e.args[0]
 
