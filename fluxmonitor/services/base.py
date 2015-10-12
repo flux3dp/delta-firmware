@@ -1,11 +1,14 @@
 
 from fluxmonitor.event_base import EventBase
 from fluxmonitor.misc import AsyncSignal
+
+from setproctitle import setproctitle
 import memcache
 
 
 class ServiceBase(EventBase):
     def __init__(self, logger):
+        setproctitle("flux: %s" % self.__class__.__name__)
         self.self_test()
         super(ServiceBase, self).__init__()
         self.memcache = memcache.Client(["127.0.0.1:11211"])

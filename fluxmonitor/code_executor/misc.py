@@ -81,6 +81,8 @@ class TaskLoader(Process):
         del self.io_in
 
     def __serve_forever(self):
+        setproctitle("fluxrobot TaskLoader")
+
         self.io_out.close()
         del self.io_out
 

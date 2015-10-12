@@ -1,8 +1,11 @@
 
+from setproctitle import setproctitle
 from multiprocessing import Process
 from select import select, error
 from errno import EINTR
 import socket
+
+from setproctitle import setproctitle
 
 
 class TaskLoader(Process):
@@ -19,6 +22,8 @@ class TaskLoader(Process):
         self.io_in.close()
 
     def serve_forever(self):
+        setproctitle("fluxrobot TaskLoader")
+
         buf = bytearray(4096)
         view = memoryview(buf)
         l = 0
