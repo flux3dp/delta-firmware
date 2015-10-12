@@ -211,7 +211,7 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
         def send_cmd(x, y):
             cmds = ("G28", "G1F8000Z100",
                     "G1F8000X%.5fY%.5fZ60" % (x, y),
-                    "X3O", "G1F1000Z10", "G1F500Z0", "G1F300Z-20", "X3F",
+                    "X3O", "G1F1000Z10", "G1F500Z5", "G1F300Z-2", "X3F",
                     "M84", "G4P50", "X6")
             for c in cmds:
                 self.main_ctrl.send_cmd(c, self)
@@ -282,6 +282,7 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
                 self.server.exit_task(self)
 
         self._busy = True
+        self.main_ctrl.send_cmd("G90")
         send_cmd(-73.6122, -42.5)
         self._mainboard_msg_filter = stage1_test_x
 
