@@ -4,8 +4,10 @@ import logging
 from fluxmonitor.misc import timer as T
 from fluxmonitor.event_base import EventBase
 from fluxmonitor.controller.interfaces.local import LocalControl
+from fluxmonitor.controller.interfaces.button import ButtonControl
 from fluxmonitor.controller.tasks.command_task import CommandTask
 from fluxmonitor.services.base import ServiceBase
+from fluxmonitor.code_executor.base import ST_RUNNING, ST_PAUSED
 
 STATUS_IDLE = 0x0
 STATUS_RUNNING = 0x1
@@ -21,7 +23,9 @@ class Robot(ServiceBase):
     def __init__(self, options):
         ServiceBase.__init__(self, logger)
         self.debug = options.debug
+
         self.local_control = LocalControl(self, logger=logger)
+        self.button_control = ButtonControl(self, logger=logger)
 
         self.task_callstack = []
         self.this_task = None
@@ -37,6 +41,18 @@ class Robot(ServiceBase):
                 assert cmd_task.play(sender=sender) == "ok"
         except Exception:
             logger.exception("Error while setting task at init")
+
+    def on_button_control(self, message):
+        task_label = self.this_task.__class__.__name__
+        if task_label == "PlayTask":
+            if message == "ABORT":
+                self.this_task.abort("CANCELED")
+            elif message == "RUNTOGL":
+                st = self.this_task.get_status()["status"]
+                if st == ST_PAUSED:
+                    self.this_task.resume()
+                elif st == ST_RUNNING:
+                    self.this_task.pause("USER_OPERATE")
 
     @T.update_time
     def on_message(self, message, sender):
@@ -78,7 +94,8 @@ class Robot(ServiceBase):
 
     def on_shutdown(self):
         self.running = False
-        self.local_control.close()
+        self.local_control.close(self)
+        self.button_control.close(self)
 
 
 class NullSender(object):

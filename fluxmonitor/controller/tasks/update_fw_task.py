@@ -1,13 +1,11 @@
 
-# s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM); s.connect("/tmp/.uart-control"); s.send("update_fw")
-
-
 from tempfile import TemporaryFile
 from errno import errorcode
 import logging
 import socket
 
 from fluxmonitor.err_codes import SUBSYSTEM_ERROR
+from fluxmonitor.config import uart_config
 from fluxmonitor.storage import Storage
 from .base import ExclusiveMixIn
 
@@ -26,8 +24,8 @@ class UpdateFwTask(ExclusiveMixIn):
 
     def send_upload_request(self):
         try:
-            s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-            s.connect("/tmp/.uart-control")
+            s = socket.socket(socket.AF_UNIX)
+            s.connect(uart_config["control"])
             s.send("update_fw")
         except socket.error:
             raise RuntimeError(SUBSYSTEM_ERROR)

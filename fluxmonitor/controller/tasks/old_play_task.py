@@ -102,35 +102,47 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
             if DEBUG:
                 logger.debug("HB: %s" % msg)
 
+    def pause(self, reason):
+        if self._status == "RUNNING":
+            self._status = "PAUSE"
+        else:
+            raise RuntimeError(NOT_RUNNING)
+
+    def resume(self):
+        if self._status == "PAUSE":
+            self._status = "RUNNING"
+            self.next_cmd()
+        elif self._status == "RUNNING":
+            raise RuntimeError(ALREADY_RUNNING)
+        else:
+            raise RuntimeError(NO_TASK)
+
+    def abort(self, reason):
+        if self._status in ["RUNNING", "PAUSE"]:
+            self._uart_mb.send(b"G28\nM84\n")
+            self._status = "ABORT"
+        else:
+            raise RuntimeError(NO_TASK)
+
+    def get_status(self):
+        return {"status": self._status}
+
     def dispatch_cmd(self, cmd, sender):
         if cmd == "pause":
-            if self._status == "RUNNING":
-                self._status = "PAUSE"
-                return "ok"
-            else:
-                raise RuntimeError(NOT_RUNNING)
+            self.pause("USER_OPERATION")
+            return "ok"
 
         elif cmd == "report" or cmd == "r":
             return "%s/%i/%i/%s" % (self._status, self._task_executed,
                                     self._task_total, self._task_last)
 
         elif cmd == "resume":
-            if self._status == "PAUSE":
-                self._status = "RUNNING"
-                self.next_cmd()
-                return "ok"
-            elif self._status == "RUNNING":
-                raise RuntimeError(ALREADY_RUNNING)
-            else:
-                raise RuntimeError(NO_TASK)
+            self.resume()
+            return "ok"
 
         elif cmd == "abort":
-            if self._status in ["RUNNING", "PAUSE"]:
-                self._uart_mb.send(b"G28\nM84\n")
-                self._status = "ABORT"
-                return "ok"
-            else:
-                raise RuntimeError(NO_TASK)
+            self.abort("USER_OPERATION")
+            return "ok"
 
         elif cmd == "quit":
             if self._status in ["ABORT", "COMPLETED"]:

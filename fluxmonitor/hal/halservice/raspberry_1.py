@@ -5,6 +5,7 @@ import logging
 import os
 
 from serial import Serial, SerialException
+from setproctitle import getproctitle, setproctitle
 from RPi import GPIO
 
 from fluxmonitor.misc.async_signal import AsyncIO
@@ -50,6 +51,8 @@ class FrontButtonMonitor(object):
 
     def serve_forever(self):
         try:
+            setproctitle(getproctitle() + " (button monitor)")
+
             os.close(self._rfd)
             while self.running:
                 abort_sent = False
