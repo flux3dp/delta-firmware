@@ -282,7 +282,7 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
                 self.server.exit_task(self)
 
         self._busy = True
-        self.main_ctrl.send_cmd("G90")
+        self.main_ctrl.send_cmd("G90", self)
         send_cmd(-73.6122, -42.5)
         self._mainboard_msg_filter = stage1_test_x
 
