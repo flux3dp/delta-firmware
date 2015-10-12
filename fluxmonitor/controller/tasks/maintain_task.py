@@ -1,6 +1,7 @@
 
 import logging
 import socket
+import re
 
 from fluxmonitor.code_executor.main_controller import MainController
 from fluxmonitor.config import uart_config
@@ -9,7 +10,11 @@ from fluxmonitor.err_codes import RESOURCE_BUSY
 from .base import CommandMixIn, ExclusiveMixIn, DeviceOperationMixIn, \
     DeviceMessageReceiverMixIn
 
+RE_REPORT_DIST = re.compile("X:(?P<X>(-)?[\d]+(.[\d]+)?) "
+                            "Y:(?P<Y>(-)?[\d]+(.[\d]+)?) "
+                            "Z:(?P<Z>(-)?[\d]+(.[\d]+)?) ")
 logger = logging.getLogger(__name__)
+
 
 
 def check_mainboard(method):
@@ -31,7 +36,7 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
         self.server = server
         self.connect()
         self.main_ctrl = MainController(
-            executor=self, bufsize=4,
+            executor=self, bufsize=14,
             ready_callback=self._on_mainboard_ready,
         )
 
@@ -72,6 +77,9 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
         elif cmd == "eadj":
             return self.do_eadj(sock)
 
+        elif cmd == "madj":
+            return self.do_madj(sock)
+
         elif cmd == "reset_mb":
             s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
             s.connect(uart_config["control"])
@@ -96,7 +104,7 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
         self._busy = True
 
     @check_mainboard
-    def do_eadj(self, sender):
+    def do_qadj(self, sender):
         data = []
 
         def send_m119(main_ctrl):
@@ -194,6 +202,89 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
         send_m119(self.main_ctrl)
         self.main_ctrl.callback_msg_empty = send_m119
         self._mainboard_msg_filter = stage1_chk_zprop_triggered
+        return "continue"
+
+    @check_mainboard
+    def do_eadj(self, sender):
+        data = []
+
+        def send_cmd(x, y):
+            cmds = ("G28", "G1F8000Z100",
+                    "G1F8000X%.5fY%.5fZ60" % (x, y),
+                    "X3O", "G1F1000Z10", "G1F500Z0", "G1F300Z-20", "X3F",
+                    "M84", "G4P50", "X6")
+            for c in cmds:
+                self.main_ctrl.send_cmd(c, self)
+
+        def stage1_test_x(msg):
+            try:
+                sender.send_text("TESTING_X")
+
+                m = RE_REPORT_DIST.match(msg)
+                if m:
+                    data.append(m.groupdict())
+
+                    self._mainboard_msg_filter = stage2_test_y
+                    send_cmd(73.6122, -42.5)
+
+            except Exception:
+                logger.exception("Unhandle Error")
+                self.server.exit_task(self)
+
+        def stage2_test_y(msg):
+            try:
+                sender.send_text("TESTING_Y")
+
+                m = RE_REPORT_DIST.match(msg)
+                if m:
+                    data.append(m.groupdict())
+
+                    self._mainboard_msg_filter = stage3_test_z
+                    send_cmd(0, 85)
+
+            except Exception:
+                logger.exception("Unhandle Error")
+                self.server.exit_task(self)
+
+        def stage3_test_z(msg):
+            try:
+                sender.send_text("TESTING_Z")
+
+                m = RE_REPORT_DIST.match(msg)
+                if m:
+                    data.append(m.groupdict())
+
+                    self._mainboard_msg_filter = stage4_test_h
+                    send_cmd(0, 0)
+
+            except Exception:
+                logger.exception("Unhandle Error")
+                self.server.exit_task(self)
+
+        def stage4_test_h(msg):
+            try:
+                sender.send_text("TESTING_H")
+
+                m = RE_REPORT_DIST.match(msg)
+                if m:
+                    data.append(m.groupdict())
+                    self._mainboard_msg_filter = None
+                    self._busy = False
+
+                    for resule in data:
+                        logger.debug("DATA: %s", data)
+                        sender.send_text("DATA %(X)s, %(Y)s, %(Z)s" %
+                                         resule)
+
+                    sender.send_text("ok")
+            except Exception:
+                logger.exception("Unhandle Error")
+                self.server.exit_task(self)
+
+        self._busy = True
+        send_cmd(-73.6122, -42.5)
+        self._mainboard_msg_filter = stage1_test_x
+
         return "continue"
 
     def on_loop(self, loop):
