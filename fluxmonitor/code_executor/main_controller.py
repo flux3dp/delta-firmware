@@ -199,7 +199,7 @@ class MainController(object):
         executor.send_mainboard(self.create_cmd(lineno, cmd))
 
     def reset_mainboard(self):
-        s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+        s = socket.socket(socket.AF_UNIX)
         self._flags &= ~FLAG_READY
         self._flags |= FLAG_CLOSED
         try:

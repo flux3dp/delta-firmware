@@ -5,7 +5,7 @@ import re
 
 from fluxmonitor.code_executor.main_controller import MainController
 from fluxmonitor.config import uart_config
-from fluxmonitor.err_codes import RESOURCE_BUSY
+from fluxmonitor.err_codes import RESOURCE_BUSY, UNKNOW_COMMAND
 
 from .base import CommandMixIn, ExclusiveMixIn, DeviceOperationMixIn, \
     DeviceMessageReceiverMixIn
@@ -81,7 +81,7 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
             return self.do_madj(sock)
 
         elif cmd == "reset_mb":
-            s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+            s = socket.socket(socket.AF_UNIX)
             s.connect(uart_config["control"])
             s.send(b"reset mb")
             s.close()
@@ -104,7 +104,7 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
         self._busy = True
 
     @check_mainboard
-    def do_qadj(self, sender):
+    def do_eadj(self, sender):
         data = []
 
         def send_m119(main_ctrl):
@@ -205,7 +205,7 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
         return "continue"
 
     @check_mainboard
-    def do_eadj(self, sender):
+    def do_madj(self, sender):
         data = []
 
         def send_cmd(x, y):
@@ -289,5 +289,7 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
         return "continue"
 
     def on_loop(self, loop):
-        self.main_ctrl.patrol(self)
-
+        try:
+            self.main_ctrl.patrol(self)
+        except SystemError:
+            self.server.exit_task(self)

@@ -153,7 +153,7 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
     def change_laser(self, left, right):
         self.make_gcode_cmd("X1O1" if left else "X1F1")
         self.make_gcode_cmd("X1O2" if right else "X1F2")
-        sleep(0.01)
+        sleep(0.02)
         return "ok"
 
     def oneshot(self, sock):
