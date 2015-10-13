@@ -368,9 +368,6 @@ class UpnpSocket(object):
                     response = json.dumps(callback(access_id, message))
                     self.send_response(request_code, 0, response, remote, True)
                 else:
-                    logger.debug("Client '%s' auth failed with access id '%s' "
-                                 "require 0x%x" %
-                                 (remote[0], access_id, request_code))
                     raise RuntimeError(AUTH_ERROR)
 
             logger.debug("Handle request 0x%x (%f)" % (request_code,
