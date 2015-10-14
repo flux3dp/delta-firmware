@@ -18,6 +18,8 @@ L = logging.getLogger("halservice.rasp")
 
 GPIO_TOGGLE = (GPIO.LOW, GPIO.HIGH)
 
+
+GPIO_HEAD_BOOT_MODE = 7
 GPIO_FRONT_BUTTON = 12
 GPIO_MAINBOARD_SIG = 3
 GPIO_ACTIVE_SIG = 5
@@ -101,6 +103,7 @@ class GPIOConteol(object):
     def init_gpio_control(self):
         GPIO.setmode(GPIO.BOARD)
         GPIO.setwarnings(False)
+        GPIO.setup(GPIO_HEAD_BOOT_MODE, GPIO.OUT, initial=GPIO.HIGH)
         GPIO.setup(GPIO_MAINBOARD_SIG, GPIO.OUT, initial=GPIO_TOGGLE[0])
         GPIO.setup(GPIO_ACTIVE_SIG, GPIO.OUT, initial=GPIO_TOGGLE[0])
 
