@@ -457,16 +457,13 @@ class UpnpService(ServiceBase, UpnpServiceMix, NetworkMonitorMix):
 
 
 class RobotLaunchAgent(Process):
-    
     @classmethod
     def init(cls, service):
         logfile = Storage("log").get_path("robot.log")
         pidfile = control_mutex.pidfile()
+
         return cls(services, ["fluxrobot", "--pid", pidfile, "--log", logfile,
-                              "--daemon"],
-                   )
-        daemon = subprocess.Popen(["fluxrobot", "--pid", pidfile, "--log",
-                                   logfile, "--daemon"], close_fds=True)
+                              "--daemon"])
 
     def __init__(self, services):
         pid = control_mutex.locking_status()
