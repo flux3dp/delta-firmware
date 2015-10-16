@@ -7,6 +7,8 @@ import struct
 import socket
 import os
 
+from setproctitle import setproctitle
+
 from fluxmonitor.err_codes import FILE_BROKEN
 
 # G0_G1_CMD_PARSER = re.compile("G[0-1]( F(?P<F>[0-9]+))?( X(?P<X>[\-0-9.]+))?"

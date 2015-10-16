@@ -69,6 +69,7 @@ class ExtruderController(HeaderController):
         self.bootstrap(executor)
 
     def bootstrap(self, executor):
+        self._ready = False
         self._cmd_sent_at = 0
         self._cmd_retry = 0
         self._padding_cmd = None
@@ -81,7 +82,7 @@ class ExtruderController(HeaderController):
 
         queue = ["RM\n"]
         if self._temperatures[0] > 0:
-            queue.append("H%i\n" % (self._temperatures[0] * 10))
+            queue.append("HO%i\n" % (self._temperatures[0] * 10))
         queue.append("F1%i\n" % (self._fanspeed * 255))
 
         self._recover_queue = queue
@@ -99,7 +100,8 @@ class ExtruderController(HeaderController):
     def status(self):
         return {
             "module": "executor",
-            "t": (self._temperatures[0], )
+            "tt": (self._temperatures[0], ),
+            "rt": (self._current_temp[0], )
         }
 
     def set_heater(self, executor, heater_id, temperature, callback=None):
@@ -186,7 +188,7 @@ class ExtruderController(HeaderController):
                 if self._parse_cmd_response(msg, executor):
                     if self._recover_queue:
                         self._padding_cmd = self._recover_queue.pop(0)
-                        self._cmd(executor)
+                        self._send_cmd(executor)
                     else:
                         self._on_ready(executor)
                     return
@@ -244,14 +246,15 @@ class ExtruderController(HeaderController):
             return True
         return False
 
-    def patrol(self, executor):
+    def patrol(self, executor, strict=True):
         if self._ready:
             if self._wait_update:
-                if self._update_retry > 2:
+                if self._update_retry > 2 and strict:
                     self._raise_error(EXEC_HEADER_OFFLINE)
-                elif time() - self._lastupdate > 1.5:
+
+                if time() - self._lastupdate > 1.5:
                     self._send_update(executor)
-                    self._update_retry += 1
+                    self._update_retry += 1 if strict else 0
                     L.debug("Header no response T, retry (%i)",
                             self._update_retry)
 
@@ -260,12 +263,14 @@ class ExtruderController(HeaderController):
                 self._wait_update = True
 
         if self._padding_cmd:
-            if self._cmd_retry > 2:
+            if self._cmd_retry > 2 and strict:
                 self._raise_error(EXEC_HEADER_OFFLINE)
-            elif time() - self._cmd_sent_at > 1.5:
+
+            if time() - self._cmd_sent_at > 1.5:
                 self._send_cmd(executor)
                 self._cmd_retry += 1
-                L.debug("Header no response, retry (%i)", self._update_retry)
+                L.debug("Header no response with %s, retry (%i)",
+                        repr(self._padding_cmd), self._update_retry)
 
     def _raise_error(self, *args):
         self._ready = False
