@@ -1,11 +1,6 @@
 
-from multiprocessing import Process
 from zipfile import crc32
-from select import select
-from time import time
 import struct
-import socket
-import os
 
 from fluxmonitor.err_codes import FILE_BROKEN
 

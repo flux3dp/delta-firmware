@@ -95,7 +95,7 @@ class ExtruderController(HeaderController):
 
     @property
     def is_busy(self):
-        return self._padding_cmd != None
+        return self._padding_cmd is not None
 
     def status(self):
         return {
@@ -161,7 +161,7 @@ class ExtruderController(HeaderController):
                         self._heaters_callback(self)
                         self._heaters_callback = None
                     elif abs(self._temperatures[0] -
-                           self._current_temp[0]) < 3:
+                             self._current_temp[0]) < 3:
                         self._heaters_callback(self)
                         self._heaters_callback = None
                 return

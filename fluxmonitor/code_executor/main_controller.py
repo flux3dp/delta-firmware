@@ -140,7 +140,6 @@ class MainController(object):
         elif not self.closed:
             self._process_init(msg, executor)
 
-
     def create_cmd(self, lineno, cmd):
         l = "%s N%i" % (cmd, lineno)
         s = 0

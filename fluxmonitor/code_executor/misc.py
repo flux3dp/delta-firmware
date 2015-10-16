@@ -5,7 +5,6 @@ from select import select
 from time import time
 import struct
 import socket
-import os
 
 from setproctitle import setproctitle
 
@@ -136,4 +135,3 @@ class TaskLoader(Process):
 
         if self.is_alive():
             self.terminate()
-

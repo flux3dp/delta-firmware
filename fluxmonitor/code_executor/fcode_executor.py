@@ -1,8 +1,6 @@
 
 from collections import deque
-from time import time
 import logging
-import os
 
 from fluxmonitor.err_codes import UNKNOW_ERROR
 from .base import BaseExecutor, ST_STARTING, ST_WAITTING_HEADER, ST_RUNNING, \
@@ -127,7 +125,6 @@ class FcodeExecutor(BaseExecutor):
                                   self._cb_feed_command) == 0:
                     self._eof = True
 
-            print("FIRE 128", self._ctrl_flag & FLAG_WAITTING_HEADER)
             if (self._ctrl_flag & FLAG_WAITTING_HEADER) == 0:
                 while self._cmd_queue:
                     target = self._cmd_queue[0][1]
@@ -230,4 +227,3 @@ class FcodeExecutor(BaseExecutor):
                 raise
             logger.exception("Unhandle error")
             self.abort(UNKNOW_ERROR, "LOOPBACK")
-

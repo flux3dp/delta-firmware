@@ -3,9 +3,6 @@
 from datetime import datetime
 import logging
 
-from .main_controller import MainController
-from .head_controller import ExtruderController
-
 L = logging.getLogger(__name__)
 
 # 1   STARTING/RESUMING flag
@@ -116,7 +113,7 @@ class BaseExecutor(object):
     def abort(self, main_err, minor_info=None):
         if (self._status & 192) == 0:
             L.debug("Abort: %s %s" % (main_err, minor_info))
-            #TODO
+            # TODO
             self._status = ST_ABORTED
             self._err_symbol = (main_err, minor_info)
             return True
@@ -141,4 +138,3 @@ class BaseExecutor(object):
 
     def send_headboard(self, msg):
         self.__hbio.send(msg)
-
