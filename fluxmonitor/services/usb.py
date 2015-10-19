@@ -18,7 +18,7 @@ from fluxmonitor.config import network_config
 from fluxmonitor.config import uart_config
 from fluxmonitor.storage import CommonMetadata
 from fluxmonitor import security
-from fluxmonitor import STR_VERSION as VERSION
+from fluxmonitor import __version__ as VERSION
 from .base import ServiceBase
 
 logger = logging.getLogger(__name__)
@@ -264,7 +264,7 @@ class UsbIO(object):
                                ("BAD_PARAMS %s" % e.args[0]).encode())
             return
 
-        nw_request = ("config_network" + "\x00" + \
+        nw_request = ("config_network" + "\x00" +
                       NCE.to_bytes(options)).encode()
 
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)

@@ -6,7 +6,7 @@ import platform
 import sys
 import os
 
-from fluxmonitor import STR_VERSION as VERSION
+from fluxmonitor import __version__ as VERSION
 
 
 MODEL_DEFINES = {

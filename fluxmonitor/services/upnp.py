@@ -22,7 +22,7 @@ from fluxmonitor.storage import Storage
 from fluxmonitor.err_codes import ALREADY_RUNNING, BAD_PASSWORD, NOT_RUNNING, \
     RESOURCE_BUSY, AUTH_ERROR, UNKNOW_ERROR
 
-from fluxmonitor import STR_VERSION as VERSION
+from fluxmonitor import __version__ as VERSION
 from fluxmonitor import security
 from .base import ServiceBase
 from ._network_helpers import NetworkMonitorMix
@@ -182,7 +182,7 @@ class UpnpServiceMix(object):
         elif "ssid" in raw_opts:
             options["ssid"] = raw_opts["ssid"]
 
-        nw_config = ("config_network" + "\x00" + \
+        nw_config = ("config_network" + "\x00" +
                      NCE.to_bytes(options)).encode()
         self.add_loop_event(DelayNetworkConfigure(nw_config))
 
@@ -223,7 +223,7 @@ class UpnpServiceMix(object):
 
         while True:
             ret = daemon.poll()
-            if ret == None:
+            if ret is None:
                 if time() - timestemp > 16:
                     daemon.kill()
                 else:
@@ -315,7 +315,7 @@ class UpnpSocket(object):
 
         # Check Timestemp
         if not security.validate_timestemp((ts, salt)):
-            logger.debug("Timestemp error for '%s' (salt=%i, d=%.2f)" % ( 
+            logger.debug("Timestemp error for '%s' (salt=%i, d=%.2f)" % (
                          access_id, salt, time() - ts))
             return False, access_id, None
 
@@ -480,11 +480,11 @@ class RobotLaunchAgent(Process):
         timestemp = time()
 
         ret = self.poll()
-        while ret == None and (time() - timestemp) < 3:
+        while ret is None and (time() - timestemp) < 3:
             sleep(0.05)
             ret = self.poll()
 
-        if ret == None:
+        if ret is None:
             self.kill()
 
 

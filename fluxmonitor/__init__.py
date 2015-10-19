@@ -1,1 +1,1 @@
-STR_VERSION = "0.11a1"
+__version__ = "0.11a1"
