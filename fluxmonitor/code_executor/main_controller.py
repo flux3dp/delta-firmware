@@ -122,16 +122,19 @@ class MainController(object):
                     self.callback_msg_empty(self)
 
             elif msg.startswith("ER LINE_MISMATCH "):
-                correct_ln = int(msg.split(" ")[2])
-                if not self._resend_cmd_from(correct_ln, executor,
-                                             ttl_offset=-2):
-                    raise SystemError(EXEC_INTERNAL_ERROR,
-                                      "IMPOSSIBLE_SYNC_LN")
+                correct_ln, trigger_ln = (int(v) for v in msg[17:].split(" "))
+                if correct_ln < trigger_ln:
+                    ttl = -2
+                    if not self._resend_cmd_from(correct_ln, executor,
+                                                 ttl_offset=ttl):
+                        raise SystemError(EXEC_INTERNAL_ERROR,
+                                          "IMPOSSIBLE_SYNC_LN")
 
             elif msg.startswith("ER CHECKSUM_MISMATCH "):
-                err_ln = int(msg.split(" ")[2])
+                err_ln, trigger_ln = (int(v) for v in msg[17:].split(" "))
+                ttl = err_ln - trigger_ln
                 if not self._resend_cmd_from(err_ln, executor,
-                                             ttl_offset=-1):
+                                             ttl_offset=ttl):
                     raise SystemError(EXEC_INTERNAL_ERROR,
                                       "IMPOSSIBLE_SYNC_LN")
 
@@ -229,12 +232,14 @@ class MainController(object):
                 executor.send_mainboard("C1O\n")
 
         if self._cmd_sent:
-            if self._resend_counter >= 3:
-                L.error("Mainboard no response, restart it")
+            if self._resend_counter >= 10:
+                L.error("Mainboard no response, restart it (%i)", 
+                        self._resend_counter)
                 self.reset_mainboard()
                 raise SystemError(EXEC_MAINBOARD_OFFLINE)
 
-            if time() - self._last_recv_ts > 1.0:
+            if time() - self._last_recv_ts > 3.0:
+                self._last_recv_ts = time()
                 self._resend_counter += 1
                 # Resend, let ttl_offset takes no effect
                 self._resend_cmd_from(self._ln_ack + 1, executor,
