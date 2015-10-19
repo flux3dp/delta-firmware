@@ -48,10 +48,10 @@ class Robot(ServiceBase):
             if message == "ABORT":
                 self.this_task.abort("CANCELED")
             elif message == "RUNTOGL":
-                st = self.this_task.get_status()["status"]
-                if st == ST_PAUSED:
+                st = self.this_task.get_status()["st_label"]
+                if st == "PAUSED":
                     self.this_task.resume()
-                elif st == ST_RUNNING:
+                elif st == "RUNNING":
                     self.this_task.pause("USER_OPERATE")
 
     @T.update_time

@@ -96,3 +96,15 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
         self.server.renew_timer()
         if not self.executor.is_closed():
             self.executor.on_loop(sender)
+
+    def get_status(self):
+        return self.executor.get_status()
+
+    def pause(self, reason):
+        return self.executor.pause(reason)
+
+    def resume(self):
+        return self.executor.resume()
+
+    def abort(self, reason):
+        return self.executor.abort(reason)
