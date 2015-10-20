@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import sys
+
 # import fluxmonitor
 
 filename = ''
@@ -11,29 +12,90 @@ def main():
     pid = start_service()
     if pid != 0:  # parent
         update()
+        pass
 
 
-def start_service(force=False):
+def start_service(force=True):
+    import fcntl
+    import signal
     from pkg_resources import load_entry_point
-    service_list = ['fluxnetworkd', 'fluxhald', 'fluxupnpd', 'fluxusbd']
+    from time import sleep, time
 
+    service_list = ['fluxhald', 'fluxnetworkd', 'fluxupnpd', , 'fluxusbd']
     for service in service_list:
+        ret = check_running(service)
+        if force and ret:
+            print >> sys.stderr, (service, 'is running, need to be killed')
+            print >> sys.stderr, ('killing ' + service)
+            os.kill(int(ret), signal.SIGTERM)
+
+            while check_running(service):
+                print >> sys.stderr, ('wait %s to shutdown' % service)
+                sleep(1)
+
+            print >> sys.stderr, (service, 'really shutdown')
+
         pid = os.fork()
         if pid == 0:
-            print(sys.argv)
-            load_entry_point('fluxmonitor', 'console_script', service)()
+            # child
+            load_entry_point('fluxmonitor', 'console_scripts', service)()
             break
         else:
-            pass
+            # parent, check whether servie started
+            start_t = time()
+            while True:
+                success = check_running(service)
+                if success:
+                    print >> sys.stderr, ('start %s success' % service)
+                    break
+
+                sleep(0.5)  # ?
+                print('waiting %s start' % service)
+                if time() - start_t > 10:
+                    print >> sys.stderr, (service, 'starting timeout, not running')
+                    success = False
+                    break
+
     return pid
 
 
+def check_running(service):
+    import fcntl
+    import errno
+    import os
+    try:
+        service_pic_file = '/var/run/' + service + '.pid'
+        f = os.open(service_pic_file, os.O_RDONLY | os.O_WRONLY, 0o644)
+        pid = open(service_pic_file, 'r').read()  # get process pid
+
+        fcntl.lockf(f, fcntl.LOCK_NB | fcntl.LOCK_EX)
+
+    except IOError as e:
+        if e.args[0] == errno.EAGAIN:
+            # 11: can't get lock -> running
+            return pid
+        else:
+            raise
+
+    except OSError as e:
+        if e.args[0] == errno.ENOENT:
+            # no such file -> not running
+            return False
+    else:
+        'file exists but not locked?, shouldn\'t happened'
+        return False
+
+
 def update():
-    for routine in [check_version, download_release, intall_release]:
+    for routine in [check_version, download_release, intall_release, reboot]:
         if routine():
             continue
         else:
             break
+
+
+def reboot():
+    os.system('sudo reboot')
 
 
 def intall_release():
@@ -47,12 +109,15 @@ def intall_release():
 
 def restore_factory():
     from subprocess import call
+    from shutil import rmtree
+    rmtree('/var/db/fluxmonitord/')
+    os.mkdir('/var/db/fluxmonitord/')
     _exit = call(['sudo', 'easy_install', factory_egg])
     if _exit == 0:
         return True
     else:
         # TODO: proper email
-        print >> sys.stderr, ('\033[91m' + 'Restore Factory Fail!!\nPlease contact to us via info@flux.com' + '\033[0m')
+        print >> sys.stderr, ('\033[91m' + 'Reinstall Factory Fail!!\nPlease contact to us via info@flux.com' + '\033[0m')
         raise
 
 

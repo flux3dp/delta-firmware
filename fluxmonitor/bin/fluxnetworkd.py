@@ -11,7 +11,10 @@ from fluxmonitor.launcher import deamon_entry
 def main():
     parser = argparse.ArgumentParser(description='flux network deamon')
     add_daemon_arguments("fluxnetworkd", parser)
-    options = parser.parse_args()
+    if any('start_service' in p for p in sys.argv):
+        options = parser.parse_args(['--pid', '/var/run/fluxnetworkd.pid', '--log', '/var/log/fluxnetworkd.log', '--daemon'])
+    else:
+        options = parser.parse_args()
     apply_daemon_arguments(options)
 
     if options.stop_daemon:

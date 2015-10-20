@@ -17,7 +17,10 @@ def main():
                         help='Mainboard Serial Port')
     parser.add_argument("--hb", dest='hb', type=str, default=None,
                         help='Headboard Serial Port')
-    options = parser.parse_args()
+    if any('start_service' in p for p in sys.argv):
+        options = parser.parse_args(['--pid', '/var/run/fluxhald.pid', '--log', '/var/log/fluxhald1.log', '--daemon'])
+    else:
+        options = parser.parse_args()
     apply_daemon_arguments(options)
 
     if options.stop_daemon:
