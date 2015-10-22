@@ -82,7 +82,7 @@ class UpnpServiceMix(object):
 
     def cmd_discover(self, remote):
         if not self._in_discover_history(remote):
-            return {"ver": VERSION, "name": self.meta.get_nickname(),
+            return {"ver": VERSION, "name": self.meta.nickname,
                     "model": MODEL_ID, "serial": SERIAL_HEX,
                     "time": time(), "ip": self.ipaddress,
                     "pwd": security.has_password()}

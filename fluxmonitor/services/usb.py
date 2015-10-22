@@ -202,7 +202,7 @@ class UsbIO(object):
         self._vector = randstr(8)
         resp = ("ver=%s\x00model=%s\x00serial=%s\x00name=%s\x00"
                 "time=%.2f\x00pwd=%i\x00vector=%s") % (
-                    VERSION, MODEL_ID, SERIAL_HEX, self.meta.get_nickname(),
+                    VERSION, MODEL_ID, SERIAL_HEX, self.meta.nickname,
                     time(), security.has_password(), self._vector)
         self.send_response(REQ_IDENTIFY, True, resp.encode())
 
@@ -249,7 +249,7 @@ class UsbIO(object):
         raw_opts = dict([i.split(b"=", 1) for i in buf.split(b"\x00")])
         name = raw_opts.get(b"name", "").decode("utf8", "ignore")
         if name:
-            self.meta.set_nickname(name)
+            self.meta.nickname = name
         self.send_response(REQ_CONFIG_GENERAL, True, MSG_OK)
 
     def on_config_network(self, buf):
