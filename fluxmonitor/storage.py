@@ -72,6 +72,7 @@ class CommonMetadata(object):
         #
         # 128 ~ 384: nickname, end with char \x00
         # 384 ~ 512: plate_correction (current user 96 bytes)
+        # 3072: Wifi status code
         self.shm = sysv_ipc.SharedMemory(19851226, sysv_ipc.IPC_CREAT,
                                          size=4096, init_character='\x00')
 
@@ -162,3 +163,11 @@ class CommonMetadata(object):
     def play_bufsize(self, val):
         with self.storage.open("play_bufsize", "w") as f:
             return f.write(str(val))
+
+    @property
+    def wifi_status(self):
+        return ord(self.shm.read(1, 3072))
+
+    @wifi_status.setter
+    def wifi_status(self, val):
+        self.shm.write(chr(val), 3072)

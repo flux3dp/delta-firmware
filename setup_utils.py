@@ -138,7 +138,8 @@ elif is_linux():
 
 
 def get_install_requires():
-    packages = ['setuptools', 'psutil', 'setproctitle', 'python-memcached', ]
+    packages = ['setuptools', 'psutil', 'setproctitle', 'python-memcached',
+                'sysv_ipc', ]
     if is_linux():
         packages += ['pyroute2']
 

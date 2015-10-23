@@ -4,13 +4,13 @@ from time import time, sleep
 import logging
 import os
 
-from serial import Serial, SerialException
 from setproctitle import getproctitle, setproctitle
+from serial import Serial, SerialException
 from RPi import GPIO
 
 from fluxmonitor.misc.async_signal import AsyncIO
 from fluxmonitor.halprofile import MODEL_G1
-from fluxmonitor.storage import Storage
+from fluxmonitor.storage import Storage, CommonMetadata
 
 from .base import UartHalBase, BaseOnSerial
 
@@ -44,10 +44,10 @@ class FrontButtonMonitor(object):
         GPIO.setup(12, GPIO.IN)
 
         self.trigger_list = trigger_list
+        self.running = True
         self._rfd, self._wfd = os.pipe()
         self._proc = Process(target=self.serve_forever)
         self._proc.daemon = True
-        self.running = True
         self._proc.start()
         os.close(self._wfd)
 
@@ -98,8 +98,8 @@ class FrontButtonMonitor(object):
 
 class GPIOConteol(object):
     _last_mainboard_sig = GPIO_TOGGLE[0]
-    _last_active_sig = GPIO_TOGGLE[0]
     _last_sig_timestemp = 0
+    _last_active_st = -1
     __usb_serial_gpio__ = USB_SERIAL_OFF
     head_enabled = True
 
@@ -108,7 +108,10 @@ class GPIOConteol(object):
         GPIO.setwarnings(False)
         GPIO.setup(GPIO_HEAD_BOOT_MODE, GPIO.OUT, initial=GPIO.HIGH)
         GPIO.setup(GPIO_MAINBOARD_SIG, GPIO.OUT, initial=GPIO_TOGGLE[0])
-        GPIO.setup(GPIO_ACTIVE_SIG, GPIO.OUT, initial=GPIO_TOGGLE[0])
+        GPIO.setup(GPIO_ACTIVE_SIG, GPIO.OUT)
+        self._active_sig_pwm = GPIO.PWM(GPIO_ACTIVE_SIG, 1.0)
+        self._active_sig_pwm.start(50)
+
         for pin in GPIO_NOT_DEFINED:
             GPIO.setup(pin, GPIO.IN)
 
@@ -122,13 +125,24 @@ class GPIOConteol(object):
     def proc_sig(self):
         if time() - self._last_sig_timestemp > 0.5:
             _1 = self._last_mainboard_sig = (self._last_mainboard_sig + 1) % 2
-            _2 = self._last_active_sig = (self._last_active_sig + 1) % 2
             GPIO.output(GPIO_MAINBOARD_SIG, GPIO_TOGGLE[_1])
-            GPIO.output(GPIO_ACTIVE_SIG, GPIO_TOGGLE[_2])
+
+            st = self.sm.wifi_status
+            if st != self._last_active_st:
+                self._last_active_st = st
+                self._active_sig_pwm.stop()
+
+                if self.sm.wifi_status == 64:
+                    self._active_sig_pwm.start(100)
+                elif self.sm.wifi_status == 32:
+                    self._active_sig_pwm.start(50)
+                else:
+                    self._active_sig_pwm.start(0)
+
             self._last_sig_timestemp = time()
 
     def __del__(self):
-        L.debug("GPIO cleanup")
+        L.debug("GPIO/PWM cleanup")
         GPIO.cleanup()
 
     def reset_mainboard(self):
@@ -206,6 +220,8 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOConteol):
 
     def __init__(self, server):
         super(UartHal, self).__init__(server)
+        self.sm = CommonMetadata()
+
         self.init_gpio_control()
         self._rasp_connect()
         self.mainboard_connect()
@@ -254,6 +270,8 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOConteol):
             return "/dev/ttyACM0"
         elif os.path.exists("/dev/ttyACM1"):
             return "/dev/ttyACM1"
+        elif os.path.exists("/dev/ttyACM2"):
+            return "/dev/ttyACM2"
         else:
             raise Exception("Can not find mainboard device")
 
