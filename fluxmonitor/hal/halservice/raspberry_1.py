@@ -132,12 +132,13 @@ class GPIOConteol(object):
                 self._last_active_st = st
                 self._active_sig_pwm.stop()
 
-                if self.sm.wifi_status == 64:
-                    self._active_sig_pwm.start(100)
-                elif self.sm.wifi_status == 32:
-                    self._active_sig_pwm.start(50)
-                else:
+                wifi_st = self.sm.wifi_status
+                if wifi_st & 128:
                     self._active_sig_pwm.start(0)
+                elif wifi_st & 64:
+                    self._active_sig_pwm.start(100)
+                else:
+                    self._active_sig_pwm.start(50)
 
             self._last_sig_timestemp = time()
 
