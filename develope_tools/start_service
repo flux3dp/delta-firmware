@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import os
 import sys
-# import fluxmonitor
 
 filename = ''
 factory_egg = '/home/pi/monitor_dist' + '/' + 'fluxmonitor-0.8a2-py2.7-linux-armv6l.egg'
@@ -9,73 +8,83 @@ factory_egg = '/home/pi/monitor_dist' + '/' + 'fluxmonitor-0.8a2-py2.7-linux-arm
 
 def main():
     pid = start_service()
-    if pid != 0:  # parent
+    if pid != 0:  # parent run update routine
         update()
 
 
-def start_service(force=False):
+def start_service(force=True):
+    from signal import SIGTERM
     from pkg_resources import load_entry_point
-    service_list = ['fluxnetworkd', 'fluxhald', 'fluxupnpd', 'fluxusbd']
+    from time import sleep, time
 
+    service_list = ['fluxhald', 'fluxnetworkd', 'fluxupnpd', , 'fluxusbd']
     for service in service_list:
+        ret = check_running(service)
+        if force and ret:
+            print >> sys.stderr, (service, 'is running, need to be killed')
+            print >> sys.stderr, ('killing ' + service)
+            os.kill(int(ret), SIGTERM)
+
+            while check_running(service):
+                print >> sys.stderr, ('wait %s to shutdown' % service)
+                sleep(1)
+
+            print >> sys.stderr, (service, 'really shutdown')
+
         pid = os.fork()
         if pid == 0:
-            print(sys.argv)
-            load_entry_point('fluxmonitor', 'console_script', service)()
+            # child
+            load_entry_point('fluxmonitor', 'console_scripts', service)()
             break
         else:
-            pass
+            # parent, check whether servie started
+            start_t = time()
+            while True:
+                success = check_running(service)
+                if success:
+                    print >> sys.stderr, ('start %s success' % service)
+                    break
+
+                sleep(0.5)  # ?
+                print >> sys.stderr, ('waiting %s start' % service)
+                if time() - start_t > 10:
+                    print >> sys.stderr, (service, 'starting timeout, not running')
+                    success = False
+                    break
+
     return pid
 
 
+def check_running(service):
+    import fcntl
+    import errno
+    try:
+        service_pic_file = '/var/run/' + service + '.pid'
+        f = os.open(service_pic_file, os.O_RDONLY | os.O_WRONLY, 0o644)
+        pid = open(service_pic_file, 'r').read()  # get process pid
+
+        fcntl.lockf(f, fcntl.LOCK_NB | fcntl.LOCK_EX)
+
+    except IOError as e:
+        if e.args[0] == errno.EAGAIN:  # 11: can't get lock -> running
+            return pid
+        else:
+            raise
+
+    except OSError as e:
+        if e.args[0] == errno.ENOENT:  # no such file -> not running
+            return False
+    else:
+        'file exists but not locked?, shouldn\'t happened'
+        return False
+
+
 def update():
-    for routine in [check_version, download_release, intall_release]:
+    for routine in [check_version, download_release, intall_release, reboot]:
         if routine():
             continue
         else:
             break
-
-
-def intall_release():
-    from subprocess import call
-    _exit = call(['sudo', 'easy_install', filename])
-    if _exit == 0:
-        return True
-    else:
-        restore_factory()
-
-
-def restore_factory():
-    from subprocess import call
-    _exit = call(['sudo', 'easy_install', factory_egg])
-    if _exit == 0:
-        return True
-    else:
-        # TODO: proper email
-        print >> sys.stderr, ('\033[91m' + 'Restore Factory Fail!!\nPlease contact to us via info@flux.com' + '\033[0m')
-        raise
-
-
-def download_release():
-    try:
-        global filename
-        print >> sys.stderr, ('try to download %s' % (filename))
-        import urllib
-        import os
-
-        # TODO: change to proper user name
-        dist_path = '/home/pi/monitor_dist'
-        if not os.path.exists(dist_path):
-            os.mkdir(dist_path)
-
-        # TODO: change to real server
-        urllib.urlretrieve("http://www.csie.ntu.edu.tw/~b00902053/" + filename, dist_path + '/' + filename)
-        filename = dist_path + '/' + filename
-        print >> sys.stderr, ('download success')
-    except:
-        return False
-    else:
-        return True
 
 
 def check_version():
@@ -85,9 +94,8 @@ def check_version():
         import urllib2
         from pkg_resources import parse_version, get_distribution
 
-        # TODO: change to real server
         print >> sys.stderr, ('getting release data')
-
+        # TODO: change to real server
         url = 'http://www.csie.ntu.edu.tw/~b00902053/1'
         user_agent = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64)'
         values = {'name': 'Yen', 'location': 'Taiwan', 'language': 'Python'}
@@ -111,10 +119,56 @@ def check_version():
             return False
 
 
-def child():
-    print(os.getpid())
-    os._exit(1)
-    # os.execvp()
+def download_release():
+    try:
+        global filename
+        print >> sys.stderr, ('try to download %s' % (filename))
+        import urllib
+
+        # TODO: change to proper user name
+        dist_path = '/home/pi/monitor_dist'
+        if not os.path.exists(dist_path):
+            os.mkdir(dist_path)
+
+        # TODO: change to real server
+        urllib.urlretrieve("http://www.csie.ntu.edu.tw/~b00902053/" + filename, dist_path + '/' + filename)
+        filename = dist_path + '/' + filename
+        print >> sys.stderr, ('download success')
+    except:
+        return False
+    else:
+        return True
+
+
+def intall_release():
+    from subprocess import call
+    _exit = call(['sudo', 'easy_install', filename])
+    if _exit == 0:
+        return True
+    else:
+        restore_factory()
+
+
+def restore_factory():
+    from subprocess import call
+    from shutil import rmtree
+    db_path = '/var/db/fluxmonitord/'
+    rmtree(db_path)
+    if not os.path.exists(db_path):
+        os.mkdir(db_path)
+
+    _exit = call(['sudo', 'easy_install', factory_egg])
+    if _exit == 0:
+        return True
+    else:
+        # TODO: proper email
+        print >> sys.stderr, ('\033[91m' + 'Reinstall Factory Fail!!\nPlease contact to us via info@flux.com' + '\033[0m')
+        raise
+
+
+def reboot():
+    os.system('sudo reboot')
+
 
 if __name__ == '__main__':
     main()
