@@ -73,6 +73,7 @@ class CommonMetadata(object):
         # 128 ~ 384: nickname, end with char \x00
         # 384 ~ 512: plate_correction (current user 96 bytes)
         # 3072: Wifi status code
+        # 3584 ~ 4096: Device status
         self.shm = sysv_ipc.SharedMemory(19851226, sysv_ipc.IPC_CREAT,
                                          size=4096, init_character='\x00')
 
@@ -171,3 +172,22 @@ class CommonMetadata(object):
     @wifi_status.setter
     def wifi_status(self, val):
         self.shm.write(chr(val), 3072)
+
+    @property
+    def device_status(self):
+        l = struct.unpack("H", self.shm.read(2, 3584))[0]
+        return self.shm.read(l, 3586)
+
+    @device_status.setter
+    def device_status(self, val):
+        # val struct:
+        # (
+        #   [Main Status, str label],
+        #   [Minor Status, str label],
+        #   [Head Type, str label],
+        #   [Progress, float 0 ~ 1],
+        # )
+        prog = struct.pack("f", val[3])
+        buf = val[0] + "\x00" + val[1] + "\x00" + val[2] + "\x00" + prog
+        payload = struct.pack("H", len(buf)) + buf
+        self.shm.write(payload, 3584)
