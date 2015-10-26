@@ -36,9 +36,9 @@ class Robot(ServiceBase):
         try:
             if options.taskfile:
                 sender = NullSender()
-                assert cmd_task.select_file(options.taskfile, sender,
-                                            raw=True) == "ok"
-                assert cmd_task.play(sender=sender) == "ok"
+                ret = cmd_task.select_file(options.taskfile, sender, raw=True)
+                ret = cmd_task.play(sender=sender)
+                assert ret == "ok", "got: %s" % ret
         except Exception:
             logger.exception("Error while setting task at init")
 
