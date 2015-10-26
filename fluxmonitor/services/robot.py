@@ -37,6 +37,7 @@ class Robot(ServiceBase):
             if options.taskfile:
                 sender = NullSender()
                 ret = cmd_task.select_file(options.taskfile, sender, raw=True)
+                assert ret == "ok", "got: %s" % ret
                 ret = cmd_task.play(sender=sender)
                 assert ret == "ok", "got: %s" % ret
         except Exception:
