@@ -140,9 +140,7 @@ def deamon_entry(options, service=None):
                     os.write(wfd, chr(e.args[0]))
                     return e.args[0]
                 except Exception as e:
-                    os.write(wfd, chr(255))
-                    os.write(wfd, repr(e))
-                    return 255
+                    raise
                 finally:
                     os.close(wfd)
 
