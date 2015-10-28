@@ -7,6 +7,7 @@ import logging
 from fluxmonitor.config import hal_config
 from fluxmonitor.err_codes import DEVICE_ERROR, NOT_SUPPORT, UNKNOW_COMMAND
 from .base import ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn
+from fluxmonitor.misc.scan_checking import ScanChecking
 
 logger = logging.getLogger(__name__)
 cv2 = None
@@ -61,7 +62,6 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
                 sleep(0.005)
         logger.debug("Scan background thread quit")
 
-
     def on_exit(self, sender):
         self.disconnect()
         if self.camera:
@@ -94,6 +94,9 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
 
         elif cmd == "scanimages":
             self.take_images(sock)
+
+        elif cmd == "scan_check":
+            self.scan_check(sock)
 
         elif cmd == "scanlaser":
             return self.change_laser(left=False, right=False)
@@ -137,6 +140,16 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
         sleep(0.02)
         return "ok"
 
+    def scan_check(self, sock):
+        self.server.remove_read_event(sock)
+        self._background_job = (self.scan_check_worker, (sock, ))
+
+    def scan_check_worker(self, sock):
+        self.camera_read()
+        _ScanChecking = ScanChecking()
+        sock.send_text(str(_ScanChecking.check(self._img_buf)))
+        self.server.add_read_event(sock)
+
     def oneshot(self, sock):
         self.server.remove_read_event(sock)
         self._background_job = (self._oneshot_worker, (sock, ))
@@ -168,14 +181,7 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
 
     def _take_image(self, sock):
         try:
-            for i in range(4):
-                while not self.camera.grab():
-                    pass
-            ret, self._img_buf = self.camera.read(self._img_buf)
-            while not ret:
-                logger.error("Take image failed")
-                ret, self._img_buf = self.camera.read(self._img_buf)
-
+            self.camera_read()
             # Convert IMWRITE_JPEG_QUALITY from long type to int (a bug)
             ret, buf = cv2.imencode(".jpg", self._img_buf,
                                     [int(cv2.IMWRITE_JPEG_QUALITY),
@@ -185,6 +191,20 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
             sock.send_text("binary image/jpeg %i" % total)
             while sent < total:
                 sent += sock.send(buf[sent:sent + 4096].tostring())
+
+        except Exception:
+            logger.exception("ERR")
+
+    def camera_read(self):
+        try:
+            for i in range(4):
+                while not self.camera.grab():
+                    pass
+            ret, self._img_buf = self.camera.read(self._img_buf)
+            while not ret:
+                logger.error("Take image failed")
+                ret, self._img_buf = self.camera.read(self._img_buf)
+            return
 
         except Exception:
             logger.exception("ERR")
