@@ -4,12 +4,13 @@ from threading import Thread
 from time import sleep
 import logging
 
-from fluxmonitor.config import hal_config
 from fluxmonitor.err_codes import DEVICE_ERROR, NOT_SUPPORT, UNKNOW_COMMAND
+from fluxmonitor.config import hal_config
+
 from .base import ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn
-from fluxmonitor.misc.scan_checking import ScanChecking
 
 logger = logging.getLogger(__name__)
+ScanChecking = None
 cv2 = None
 
 
@@ -27,6 +28,10 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
                 logger.error("Import cv2 error, please make sure opencv for "
                              "python is installed")
                 raise RuntimeError(NOT_SUPPORT)
+
+        m = import_module("fluxmonitor.misc.scan_checking")
+        global ScanChecking
+        ScanChecking = m.ScanChecking
 
     def __init__(self, server, sock, camera_id=None):
         if camera_id is None:

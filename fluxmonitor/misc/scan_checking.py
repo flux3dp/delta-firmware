@@ -1,19 +1,24 @@
+
 import cv2
 
 
 class ScanChecking(object):
     """docstring for ScanChecking"""
+
     def __init__(self):
-        super(ScanChecking, self).__init__()
         self.corner = (4, 4)
 
     def find_board(self, img):
-        find, points = cv2.findChessboardCorners(img, self.corner, flags=cv2.CALIB_CB_FAST_CHECK)  # corner number
+        # corner number
+        find, points = cv2.findChessboardCorners(
+            img, self.corner, flags=cv2.CALIB_CB_FAST_CHECK)
         if not find:
             return False
         else:
-            criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
-            cv2.cornerSubPix(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), points, self.corner, (-1, -1), criteria)
+            criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER,
+                        100, 0.001)
+            cv2.cornerSubPix(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), points,
+                             self.corner, (-1, -1), criteria)
             return True
 
     def heuristic_guess(self, img):
