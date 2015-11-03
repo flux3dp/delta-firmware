@@ -17,4 +17,5 @@ def calculate(float init_x, float init_y, float init_z, float init_h,
     cdef int ret
     ret = calculator(init_x, init_y, init_z, init_h, input_x, input_y, input_z,
                      input_h, delta_radious, &result)
-    return (result.X, result.Y, result.Z, result.R, result.H)
+    return {"X": result.X, "Y": result.Y, "Z": result.Z, "R": result.R,
+            "H": result.H}

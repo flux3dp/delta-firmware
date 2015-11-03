@@ -552,6 +552,11 @@ int __pyx_module_is_main_fluxmonitor__misc__correction = 0;
 
 /* Implementation of 'fluxmonitor.misc.correction' */
 static PyObject *__pyx_pf_11fluxmonitor_4misc_10correction_calculate(CYTHON_UNUSED PyObject *__pyx_self, float __pyx_v_init_x, float __pyx_v_init_y, float __pyx_v_init_z, float __pyx_v_init_h, float __pyx_v_input_x, float __pyx_v_input_y, float __pyx_v_input_z, float __pyx_v_input_h, float __pyx_v_delta_radious); /* proto */
+static char __pyx_k_H[] = "H";
+static char __pyx_k_R[] = "R";
+static char __pyx_k_X[] = "X";
+static char __pyx_k_Y[] = "Y";
+static char __pyx_k_Z[] = "Z";
 static char __pyx_k_ret[] = "ret";
 static char __pyx_k_main[] = "__main__";
 static char __pyx_k_test[] = "__test__";
@@ -568,7 +573,12 @@ static char __pyx_k_calculate[] = "calculate";
 static char __pyx_k_delta_radious[] = "delta_radious";
 static char __pyx_k_fluxmonitor_misc_correction[] = "fluxmonitor.misc.correction";
 static char __pyx_k_Users_Cerberus_Projects_python[] = "/Users/Cerberus/Projects/python/py27/flux3dp/fluxmonitor/src/correction/correction.pyx";
+static PyObject *__pyx_n_s_H;
+static PyObject *__pyx_n_s_R;
 static PyObject *__pyx_kp_s_Users_Cerberus_Projects_python;
+static PyObject *__pyx_n_s_X;
+static PyObject *__pyx_n_s_Y;
+static PyObject *__pyx_n_s_Z;
 static PyObject *__pyx_n_s_calculate;
 static PyObject *__pyx_n_s_delta_radious;
 static PyObject *__pyx_n_s_fluxmonitor_misc_correction;
@@ -733,10 +743,6 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_10correction_calculate(CYTHON_UNUS
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
-  PyObject *__pyx_t_3 = NULL;
-  PyObject *__pyx_t_4 = NULL;
-  PyObject *__pyx_t_5 = NULL;
-  PyObject *__pyx_t_6 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -747,45 +753,47 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_10correction_calculate(CYTHON_UNUS
  *     cdef int ret
  *     ret = calculator(init_x, init_y, init_z, init_h, input_x, input_y, input_z,             # <<<<<<<<<<<<<<
  *                      input_h, delta_radious, &result)
- *     return (result.X, result.Y, result.Z, result.R, result.H)
+ *     return {"X": result.X, "Y": result.Y, "Z": result.Z, "R": result.R,
  */
   __pyx_v_ret = calculator(__pyx_v_init_x, __pyx_v_init_y, __pyx_v_init_z, __pyx_v_init_h, __pyx_v_input_x, __pyx_v_input_y, __pyx_v_input_z, __pyx_v_input_h, __pyx_v_delta_radious, (&__pyx_v_result));
 
   /* "src/correction/correction.pyx":20
  *     ret = calculator(init_x, init_y, init_z, init_h, input_x, input_y, input_z,
  *                      input_h, delta_radious, &result)
- *     return (result.X, result.Y, result.Z, result.R, result.H)             # <<<<<<<<<<<<<<
+ *     return {"X": result.X, "Y": result.Y, "Z": result.Z, "R": result.R,             # <<<<<<<<<<<<<<
+ *             "H": result.H}
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_result.X); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 20; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 20; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_result.X); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 20; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_X, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 20; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = PyFloat_FromDouble(__pyx_v_result.Y); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 20; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyFloat_FromDouble(__pyx_v_result.Z); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 20; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyFloat_FromDouble(__pyx_v_result.R); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 20; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyFloat_FromDouble(__pyx_v_result.H); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 20; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = PyTuple_New(5); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 20; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_2);
-  PyTuple_SET_ITEM(__pyx_t_6, 1, __pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_6, 2, __pyx_t_3);
-  __Pyx_GIVEREF(__pyx_t_4);
-  PyTuple_SET_ITEM(__pyx_t_6, 3, __pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_6, 4, __pyx_t_5);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_Y, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 20; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_result.Z); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 20; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_Z, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 20; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_result.R); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 20; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_R, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 20; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "src/correction/correction.pyx":21
+ *                      input_h, delta_radious, &result)
+ *     return {"X": result.X, "Y": result.Y, "Z": result.Z, "R": result.R,
+ *             "H": result.H}             # <<<<<<<<<<<<<<
+ */
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_result.H); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 21; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_H, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 20; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
-  __pyx_t_2 = 0;
-  __pyx_t_3 = 0;
-  __pyx_t_4 = 0;
-  __pyx_t_5 = 0;
-  __pyx_r = __pyx_t_6;
-  __pyx_t_6 = 0;
   goto __pyx_L0;
 
   /* "src/correction/correction.pyx":13
@@ -800,10 +808,6 @@ static PyObject *__pyx_pf_11fluxmonitor_4misc_10correction_calculate(CYTHON_UNUS
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_XDECREF(__pyx_t_6);
   __Pyx_AddTraceback("fluxmonitor.misc.correction.calculate", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
@@ -835,7 +839,12 @@ static struct PyModuleDef __pyx_moduledef = {
 #endif
 
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
+  {&__pyx_n_s_H, __pyx_k_H, sizeof(__pyx_k_H), 0, 0, 1, 1},
+  {&__pyx_n_s_R, __pyx_k_R, sizeof(__pyx_k_R), 0, 0, 1, 1},
   {&__pyx_kp_s_Users_Cerberus_Projects_python, __pyx_k_Users_Cerberus_Projects_python, sizeof(__pyx_k_Users_Cerberus_Projects_python), 0, 0, 1, 0},
+  {&__pyx_n_s_X, __pyx_k_X, sizeof(__pyx_k_X), 0, 0, 1, 1},
+  {&__pyx_n_s_Y, __pyx_k_Y, sizeof(__pyx_k_Y), 0, 0, 1, 1},
+  {&__pyx_n_s_Z, __pyx_k_Z, sizeof(__pyx_k_Z), 0, 0, 1, 1},
   {&__pyx_n_s_calculate, __pyx_k_calculate, sizeof(__pyx_k_calculate), 0, 0, 1, 1},
   {&__pyx_n_s_delta_radious, __pyx_k_delta_radious, sizeof(__pyx_k_delta_radious), 0, 0, 1, 1},
   {&__pyx_n_s_fluxmonitor_misc_correction, __pyx_k_fluxmonitor_misc_correction, sizeof(__pyx_k_fluxmonitor_misc_correction), 0, 0, 1, 1},
