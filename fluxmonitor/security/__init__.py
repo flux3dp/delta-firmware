@@ -9,4 +9,4 @@ from .passwd import has_password, set_password, validate_and_set_password, \
 
 from .misc import randstr, randbytes
 
-from _security import AESObject
+from _security import RSAObject, AESObject
