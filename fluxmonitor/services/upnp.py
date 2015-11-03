@@ -25,12 +25,11 @@ from fluxmonitor.err_codes import ALREADY_RUNNING, BAD_PASSWORD, NOT_RUNNING, \
 from fluxmonitor import __version__ as VERSION
 from fluxmonitor import security
 from .base import ServiceBase
-from ._network_helpers import NetworkMonitorMix
 
 
 SERIAL_HEX = security.get_uuid()
+SERIAL_BIN = binascii.a2b_hex(SERIAL_HEX)
 MODEL_ID = get_model_id()
-DEFAULT_PORT = 3310
 
 
 CODE_DISCOVER = 0x00
@@ -46,6 +45,172 @@ CODE_SET_NETWORK = 0xa2
 
 
 GLOBAL_SERIAL = _uuid.UUID(int=0)
+
+
+class AbstractInterface(object):
+    def on_read(self, kernel):
+        """Payload struct:
+        +----+---------------+----+
+        | MN | Device Serial | OP |
+        +----+---------------+----+
+        0    4              20   21
+
+        MN: Magic Number, always be "FLUX"
+        Device Serial: device 16 (binary format). be 0 for broadcase.
+        OP: Request code, looks for CODE_* consts
+        """
+        buf, remote = self.sock.recvfrom(4096)
+        if len(buf) < 21:
+            return  # drop if payload length too short
+
+        magic_num, bserial, code = struct.unpack("<4s16sB", buf[:21])
+        serial = _uuid.UUID(bytes=bserial).hex
+        if magic_num != "FLUX" or \
+           (serial != SERIAL_HEX and serial != GLOBAL_SERIAL.hex):
+            return  # drop if payload is wrong syntax
+
+        self.server.on_request(remote, code, buf, self)
+
+
+class BroadcastInterface(AbstractInterface):
+    def __init__(self, server, ipaddr, port=3310):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        sock.bind((ipaddr, port))
+
+        self.sock = sock
+        self.server = server
+
+    def fileno(self):
+        return self.sock.fileno()
+
+    def get_remote_sockname(self, orig):
+        if orig[0] == "127.0.0.1":
+            return ("127.0.0.1", orig[1])
+        else:
+            return ("255.255.255.255", orig[1])
+
+    def on_read(self, sender):
+        """Payload struct:
+        +----+---------------+----+
+        | MN | Device Serial | OP |
+        +----+---------------+----+
+        0    4              20   21
+
+        MN: Magic Number, always be "FLUX"
+        Device Serial: device 16 (binary format). be 0 for broadcase.
+        OP: Request code, looks for CODE_* consts
+        """
+        buf, remote = self.sock.recvfrom(4096)
+        if len(buf) < 21:
+            return  # drop if payload length too short
+
+        magic_num, bserial, code = struct.unpack("<4s16sB", buf[:21])
+        serial = _uuid.UUID(bytes=bserial).hex
+        if magic_num != "FLUX" or \
+           (serial != SERIAL_HEX and serial != GLOBAL_SERIAL.hex):
+            return  # drop if payload is wrong syntax
+
+        self.server.on_request(remote, code, buf, self)
+
+    def handle_request(self, request_code, buf, remote):
+        callback = self._callback.get(request_code)
+        if not callback:
+            logger.debug("Recive unhandle request code: %i" % request_code)
+            return
+
+        try:
+            t1 = time()
+            if request_code == 0x00:
+                message = callback(remote)
+                if message:
+                    resp = json.dumps(message)
+                    self.send_response(request_code, 0, resp, remote, False)
+                else:
+                    return
+            elif request_code < 0x80:
+                response = json.dumps(callback(buf[21:]))
+                self.send_response(request_code, 0, response, remote, True)
+            else:
+                ok, access_id, message = self.parse_signed_request(buf)
+                if ok:
+                    response = json.dumps(callback(access_id, message))
+                    self.send_response(request_code, 0, response, remote, True)
+                else:
+                    raise RuntimeError(AUTH_ERROR)
+
+            logger.debug("Handle request 0x%x (%f)" % (request_code,
+                                                       time() - t1))
+        except RuntimeError as e:
+            self.send_response(request_code, 1, e.args[0], remote, True)
+
+        except Exception as e:
+            logger.exception("Unhandle exception")
+
+    def send_response(self, remote, request_code, response_code, message,
+                      require_sign):
+        header = struct.pack("<BB", request_code + 1, response_code)
+        if require_sign:
+            signature = self.server.pkey.sign(message)
+            buf = header + b"\x00".join((message, signature))
+        else:
+            buf = header + message + b"\x00"
+
+        self.sock.sendto(buf, self.get_remote_sockname(remote))
+
+    def close(self):
+        self.sock.close()
+
+
+class MulticastInterface(AbstractInterface):
+    def __init__(self, pkey, meta, addr='239.255.255.250', port=1901):
+        self.pkey = pkey
+        self.meta = meta
+
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM,
+                                  socket.IPPROTO_UDP)
+        self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
+        self.mcst_addr = (addr, port)
+
+        identify = SERIAL_BIN + struct.pack("H", len(key_der)) + key_der
+        basic_info = "\x00".join("FX01", VERSION, MODEL_ID, identify)
+        self._basic_info = basic_info + pkey.sign(basic_info)
+
+    def generate_basic_info(self):
+        self.temp_pkey = security.RSAObject(keylength=1024)
+
+        main_der = self.pkey.export_pubkey_der()
+        temp_der = self.temp_pkey.export_pubkey_der()
+
+        identify = struct.pack("16sfHH", SERIAL_BIN, time(), len(key_der),
+                               len(temp_der)) + temp_der + main_der
+        disc_pl = "\x00".join("FX01A", VERSION, MODEL_ID, identify)
+        self._discover_payload = disc_pl + self.pkey.sign(disc_pl)
+
+    def fileno(self):
+        return self.sock.fileno()
+
+    def on_read(self, kernel):
+        buf, remote = self.sock.recvfrom(4096)
+        if len(buf) < 21:
+            return  # drop if payload length too short
+
+        magic_num, bserial, code = struct.unpack("<4s16sB", buf[:21])
+        serial = _uuid.UUID(bytes=bserial).hex
+        if magic_num != "FLUX" or \
+           (serial != SERIAL_HEX and serial != GLOBAL_SERIAL.hex):
+            return  # drop if payload is wrong syntax
+
+        self.server.on_request(remote, code, buf, self)
+
+    def send_discover(self):
+        self.sock.sendto(self._discover_payload, self.mcst_addr)
+
+        info_payload_fmt = "FX01Bname=%s\x00pwd=%s\x00time=%.1f\x00"
+        info_payload = info_payload_fmt % (upnp_server)
+        buf = self._buf + "pwd=%s\x00time=%.1f\x00" % (security.has_password(),
+                                                       time())
+        self.sock.sendto(buf, self.mcst_addr)
 
 
 class UpnpServiceMix(object):
@@ -246,36 +411,82 @@ class UpnpServiceMix(object):
             raise RuntimeError(NOT_RUNNING)
 
 
-class UpnpSocket(object):
-    def __init__(self, server, ipaddr, port=DEFAULT_PORT):
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        sock.bind((ipaddr, port))
+class UpnpService(ServiceBase, UpnpServiceMix, NetworkMonitorMix):
+    _discover_history = None
+    ipaddress = None
+    sock = None
 
-        self.sock = sock
-        self.server = server
+    def __init__(self, options):
+        self.debug = options.debug
+
+        # Create RSA key if not exist. This will prevent upnp create key during
+        # upnp is running (Its takes times and will cause timeout)
+        self.pkey = security.get_private_key()
+        self.pubkey_pem = self.pkey.export_pubkey_pem()
+        self.meta = CommonMetadata()
+
+        self._discover_history = {}
+
+        self.mcst = MulticastInterface(self.pkey)
 
         self._callback = {
-            CODE_DISCOVER: self.server.cmd_discover,
-            CODE_RSA_KEY: self.server.cmd_rsa_key,
-            CODE_NOPWD_ACCESS: self.server.cmd_nopwd_access,
-            CODE_PWD_ACCESS: self.server.cmd_pwd_access,
-            CODE_CHANGE_PWD: self.server.cmd_change_pwd,
-            CODE_SET_NETWORK: self.server.cmd_set_network,
+            CODE_DISCOVER: self.cmd_discover,
+            CODE_RSA_KEY: self.cmd_rsa_key,
+            CODE_NOPWD_ACCESS: self.cmd_nopwd_access,
+            CODE_PWD_ACCESS: self.cmd_pwd_access,
+            CODE_CHANGE_PWD: self.cmd_change_pwd,
+            CODE_SET_NETWORK: self.cmd_set_network,
 
-            CODE_CONTROL_STATUS: self.server.cmd_control_status,
-            CODE_RESET_CONTROL: self.server.cmd_reset_control,
-            CODE_REQUEST_ROBOT: self.server.cmd_require_robot
+            CODE_CONTROL_STATUS: self.cmd_control_status,
+            CODE_RESET_CONTROL: self.cmd_reset_control,
+            CODE_REQUEST_ROBOT: self.cmd_require_robot
         }
 
-    def fileno(self):
-        return self.sock.fileno()
+        super(UpnpService, self).__init__(logger)
 
-    def get_remote_sockname(self, orig):
-        if orig[0] == "127.0.0.1":
-            return ("127.0.0.1", orig[1])
-        else:
-            return ("255.255.255.255", orig[1])
+    def _on_status_changed(self, status):
+        """Overwrite _on_status_changed witch called by `NetworkMonitorMix`
+        when network status changed
+        """
+        nested = [st.get('ipaddr', [])
+                  for _, st in status.items()]
+        ipaddress = list(chain(*nested))
+
+        if self.ipaddress != ipaddress:
+            self.ipaddress = ipaddress
+            self._replace_upnp_sock()
+
+    def _replace_upnp_sock(self):
+        self._try_close_upnp_sock()
+        ipaddr = "" if self.ipaddress else "127.0.0.1"
+
+        try:
+            self.sock = BroadcastInterface(self, ipaddr=ipaddr)
+            self.add_read_event(self.sock)
+            self.logger.info("Upnp going UP")
+        except socket.error:
+            self.logger.exception("")
+            self._try_close_upnp_sock()
+
+    def _try_close_upnp_sock(self):
+        if self.sock:
+            self.logger.info("Upnp going DOWN")
+            self.remove_read_event(self.sock)
+            try:
+                self.sock.close()
+            except Exception:
+                pass
+            self.sock = None
+
+    def on_start(self):
+        self.bootstrap_network_monitor(self.memcache)
+        self._on_status_changed(self._monitor.full_status())
+
+    def on_shutdown(self):
+        self._try_close_upnp_sock()
+
+    def each_loop(self):
+        self.mcst.send_discover()
 
     def parse_signed_request(self, payload):
         """Message struct:
@@ -321,30 +532,7 @@ class UpnpSocket(object):
 
         return True, access_id, body[32:]
 
-    def on_read(self, sender):
-        """Payload struct:
-        +----+---------------+----+
-        | MN | Device Serial | OP |
-        +----+---------------+----+
-        0    4              20   21
-
-        MN: Magic Number, always be "FLUX"
-        Device Serial: device 16 (binary format). be 0 for broadcase.
-        OP: Request code, looks for CODE_* consts
-        """
-        buf, remote = self.sock.recvfrom(4096)
-        if len(buf) < 21:
-            return  # drop if payload length too short
-
-        magic_num, bserial, code = struct.unpack("<4s16sB", buf[:21])
-        serial = _uuid.UUID(bytes=bserial).hex
-        if magic_num != "FLUX" or \
-           (serial != SERIAL_HEX and serial != GLOBAL_SERIAL.hex):
-            return  # drop if payload is wrong syntax
-
-        self.handle_request(code, buf, remote)
-
-    def handle_request(self, request_code, buf, remote):
+    def on_request(self, remote, request_code, payload, interface):
         callback = self._callback.get(request_code)
         if not callback:
             logger.debug("Recive unhandle request code: %i" % request_code)
@@ -356,104 +544,29 @@ class UpnpSocket(object):
                 message = callback(remote)
                 if message:
                     resp = json.dumps(message)
-                    self.send_response(request_code, 0, resp, remote, False)
+                    interface.send_response(remote, request_code, 0, resp,
+                                            False)
                 else:
                     return
             elif request_code < 0x80:
                 response = json.dumps(callback(buf[21:]))
-                self.send_response(request_code, 0, response, remote, True)
+                interface.send_response(remote, request_code, 0, response,
+                                        True)
             else:
                 ok, access_id, message = self.parse_signed_request(buf)
                 if ok:
                     response = json.dumps(callback(access_id, message))
-                    self.send_response(request_code, 0, response, remote, True)
+                    interface.send_response(remote, request_code, 0, response,                                              True)
                 else:
                     raise RuntimeError(AUTH_ERROR)
 
             logger.debug("Handle request 0x%x (%f)" % (request_code,
                                                        time() - t1))
         except RuntimeError as e:
-            self.send_response(request_code, 1, e.args[0], remote, True)
+            interface.send_response(remote, request_code, 1, e.args[0], True)
 
         except Exception as e:
             logger.exception("Unhandle exception")
-
-    def send_response(self, request_code, response_code, message, remote,
-                      require_sign):
-        header = struct.pack("<BB", request_code + 1, response_code)
-        if require_sign:
-            signature = self.server.pkey.sign(message)
-            buf = header + b"\x00".join((message, signature))
-        else:
-            buf = header + message + b"\x00"
-
-        self.sock.sendto(buf, self.get_remote_sockname(remote))
-
-    def close(self):
-        self.sock.close()
-
-
-class UpnpService(ServiceBase, UpnpServiceMix, NetworkMonitorMix):
-    _discover_history = None
-    ipaddress = None
-    sock = None
-
-    def __init__(self, options):
-        self.debug = options.debug
-
-        self._discover_history = {}
-        self.meta = CommonMetadata()
-
-        # Create RSA key if not exist. This will prevent upnp create key during
-        # upnp is running (Its takes times and will cause timeout)
-        self.pkey = security.get_private_key()
-        self.pubkey_pem = self.pkey.export_pubkey_pem()
-
-        super(UpnpService, self).__init__(logger)
-
-    def _on_status_changed(self, status):
-        """Overwrite _on_status_changed witch called by `NetworkMonitorMix`
-        when network status changed
-        """
-        nested = [st.get('ipaddr', [])
-                  for _, st in status.items()]
-        ipaddress = list(chain(*nested))
-
-        if self.ipaddress != ipaddress:
-            self.ipaddress = ipaddress
-            self._replace_upnp_sock()
-
-    def _replace_upnp_sock(self):
-        self._try_close_upnp_sock()
-        ipaddr = "" if self.ipaddress else "127.0.0.1"
-
-        try:
-            self.sock = UpnpSocket(self, ipaddr=ipaddr)
-            self.add_read_event(self.sock)
-            self.logger.info("Upnp going UP")
-        except socket.error:
-            self.logger.exception("")
-            self._try_close_upnp_sock()
-
-    def _try_close_upnp_sock(self):
-        if self.sock:
-            self.logger.info("Upnp going DOWN")
-            self.remove_read_event(self.sock)
-            try:
-                self.sock.close()
-            except Exception:
-                pass
-            self.sock = None
-
-    def on_start(self):
-        self.bootstrap_network_monitor(self.memcache)
-        self._on_status_changed(self._monitor.full_status())
-
-    def on_shutdown(self):
-        self._try_close_upnp_sock()
-
-    def each_loop(self):
-        pass
 
 
 class RobotLaunchAgent(Process):
