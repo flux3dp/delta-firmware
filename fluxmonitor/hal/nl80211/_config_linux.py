@@ -57,12 +57,23 @@ def _write_wpa_config(filepath, config):
 }""" % config
 
     elif security in ["WPA-PSK", "WPA2-PSK"]:
-        buf = """network={
-            ssid="%(ssid)s"
-            mode=0
-            psk="%(psk)s"
-            proto=RSN
-            key_mgmt=WPA-PSK
+        # TODO: Need to rewrite
+        if len(config["psk"]) != 64:
+            # TODO: Remove unencrypted method
+            buf = """network={
+                ssid="%(ssid)s"
+                mode=0
+                psk="%(psk)s"
+                proto=RSN
+                key_mgmt=WPA-PSK
+}""" % config
+        else:
+            buf = """network={
+                ssid="%(ssid)s"
+                mode=0
+                psk=%(psk)s
+                proto=RSN
+                key_mgmt=WPA-PSK
 }""" % config
 
     else:

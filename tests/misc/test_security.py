@@ -57,7 +57,7 @@ class MiscSecurityTest(unittest.TestCase):
     def test_password(self):
         self.assertFalse(security.has_password())
 
-        self.assertTrue(security.set_password("HELLO", ""))
+        security.set_password("HELLO")
         self.assertTrue(security.validate_password("HELLO"))
         self.assertFalse(security.validate_password("HEIIO"))
 
@@ -149,3 +149,16 @@ class C_RSAObjectTest(unittest.TestCase):
         pub_rsakey = _security.RSAObject(der=rsaobj.export_pubkey_der())
         self.assertEqual(rsaobj.export_pubkey_pem(),
                          pub_rsakey.export_pubkey_pem())
+
+
+class C_MiscTest(unittest.TestCase):
+    def test_wifi_psa(self):
+        psk = _security.get_wpa_psk("aaaaaaaa", "aaaaaaaa")
+        self.assertEqual(psk,
+                         "d90c1a12c3a2e7a986bdaa9f45158762"
+                         "3af652a47489853493e02d861fb8a37e")
+
+        psk = _security.get_wpa_psk("my_wifi", "wifi_password")
+        self.assertEqual(psk,
+                         "0e7b8afb6abd81824140e398be47a732"
+                         "afa2a6d913cff60d8829ac688f4a7eec")

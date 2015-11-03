@@ -93,32 +93,79 @@ RSA* get_machine_rsakey() {
 
 
 int get_machine_uuid(unsigned char *uuid_buf[16]) {
-    RSA* rsakey = get_machine_rsakey();
-    if(!rsakey) return -1;
+    int fd;
+    int ret;
 
-    PyObject* pybuf = export_der(rsakey, 1);
-    if(!pybuf) return -1;
+    uint8_t ctrl_txbuf[1];
+    uint8_t ctrl_rxbuf[1];
 
-    PyObject* hashlib_module = PyImport_ImportModule("hashlib");
-    if(!hashlib_module) return -1;
+    // uint8_t txbuf[SPI_XFER_LENGTH];
+    // uint8_t rxbuf1[SPI_XFER_LENGTH];
+    // uint8_t rxbuf2[SPI_XFER_LENGTH];
 
-    PyObject* sha1_chip = PyObject_GetAttrString(hashlib_module, "sha1");
-    if(!sha1_chip) return -1;
+    struct spi_ioc_transfer xfer;
+    memset(&xfer, 0, sizeof(xfer));
 
-    PyObject* sha1 = PyEval_CallObject(sha1_chip, Py_BuildValue("(O)", pybuf));
-    if(!sha1) return -1;
-
-    PyObject* digest = PyEval_CallMethod(sha1, "digest", "()");
-    if(!digest) return -1;
-
-    Py_buffer view;
-    if(PyObject_GetBuffer(digest, &view, PyBUF_SIMPLE) != 0) {
+    if((fd = open(SPI_PATH, O_RDWR, 0)) == -1) {
+        PyErr_SetFromErrno(PyExc_IOError);
         return -1;
     }
 
-    memcpy(uuid_buf, view.buf, 16);
-    PyBuffer_Release(&view);
+    xfer.bits_per_word = SPI_BITS_PER_WORD;
+    xfer.speed_hz = SPI_MAX_SPEED_HZ;
+    xfer.delay_usecs = 0;
 
+    // Enter OPT Mode
+    xfer.len = 1;
+    ctrl_txbuf[0] = 0xB1;
+    xfer.tx_buf = (unsigned long)ctrl_txbuf;
+    xfer.rx_buf = (unsigned long)ctrl_rxbuf;
+
+    if((ret = ioctl(fd, SPI_IOC_MESSAGE(1), &xfer)) < 0) {
+        close(fd);
+
+        PyErr_SetFromErrno(PyExc_IOError);
+        return -1;
+    }
+    // <<<<<<<<<<<<<<<<<
+
+    // Read OPT >>>>>>>>
+    uint8_t read_txbuf[64 + 4];
+    uint8_t read_rxbuf[64 + 4];
+
+    read_txbuf[0] = 0x03;
+    read_txbuf[1] = 0;
+    read_txbuf[2] = 0;
+    read_txbuf[3] = 0;
+    xfer.len = 68;
+    xfer.tx_buf = (unsigned long)read_txbuf;
+    xfer.rx_buf = (unsigned long)read_rxbuf;
+
+    if((ret = ioctl(fd, SPI_IOC_MESSAGE(1), &xfer)) < 0) {
+        close(fd);
+
+        PyErr_SetFromErrno(PyExc_IOError);
+        return -1;
+    }
+    // <<<<<<<<<<<<<<<<<
+
+    // Exit OPT Mode >>>
+    xfer.len = 1;
+    ctrl_txbuf[0] = 0xC1;
+    xfer.tx_buf = (unsigned long)ctrl_txbuf;
+    xfer.rx_buf = (unsigned long)ctrl_rxbuf;
+
+    if((ret = ioctl(fd, SPI_IOC_MESSAGE(1), &xfer)) < 0) {
+        close(fd);
+
+        PyErr_SetFromErrno(PyExc_IOError);
+        return -1;
+    }
+    // <<<<<<<<<<<<<<<<<
+
+    close(fd);
+
+    memcpy(uuid_buf, read_rxbuf + 4, 16);
     return 0;
 }
 #endif  // @ifdef FLUX_MODEL_G1

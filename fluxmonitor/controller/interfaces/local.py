@@ -16,8 +16,8 @@ IDLE_TIMEOUT = 3600.  # Close conn if idel after seconds.
 
 
 class LocalControl(object):
-    def __init__(self, server, logger=None, port=23811):
-        self.server = server
+    def __init__(self, kernel, logger=None, port=23811):
+        self.server = kernel
         self.logger = logger.getChild("lc") if logger \
             else logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ class LocalControl(object):
         endpoint = sender.obj.accept()
         LocalConnectionAsyncIO(endpoint, self.server, self.logger)
 
-    def close(self):
+    def close(self, kernel):
         while self.io_list:
             io = self.io_list.pop()
             self.server.remove_read_event(io)
@@ -200,8 +200,12 @@ class LocalConnectionAsyncIO(object):
         return length
 
     def send_text(self, message):
-        l = len(message)
-        buf = struct.pack("<H", l) + message.encode()
+        if isinstance(message, unicode):
+            bmessage = message.encode("utf8")
+        else:
+            bmessage = message
+        l = len(bmessage)
+        buf = struct.pack("<H", l) + bmessage
         return self.send(buf)
 
     def close(self, reason=""):

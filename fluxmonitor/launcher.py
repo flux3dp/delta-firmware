@@ -1,13 +1,14 @@
 
 from __future__ import absolute_import
+from errno import EAGAIN, errorcode
 import logging.config
+import importlib
 import signal
 import fcntl
 import sys
 import os
 
 from fluxmonitor.config import general_config
-from fluxmonitor.main import FluxMonitor
 
 
 LOG_FORMAT = "[%(asctime)s,%(levelname)s,%(name)s] %(message)s"
@@ -63,49 +64,126 @@ def create_logger(options):
     })
 
 
-def deamon_entry(options, watcher=None):
-    pid_handler = open(options.pidfile, 'w', 0)
-
+def lock_pidfile(options):
     try:
-        fcntl.lockf(pid_handler.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except IOError:
-        sys.stderr.write('Can not start daemon, daemon maybe already running '
-                         'in somewhere?\n')
-        raise
+        pid_handler = os.open(options.pidfile,
+                              os.O_CREAT | os.O_RDONLY | os.O_WRONLY, 0o644)
+        fcntl.lockf(pid_handler, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return os.fdopen(pid_handler, "w")
+    except IOError as e:
+        if options.debug:
+            raise
+        elif e.args[0] == EAGAIN:
+            sys.stderr.write('Can not lock pidfile %s\n' % options.pidfile)
+            raise FatalException(0x80)
+        else:
+            sys.stderr.write('Can not open pidfile %s (%s)\n' %
+                             (options.pidfile, errorcode.get(e.args[0], "?")))
+            raise FatalException(0x81)
+
+
+def load_service_klass(klass_name):
+    module_name, klass_name = klass_name.rsplit(".", 1)
+    module = importlib.import_module(module_name)
+    return module.__getattribute__(klass_name)
+
+
+def init_service(klass_name, options):
+    create_logger(options)
+    service_klass = load_service_klass(klass_name)
+    return service_klass(options)
+
+
+def deamon_entry(options, service=None):
+    pid_handler = None
+    server = None
+    pid = None
+
+    # Close all file descriptor except stdin/stdout/stderr and pid file
+    # descriptor
+    os.closerange(3, 1024)
 
     if options.daemon:
-        pid_handler.close()
+        rfd, wfd = os.pipe()
+
         pid_t = os.fork()
         if pid_t == 0:
+            # Second process
+            os.close(rfd)
             os.setsid()
-            os.umask(0o27)
+            pid_l = os.fork()
+            if pid_l == 0:
+                # Third process
+                os.umask(0o27)
 
-            sys.stdin.close()
-            sys.stdout.close()
-            sys.stderr.close()
+                try:
+                    pid_handler = lock_pidfile(options)
+                    pid = os.getpid()
 
-            os.closerange(0, 1024)
+                    pid_handler.write(repr(pid))
+                    pid_handler.flush()
 
-            sys.stdin = open(os.devnull, 'r')
-            sys.stdout = open(os.devnull, 'r')
-            sys.stderr = open(os.devnull, 'r')
-            # sys.stdout = open(options.logfile, 'a')
-            # sys.stderr = sys.stdout
+                    sys.stdin.close()
+                    sys.stdout.close()
+                    sys.stderr.close()
 
-            pid_handler = open(options.pidfile, 'w', 0)
-            pid_handler.write(repr(os.getpid()))
-            pid_handler.flush()
-            fcntl.lockf(pid_handler.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    os.closerange(0, 3)
+
+                    sys.stdin = open(os.devnull, 'r')
+                    sys.stdout = open(os.devnull, 'w')
+                    sys.stderr = open(os.devnull, 'w')
+
+                    server = init_service(service, options)
+
+                    os.write(wfd, b"\x00")
+                except FatalException as e:
+                    os.write(wfd, chr(e.args[0]))
+                    return e.args[0]
+                except Exception as e:
+                    raise
+                finally:
+                    os.close(wfd)
+
+            elif pid_l > 0:
+                # Second process (fork success, do nothing)
+                os.close(wfd)
+                return 0
+            else:
+                # Second process (fork failed)
+                sys.stderr.write('Fork failed\n')
+                os.write(wfd, b"\x10")
+                os.close(wfd)
+                return 0x10
+
         elif pid_t > 0:
-            return 0
+            # Main process
+            os.close(wfd)
+            flag = os.read(rfd, 4096)
+            os.close(rfd)
+
+            if flag == '':
+                sys.stderr.write("Daemon no response\n")
+                return 256
+
+            else:
+                if len(flag) > 1:
+                    sys.stderr.write("%s\n" % flag[1:])
+                return ord(flag[0])
         else:
-            sys.stderr.write('Fork failed, fluxmonitord dead~\n')
+            # Main process (fork failed)
+            sys.stderr.write('Fork failed\n')
             return 0x10
     else:
-        pid_handler.write(repr(os.getpid()))
+        try:
+            pid_handler = lock_pidfile(options)
+            pid = os.getpid()
+            pid_handler.write(repr(pid))
+            pid_handler.flush()
+        except FatalException as e:
+            return e.args[0]
 
-    create_logger(options)
-    server = FluxMonitor(options, watcher)
+        server = init_service(service, options)
+
 
     def sigTerm(watcher, revent):
         sys.stderr.write("\n")
@@ -121,15 +199,18 @@ def deamon_entry(options, watcher=None):
     signal.signal(signal.SIGTERM, sigTerm)
     signal.signal(signal.SIGINT, sigTerm)
 
-    if server.run() is False:
-        return 1
+    try:
+        if server.run() is False:
+            return 1
 
-    if options.daemon:
-        fcntl.lockf(pid_handler.fileno(), fcntl.LOCK_UN)
-        pid_handler.close()
-        try:
+    finally:
+        if os.getpid() == pid:
+            fcntl.lockf(pid_handler.fileno(), fcntl.LOCK_UN)
+            pid_handler.close()
             os.unlink(options.pidfile)
-        except Exception:
-            pass
 
     return 0
+
+
+class FatalException(Exception):
+    pass

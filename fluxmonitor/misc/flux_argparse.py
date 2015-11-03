@@ -27,8 +27,8 @@ def add_daemon_arguments(proc_name, parser):
                         const=True, default=False, help='Stop daemon')
     parser.add_argument('--pid', dest='pidfile', type=str,
                         default='%s.pid' % proc_name, help='PID file')
-    parser.add_argument('--log', dest='logfile', type=str,
-                        default='%s.log' % proc_name, help='Log file')
+    parser.add_argument('--log', dest='logfile', type=str, default=None,
+                        help='Log file')
 
 
 def apply_daemon_arguments(options):

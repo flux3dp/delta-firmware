@@ -5,6 +5,8 @@ from .memcache import MemcacheTestClient
 
 
 class ServerSimulator(EventBase):
+    debug = False
+
     def __init__(self):
         EventBase.__init__(self)
         self.cache = MemcacheTestClient()

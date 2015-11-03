@@ -20,5 +20,5 @@ if pw1 != pw2:
     raise RuntimeError("Password dnot match")
 
 
-from fluxmonitor.security.passwd import _set_password
-_set_password(pw1)
+from fluxmonitor.security.passwd import set_password
+set_password(pw1)
