@@ -36,9 +36,9 @@ def do_correction(x, y, z, h):
 
 
 def check_mainboard(method):
-    def wrap(self, sender):
+    def wrap(self, *args, **kw):
         if self._ready & 1:
-            return method(self, sender)
+            return method(self, *args, **kw)
         else:
             raise RuntimeError(RESOURCE_BUSY, "Mainboard not ready")
     return wrap
@@ -96,6 +96,9 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
         elif cmd == "eadj":
             return self.do_eadj(sock)
 
+        elif cmd == "eadj clean":
+            return self.do_eadj(sock, clean=True)
+
         elif cmd == "madj":
             return self.do_madj(sock)
 
@@ -123,7 +126,7 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
         self._busy = True
 
     @check_mainboard
-    def do_eadj(self, sender):
+    def do_eadj(self, sender, clean=False):
         data = []
 
         def stage1_test_x(msg):
@@ -190,6 +193,13 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
                 self.server.exit_task(self)
 
         self._busy = True
+
+        if clean:
+            cm = CommonMetadata()
+            # TODO
+            cm.plate_correction = {"X": 0, "Y": 0, "Z": 0, "H": 240}
+            self.main_ctrl.send_cmd("M666X0Y0Z0H240", self)
+
         self._mainboard_msg_filter = stage1_test_x
         self.main_ctrl.send_cmd("G28", self)
         self.main_ctrl.send_cmd("G30X-73.6122Y-42.5", self)
