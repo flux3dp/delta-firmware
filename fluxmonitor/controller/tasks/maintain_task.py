@@ -4,7 +4,10 @@ import socket
 import re
 
 from fluxmonitor.code_executor.main_controller import MainController
+from fluxmonitor.storage import CommonMetadata
+from fluxmonitor.misc import correction
 from fluxmonitor.config import uart_config
+
 from fluxmonitor.err_codes import RESOURCE_BUSY, UNKNOW_COMMAND
 
 from .base import CommandMixIn, ExclusiveMixIn, DeviceOperationMixIn, \
@@ -15,6 +18,21 @@ RE_REPORT_DIST = re.compile("X:(?P<X>(-)?[\d]+(.[\d]+)?) "
                             "Z:(?P<Z>(-)?[\d]+(.[\d]+)?) ")
 logger = logging.getLogger(__name__)
 
+
+def do_correction(x, y, z, h):
+    cm = CommonMetadata()
+    old_corr = cm.plate_correction
+    logger.debug("Old correction: X%(X).4f Y%(Y).4f Z%(Z).4f H%(H).4f",
+                 old_corr)
+
+    new_corr = correction.calculate(
+        old_corr["X"], old_corr["Y"], old_corr["Z"], old_corr["H"], x, y, z, h)
+    cm.plate_correction = new_corr
+
+    logger.debug("New correction: X%(X).4f Y%(Y).4f Z%(Z).4f H%(H).4f",
+                 new_corr)
+
+    return "M666 X%(X).4f Y%(Y).4f Z%(Z).4f H%(H).4f" % new_corr
 
 
 def check_mainboard(method):
@@ -74,6 +92,7 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
 
         if cmd == "home":
             return self.do_home(sock)
+
         elif cmd == "eadj":
             return self.do_eadj(sock)
 
@@ -107,81 +126,49 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
     def do_eadj(self, sender):
         data = []
 
-        def send_m119(main_ctrl):
-            try:
-                self.main_ctrl.send_cmd("M119", self)
-                self.main_ctrl.send_cmd("G4P300", self)
-            except Exception:
-                logger.exception("Unhandle Error")
-                self.server.exit_task(self)
-
-        def stage1_chk_zprop_triggered(msg):
-            try:
-                if msg == "z_probe: TRIGGERED":
-                    self._mainboard_msg_filter = stage2_chk_zprop_nontriggered
-                    logger.debug("%s... OK", msg)
-                elif msg == "z_probe: NOT TRIGGERED":
-                    sender.send_text("NEED_ZPROBE_TRIGGERED")
-            except Exception:
-                logger.exception("Unhandle Error")
-                self.server.exit_task(self)
-
-        def stage2_chk_zprop_nontriggered(msg):
-            try:
-                if msg == "z_probe: NOT TRIGGERED":
-                    self.main_ctrl.callback_msg_empty = None
-                    self._mainboard_msg_filter = stage3_test_x
-                    logger.debug("%s... OK", msg)
-                    self.main_ctrl.send_cmd("G28", self)
-                    self.main_ctrl.send_cmd("G30X-73.6122Y-42.5", self)
-
-                    sender.send_text("TEST_X")
-                elif msg == "z_probe: TRIGGERED":
-                    sender.send_text("NEED_ZPROBE_NOT_TRIGGERED")
-            except Exception:
-                logger.exception("Unhandle Error")
-                self.server.exit_task(self)
-
-        def stage3_test_x(msg):
+        def stage1_test_x(msg):
             try:
                 if msg.startswith("Bed Z-Height at"):
                     data.append(float(msg.rsplit(" ", 1)[-1]))
                     logger.debug("DATA: %s", data)
                     self.main_ctrl.send_cmd("G30X73.6122Y-42.5", self)
-                    self._mainboard_msg_filter = stage4_test_y
+                    self._mainboard_msg_filter = stage2_test_y
 
-                    sender.send_text("TEST_Y")
+                    sender.send_text("DEBUG: X")
             except Exception:
                 logger.exception("Unhandle Error")
+                sender.send_text("error UNKNOW_ERROR")
                 self.server.exit_task(self)
 
-        def stage4_test_y(msg):
+        def stage2_test_y(msg):
             try:
                 if msg.startswith("Bed Z-Height at"):
                     data.append(float(msg.rsplit(" ", 1)[-1]))
                     logger.debug("DATA: %s", data)
                     self.main_ctrl.send_cmd("G30X0Y85", self)
-                    self._mainboard_msg_filter = stage5_test_z
+                    self._mainboard_msg_filter = stage3_test_z
 
-                    sender.send_text("TEST_Z")
+                    sender.send_text("DEBUG: Y")
             except Exception:
                 logger.exception("Unhandle Error")
+                sender.send_text("error UNKNOW_ERROR")
                 self.server.exit_task(self)
 
-        def stage5_test_z(msg):
+        def stage3_test_z(msg):
             try:
                 if msg.startswith("Bed Z-Height at"):
                     data.append(float(msg.rsplit(" ", 1)[-1]))
                     logger.debug("DATA: %s", data)
                     self.main_ctrl.send_cmd("G30X0Y0", self)
-                    self._mainboard_msg_filter = stage6_test_h
+                    self._mainboard_msg_filter = stage4_test_h
 
-                    sender.send_text("TEST_H")
+                    sender.send_text("DEBUG: Z")
             except Exception:
                 logger.exception("Unhandle Error")
+                sender.send_text("error UNKNOW_ERROR")
                 self.server.exit_task(self)
 
-        def stage6_test_h(msg):
+        def stage4_test_h(msg):
             try:
                 if msg.startswith("Bed Z-Height at"):
                     self._mainboard_msg_filter = None
@@ -190,18 +177,22 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
                     data.append(float(msg.rsplit(" ", 1)[-1]))
                     logger.debug("DATA: %s", data)
 
-                    sender.send_text("DATA %s" % data)
+                    sender.send_text("DEBUG: H")
+                    cmd_str = do_correction(*data)
+                    self.main_ctrl.send_cmd(cmd_str, self)
+                    self.main_ctrl.send_cmd("G28", self)
+
+                    sender.send_text("DEBUG: DATA %s" % data)
                     sender.send_text("ok")
             except Exception:
                 logger.exception("Unhandle Error")
+                sender.send_text("error UNKNOW_ERROR")
                 self.server.exit_task(self)
 
-        self.main_ctrl.send_cmd("M84", self)
-
         self._busy = True
-        send_m119(self.main_ctrl)
-        self.main_ctrl.callback_msg_empty = send_m119
-        self._mainboard_msg_filter = stage1_chk_zprop_triggered
+        self._mainboard_msg_filter = stage1_test_x
+        self.main_ctrl.send_cmd("G28", self)
+        self.main_ctrl.send_cmd("G30X-73.6122Y-42.5", self)
         return "continue"
 
     @check_mainboard

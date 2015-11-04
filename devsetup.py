@@ -73,6 +73,15 @@ setup(
             extra_compile_args=["-std=c++11"],
             define_macros=setup_utils.DEFAULT_MACROS,
             libraries=[], extra_objects=[], include_dirs=["src"]
+        ),
+        Extension(
+            'fluxmonitor.misc.correction', sources=[
+                "src/correction/vector_3.cpp",
+                "src/correction/main.cpp",
+                "src/correction/correction.pyx"],
+            language="c++",
+            define_macros=setup_utils.DEFAULT_MACROS,
+            libraries=[], extra_objects=[], include_dirs=["src"]
         )
     ]
 )
