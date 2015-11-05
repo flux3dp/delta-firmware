@@ -36,9 +36,9 @@ def do_correction(x, y, z, h):
 
 
 def check_mainboard(method):
-    def wrap(self, sender):
+    def wrap(self, *args, **kw):
         if self._ready & 1:
-            return method(self, sender)
+            return method(self, *args, **kw)
         else:
             raise RuntimeError(RESOURCE_BUSY, "Mainboard not ready")
     return wrap
@@ -96,6 +96,9 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
         elif cmd == "eadj":
             return self.do_eadj(sock)
 
+        elif cmd == "eadj clean":
+            return self.do_eadj(sock, clean=True)
+
         elif cmd == "madj":
             return self.do_madj(sock)
 
@@ -123,18 +126,17 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
         self._busy = True
 
     @check_mainboard
-    def do_eadj(self, sender):
+    def do_eadj(self, sender, clean=False):
         data = []
 
         def stage1_test_x(msg):
             try:
                 if msg.startswith("Bed Z-Height at"):
                     data.append(float(msg.rsplit(" ", 1)[-1]))
-                    logger.debug("DATA: %s", data)
+                    sender.send_text("X: %.2f" % data[-1])
                     self.main_ctrl.send_cmd("G30X73.6122Y-42.5", self)
                     self._mainboard_msg_filter = stage2_test_y
 
-                    sender.send_text("DEBUG: X")
             except Exception:
                 logger.exception("Unhandle Error")
                 sender.send_text("error UNKNOW_ERROR")
@@ -144,11 +146,10 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
             try:
                 if msg.startswith("Bed Z-Height at"):
                     data.append(float(msg.rsplit(" ", 1)[-1]))
-                    logger.debug("DATA: %s", data)
+                    sender.send_text("Y: %.2f" % data[-1])
                     self.main_ctrl.send_cmd("G30X0Y85", self)
                     self._mainboard_msg_filter = stage3_test_z
 
-                    sender.send_text("DEBUG: Y")
             except Exception:
                 logger.exception("Unhandle Error")
                 sender.send_text("error UNKNOW_ERROR")
@@ -158,11 +159,10 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
             try:
                 if msg.startswith("Bed Z-Height at"):
                     data.append(float(msg.rsplit(" ", 1)[-1]))
-                    logger.debug("DATA: %s", data)
+                    sender.send_text("Z: %.2f" % data[-1])
                     self.main_ctrl.send_cmd("G30X0Y0", self)
                     self._mainboard_msg_filter = stage4_test_h
 
-                    sender.send_text("DEBUG: Z")
             except Exception:
                 logger.exception("Unhandle Error")
                 sender.send_text("error UNKNOW_ERROR")
@@ -175,10 +175,13 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
                     self._busy = False
 
                     data.append(float(msg.rsplit(" ", 1)[-1]))
-                    logger.debug("DATA: %s", data)
+                    sender.send_text("H: %.2f" % data[-1])
 
-                    sender.send_text("DEBUG: H")
+                    if clean:
+                        sender.send_text("DEBUG: Clean")
                     cmd_str = do_correction(*data)
+                    sender.send_text("DEBUG: %s" % cmd_str)
+
                     self.main_ctrl.send_cmd(cmd_str, self)
                     self.main_ctrl.send_cmd("G28", self)
 
@@ -190,6 +193,13 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
                 self.server.exit_task(self)
 
         self._busy = True
+
+        if clean:
+            cm = CommonMetadata()
+            # TODO
+            cm.plate_correction = {"X": 0, "Y": 0, "Z": 0, "H": 240}
+            self.main_ctrl.send_cmd("M666X0Y0Z0H240", self)
+
         self._mainboard_msg_filter = stage1_test_x
         self.main_ctrl.send_cmd("G28", self)
         self.main_ctrl.send_cmd("G30X-73.6122Y-42.5", self)
