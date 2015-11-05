@@ -20,6 +20,9 @@ logger = logging.getLogger(__name__)
 
 
 def do_correction(x, y, z, h):
+    if max(x, y, z, h) - min(x, y, z, h) > 3:
+        raise ValueError("OVER_TOLERANCE")
+
     cm = CommonMetadata()
     old_corr = cm.plate_correction
     logger.debug("Old correction: X%(X).4f Y%(Y).4f Z%(Z).4f H%(H).4f",
@@ -31,6 +34,10 @@ def do_correction(x, y, z, h):
 
     logger.debug("New correction: X%(X).4f Y%(Y).4f Z%(Z).4f H%(H).4f",
                  new_corr)
+
+    h = new_corr.get("H", 0)
+    if h > 248 or h < 230:
+        raise ValueError("INPUT_FAILED")
 
     return "M666 X%(X).4f Y%(Y).4f Z%(Z).4f H%(H).4f" % new_corr
 
@@ -131,9 +138,10 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
 
         def stage1_test_x(msg):
             try:
+                sender.send_text("DEBUG MB %s" % msg)
                 if msg.startswith("Bed Z-Height at"):
                     data.append(float(msg.rsplit(" ", 1)[-1]))
-                    sender.send_text("X: %.2f" % data[-1])
+                    sender.send_text("DEBUG X: %.4f" % data[-1])
                     self.main_ctrl.send_cmd("G30X73.6122Y-42.5", self)
                     self._mainboard_msg_filter = stage2_test_y
 
@@ -144,9 +152,10 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
 
         def stage2_test_y(msg):
             try:
+                sender.send_text("DEBUG MB %s" % msg)
                 if msg.startswith("Bed Z-Height at"):
                     data.append(float(msg.rsplit(" ", 1)[-1]))
-                    sender.send_text("Y: %.2f" % data[-1])
+                    sender.send_text("DEBUG Y: %.4f" % data[-1])
                     self.main_ctrl.send_cmd("G30X0Y85", self)
                     self._mainboard_msg_filter = stage3_test_z
 
@@ -157,9 +166,10 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
 
         def stage3_test_z(msg):
             try:
+                sender.send_text("DEBUG MB %s" % msg)
                 if msg.startswith("Bed Z-Height at"):
                     data.append(float(msg.rsplit(" ", 1)[-1]))
-                    sender.send_text("Z: %.2f" % data[-1])
+                    sender.send_text("DEBUG Z: %.4f" % data[-1])
                     self.main_ctrl.send_cmd("G30X0Y0", self)
                     self._mainboard_msg_filter = stage4_test_h
 
@@ -170,23 +180,27 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
 
         def stage4_test_h(msg):
             try:
+                sender.send_text("DEBUG MB %s" % msg)
                 if msg.startswith("Bed Z-Height at"):
                     self._mainboard_msg_filter = None
                     self._busy = False
 
                     data.append(float(msg.rsplit(" ", 1)[-1]))
-                    sender.send_text("H: %.2f" % data[-1])
+                    sender.send_text("DEBUG H: %.4f" % data[-1])
 
                     if clean:
                         sender.send_text("DEBUG: Clean")
                     cmd_str = do_correction(*data)
-                    sender.send_text("DEBUG: %s" % cmd_str)
+                    sender.send_text("DEBUG NEW --> %s" % cmd_str)
 
                     self.main_ctrl.send_cmd(cmd_str, self)
                     self.main_ctrl.send_cmd("G28", self)
 
-                    sender.send_text("DEBUG: DATA %s" % data)
                     sender.send_text("ok")
+
+            except ValueError as e:
+                sender.send_text("error %s" % e.args[0])
+
             except Exception:
                 logger.exception("Unhandle Error")
                 sender.send_text("error UNKNOW_ERROR")
