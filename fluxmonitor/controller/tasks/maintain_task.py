@@ -177,6 +177,8 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
                     data.append(float(msg.rsplit(" ", 1)[-1]))
                     send_cmd.send_text("H: %.2f" % data[-1])
 
+                    if clean:
+                        sender.send_text("DEBUG: Clean")
                     cmd_str = do_correction(*data)
                     sender.send_text("DEBUG: %s" % cmd_str)
 
@@ -196,7 +198,6 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
             cm = CommonMetadata()
             # TODO
             cm.plate_correction = {"X": 0, "Y": 0, "Z": 0, "H": 240}
-            sender.send_text("DEBUG: Clean")
             self.main_ctrl.send_cmd("M666X0Y0Z0H240", self)
 
         self._mainboard_msg_filter = stage1_test_x
