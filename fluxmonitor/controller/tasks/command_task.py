@@ -9,9 +9,8 @@ import logging
 import shutil
 import os
 
-from fluxmonitor.code_executor.fcode_parser import fast_read_metata
-from fluxmonitor.err_codes import (UNKNOW_COMMAND, NOT_EXIST,
-    TOO_LARGE, NO_TASK, BAD_PARAMS, BAD_FILE_FORMAT)
+from fluxmonitor.code_executor.fcode_parser import fast_read_meta
+from fluxmonitor.err_codes import (UNKNOW_COMMAND, NOT_EXIST, TOO_LARGE, NO_TASK, BAD_PARAMS, BAD_FILE_FORMAT)
 from fluxmonitor.hal.usbmount import get_usbmount_hal
 from fluxmonitor.storage import CommonMetadata
 from fluxmonitor.config import robot_config
@@ -130,7 +129,7 @@ class FileManagerMixIn(object):
     def fileinfo(self, path, sender):
         abspath = self._storage_dispatch(path, require_file=True)
         if mimetypes.guess_type(abspath)[0] == mimetypes.MIMETYPE_FCODE:
-            metadata, image = fast_read_metata(abspath)
+            metadata, image = fast_read_meta(abspath)
             metadata["size"] = os.path.getsize(abspath)
             sender.send_text("binary image/png %i" % len(image))
             sender.send(image)

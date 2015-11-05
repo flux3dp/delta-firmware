@@ -8,7 +8,7 @@ INT_PACKER = struct.Struct("<i")
 UINT_PACKER = struct.Struct("<I")
 
 
-def fast_read_metata(filename):
+def fast_read_meta(filename):
     with open(filename, "rb") as f:
         try:
             # Check header
