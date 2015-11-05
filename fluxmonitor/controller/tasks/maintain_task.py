@@ -137,7 +137,6 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
                     self.main_ctrl.send_cmd("G30X73.6122Y-42.5", self)
                     self._mainboard_msg_filter = stage2_test_y
 
-                    sender.send_text("DEBUG: X")
             except Exception:
                 logger.exception("Unhandle Error")
                 sender.send_text("error UNKNOW_ERROR")
@@ -151,7 +150,6 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
                     self.main_ctrl.send_cmd("G30X0Y85", self)
                     self._mainboard_msg_filter = stage3_test_z
 
-                    sender.send_text("DEBUG: Y")
             except Exception:
                 logger.exception("Unhandle Error")
                 sender.send_text("error UNKNOW_ERROR")
@@ -165,7 +163,6 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
                     self.main_ctrl.send_cmd("G30X0Y0", self)
                     self._mainboard_msg_filter = stage4_test_h
 
-                    sender.send_text("DEBUG: Z")
             except Exception:
                 logger.exception("Unhandle Error")
                 sender.send_text("error UNKNOW_ERROR")
@@ -180,8 +177,9 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
                     data.append(float(msg.rsplit(" ", 1)[-1]))
                     logger.debug("DATA: %s", data)
 
-                    sender.send_text("DEBUG: H")
                     cmd_str = do_correction(*data)
+                    sender.send_text("DEBUG: %s" % cmd_str)
+
                     self.main_ctrl.send_cmd(cmd_str, self)
                     self.main_ctrl.send_cmd("G28", self)
 
@@ -198,6 +196,7 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
             cm = CommonMetadata()
             # TODO
             cm.plate_correction = {"X": 0, "Y": 0, "Z": 0, "H": 240}
+            send_cmd.send_text("CLEAN")
             self.main_ctrl.send_cmd("M666X0Y0Z0H240", self)
 
         self._mainboard_msg_filter = stage1_test_x
