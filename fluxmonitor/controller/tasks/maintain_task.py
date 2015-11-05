@@ -196,7 +196,7 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
             cm = CommonMetadata()
             # TODO
             cm.plate_correction = {"X": 0, "Y": 0, "Z": 0, "H": 240}
-            send_cmd.send_text("CLEAN")
+            sender.send_text("DEBUG: Clean")
             self.main_ctrl.send_cmd("M666X0Y0Z0H240", self)
 
         self._mainboard_msg_filter = stage1_test_x
