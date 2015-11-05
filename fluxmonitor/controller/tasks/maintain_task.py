@@ -133,7 +133,7 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
             try:
                 if msg.startswith("Bed Z-Height at"):
                     data.append(float(msg.rsplit(" ", 1)[-1]))
-                    send_cmd.send_text("X: %.2f" % data[-1])
+                    sender.send_text("X: %.2f" % data[-1])
                     self.main_ctrl.send_cmd("G30X73.6122Y-42.5", self)
                     self._mainboard_msg_filter = stage2_test_y
 
@@ -146,7 +146,7 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
             try:
                 if msg.startswith("Bed Z-Height at"):
                     data.append(float(msg.rsplit(" ", 1)[-1]))
-                    send_cmd.send_text("Y: %.2f" % data[-1])
+                    sender.send_text("Y: %.2f" % data[-1])
                     self.main_ctrl.send_cmd("G30X0Y85", self)
                     self._mainboard_msg_filter = stage3_test_z
 
@@ -159,7 +159,7 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
             try:
                 if msg.startswith("Bed Z-Height at"):
                     data.append(float(msg.rsplit(" ", 1)[-1]))
-                    send_cmd.send_text("Z: %.2f" % data[-1])
+                    sender.send_text("Z: %.2f" % data[-1])
                     self.main_ctrl.send_cmd("G30X0Y0", self)
                     self._mainboard_msg_filter = stage4_test_h
 
@@ -175,7 +175,7 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
                     self._busy = False
 
                     data.append(float(msg.rsplit(" ", 1)[-1]))
-                    send_cmd.send_text("H: %.2f" % data[-1])
+                    sender.send_text("H: %.2f" % data[-1])
 
                     if clean:
                         sender.send_text("DEBUG: Clean")
