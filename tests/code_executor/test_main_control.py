@@ -10,32 +10,33 @@ from .misc import ControlTestBase
 
 class MainboardControlStartupTest(ControlTestBase):
     def test_startup_simple(self):
-        with self.assertSendMainboard(b"C1O\n") as executor:
+        with self.assertSendMainboard(b"X17O\n") as executor:
             mc = MainController(executor, ready_callback=self.raiseException)
 
         with self.assertSendMainboard() as executor:
-            self.assertRaises(RuntimeWarning, mc.on_message,
-                              "CTRL LINECHECK_ENABLED", executor)
+            mc.on_message("CTRL LINECHECK_ENABLED", executor)
+        with self.assertSendMainboard() as executor:
+            self.assertRaises(RuntimeWarning, mc.on_message, "ok", executor)
         self.assertTrue(mc.ready, True)
 
     def test_startup_no_response(self):
-        with self.assertSendMainboard(b"C1O\n") as executor:
+        with self.assertSendMainboard(b"X17O\n") as executor:
             mc = MainController(executor, ready_callback=self.raiseException)
 
         with self.assertSendMainboard() as executor:
             mc.patrol(executor)
         mc._last_recv_ts = -1
-        with self.assertSendMainboard(b"C1O\n") as executor:
+        with self.assertSendMainboard(b"X17O\n") as executor:
             # TTL: 1
             mc.patrol(executor)
         with self.assertSendMainboard() as executor:
             mc.patrol(executor)
         mc._last_recv_ts = -1
-        with self.assertSendMainboard(b"C1O\n") as executor:
+        with self.assertSendMainboard(b"X17O\n") as executor:
             # TTL: 2
             mc.patrol(executor)
         mc._last_recv_ts = -1
-        with self.assertSendMainboard(b"C1O\n") as executor:
+        with self.assertSendMainboard(b"X17O\n") as executor:
             # TTL: 3
             mc.patrol(executor)
         mc._last_recv_ts = -1
@@ -44,25 +45,22 @@ class MainboardControlStartupTest(ControlTestBase):
             self.assertRaises(SystemError, mc.patrol, executor)
 
     def test_startup_with_lineno_enabled(self):
-        with self.assertSendMainboard(b"C1O\n") as executor:
+        with self.assertSendMainboard(b"X17O\n") as executor:
             mc = MainController(executor, ready_callback=self.raiseException)
 
-        with self.assertSendMainboard(b"C1F N3*105\n") as executor:
+        with self.assertSendMainboard(b"X17F N3*69\n", b"X17O\n") as executor:
             mc.on_message("ER MISSING_LINENUMBER 3", executor)
-
-        with self.assertSendMainboard(b"C1O\n") as executor:
-            mc.on_message("CTRL LINECHECK_DISABLED", executor)
 
 class MainboardControlTest(ControlTestBase):
     def setUp(self):
         super(MainboardControlTest, self).setUp()
 
-        with self.assertSendMainboard(b"C1O\n") as executor:
+        with self.assertSendMainboard(b"X17O\n") as executor:
             mc = MainController(executor, ready_callback=self.raiseException)
 
         mc._ln = 0
         mc._waitting_ok = False
-        mc._flags = 1
+        mc._ready = True
         mc.callback_ready = None
         self.mc = mc
 
@@ -188,8 +186,10 @@ class MainboardControlTest(ControlTestBase):
         if os.path.exists(uart_config["control"]):
             os.unlink(uart_config["control"])
 
-        uart_ctrl = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+        uart_ctrl = socket.socket(socket.AF_UNIX)
+        uart_ctrl.setblocking(False)
         uart_ctrl.bind(uart_config["control"])
+        uart_ctrl.listen(1)
 
         self.preset(cmd_sent=((1, b"G28 N1*18\n"), (2, b"G1 Z0 N2*96\n"),
                               (3, b"G1 X5 N3*102\n")),
@@ -198,7 +198,7 @@ class MainboardControlTest(ControlTestBase):
         self.assertRaises(SystemError, self.mc.patrol, self)
 
         # Check if reset send
-        self.assertEqual(uart_ctrl.recv(4096), b"reset mb")
+        self.assertEqual(uart_ctrl.accept()[0].recv(4096), b"reset mb")
 
         self.assertFalse(self.mc.ready)
 
