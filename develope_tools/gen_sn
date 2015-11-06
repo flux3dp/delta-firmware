@@ -1,0 +1,66 @@
+#!/usr/bin/env python
+
+import argparse
+import binascii
+import sys
+import os
+
+
+from sharelib.sn import get_sn, get_uuid, gen_key, sign_id
+
+
+def main():
+    parser = argparse.ArgumentParser(description='flux sn gen')
+
+    subparsers = parser.add_subparsers(dest='action')
+
+    # One
+    single_parser = subparsers.add_parser('one')
+    single_parser.add_argument(dest='prefix', type=str, default=None, )
+    single_parser.add_argument(dest='index', type=int, default=None, )
+
+    two_parser = subparsers.add_parser('batch')
+    two_parser.add_argument(dest='prefix', type=str, help="4 chars S/N prefix")
+    two_parser.add_argument(dest='index_from', type=int, help="S/N index from")
+    two_parser.add_argument(dest='index_to', type=int, help="S/N index until")
+    two_parser.add_argument("-pkey", dest='pkey', type=str,
+                            help="ECC private key")
+    two_parser.add_argument("-output", dest='output', type=str,
+                            help="Output dir")
+
+    options = parser.parse_args()
+
+    if options.action == "one":
+        print(get_sn(options.prefix, options.index))
+
+    elif options.action == "batch":
+        sys.stdout.write("Create S/N %s-(%i..%i)\n" % (options.prefix,
+                                                       options.index_from,
+                                                       options.index_to))
+        sys.stdout.flush()
+
+        for i in range(options.index_from, options.index_to):
+            sys.stdout.write("\rRunning ... (%04i)" % i)
+            sys.stdout.flush()
+            sn = get_sn(options.prefix, i)
+            pri_der, pub_der = gen_key()
+            uuid = get_uuid(options.prefix, i, pub_der)
+            sign = sign_id(options.pkey, sn, pub_der, uuid)
+
+            outputfile = os.path.join(options.output,
+                                      "%s-%04i.flux_sn" % (options.prefix, i))
+            with open(outputfile, "w") as f:
+                f.write(sn)
+                f.write("\n")
+                f.write(uuid.hex)
+                f.write("\n")
+                f.write(binascii.b2a_hex(pri_der))
+                f.write("\n")
+                f.write(binascii.b2a_hex(sign))
+                f.write("\n")
+
+        sys.stdout.write("\nComplete\n")
+        sys.stdout.flush()
+
+if __name__ == "__main__":
+    main()
