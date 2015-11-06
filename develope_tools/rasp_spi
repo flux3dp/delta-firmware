@@ -17,7 +17,7 @@ class FakeSPI(object):
         print("--> [%s]" % ", ".join(("%x" % c for c in data)))
 
 
-def task_read_rsa_key(spi):
+def task_read_rsa_key(spi, ca_file):
     from fluxmonitor.security import _security
 
     print("=" * 32)
@@ -36,6 +36,7 @@ def task_read_rsa_key(spi):
 
     try:
         rsaobj = _security.RSAObject(der=payload[2:2 + l])
+
     except:
         print("Can not load key:")
         print("len", l)
@@ -43,8 +44,9 @@ def task_read_rsa_key(spi):
         raise
 
     print(">> Read Signature from SPI (Page 30)")
-    payload = read(spi, 31)
+    payload = read(spi, 30)
     l = struct.unpack("<H", payload[:2])[0]
+
     print(binascii.b2a_hex(payload[2:2 + l]))
 
 
@@ -238,6 +240,8 @@ def main():
                              help='Write S/N, give S/N file')
     mutex_group.add_argument('-r', dest='read', action='store_const',
                              const=True, default=False, help='Read S/N')
+    mutex_group.add_argument('--ca', dest='ca_file', action='store_const',
+                             const=True, default=None, help='CA file')
 
     options = parser.parse_args()
 
@@ -249,7 +253,7 @@ def main():
     if options.write:
         task_write_rsa_key(spi, options.write)
     elif options.read:
-        task_read_rsa_key(spi)
+        task_read_rsa_key(spi, options.ca_file)
     else:
         print("Select a task")
 
