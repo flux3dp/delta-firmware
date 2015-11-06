@@ -59,6 +59,7 @@ class ExtruderController(object):
         self.bootstrap(executor)
 
     def bootstrap(self, executor):
+        self._ready = False
         self._cmd_sent_at = 0
         self._cmd_retry = 0
         self._padding_cmd = None
@@ -265,26 +266,26 @@ class ExtruderController(object):
                         L.error("Recive header boot")
                         self._raise_error(EXEC_HEADER_OFFLINE,
                                           "HEAD_RESET")
-    def patrol(self, executor):
+    def patrol(self, executor, strict=True):
         if self._wait_update:
-            if self._update_retry > 2:
+            if self._update_retry > 2 and strict:
                 self._raise_error(EXEC_HEADER_OFFLINE)
-            elif time() - self._lastupdate > 1.5:
+            if time() - self._lastupdate > 1.5:
                 self._handle_ping(executor)
-                self._update_retry += 1
-                L.debug("Header no response T, retry (%i)", self._update_retry)
+                self._update_retry += 1 if strict else 0
+                L.debug("Header ping timeout, retry (%i)", self._update_retry)
 
         elif time() - self._lastupdate > 1.0:
             self._handle_ping(executor)
             self._wait_update = True
 
         if self._padding_cmd:
-            if self._cmd_retry > 2:
+            if self._cmd_retry > 2 and strict:
                 self._raise_error(EXEC_HEADER_OFFLINE)
             elif time() - self._cmd_sent_at > 1.0:
                 self._send_cmd(executor)
                 self._cmd_retry += 1
-                L.debug("Header no response, retry (%i)", self._update_retry)
+                L.debug("Header cmd timeout, retry (%i)", self._update_retry)
 
     def _raise_error(self, *args):
         self._ready = False

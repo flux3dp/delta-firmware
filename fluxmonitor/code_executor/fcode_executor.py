@@ -1,8 +1,6 @@
 
 from collections import deque
-from time import time
 import logging
-import os
 
 from fluxmonitor.err_codes import UNKNOW_ERROR
 from .base import BaseExecutor, ST_STARTING, ST_WAITTING_HEADER, ST_RUNNING, \
@@ -23,9 +21,12 @@ class FcodeExecutor(BaseExecutor):
     debug = False  # Note: debug only use for unittest
     main_ctrl = None
     head_ctrl = None
+    # Subprocess to read contents
     _task_loader = None
-    _fsm = None
+    # Input is finished
     _eof = False
+    # Gcode parser
+    _fsm = None
 
     def __init__(self, mainboard_io, headboard_io, fileobj, play_bufsize=16):
         super(FcodeExecutor, self).__init__(mainboard_io, headboard_io)
@@ -45,10 +46,23 @@ class FcodeExecutor(BaseExecutor):
 
         self.start()
 
+    def close(self):
+        self._task_loader.close()
+
+    def get_status(self):
+        st = self.head_ctrl.status()
+        st.update(super(FcodeExecutor, self).get_status())
+        return st
+
     def on_controller_ready(self, controller):
+        logging.debug("Controller %s ready", controller.__class__.__name__)
         if self.main_ctrl.ready and self.head_ctrl.ready:
             if self._status == ST_STARTING:
                 self._do_startup()
+            elif self._status == ST_RESUMING:
+                if self._ctrl_flag & FLAG_WAITTING_HEADER:
+                    self._ctrl_flag &= ~FLAG_WAITTING_HEADER
+                self.resumed()
 
     def _do_startup(self):
         try:
@@ -73,6 +87,37 @@ class FcodeExecutor(BaseExecutor):
         self._fsm = PyDeviceFSM()
         self.fire()
 
+    def pause(self, *args):
+        if BaseExecutor.pause(self, *args):
+            if self.main_ctrl.buffered_cmd_size == 0:
+                if self._status == ST_PAUSING:
+                    self._status = ST_PAUSED
+            return True
+        else:
+            return False
+
+    def resume(self):
+        if BaseExecutor.resume(self):
+            if self._status == ST_STARTING:
+                self.head_ctrl.bootstrap(self)
+                self.on_controller_ready(None)
+            elif self._status == ST_RESUMING:
+                self.head_ctrl.bootstrap(self)
+            return True
+        else:
+            return False
+
+    def resumed(self):
+        BaseExecutor.resumed(self)
+        self.fire()
+
+    def abort(self, *args):
+        if BaseExecutor.abort(self, *args):
+            self.main_ctrl.close(self)
+            return True
+        else:
+            return False
+
     def fire(self):
         if self._status == ST_RUNNING:
             while (not self._eof) and len(self._cmd_queue) < 24:
@@ -90,8 +135,7 @@ class FcodeExecutor(BaseExecutor):
                             cmd = self._cmd_queue.popleft()[0]
                             self.main_ctrl.send_cmd(cmd, self)
                     elif target == 2:
-                        # if self.main_ctrl.buffered_cmd_size == 0:
-                        if True:
+                        if self.main_ctrl.buffered_cmd_size == 0:
                             cmd = self._cmd_queue.popleft()[0]
                             if self.head_ctrl.is_busy:
                                 return
@@ -125,7 +169,10 @@ class FcodeExecutor(BaseExecutor):
             self._status = ST_COMPLETING
             self.main_ctrl.send_cmd("G28", self)
         elif self._status == ST_COMPLETING:
+            self.main_ctrl.close(self)
             self._status = ST_COMPLETED
+        elif self._status == ST_PAUSING:
+            self._status = ST_PAUSED
         else:
             self.fire()
 
@@ -137,7 +184,8 @@ class FcodeExecutor(BaseExecutor):
             self.main_ctrl.on_message(msg, self)
             self.fire()
         except RuntimeError as err:
-            self.pause(err.args[0])
+            if not self.pause(err.args[0]):
+                raise SystemError("BAD_LOGIC")
         except SystemError as err:
             self.abort(*err.args)
         except Exception as err:
@@ -151,7 +199,9 @@ class FcodeExecutor(BaseExecutor):
             self.head_ctrl.on_message(msg, self)
             self.fire()
         except RuntimeError as err:
-            self.pause(err.args[0])
+            if not self.pause(err.args[0]):
+                if self._status == ST_RUNNING:
+                    raise SystemError("BAD_LOGIC")
         except SystemError as err:
             self.abort(*err.args)
         except Exception as err:
@@ -163,9 +213,13 @@ class FcodeExecutor(BaseExecutor):
     def on_loop(self, sender):
         try:
             self.main_ctrl.patrol(self)
-            self.head_ctrl.patrol(self)
+            self.head_ctrl.patrol(self, (self._status == ST_STARTING or
+                                         self._status == ST_RUNNING or
+                                         self._status == ST_RESUMING))
         except RuntimeError as err:
-            self.pause(err.args[0])
+            if not self.pause(err.args[0]):
+                if self._status == ST_RUNNING:
+                    raise SystemError("BAD_LOGIC")
         except SystemError as err:
             self.abort(*err.args)
         except Exception as err:
@@ -173,4 +227,3 @@ class FcodeExecutor(BaseExecutor):
                 raise
             logger.exception("Unhandle error")
             self.abort(UNKNOW_ERROR, "LOOPBACK")
-
