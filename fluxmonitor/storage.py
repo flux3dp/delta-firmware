@@ -1,6 +1,7 @@
 
 from random import choice
 from shutil import rmtree
+from time import time
 import struct
 import os
 
@@ -72,6 +73,7 @@ class CommonMetadata(object):
         #
         # 128 ~ 384: nickname, end with char \x00
         # 384 ~ 512: plate_correction (current user 96 bytes)
+        # 1024 ~ 2048: Shared rsakey
         # 3072: Wifi status code
         # 3584 ~ 4096: Device status
         self.shm = sysv_ipc.SharedMemory(19851226, sysv_ipc.IPC_CREAT,
@@ -143,6 +145,19 @@ class CommonMetadata(object):
         with self.storage.open("nickname", "wb") as f:
             f.write(val)
         self._cache_nickname(val)
+
+    @property
+    def shared_der_rsakey(self):
+        buf = self.shm.read(1024, 1024)
+        bit, ts, l = struct.unpack("<BfH", buf[:7])
+        if bit != 128:
+            raise RuntimeError("RSA Key not ready")
+        return buf[7:l + 7]
+
+    @shared_der_rsakey.setter
+    def shared_der_rsakey(self, val):
+        h = struct.pack("<BfH", 128, time(), len(val))
+        self.shm.write(h + val, 1024)
 
     def _cache_nickname(self, val):
         self.shm.write(val, 128)

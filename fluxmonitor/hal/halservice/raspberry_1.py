@@ -233,10 +233,13 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOConteol):
         server.add_read_event(self.btn_monitor)
 
     def _init_mainboard_status(self):
+        corr_str = "M666 X%(X).4f Y%(Y).4f Z%(Z).4f H%(H).4f\n" % \
+                   self.sm.plate_correction
+        L.debug("Init with corr: %s", corr_str)
+
+        self.sendto_mainboard(corr_str)
+        self.sendto_mainboard("G28\n")
         buf = self.storage.readall("on_boot")
-        if buf:
-            self.sendto_mainboard(buf)
-        buf = self.storage.readall("adj")
         if buf:
             self.sendto_mainboard(buf)
 
