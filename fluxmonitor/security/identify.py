@@ -4,7 +4,7 @@ import binascii
 import logging
 
 from fluxmonitor.security._security import get_rsakey as _get_rsakey, \
-     get_uuid as _get_uuid
+     get_uuid as _get_uuid, get_identify as _get_identify
 
 HEXMAP = "123456789ABCDEFGHJKLMNOPQRSTUVWXYZ"
 
@@ -12,20 +12,23 @@ logger = logging.getLogger(__name__)
 
 _keycache = None
 _uuidcache = None
+_identifycache = None
 _rescue = None
 
 
 def __checkenv__():
-    global _keycache, _uuidcache, _rescue
+    global _keycache, _uuidcache, _rescue, _identifycache
     if not _keycache:
         try:
             _keycache = _get_rsakey()
             _uuidcache = _get_uuid()
+            _identifycache = _get_identify()
             _rescue = False
         except Exception:
             logger.exception("#### Fetch device key failed!! ####")
             _keycache = _get_rsakey(rescue=True)
             _uuidcache = _get_uuid(rescue=True)
+            _identifycache = "X" * 10
             _rescue = True
 
 
@@ -47,6 +50,11 @@ def rescue_mode():
 def get_private_key():
     __checkenv__()
     return _keycache
+
+
+def get_identify():
+    __checkenv__()
+    return _identifycache
 
 
 def _uuid_to_short(uuid_hex, mapping=HEXMAP):
