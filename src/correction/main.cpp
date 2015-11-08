@@ -12,7 +12,7 @@ using namespace std;
 #define Z_AXIS 2
 
 #define _USE_MATH_DEFINES
-#define delta_diagonal_rod  189.75
+#define delta_diagonal_rod 189.75
 
 
 float sq(float k)
@@ -179,6 +179,7 @@ int calculate_error(float p[][3], float err[], int r_en, int h_en,
     for(int i = 0; i < 5; i++) {
         err[i] += error[i];
     }
+
     float min = err[0];
     for(int i = 1; i < 3; i++)
     {
@@ -214,7 +215,7 @@ int calculator(float init_endstop_x, float init_endstop_y, float init_endstop_z,
     data.max_pos[Z_AXIS] = init_endstop_h;  // initial M666 H value
     data.delta_radius = delta_radious;  // initial M666 R value
 
-    bool r_en = true; // enable R modification
+    bool r_en = false; // enable R modification
     bool h_en = true; // enable H modification
 
     // 4 or 3 points input. If r_en == false && h_en == false, only 3 points
@@ -251,8 +252,8 @@ int main()
 {
     struct CorrectionResult result;
     calculator(
-        -0.559998, 0, -0.526997, 244.889,  // init endstops
-        -0.0125, 0.125, 0.0875, 0.075,    // input values
+        0, 0, 0, 242,  // init endstops
+       -0.4374, -0.7375, -0.6312, 0,    // input values
         96.7, &result);
 
     cout << "M666X" << result.X << "Y" << result.Y << "Z" <<  result.Z << "R"
