@@ -83,8 +83,8 @@ def get_sn(prefix, index):
     eng.update(b"FLUX")
     eng.update(prefix.encode())
 
-    if index > 25600:
-        raise ValueError("index can not exceed 25600")
+    if index > 25599:
+        raise ValueError("index can not exceed 25599")
 
     index_str = "%(INDEX_B)02X%(INDEX_A)02i" % {
         "INDEX_B": index // 100,

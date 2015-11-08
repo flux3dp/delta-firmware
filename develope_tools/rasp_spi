@@ -36,18 +36,17 @@ def task_read_rsa_key(spi, ca_file):
 
     try:
         rsaobj = _security.RSAObject(der=payload[2:2 + l])
-
+        print(">> Key vaild")
     except:
-        print("Can not load key:")
-        print("len", l)
+        print(">> Can not load key:")
+        print("length=%i" % l)
         print(repr(payload[2:2 + l]))
         raise
 
     print(">> Read Signature from SPI (Page 30)")
     payload = read(spi, 30)
     l = struct.unpack("<H", payload[:2])[0]
-
-    print(binascii.b2a_hex(payload[2:2 + l]))
+    print(">> %s" % binascii.b2a_hex(payload[2:2 + l]))
 
 
 def task_write_rsa_key(spi, sn_file):
