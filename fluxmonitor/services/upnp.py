@@ -52,7 +52,7 @@ GLOBAL_SERIAL = _uuid.UUID(int=0)
 def json_payload_wrapper(fn):
     def wrapper(*args, **kw):
         data = fn(*args, **kw)
-        if data:
+        if data is not None:
             data["ts"] = time()
         return json.dumps(data)
     return wrapper

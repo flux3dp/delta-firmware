@@ -20,7 +20,7 @@ def has_password():
 
 def validate_and_set_password(password, old_password):
     if validate_password(old_password):
-        _set_password(password)
+        set_password(password)
         untrust_all()
 
         return True
