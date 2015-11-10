@@ -35,10 +35,6 @@ class LocalControl(object):
 
         s.listen(1)
 
-    @property
-    def slave_rsakey(self):
-        return security.RSAObject(der=self.meta.shared_der_rsakey)
-
     def on_accept(self, sender):
         endpoint = sender.obj.accept()
         try:
