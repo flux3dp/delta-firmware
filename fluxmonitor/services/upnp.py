@@ -302,7 +302,8 @@ class UpnpServiceMixIn(object):
 
     @json_payload_wrapper
     def cmd_pwd_access(self, payload):
-        rawdata = self.pkey.decrypt(payload)
+        # TODO: NOT GOOD
+        rawdata = self.mcst.temp_pkey.decrypt(payload)
         b_ts, b_passwd, pubkey = rawdata.split(b"\x00", 2)
 
         passwd = b_passwd.decode("utf8")
