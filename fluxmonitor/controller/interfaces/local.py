@@ -7,11 +7,11 @@ import socket
 import os
 
 from fluxmonitor.misc.async_signal import AsyncIO
+from fluxmonitor.storage import CommonMetadata
 from fluxmonitor.misc import timer as T
 from fluxmonitor import security
 
 logger = logging.getLogger(__name__)
-PRIVATE_KEY = security.get_private_key()
 IDLE_TIMEOUT = 3600.  # Close conn if idel after seconds.
 
 
@@ -20,6 +20,7 @@ class LocalControl(object):
         self.server = kernel
         self.logger = logger.getChild("lc") if logger \
             else logging.getLogger(__name__)
+        self.meta = CommonMetadata()
 
         self.serve_sock = s = socket.socket()
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -36,7 +37,14 @@ class LocalControl(object):
 
     def on_accept(self, sender):
         endpoint = sender.obj.accept()
-        LocalConnectionAsyncIO(endpoint, self.server, self.logger)
+        try:
+            der = self.meta.shared_der_rsakey
+            key = security.RSAObject(der=der)
+            LocalConnectionAsyncIO(endpoint, self.server, key, self.logger)
+        except RuntimeError:
+            logger.error("Slave key not ready, use master key instead")
+            LocalConnectionAsyncIO(endpoint, self.server,
+                                   security.get_private_key(), self.logger)
 
     def close(self, kernel):
         while self.io_list:
@@ -47,11 +55,12 @@ class LocalControl(object):
 
 class LocalConnectionAsyncIO(object):
     @T.update_time
-    def __init__(self, endpoint, server, logger):
+    def __init__(self, endpoint, server, slave_key, logger):
         self.binary_mode = False
 
         self.sock, self.client = endpoint
         self.server = server
+        self.rsakey = slave_key
         self.logger = logger.getChild("%s:%s" % self.client)
 
         self.randbytes = security.randbytes(128)
@@ -67,7 +76,7 @@ class LocalConnectionAsyncIO(object):
             random bytes (128 bytes)
         """
         buf = b"FLUX0002" + \
-              PRIVATE_KEY.sign(self.randbytes) + \
+              self.rsakey.sign(self.randbytes) + \
               self.randbytes
         self.sock.send(buf)
 

@@ -2,16 +2,12 @@
 import logging
 import json
 import re
-import os
 
-from fluxmonitor.err_codes import UNKNOW_COMMAND, ALREADY_RUNNING, \
-    NOT_RUNNING, NO_TASK, RESOURCE_BUSY
+from fluxmonitor.err_codes import UNKNOW_COMMAND, RESOURCE_BUSY
 from fluxmonitor.code_executor.fcode_executor import FcodeExecutor
 from fluxmonitor.storage import CommonMetadata
-from fluxmonitor.config import DEBUG
 
 from .base import CommandMixIn, DeviceOperationMixIn
-from .misc import TaskLoader
 
 logger = logging.getLogger(__name__)
 

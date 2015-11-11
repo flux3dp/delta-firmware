@@ -97,7 +97,12 @@ int get_rescue_machine_uuid(unsigned char *uuid_buf[16]) {
 
     memcpy(uuid_buf, view.buf, 16);
     PyBuffer_Release(&view);
-    memset(uuid_buf, 0, 8);
+    memset(uuid_buf, 255, 8);
 
+    return 0;
+}
+
+int get_rescue_machine_sn(unsigned char *sn_buf[10]) {
+    memcpy(sn_buf, "XXXXXXXXXX", 10);
     return 0;
 }

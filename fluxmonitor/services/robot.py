@@ -2,7 +2,6 @@
 import logging
 
 from fluxmonitor.misc import timer as T
-from fluxmonitor.event_base import EventBase
 from fluxmonitor.controller.interfaces.local import LocalControl
 from fluxmonitor.controller.interfaces.button import ButtonControl
 from fluxmonitor.controller.tasks.command_task import CommandTask
@@ -25,7 +24,12 @@ class Robot(ServiceBase):
         self.debug = options.debug
 
         self.local_control = LocalControl(self, logger=logger)
-        self.button_control = ButtonControl(self, logger=logger)
+
+        try:
+            self.button_control = ButtonControl(self, logger=logger)
+        except Exception:
+            logger.exception("Button control interface launch failed, ignore.")
+            self.button_control = None
 
         self.task_callstack = []
         self.this_task = None
@@ -96,7 +100,11 @@ class Robot(ServiceBase):
     def on_shutdown(self):
         self.running = False
         self.local_control.close(self)
-        self.button_control.close(self)
+        self.local_control = None
+
+        if self.button_control:
+            self.button_control.close(self)
+            self.button_control = None
 
 
 class NullSender(object):
