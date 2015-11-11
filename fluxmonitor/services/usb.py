@@ -291,7 +291,7 @@ class UsbIO(object):
     def on_query_ipaddr(self, buf):
         status = self.nw_monitor.full_status()
         ipaddrs = []
-        for key, data in status.items()
+        for key, data in status.items():
             for ipaddr, mask in data.get("ipaddr", []):
                 ipaddrs.append(ipaddr)
         self.send_response(REQ_GET_IPADDR, True, " ".join(ipaddrs))
