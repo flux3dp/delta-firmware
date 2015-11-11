@@ -216,7 +216,7 @@ int calculator(float init_endstop_x, float init_endstop_y, float init_endstop_z,
     data.delta_radius = delta_radious;  // initial M666 R value
 
     bool r_en = false; // enable R modification
-    bool h_en = true; // enable H modification
+    bool h_en = false; // enable H modification
 
     // 4 or 3 points input. If r_en == false && h_en == false, only 3 points
     // needed.
