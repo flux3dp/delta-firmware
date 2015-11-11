@@ -7,6 +7,7 @@ import socket
 import struct
 
 from fluxmonitor.hal.nl80211.config import get_wlan_ssid
+from fluxmonitor.hal.net.monitor import Monitor as NetworkMonitor
 from fluxmonitor.misc import network_config_encoder as NCE
 from fluxmonitor.security.passwd import set_password
 from fluxmonitor.security.access_control import is_rsakey, get_keyobj, \
@@ -35,6 +36,7 @@ REQ_AUTH = 0x02
 REQ_CONFIG_GENERAL = 0x03
 REQ_CONFIG_NETWORK = 0x04
 REQ_GET_SSID = 0x05
+REQ_GET_IPADDR = 0x07
 REQ_SET_PASSWORD = 0x06
 
 REQ_MAINBOARD_TUNNEL = 0x80
@@ -47,6 +49,7 @@ class UsbService(ServiceBase):
 
     def __init__(self, options):
         self.options = options
+        self.nw_monitor = NetworkMonitor()
         super(UsbService, self).__init__(logger)
 
     def start(self):
@@ -106,6 +109,7 @@ class UsbIO(object):
             REQ_CONFIG_GENERAL: self.on_config_general,
             REQ_CONFIG_NETWORK: self.on_config_network,
             REQ_GET_SSID: self.on_query_ssid,
+            REQ_GET_IPADDR: self.on_query_ipaddr,
             REQ_SET_PASSWORD: self.on_set_password,
 
             REQ_MAINBOARD_TUNNEL: self.on_mainboard_tunnel,
@@ -283,6 +287,14 @@ class UsbIO(object):
         except Exception:
             logger.exception("Error while getting ssid %s" % "wlan0")
             self.send_response(REQ_GET_SSID, False, "NOT_FOUND")
+
+    def on_query_ipaddr(self, buf):
+        status = self.nw_monitor.full_status()
+        ipaddrs = []
+        for key, data in status.items()
+            for ipaddr, mask in data.get("ipaddr", []):
+                ipaddrs.append(ipaddr)
+        self.send_response(REQ_GET_IPADDR, True, " ".join(ipaddrs))
 
     def on_set_password(self, buf):
         pwd, pem = buf.split(b"\x00")
