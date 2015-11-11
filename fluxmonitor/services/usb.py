@@ -50,7 +50,6 @@ class UsbService(ServiceBase):
 
     def __init__(self, options):
         self.options = options
-        self.nw_monitor = NetworkMonitor(None)
         super(UsbService, self).__init__(logger)
 
     def start(self):
@@ -96,6 +95,7 @@ class UsbIO(object):
     def __init__(self, server, sock):
         self.sock = sock
         self.server = server
+        self.nw_monitor = NetworkMonitor(None)
         self.meta = CommonMetadata()
 
         self._recv_buf = bytearray(4096)
