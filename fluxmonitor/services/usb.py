@@ -281,10 +281,7 @@ class UsbIO(object):
     def on_query_ssid(self, buf):
         try:
             ssid = get_wlan_ssid("wlan0")
-            if ssid:
-                self.send_response(REQ_GET_SSID, True, ssid.encode())
-            else:
-                self.send_response(REQ_GET_SSID, False, "NOT_FOUND")
+            self.send_response(REQ_GET_SSID, True, ssid.encode())
         except Exception:
             logger.exception("Error while getting ssid %s" % "wlan0")
             self.send_response(REQ_GET_SSID, False, "NOT_FOUND")
