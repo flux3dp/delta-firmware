@@ -11,7 +11,6 @@ from fluxmonitor.misc import network_config_encoder as NCE
 from fluxmonitor.security.passwd import set_password
 from fluxmonitor.security.access_control import is_rsakey, get_keyobj, \
     add_trusted_keyobj, untrust_all
-from fluxmonitor.security.passwd import set_password
 from fluxmonitor.security.misc import randstr
 from fluxmonitor.halprofile import get_model_id
 from fluxmonitor.config import network_config

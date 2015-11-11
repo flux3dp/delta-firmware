@@ -2,7 +2,6 @@
 import logging
 
 from fluxmonitor.misc import timer as T
-from fluxmonitor.event_base import EventBase
 from fluxmonitor.controller.interfaces.local import LocalControl
 from fluxmonitor.controller.interfaces.button import ButtonControl
 from fluxmonitor.controller.tasks.command_task import CommandTask

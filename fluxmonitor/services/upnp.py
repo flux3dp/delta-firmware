@@ -1,9 +1,7 @@
 
-from signal import signal, SIGCHLD
 from itertools import chain
 from time import time, sleep
 import uuid as _uuid
-import subprocess
 import binascii
 import logging
 import struct
@@ -81,7 +79,6 @@ def parse_signed_request(payload, secretkey):
     cli_keylen = cli_keyobj.size()
     body, sign = message[:-cli_keylen], message[-cli_keylen:]
 
-    serial = payload[4:20]
     cli_keylen = cli_keyobj.size()
 
     if not cli_keyobj:
@@ -184,18 +181,20 @@ class MulticastInterface(object):
         main_pubder = self.pkey.export_pubkey_der()
         identify = security.get_identify()
 
-        self._discover_payload = struct.pack("<4sBB16s10sfHH",
-            "FLUX",              # Magic String
-            MULTICAST_VERSION,   # Protocol Version
-            0,                   # Discover Code
-            UUID_BYTES,          # Device UUID
-            SERIAL_NUMBER,       # Device Serial Number
-            temp_ts,             # TEMP TS
-            len(main_pubder),    # Public Key length
-            len(identify),       # Identify length
+        self._discover_payload = struct.pack(
+            "<4sBB16s10sfHH",
+            "FLUX",             # Magic String
+            MULTICAST_VERSION,  # Protocol Version
+            0,                  # Discover Code
+            UUID_BYTES,         # Device UUID
+            SERIAL_NUMBER,      # Device Serial Number
+            temp_ts,            # TEMP TS
+            len(main_pubder),   # Public Key length
+            len(identify),      # Identify length
         ) + main_pubder + identify
 
-        self._touch_payload = struct.pack("<4sBB16sfHH",
+        self._touch_payload = struct.pack(
+            "<4sBB16sfHH",
             "FLUX",              # Magic String
             MULTICAST_VERSION,   # Protocol Version
             3,                   # Tocuh Code
@@ -407,21 +406,6 @@ class UpnpServiceMixIn(object):
                 self.robot_agent = RobotLaunchAgent(self)
                 return {"status": "initial"}
 
-        while True:
-            ret = daemon.poll()
-            if ret is None:
-                if time() - timestemp > 16:
-                    daemon.kill()
-                else:
-                    sleep(0.05)
-            elif ret == 0:
-                return {"timestemp": time()}
-            elif ret == 0x80:
-                raise RuntimeError(ALREADY_RUNNING)
-            else:
-                logger.error("Robot daemon return statuscode %i" % ret)
-                raise RuntimeError(UNKNOW_ERROR, "%i" % ret)
-
     @json_payload_wrapper
     def cmd_reset_control(self, access_id, message):
         do_kill = message == b"\x01"
@@ -543,8 +527,8 @@ class RobotLaunchAgent(Process):
         logfile = Storage("log").get_path("robot.log")
         pidfile = control_mutex.pidfile()
 
-        return cls(services, ["fluxrobot", "--pid", pidfile, "--log", logfile,
-                              "--daemon"])
+        return cls(service, ["fluxrobot", "--pid", pidfile, "--log", logfile,
+                             "--daemon"])
 
     def __init__(self, services):
         pid = control_mutex.locking_status()

@@ -2,7 +2,6 @@
 from hashlib import sha1
 from hmac import HMAC
 from time import time
-import binascii
 
 from fluxmonitor.security import _security
 from fluxmonitor.storage import Storage
