@@ -6,7 +6,7 @@ import platform
 import sys
 import os
 
-from fluxmonitor import STR_VERSION as VERSION
+from fluxmonitor import __version__ as VERSION
 
 
 MODEL_DEFINES = {
@@ -40,16 +40,18 @@ def checklib(lib_name, package_name):
 
 
 def setup_test():
+    from tempfile import mkdtemp
+    tempbase = mkdtemp()
+
     from fluxmonitor import config
-    config.general_config["db"] = "./tmp/test_db"
-    config.general_config["logfile"] = "./tmp/test_log"
+    config.general_config["db"] = os.path.join(tempbase, "db")
     config.general_config["keylength"] = 512
     config.general_config["debug"] = True
-    config.network_config["unixsocket"] = "./tmp/network-sock"
-    config.uart_config["headboard"] = "./tmp/headboard-uart"
-    config.uart_config["mainboard"] = "./tmp/mainboard-uart"
-    config.uart_config["pc"] = "./tmp/pc-uart"
-    config.robot_config["filepool"] = "./tmp/test_filepool"
+    config.network_config["unixsocket"] = os.path.join(tempbase, "network-us")
+    config.uart_config["headboard"] = os.path.join(tempbase, "headboard-us")
+    config.uart_config["mainboard"] = os.path.join(tempbase, "mainboard-us")
+    config.uart_config["pc"] = os.path.join(tempbase, "pc-us")
+    config.robot_config["filepool"] = os.path.join(tempbase, "filepool")
 
     import logging.config
     logging.config.dictConfig({
@@ -75,6 +77,12 @@ def setup_test():
         }
     })
 
+    def on_exit():
+        import shutil
+        shutil.rmtree(tempbase)
+    import atexit
+    atexit.register(on_exit)
+
 
 def get_packages():
     return [name
@@ -93,7 +101,8 @@ PY_INCLUDES = [distutils.sysconfig.get_python_inc()]
 ENTRY_POINTS = {
     "console_scripts": [
         "fluxupnpd=fluxmonitor.bin.fluxupnpd:main",
-        "fluxhal-uartd=fluxmonitor.bin.fluxuartd:main",
+        "fluxhal-uartd=fluxmonitor.bin.fluxhald:main",  # Remove in next ver
+        "fluxhald=fluxmonitor.bin.fluxhald:main",
         "fluxnetworkd=fluxmonitor.bin.fluxnetworkd:main",
         "fluxusbd=fluxmonitor.bin.fluxusbd:main",
 
@@ -129,7 +138,8 @@ elif is_linux():
 
 
 def get_install_requires():
-    packages = ['setuptools', 'psutil', 'python-memcached', ]
+    packages = ['setuptools', 'psutil', 'setproctitle', 'python-memcached',
+                'sysv_ipc', ]
     if is_linux():
         packages += ['pyroute2']
 
@@ -142,11 +152,20 @@ def get_install_requires():
     return packages
 
 
-if "CFLAGS" in os.environ:
-    os.environ["CFLAGS"] += " -std=c99"
-else:
-    os.environ["CFLAGS"] = "-std=c99"
-
+if is_linux():
+    if "CFLAGS" in os.environ:
+        os.environ["CFLAGS"] += " -std=c99"
+    else:
+        os.environ["CFLAGS"] = "-std=c99"
 
 if is_darwin():
     os.environ["ARCHFLAGS"] = "-arch x86_64"
+    if "CXXFLAGS" in os.environ:
+        os.environ["CXXFLAGS"] += " -std=c++11"
+    else:
+        os.environ["CXXFLAGS"] = "-std=c++11"
+
+    # if "CXXFLAGS" in os.environ:
+    #     os.environ["CXXFLAGS"] += " -std=c++11"
+    # else:
+    #     os.environ["CXXFLAGS"] = "-std=c++11"

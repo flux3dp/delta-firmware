@@ -11,7 +11,12 @@ from fluxmonitor.launcher import deamon_entry
 def main():
     parser = argparse.ArgumentParser(description='flux usb deamon')
     add_daemon_arguments("fluxusbd", parser)
-    options = parser.parse_args()
+
+    if any('start_service' in p for p in sys.argv):
+        options = parser.parse_args(['--pid', '/var/run/fluxusbd.pid', '--log', '/var/log/fluxusbd.log', '—daemon'])
+    else:
+        options = parser.parse_args()
+
     apply_daemon_arguments(options)
 
     if options.stop_daemon:
@@ -32,7 +37,7 @@ def main():
     else:
         return_code = deamon_entry(
             options,
-            watcher="fluxmonitor.watcher.usb_serial.UsbWatcher")
+            service="fluxmonitor.services.usb.UsbService")
         sys.exit(return_code)
 
 

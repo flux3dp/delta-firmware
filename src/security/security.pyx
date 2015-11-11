@@ -13,8 +13,13 @@ DEF PUBKEY_SYMBOL = "pub"
 cdef extern from "libflux_identify/flux_identify.h":
     RSA* get_machine_rsakey() except NULL
     int get_machine_uuid(unsigned char* [16]) except -1
+    int get_machine_sn(unsigned char* [10]) except -1
+    int get_machine_identify(unsigned char**)
     RSA* get_rescue_machine_rsakey() except NULL
     int get_rescue_machine_uuid(unsigned char* [16]) except -1
+    int get_rescue_machine_sn(unsigned char* [16]) except -1
+    void generate_wpa_psk(const unsigned char*, int, const unsigned char*,
+                          int, unsigned char [64])
 
 
 cdef object storage = Storage("security")
@@ -37,11 +42,33 @@ def get_uuid(rescue=False):
     cdef unsigned char[16] buf
 
     if rescue:
-        get_machine_uuid(<unsigned char**>&buf)
-    else:
         get_rescue_machine_uuid(<unsigned char**>&buf)
+    else:
+        get_machine_uuid(<unsigned char**>&buf)
 
     return buf[:16]
+
+
+def get_serial_number(rescue=False):
+    cdef unsigned char[10] buf
+
+    if rescue:
+        get_rescue_machine_sn(<unsigned char**>&buf)
+    else:
+        get_machine_sn(<unsigned char**>&buf)
+
+    return buf[:10]
+
+
+def get_identify():
+    cdef unsigned char* buf
+    cdef int length
+
+    length = get_machine_identify(&buf)
+    if length == 0:
+        raise IOError("NOT_AVAILABLE")
+    else:
+        return buf[:length]
 
 
 cpdef bint is_rsakey(object pem=None, object der=None):
@@ -66,3 +93,10 @@ cpdef bint validate_password(password):
             return pwdhash == inputhash
     else:
         return True
+
+
+def get_wpa_psk(ssid, passphrase):
+  cdef unsigned char[64] buf
+  generate_wpa_psk(passphrase, len(passphrase), ssid, len(ssid),
+                   <unsigned char*>buf)
+  return buf[:64]

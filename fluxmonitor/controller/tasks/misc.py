@@ -1,7 +1,11 @@
 
+from setproctitle import setproctitle
 from multiprocessing import Process
-from select import select
+from select import select, error
+from errno import EINTR
 import socket
+
+from setproctitle import setproctitle
 
 
 class TaskLoader(Process):
@@ -18,23 +22,31 @@ class TaskLoader(Process):
         self.io_in.close()
 
     def serve_forever(self):
+        setproctitle("fluxrobot TaskLoader")
+
         buf = bytearray(4096)
         view = memoryview(buf)
         l = 0
         offset = 0
 
-        while True:
-            if l == offset:
-                l = self.task_file.readinto(buf)
-                if l == 0:
-                    self.io_in.close()
-                    return
-                else:
-                    offset = 0
+        try:
+            while True:
+                if l == offset:
+                    l = self.task_file.readinto(buf)
+                    if l == 0:
+                        self.io_in.close()
+                        return
+                    else:
+                        offset = 0
 
-            wl = select((), (self.io_in, ), (), 3.0)[1]
-            if wl:
-                offset += self.io_in.send(view[offset:l])
+                wl = select((), (self.io_in, ), (), 3.0)[1]
+                if wl:
+                    offset += self.io_in.send(view[offset:l])
+        except error as e:
+            if e.args[0] == EINTR:
+                pass
+            else:
+                raise
 
     def readline(self):
         return self.fout.readline()

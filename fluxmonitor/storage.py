@@ -1,7 +1,11 @@
 
 from random import choice
 from shutil import rmtree
+from time import time
+import struct
 import os
+
+import sysv_ipc
 
 from fluxmonitor.config import general_config
 
@@ -32,6 +36,13 @@ class Storage(object):
     def open(self, filename, *args):
         return open(self.get_path(filename), *args)
 
+    def readall(self, filename):
+        if self.exists(filename):
+            with self.open(filename, "rb") as f:
+                return f.read()
+        else:
+            return None
+
 
 NICKNAMES = ["Apple", "Apricot", "Avocado", "Banana", "Bilberry", "Blackberry",
              "Blackcurrant", "Blueberry", "Boysenberry", "Cantaloupe",
@@ -52,27 +63,108 @@ NICKNAMES = ["Apple", "Apricot", "Avocado", "Banana", "Bilberry", "Blackberry",
 
 
 class CommonMetadata(object):
-    _nickname = None
-    _nickname_mtime = None
-
     def __init__(self):
         self.storage = Storage("general", "meta")
 
-    def get_nickname(self):
-        if not self.storage.exists("nickname"):
-            self.set_nickname("Flux 3D Printer (%s)" % choice(NICKNAMES))
+        # Memory struct
+        # 0 ~ 16 bytes: Control flags...
+        #   0: nickname is loaded
+        #   1: plate_correction is loaded
+        #
+        # 128 ~ 384: nickname, end with char \x00
+        # 384 ~ 512: plate_correction (current user 96 bytes)
+        # 1024 ~ 2048: Shared rsakey
+        # 3072: Wifi status code
+        # 3584 ~ 4096: Device status
+        self.shm = sysv_ipc.SharedMemory(19851226, sysv_ipc.IPC_CREAT,
+                                         size=4096, init_character='\x00')
 
-        mtime = self.storage.get_mtime("nickname")
-        if mtime != self._nickname_mtime:
-            with self.storage.open("nickname", "r") as f:
-                self._nickname = f.read()
-                self._nickname_mtime = mtime
+    def __del__(self):
+        self.shm.detach()
+        self.shm = None
 
-        return self._nickname
+    @property
+    def plate_correction(self):
+        if ord(self.shm.read(1, 0)) & 64 == 64:
+            buf = self.shm.read(96, 384)
+            vals = struct.unpack("d" * 12, buf)
+            return dict(zip("XYZABCIJKRDH", vals))
+        else:
+            if self.storage.exists("adjust"):
+                with self.storage.open("adjust", "r") as f:
+                    try:
+                        vals = tuple((float(v) for v in f.read().split(" ")))
+                        buf = struct.pack('d' * 12, *vals)
+                        self.shm.write(buf, 384)
 
-    def set_nickname(self, name):
-        with self.storage.open("nickname", "w") as f:
-            f.write(name)
+                        flag = chr(ord(self.shm.read(1, 0)) | 64)
+                        self.shm.write(flag, 0)
+
+                        return dict(zip("XYZABCIJKRDH", vals))
+                    except Exception as e:
+                        # Ignore error and return default
+                        raise
+
+        return {"X": 0, "Y": 0, "Z": 0, "A": 0, "B": 0, "C": 0,
+                "I": 0, "J": 0, "K": 0, "R": 96.70, "D": 190, "H": 240}
+
+    @plate_correction.setter
+    def plate_correction(self, val):
+        v = self.plate_correction
+        v.update(val)
+
+        vals = tuple((v[k] for k in "XYZABCIJKRDH"))
+        with self.storage.open("adjust", "w") as f:
+            f.write(" ".join("%.2f" % i for i in vals))
+        buf = struct.pack('d' * 12, *vals)
+        self.shm.write(buf, 384)
+
+        flag = chr(ord(self.shm.read(1, 0)) | 64)
+        self.shm.write(flag, 0)
+
+    @property
+    def nickname(self):
+        if ord(self.shm.read(1, 0)) & 128 == 128:
+            nickname = self.shm.read(256, 128)
+            return nickname.rstrip('\x00')
+
+        else:
+            if self.storage.exists("nickname"):
+                with self.storage.open("nickname", "rb") as f:
+                    nickname = f.read()
+                self._cache_nickname(nickname)
+            else:
+                nickname = ("Flux 3D Printer (%s)" %
+                            choice(NICKNAMES)).encode()
+                self.nickname = nickname
+
+            return nickname
+
+    @nickname.setter
+    def nickname(self, val):
+        with self.storage.open("nickname", "wb") as f:
+            f.write(val)
+        self._cache_nickname(val)
+
+    @property
+    def shared_der_rsakey(self):
+        buf = self.shm.read(1024, 1024)
+        bit, ts, l = struct.unpack("<BfH", buf[:7])
+        if bit != 128:
+            raise RuntimeError("RSA Key not ready")
+        return buf[7:l + 7]
+
+    @shared_der_rsakey.setter
+    def shared_der_rsakey(self, val):
+        h = struct.pack("<BfH", 128, time(), len(val))
+        self.shm.write(h + val, 1024)
+
+    def _cache_nickname(self, val):
+        self.shm.write(val, 128)
+        l = len(val)
+        self.shm.write(b'\x00' * (256 - l), 128 + l)
+        flag = chr(ord(self.shm.read(1, 0)) | 128)
+        self.shm.write(flag, 0)
 
     @property
     def play_bufsize(self):
@@ -87,3 +179,30 @@ class CommonMetadata(object):
     def play_bufsize(self, val):
         with self.storage.open("play_bufsize", "w") as f:
             return f.write(str(val))
+
+    @property
+    def wifi_status(self):
+        return ord(self.shm.read(1, 3072))
+
+    @wifi_status.setter
+    def wifi_status(self, val):
+        self.shm.write(chr(val), 3072)
+
+    @property
+    def device_status(self):
+        l = struct.unpack("H", self.shm.read(2, 3584))[0]
+        return self.shm.read(l, 3586)
+
+    @device_status.setter
+    def device_status(self, val):
+        # val struct:
+        # (
+        #   [Main Status, str label],
+        #   [Minor Status, str label],
+        #   [Head Type, str label],
+        #   [Progress, float 0 ~ 1],
+        # )
+        prog = struct.pack("f", val[3])
+        buf = val[0] + "\x00" + val[1] + "\x00" + val[2] + "\x00" + prog
+        payload = struct.pack("H", len(buf)) + buf
+        self.shm.write(payload, 3584)

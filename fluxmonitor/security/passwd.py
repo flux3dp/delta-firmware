@@ -2,7 +2,6 @@
 from hashlib import sha1
 from hmac import HMAC
 from time import time
-import binascii
 
 from fluxmonitor.security import _security
 from fluxmonitor.storage import Storage
@@ -18,9 +17,9 @@ def has_password():
     return _security.has_password()
 
 
-def set_password(password, old_password):
+def validate_and_set_password(password, old_password):
     if validate_password(old_password):
-        _set_password(password)
+        set_password(password)
         untrust_all()
 
         return True
@@ -28,7 +27,7 @@ def set_password(password, old_password):
         return False
 
 
-def _set_password(password):
+def set_password(password):
     salt = randstr(8)
     pwdhash = HMAC(salt, password, sha1).hexdigest()
     with _storage.open("password", "w") as f:

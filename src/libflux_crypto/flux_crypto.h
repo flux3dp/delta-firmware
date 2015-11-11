@@ -60,3 +60,12 @@ PyObject* sign_message(RSA* key, const unsigned char* message, int length);
 
 // @return: 1 if message is ok, others are failed
 int verify_message(RSA*, const unsigned char*, int, const unsigned char*, int);
+
+
+// pass: wifi password
+// passlen: wifi password length
+// salt: wifi ssid
+// saltlen: wifi ssid length
+// digest: Pointer to get hex string output
+void generate_wpa_psk(const char *pass, int passlen, const unsigned char *salt,
+                      int saltlen, unsigned char digest[64]);

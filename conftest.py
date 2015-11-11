@@ -3,7 +3,7 @@ import pytest
 import shutil
 import os
 
-from setup_util import setup_test
+from setup_utils import setup_test
 setup_test()
 
 

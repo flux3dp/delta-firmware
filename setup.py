@@ -32,7 +32,8 @@ setup(
         ("flux_crypto", {
             "sources": [
                 "src/libflux_crypto/flux_crypto_rsa.c",
-                "src/libflux_crypto/flux_crypto_aes.c"],
+                "src/libflux_crypto/flux_crypto_aes.c",
+                "src/libflux_crypto/pbkdf2.c"],
             "include_dirs": setup_utils.PY_INCLUDES,
             "macros": setup_utils.DEFAULT_MACROS
         }),
@@ -60,6 +61,23 @@ setup(
             extra_compile_args=["-std=c99"],
             define_macros=setup_utils.DEFAULT_MACROS,
             libraries=["crypto"], extra_objects=[], include_dirs=["src"]
+        ),
+        Extension(
+            'fluxmonitor.code_executor._device_fsm', sources=[
+                "src/device_fsm/device_fsm.cpp",
+                "src/device_fsm/fsm.cpp", ],
+            language="c++",
+            define_macros=setup_utils.DEFAULT_MACROS,
+            libraries=[], extra_objects=[], include_dirs=["src"]
+        ),
+        Extension(
+            'fluxmonitor.misc.correction', sources=[
+                "src/correction/vector_3.cpp",
+                "src/correction/main.cpp",
+                "src/correction/correction.cpp"],
+            language="c++",
+            define_macros=setup_utils.DEFAULT_MACROS,
+            libraries=[], extra_objects=[], include_dirs=["src"]
         )
     ]
 )
