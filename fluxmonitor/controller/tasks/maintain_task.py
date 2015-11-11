@@ -1,4 +1,5 @@
 
+from shlex import split as shlex_split
 import logging
 import socket
 import re
@@ -19,27 +20,43 @@ RE_REPORT_DIST = re.compile("X:(?P<X>(-)?[\d]+(.[\d]+)?) "
 logger = logging.getLogger(__name__)
 
 
-def do_correction(x, y, z, h):
-    if max(x, y, z, h) - min(x, y, z, h) > 3:
+def do_correction(x, y, z):
+    if max(x, y, z) - min(x, y, z) > 3:
         raise ValueError("OVER_TOLERANCE")
 
     cm = CommonMetadata()
     old_corr = cm.plate_correction
-    logger.debug("Old correction: X%(X).4f Y%(Y).4f Z%(Z).4f H%(H).4f",
-                 old_corr)
+
+    old_corr_str = "M666X%(X).4fY%(Y).4fZ%(Z).4f" % old_corr
 
     new_corr = correction.calculate(
-        old_corr["X"], old_corr["Y"], old_corr["Z"], old_corr["H"], x, y, z, h)
+        old_corr["X"], old_corr["Y"], old_corr["Z"], old_corr["H"], x, y, z, 0)
     cm.plate_correction = new_corr
 
-    logger.debug("New correction: X%(X).4f Y%(Y).4f Z%(Z).4f H%(H).4f",
+    logger.debug("New correction: X%(X).4fY%(Y).4fZ%(Z).4f",
                  new_corr)
 
-    h = new_corr.get("H", 0)
+    new_corr.pop("H")
+
+    return (
+        old_corr_str,
+        "M666X%(X).4fY%(Y).4fZ%(Z).4f" % new_corr
+    )
+
+
+def do_h_correction(delta=None, h=None):
+    cm = CommonMetadata()
+
+    if not h:
+        oldh = cm.plate_correction["H"]
+        h = oldh - delta
+
     if h > 248 or h < 230:
+        logger.error("H ERROR: %f" % h)
         raise ValueError("INPUT_FAILED")
 
-    return "M666 X%(X).4f Y%(Y).4f Z%(Z).4f H%(H).4f" % new_corr
+    cm.plate_correction = {"H": h}
+    return "M666H%.4f" % h
 
 
 def check_mainboard(method):
@@ -93,18 +110,26 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
         for msg in self.recv_from_headboard(sender):
             pass
 
-    def dispatch_cmd(self, cmd, sock):
+    def dispatch_cmd(self, cmdline, sock):
         if self._busy:
             raise RuntimeError(RESOURCE_BUSY)
+
+        params = shlex_split(cmdline)
+        cmd = params[0]
 
         if cmd == "home":
             return self.do_home(sock)
 
         elif cmd == "eadj":
-            return self.do_eadj(sock)
+            clean = (len(params) > 1 and params[1] == "clean")
+            return self.do_eadj(sock, clean=clean)
 
-        elif cmd == "eadj clean":
-            return self.do_eadj(sock, clean=True)
+        elif cmd == "cor_h":
+            if len(params) > 1:
+                h = float(params[1])
+                return self.do_h_correction(sock, h=h)
+            else:
+                return self.do_h_correction(sock)
 
         elif cmd == "madj":
             return self.do_madj(sock)
@@ -168,36 +193,21 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
             try:
                 sender.send_text("DEBUG MB %s" % msg)
                 if msg.startswith("Bed Z-Height at"):
-                    data.append(float(msg.rsplit(" ", 1)[-1]))
-                    sender.send_text("DEBUG Z: %.4f" % data[-1])
-                    self.main_ctrl.send_cmd("G30X0Y0", self)
-                    self._mainboard_msg_filter = stage4_test_h
-
-            except Exception:
-                logger.exception("Unhandle Error")
-                sender.send_text("error UNKNOW_ERROR")
-                self.server.exit_task(self)
-
-        def stage4_test_h(msg):
-            try:
-                sender.send_text("DEBUG MB %s" % msg)
-                if msg.startswith("Bed Z-Height at"):
                     self._mainboard_msg_filter = None
                     self._busy = False
 
                     data.append(float(msg.rsplit(" ", 1)[-1]))
-                    sender.send_text("DEBUG H: %.4f" % data[-1])
+                    sender.send_text("DEBUG Z: %.4f" % data[-1])
 
                     if clean:
                         sender.send_text("DEBUG: Clean")
-                    cmd_str = do_correction(*data)
-                    sender.send_text("DEBUG NEW --> %s" % cmd_str)
+                    old_cmd, new_cmd = do_correction(*data)
+                    sender.send_text("DEBUG OLD --> %s" % old_cmd)
+                    sender.send_text("DEBUG NEW --> %s" % new_cmd)
+                    self.main_ctrl.send_cmd(new_cmd, self)
 
-                    self.main_ctrl.send_cmd(cmd_str, self)
-                    self.main_ctrl.send_cmd("G28", self)
-
-                    sender.send_text("ok")
-
+                    sender.send_text("ok %.4f %.4f %.4f" % (data[0], data[1],
+                                                            data[2]))
             except ValueError as e:
                 sender.send_text("error %s" % e.args[0])
 
@@ -211,96 +221,47 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
         if clean:
             cm = CommonMetadata()
             # TODO
-            cm.plate_correction = {"X": 0, "Y": 0, "Z": 0, "H": 240}
-            self.main_ctrl.send_cmd("M666X0Y0Z0H240", self)
+            cm.plate_correction = {"X": 0, "Y": 0, "Z": 0, "H": 242}
+            self.main_ctrl.send_cmd("M666X0Y0Z0H242", self)
+            self.main_ctrl.send_cmd("G28", self)
 
         self._mainboard_msg_filter = stage1_test_x
-        self.main_ctrl.send_cmd("G28", self)
+        # self.main_ctrl.send_cmd("G28", self)
         self.main_ctrl.send_cmd("G30X-73.6122Y-42.5", self)
         return "continue"
 
     @check_mainboard
-    def do_madj(self, sender):
-        data = []
+    def do_h_correction(self, sender, h=None):
+        if h is not None:
+            cmd = do_h_correction(h=h)
+            sender.send_text("continue")
+            sender.send_text("ok 0")
+            return
 
-        def send_cmd(x, y):
-            cmds = ("G28", "G1F8000Z100",
-                    "G1F8000X%.5fY%.5fZ60" % (x, y),
-                    "X3O", "G1F1000Z10", "G1F500Z5", "G1F300Z-2", "X3F",
-                    "M84", "G4P50", "X6")
-            for c in cmds:
-                self.main_ctrl.send_cmd(c, self)
-
-        def stage1_test_x(msg):
+        def stage_test_h(msg):
             try:
-                sender.send_text("TESTING_X")
-
-                m = RE_REPORT_DIST.match(msg)
-                if m:
-                    data.append(m.groupdict())
-
-                    self._mainboard_msg_filter = stage2_test_y
-                    send_cmd(73.6122, -42.5)
-
-            except Exception:
-                logger.exception("Unhandle Error")
-                self.server.exit_task(self)
-
-        def stage2_test_y(msg):
-            try:
-                sender.send_text("TESTING_Y")
-
-                m = RE_REPORT_DIST.match(msg)
-                if m:
-                    data.append(m.groupdict())
-
-                    self._mainboard_msg_filter = stage3_test_z
-                    send_cmd(0, 85)
-
-            except Exception:
-                logger.exception("Unhandle Error")
-                self.server.exit_task(self)
-
-        def stage3_test_z(msg):
-            try:
-                sender.send_text("TESTING_Z")
-
-                m = RE_REPORT_DIST.match(msg)
-                if m:
-                    data.append(m.groupdict())
-
-                    self._mainboard_msg_filter = stage4_test_h
-                    send_cmd(0, 0)
-
-            except Exception:
-                logger.exception("Unhandle Error")
-                self.server.exit_task(self)
-
-        def stage4_test_h(msg):
-            try:
-                sender.send_text("TESTING_H")
-
-                m = RE_REPORT_DIST.match(msg)
-                if m:
-                    data.append(m.groupdict())
+                if msg.startswith("Bed Z-Height at"):
                     self._mainboard_msg_filter = None
                     self._busy = False
 
-                    for resule in data:
-                        logger.debug("DATA: %s", data)
-                        sender.send_text("DATA %(X)s, %(Y)s, %(Z)s" %
-                                         resule)
+                    data = float(msg.rsplit(" ", 1)[-1])
+                    sender.send_text("DEBUG H: %.4f" % data)
 
-                    sender.send_text("ok")
+                    corr_cmd = do_h_correction(delta=data)
+                    self.main_ctrl.send_cmd(corr_cmd, self)
+
+                    sender.send_text("ok %.4f" % data)
+            except ValueError as e:
+                sender.send_text("error %s" % e.args[0])
+
             except Exception:
                 logger.exception("Unhandle Error")
+                sender.send_text("error UNKNOW_ERROR")
                 self.server.exit_task(self)
 
         self._busy = True
-        self.main_ctrl.send_cmd("G90", self)
-        send_cmd(-73.6122, -42.5)
-        self._mainboard_msg_filter = stage1_test_x
-
+        self._mainboard_msg_filter = stage_test_h
+        self.main_ctrl.send_cmd("G30X0Y0", self)
         return "continue"
 
     def on_loop(self, loop):
