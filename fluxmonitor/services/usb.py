@@ -23,7 +23,8 @@ from .base import ServiceBase
 
 logger = logging.getLogger(__name__)
 
-SERIAL_HEX = security.get_uuid()
+UUID_HEX = security.get_uuid()
+SERIAL = security.get_serial()
 MODEL_ID = get_model_id()
 COMMON_ERRNO = (ENOENT, ENOTSOCK)
 
@@ -49,7 +50,7 @@ class UsbService(ServiceBase):
 
     def __init__(self, options):
         self.options = options
-        self.nw_monitor = NetworkMonitor()
+        self.nw_monitor = NetworkMonitor(None)
         super(UsbService, self).__init__(logger)
 
     def start(self):
@@ -203,9 +204,9 @@ class UsbIO(object):
 
     def on_identify(self, buf):
         self._vector = randstr(8)
-        resp = ("ver=%s\x00model=%s\x00serial=%s\x00name=%s\x00"
+        resp = ("ver=%s\x00model=%s\x00uuid=%s\x00serial=%s\x00name=%s\x00"
                 "time=%.2f\x00pwd=%i\x00vector=%s") % (
-                    VERSION, MODEL_ID, SERIAL_HEX, self.meta.nickname,
+                    VERSION, MODEL_ID, UUID_HEX, SERIAL, self.meta.nickname,
                     time(), security.has_password(), self._vector)
         self.send_response(REQ_IDENTIFY, True, resp.encode())
 
