@@ -6,6 +6,18 @@ filename = ''
 factory_egg = '/home/pi/monitor_dist' + '/' + 'fluxmonitor-0.8a2-py2.7-linux-armv6l.egg'
 
 
+SERVICE_LIST = (
+    # Syntax: (service entry name", ("service", "startup", "params"))
+    ("fluxhald", ('--pid', '/var/run/fluxhald.pid',
+                  '--log', '/var/log/fluxhald1.log', '--daemon')),
+    ("fluxnetworkd", ('--pid', '/var/run/fluxnetworkd.pid',
+                      '--log', '/var/log/fluxnetworkd.log', '--daemon')),
+    ("fluxupnpd", ('--pid', '/var/run/fluxupnpd.pid',
+                   '--log', '/var/log/fluxupnpd.log', '--daemon')),
+    ("fluxusbd", ('--pid', '/var/run/fluxusbd.pid',
+                  '--log', '/var/log/fluxusbd.log', '--daemon'))
+)
+
 def main():
     pid = start_service()
     if pid != 0:  # parent run update routine
@@ -17,8 +29,7 @@ def start_service(force=True):
     from pkg_resources import load_entry_point
     from time import sleep, time
 
-    service_list = ['fluxhald', 'fluxnetworkd', 'fluxupnpd', , 'fluxusbd']
-    for service in service_list:
+    for service, startup_params in SERVICE_LIST:
         ret = check_running(service)
         if force and ret:
             print >> sys.stderr, (service, 'is running, need to be killed')
@@ -34,7 +45,8 @@ def start_service(force=True):
         pid = os.fork()
         if pid == 0:
             # child
-            load_entry_point('fluxmonitor', 'console_scripts', service)()
+            entry = load_entry_point('fluxmonitor', 'console_scripts', service)
+            entry(startup_params)
             break
         else:
             # parent, check whether servie started

@@ -8,7 +8,7 @@ from fluxmonitor.misc.flux_argparse import add_daemon_arguments, \
 from fluxmonitor.launcher import deamon_entry
 
 
-def main():
+def main(params=None):
     parser = argparse.ArgumentParser(description='flux hal deamon')
     add_daemon_arguments("fluxhald", parser)
     parser.add_argument('--manually', dest='manually', action='store_const',
@@ -17,10 +17,8 @@ def main():
                         help='Mainboard Serial Port')
     parser.add_argument("--hb", dest='hb', type=str, default=None,
                         help='Headboard Serial Port')
-    if any('start_service' in p for p in sys.argv):
-        options = parser.parse_args(['--pid', '/var/run/fluxhald.pid', '--log', '/var/log/fluxhald1.log', '--daemon'])
-    else:
-        options = parser.parse_args()
+
+    options = parser.parse_args(params)
     apply_daemon_arguments(options)
 
     if options.stop_daemon:

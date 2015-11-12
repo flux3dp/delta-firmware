@@ -8,14 +8,10 @@ from fluxmonitor.misc.flux_argparse import add_daemon_arguments, \
 from fluxmonitor.launcher import deamon_entry
 
 
-def main():
+def main(params=None):
     parser = argparse.ArgumentParser(description='flux upnp deamon')
     add_daemon_arguments("fluxupnpd", parser)
-
-    if any('start_service' in p for p in sys.argv):
-        options = parser.parse_args(['--pid', '/var/run/fluxupnpd.pid', '--log', '/var/log/fluxupnpd.log', '--daemon'])
-    else:
-        options = parser.parse_args()
+    options = parser.parse_args(params)
     apply_daemon_arguments(options)
 
     if options.stop_daemon:
