@@ -410,8 +410,6 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
         # upnp is running (Its takes times and will cause timeout)
         self.master_key = security.get_private_key()
         self.slave_pkey = security.RSAObject(keylength=1024)
-        self.task_signal = self.loop.signal(self.on_delay_task)
-        self.task_signal.start()
 
         self.meta = CommonMetadata()
 
@@ -427,6 +425,9 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
         }
 
         super(UpnpService, self).__init__(logger)
+
+        self.task_signal = self.loop.signal(self.on_delay_task)
+        self.task_signal.start()
 
         self.nw_monitor = NetworkMonitor(None)
         self.nw_monitor_watcher = self.loop.io(self.nw_monitor, pyev.EV_READ,
