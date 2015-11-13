@@ -159,7 +159,7 @@ class MulticastInterface(object):
 
     def __init__(self, server, pkey, meta, addr='239.255.255.250', port=1901):
         self.server = server
-        self.pkey = pkey
+        self.master_key = pkey
         self.meta = meta
         self.poke_counter = {}
 
@@ -171,16 +171,15 @@ class MulticastInterface(object):
         self._generate_discover_info()
 
     def _generate_discover_info(self):
-        self.temp_pkey = security.RSAObject(keylength=1024)
         temp_ts = time()
-        temp_pkey_der = self.temp_pkey.export_pubkey_der()
+        temp_pkey_der = self.server.slave_pkey.export_pubkey_der()
 
-        temp_pkey_sign = self.pkey.sign(
+        temp_pkey_sign = self.master_key.sign(
             struct.pack("<f", temp_ts) + temp_pkey_der)
 
         self.meta.shared_der_rsakey = temp_pkey_der
 
-        main_pubder = self.pkey.export_pubkey_der()
+        main_pubder = self.master_key.export_pubkey_der()
         identify = security.get_identify()
 
         self._discover_payload = struct.pack(
@@ -232,7 +231,7 @@ class MulticastInterface(object):
         )
 
         payload = self._touch_payload + struct.pack("<H", len(info)) + info + \
-            self.temp_pkey.sign(info)
+            self.server.slave_pkey.sign(info)
 
         self.sock.sendto(payload, endpoint)
 
@@ -283,7 +282,7 @@ class MulticastInterface(object):
     def send_response(self, endpoint, action_id, message):
         payload = struct.pack("<4sBB16sH", b"FLUX", 1, action_id + 1,
                               UUID_BYTES, len(message))
-        signature = self.temp_pkey.sign(message)
+        signature = self.server.slave_pkey.sign(message)
         self.sock.sendto(payload + message + signature, endpoint)
 
     def send_discover(self):
@@ -330,7 +329,7 @@ class UpnpServiceMixIn(object):
     @json_payload_wrapper
     def cmd_pwd_access(self, payload):
         # TODO: NOT GOOD
-        rawdata = self.mcst.temp_pkey.decrypt(payload)
+        rawdata = self.slave_pkey.decrypt(payload)
         b_ts, b_passwd, pubkey = rawdata.split(b"\x00", 2)
 
         passwd = b_passwd.decode("utf8")
@@ -454,9 +453,10 @@ class UpnpService(ServiceBase, UpnpServiceMixIn, NetworkMonitorMix):
 
         # Create RSA key if not exist. This will prevent upnp create key during
         # upnp is running (Its takes times and will cause timeout)
-        self.pkey = security.get_private_key()
+        self.master_key = security.get_private_key()
+        self.slave_pkey = security.RSAObject(keylength=1024)
         self.meta = CommonMetadata()
-        self.mcst = MulticastInterface(self, self.pkey, self.meta)
+        self.mcst = MulticastInterface(self, self.master_key, self.meta)
 
         self._callback = {
             CODE_NOPWD_ACCESS: self.cmd_nopwd_access,
@@ -528,9 +528,8 @@ class UpnpService(ServiceBase, UpnpServiceMixIn, NetworkMonitorMix):
                 if data:
                     interface.send_response(remote, request_code, data)
             else:
-                # TODO: temp_pkey position not good
                 ok, access_id, message = parse_signed_request(
-                    payload, self.mcst.temp_pkey)
+                    payload, self.slave_pkey)
                 if ok:
                     data = callback(access_id, message)
                     if data:
