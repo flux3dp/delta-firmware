@@ -154,6 +154,7 @@ class BroadcastInterface(object):
 
 
 class MulticastInterface(object):
+    poke_counter = {}
     temp_rsakey = None
     timer = 0
 
@@ -205,6 +206,24 @@ class MulticastInterface(object):
             len(temp_pkey_sign)  # Temp pkey sign
         ) + temp_pkey_der + temp_pkey_sign
 
+    def reduce_drop_request(self):
+        for key in self.poke_counter.keys():
+            val = self.poke_counter[key]
+            if val > 1:
+                self.poke_counter[key] = val -1
+            else:
+                self.poke_counter.pop(key)
+
+    def drop_request(self, endpoint, action_id):
+        key = "%s+%i" % (endpoint[0], action_id)
+
+        val = self.poke_counter.get(key, 0)
+        if val > 15:
+            return True
+        else:
+            self.poke_counter[key] = val + 3
+            return False
+
     def on_touch(self, endpoint):
         info = "ver=%s\x00model=%s\x00name=%s\x00pwd=%s\x00time=%i" % (
             VERSION, MODEL_ID, self.meta.nickname,
@@ -243,6 +262,10 @@ class MulticastInterface(object):
 
         magic_num, proto_ver, action_id, buuid = struct.unpack("<4sBB16s",
                                                                buf[:22])
+        if self.drop_request(endpoint, action_id):
+            logger.debug("Drop %s request %i", endpoint[0], action_id)
+            return
+
         if magic_num != b"FLUX":
             return
 
@@ -265,6 +288,7 @@ class MulticastInterface(object):
 
     def send_discover(self):
         if time() - self.timer > 5:
+            self.reduce_drop_request()
             self.sock.sendto(self._discover_payload, self.mcst_addr)
             self.timer = time()
 
