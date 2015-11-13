@@ -507,7 +507,7 @@ class UpnpService(ServiceBase, UpnpServiceMixIn, NetworkMonitorMix):
             self.sock = None
 
     def on_start(self):
-        self.bootstrap_network_monitor(self.memcache)
+        self.bootstrap_network_monitor()
         self._on_status_changed(self._monitor.full_status())
 
     def on_shutdown(self):
