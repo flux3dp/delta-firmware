@@ -10,9 +10,12 @@ import json
 
 logger = logging.getLogger(__name__)
 
+import pyev
+
 from fluxmonitor.misc._process import Process
 from fluxmonitor.misc import network_config_encoder as NCE
 from fluxmonitor.halprofile import get_model_id
+from fluxmonitor.hal.net.monitor import Monitor as NetworkMonitor
 from fluxmonitor.storage import CommonMetadata
 from fluxmonitor.config import network_config
 from fluxmonitor.misc import control_mutex
@@ -23,7 +26,6 @@ from fluxmonitor.err_codes import ALREADY_RUNNING, BAD_PASSWORD, NOT_RUNNING, \
 from fluxmonitor import __version__ as VERSION
 from fluxmonitor import security
 from .base import ServiceBase
-from ._network_helpers import NetworkMonitorMix
 
 
 SERIAL_HEX = security.get_uuid()
@@ -97,60 +99,6 @@ def parse_signed_request(payload, secretkey):
 
     return True, access_id, body[32:]
 
-
-class BroadcastInterface(object):
-    def __init__(self, server, ipaddr, port=3310):
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        sock.bind((ipaddr, port))
-
-        self.sock = sock
-        self.server = server
-
-    def fileno(self):
-        return self.sock.fileno()
-
-    def get_remote_sockname(self, orig):
-        if orig[0] == "127.0.0.1":
-            return ("127.0.0.1", orig[1])
-        else:
-            return ("255.255.255.255", orig[1])
-
-    def on_read(self, sender):
-        """Payload struct:
-        +----+---------------+----+
-        | MN | Device Serial | OP |
-        +----+---------------+----+
-        0    4              20   21
-
-        MN: Magic Number, always be "FLUX"
-        Device Serial: device 16 (binary format). be 0 for broadcase.
-        OP: Request code, looks for CODE_* consts
-        """
-
-        buf, remote = self.sock.recvfrom(4096)
-        if len(buf) < 21:
-            return  # drop if payload length too short
-
-        magic_num, bserial, code = struct.unpack("<4s16sB", buf[:21])
-        serial = _uuid.UUID(bytes=bserial).hex
-        if magic_num != "FLUX" or \
-           (serial != SERIAL_HEX and serial != GLOBAL_SERIAL.hex):
-            return  # drop if payload is wrong syntax
-
-        payload = {"ver": VERSION, "name": self.server.meta.nickname,
-                   "model": MODEL_ID, "serial": SERIAL_HEX,
-                   "time": time(), "ip": self.server.ipaddress,
-                   "pwd": security.has_password()}
-        self.send_response(remote, 0, 0, json.dumps(payload))
-
-    def send_response(self, remote, request_code, response_code, message):
-        header = struct.pack("<BB", request_code + 1, response_code)
-        buf = header + message + b"\x00"
-        self.sock.sendto(buf, self.get_remote_sockname(remote))
-
-    def close(self):
-        self.sock.close()
 
 
 class MulticastInterface(object):
@@ -238,7 +186,7 @@ class MulticastInterface(object):
     def fileno(self):
         return self.sock.fileno()
 
-    def on_read(self, kernel):
+    def on_message(self, watcher, revent):
         """Payload struct:
         +----+-+-+--------+
         | MN |V|A| UUID   |
@@ -290,6 +238,9 @@ class MulticastInterface(object):
             self.reduce_drop_request()
             self.sock.sendto(self._discover_payload, self.mcst_addr)
             self.timer = time()
+
+    def close(self):
+        self.sock.close()
 
 
 class UpnpServiceMixIn(object):
@@ -444,9 +395,11 @@ class UpnpServiceMixIn(object):
             raise RuntimeError(NOT_RUNNING)
 
 
-class UpnpService(ServiceBase, UpnpServiceMixIn, NetworkMonitorMix):
+class UpnpService(ServiceBase, UpnpServiceMixIn):
     ipaddress = None
-    sock = None
+    mcst = None
+    mcst_watcher = None
+    cron_watcher = None
 
     def __init__(self, options):
         self.debug = options.debug
@@ -456,7 +409,6 @@ class UpnpService(ServiceBase, UpnpServiceMixIn, NetworkMonitorMix):
         self.master_key = security.get_private_key()
         self.slave_pkey = security.RSAObject(keylength=1024)
         self.meta = CommonMetadata()
-        self.mcst = MulticastInterface(self, self.master_key, self.meta)
 
         self._callback = {
             CODE_NOPWD_ACCESS: self.cmd_nopwd_access,
@@ -470,12 +422,16 @@ class UpnpService(ServiceBase, UpnpServiceMixIn, NetworkMonitorMix):
         }
 
         super(UpnpService, self).__init__(logger)
-        self.add_read_event(self.mcst)
 
-    def _on_status_changed(self, status):
-        """Overwrite _on_status_changed witch called by `NetworkMonitorMix`
-        when network status changed
-        """
+        self.nw_monitor = NetworkMonitor(None)
+        self.nw_monitor_watcher = self.loop.io(self.nw_monitor, pyev.EV_READ,
+                                               self.on_network_changed)
+        self.nw_monitor_watcher.start()
+        self.cron_watcher = self.loop.timer(5.0, 5.0, self.on_cron)
+        self.cron_watcher.start()
+
+    def on_network_changed(self, watcher, revent):
+        status = self.nw_monitor.read()
         nested = [st.get('ipaddr', [])
                   for _, st in status.items()]
         ipaddress = list(chain(*nested))
@@ -486,35 +442,36 @@ class UpnpService(ServiceBase, UpnpServiceMixIn, NetworkMonitorMix):
 
     def _replace_upnp_sock(self):
         self._try_close_upnp_sock()
-        ipaddr = "" if self.ipaddress else "127.0.0.1"
 
         try:
-            self.sock = BroadcastInterface(self, ipaddr=ipaddr)
-            self.add_read_event(self.sock)
+            self.mcst = MulticastInterface(self, self.master_key, self.meta)
+            self.mcst_watcher = self.loop.io(self.mcst, pyev.EV_READ,
+                                             self.mcst.on_message)
+            self.mcst_watcher.start()
             self.logger.info("Upnp going UP")
+
         except socket.error:
             self.logger.exception("")
             self._try_close_upnp_sock()
 
     def _try_close_upnp_sock(self):
-        if self.sock:
+        if self.mcst_watcher:
+            self.mcst_watcher.stop()
+            self.mcst_watcher = None
+        if self.mcst:
             self.logger.info("Upnp going DOWN")
-            self.remove_read_event(self.sock)
-            try:
-                self.sock.close()
-            except Exception:
-                pass
-            self.sock = None
+            self.mcst.close()
+            self.mcst = None
 
     def on_start(self):
-        self.bootstrap_network_monitor()
-        self._on_status_changed(self._monitor.full_status())
+        self.on_network_changed(None, None)
 
     def on_shutdown(self):
         self._try_close_upnp_sock()
 
-    def each_loop(self):
-        self.mcst.send_discover()
+    def on_cron(self, watcher, revent):
+        if self.mcst:
+            self.mcst.send_discover()
 
     def on_request(self, remote, request_code, payload, interface):
         callback = self._callback.get(request_code)

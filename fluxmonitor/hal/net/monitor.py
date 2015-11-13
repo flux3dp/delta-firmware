@@ -36,6 +36,10 @@ class Monitor(object):
                 self.callback(status)
                 return
 
+    def read(self):
+        self.ipr.get()
+        return self.full_status()
+
     # Query full network information and collect it to flux internal pattern.
     def full_status(self):
         status = {}
