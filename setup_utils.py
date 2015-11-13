@@ -1,6 +1,7 @@
 
 import distutils.sysconfig
 from pkgutil import walk_packages
+from ctypes import cdll
 import ctypes.util
 import platform
 import sys
@@ -34,8 +35,12 @@ def checklibs():
 
 
 def checklib(lib_name, package_name):
-    if not ctypes.util.find_library(lib_name):
-        sys.stderr.write("%s (%s) is not found\n" % (package_name, lib_name))
+    libname = ctypes.util.find_library(lib_name)
+    if libname:
+        return libname
+    else:
+        sys.stderr.write("=" * 80)
+        sys.stderr.write("\n%s (%s) is not found\n" % (package_name, lib_name))
         sys.exit(1)
 
 
@@ -140,6 +145,7 @@ elif is_linux():
 def get_install_requires():
     packages = ['setuptools', 'psutil', 'setproctitle', 'python-memcached',
                 'sysv_ipc', ]
+
     if is_linux():
         packages += ['pyroute2']
 
@@ -148,6 +154,17 @@ def get_install_requires():
 
     if HARDWARE_MODEL == "model-1":
         packages += ['RPi.GPIO']
+
+    libev_path = checklib("ev", "libev")
+    libev = cdll.LoadLibrary(libev_path)
+    if libev.ev_version_major() != 4:
+        sys.stderr.write("=" * 80)
+        sys.stderr.write("\nlibev comes with wrong version it should be 4.X\n")
+        sys.exit(1)
+    if libev.ev_version_minor() >= 15:
+        packages += ['pyev']
+    else:
+        packages += ['pyev==0.8.1-4.04']
 
     return packages
 
@@ -164,8 +181,3 @@ if is_darwin():
         os.environ["CXXFLAGS"] += " -std=c++11"
     else:
         os.environ["CXXFLAGS"] = "-std=c++11"
-
-    # if "CXXFLAGS" in os.environ:
-    #     os.environ["CXXFLAGS"] += " -std=c++11"
-    # else:
-    #     os.environ["CXXFLAGS"] = "-std=c++11"
