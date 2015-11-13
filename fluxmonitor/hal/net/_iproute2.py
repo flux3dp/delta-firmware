@@ -140,3 +140,6 @@ class IPRoute(object):
                 for addr in get_ip_addr(ifname):
                     addrs += get_ip_addr(ifname)
         return addrs
+
+    def close(self):
+        pass

@@ -14,7 +14,7 @@ class Monitor(object):
     signal only if network has any change. This is a netlink API wrapper for
     fluxmonitord watcher. We implement a fake netlink API for darwin."""
 
-    def __init__(self, cb):
+    def __init__(self, cb=None):
         self.callback = cb
 
         self.ipr = IPRoute()
@@ -68,3 +68,6 @@ class Monitor(object):
                      addr.get('prefixlen', 32)])
 
         return status
+
+    def close(self):
+        self.ipr.close()
