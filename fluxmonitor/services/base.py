@@ -1,7 +1,4 @@
 
-# from fluxmonitor.event_base import EventBase
-# from fluxmonitor.misc import AsyncSignal
-
 from setproctitle import setproctitle
 import pyev
 
@@ -21,7 +18,6 @@ class ServiceBase(object):
     def run(self):
         self.on_start()
         self.loop.start()
-        # EventBase.run(self)
         self.on_shutdown()
 
     def each_loop(self):

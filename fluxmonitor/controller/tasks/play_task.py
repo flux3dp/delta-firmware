@@ -24,10 +24,12 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
 
         self.executor = FcodeExecutor(self._uart_mb, self._uart_hb, task_file,
                                       settings.play_bufsize)
-        self.server.add_loop_event(self)
+        self.timer_watcher = server.loop.timer(3, 3, self.on_timer)
+        self.timer_watcher.start()
 
     def on_exit(self, sender):
-        self.server.remove_loop_event(self)
+        self.timer_watcher.stop()
+        self.timer_watcher = None
         self.executor.close()
         self.disconnect()
 
@@ -88,7 +90,7 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
             logger.debug("Can not handle: '%s'" % cmd)
             raise RuntimeError(UNKNOW_COMMAND)
 
-    def on_loop(self, sender):
+    def on_timer(self, watcher, revent):
         self.server.renew_timer()
         if not self.executor.is_closed():
             self.executor.on_loop(sender)

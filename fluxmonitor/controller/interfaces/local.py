@@ -6,6 +6,8 @@ import struct
 import socket
 import os
 
+import pyev
+
 from fluxmonitor.misc.async_signal import AsyncIO
 from fluxmonitor.storage import CommonMetadata
 from fluxmonitor.misc import timer as T
@@ -17,49 +19,77 @@ IDLE_TIMEOUT = 3600.  # Close conn if idel after seconds.
 
 class LocalControl(object):
     def __init__(self, kernel, logger=None, port=23811):
-        self.server = kernel
+        self.kernel = kernel
         self.logger = logger.getChild("lc") if logger \
             else logging.getLogger(__name__)
         self.meta = CommonMetadata()
 
-        self.serve_sock = s = socket.socket()
+        s = socket.socket()
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.bind(("", port))
 
-        serve_sock_io = AsyncIO(s, self.on_accept)
+        self.listen_watcher = kernel.loop.io(s, pyev.EV_READ, self.on_accept,
+                                             s)
+        self.listen_watcher.start()
+        self.timer_watcher = kernel.loop.timer(30, 30, self.on_timer)
 
-        self.server.add_read_event(serve_sock_io)
-        self.io_list = WeakSet()
-        self.io_list = [serve_sock_io]
+        self.io_list = []
         self.logger.info("Listen on %s:%i" % ("", port))
 
         s.listen(1)
 
-    def on_accept(self, sender):
-        endpoint = sender.obj.accept()
+    def on_accept(self, watcher, revent):
+        sock, endpoint = watcher.data.accept()
         try:
             der = self.meta.shared_der_rsakey
             key = security.RSAObject(der=der)
-            LocalConnectionAsyncIO(endpoint, self.server, key, self.logger)
+            h = LocalConnectionHandler(sock, endpoint, self.kernel, key,
+                                       self.logger)
         except RuntimeError:
             logger.error("Slave key not ready, use master key instead")
-            LocalConnectionAsyncIO(endpoint, self.server,
-                                   security.get_private_key(), self.logger)
+            h = LocalConnectionHandler(sock, endpoint, self.kernel,
+                                       security.get_private_key(), self.logger)
 
-    def close(self, kernel):
+        io_watcher = watcher.loop.io(sock, pyev.EV_READ, self.on_read, h)
+        io_watcher.start()
+        self.io_list.append(io_watcher)
+
+    def on_read(self, watcher, revent):
+        if not watcher.data.on_read():
+            watcher.data.close("Remote gone")
+            watcher.stop()
+            self.io_list.pop(watcher)
+
+    def on_timer(self, watcher, revent):
+        dead = []
+        for w in self.io_list:
+            if w.data.is_timeout:
+                dead.append(w)
+
+        for w in dead:
+            w.data.close("Idle timeout")
+            watcher.stop()
+            self.io_list.pop(watcher)
+
+    def close(self):
+        self.timer_watcher.stop()
+        self.timer_watcher = None
+        self.listen_watcher.stop()
+        self.listen_watcher = None
+
         while self.io_list:
-            io = self.io_list.pop()
-            self.server.remove_read_event(io)
-            # TODO: Close socket
+            watcher = self.io_list.pop()
+            watcher.data.close()
+            watcher.stop()
 
 
-class LocalConnectionAsyncIO(object):
+class LocalConnectionHandler(object):
     @T.update_time
-    def __init__(self, endpoint, server, slave_key, logger):
+    def __init__(self, sock, endpoint, kernel, slave_key, logger):
         self.binary_mode = False
 
-        self.sock, self.client = endpoint
-        self.server = server
+        self.kernel = kernel
+        self.client = endpoint
         self.rsakey = slave_key
         self.logger = logger.getChild("%s:%s" % self.client)
 
@@ -78,33 +108,30 @@ class LocalConnectionAsyncIO(object):
         buf = b"FLUX0002" + \
               self.rsakey.sign(self.randbytes) + \
               self.randbytes
-        self.sock.send(buf)
+        sock.send(buf)
 
+        self.sock = sock
         self._recv_handler = self._on_handshake_identify
 
-        server.add_read_event(self)
-        server.add_loop_event(self)
-
-    def fileno(self):
-        return self.sock.fileno()
+    @property
+    def is_timeout(self):
+        return T.time_since_update(self) > IDLE_TIMEOUT
 
     @T.update_time
-    def on_read(self, sender):
+    def on_read(self):
         l = self.sock.recv_into(self._bufview[self._buffered:])
         if l:
             self._buffered += l
-            self._recv_handler(sender, l)
+            self._recv_handler(l)
+            return True
         else:
+            return False
             self.close("Remote closed")
 
-    def on_write(self, sender):
+    def on_write(self, watcher, revent):
         pass
 
-    def on_loop(self, sender):
-        if T.time_since_update(self) > IDLE_TIMEOUT:
-            self.close("Idle timeout")
-
-    def _on_handshake_identify(self, sender, length):
+    def _on_handshake_identify(self, length):
         if self._buffered >= 20:
             access_id = to_hex(self._buf[:20])
             if access_id == "0" * 40:
@@ -115,11 +142,11 @@ class LocalConnectionAsyncIO(object):
                 self.keyobj = security.get_keyobj(access_id=access_id)
 
                 if self._buffered >= (20 + self.keyobj.size()):
-                    self._on_handshake_validate(sender, length)
+                    self._on_handshake_validate(length)
                 else:
                     self._recv_handler = self._on_handshake_identify
 
-    def _on_handshake_validate(self, sender, length):
+    def _on_handshake_validate(self, length):
         """
         Recive handshake payload:
             access id (20 bytes)
@@ -131,18 +158,18 @@ class LocalConnectionAsyncIO(object):
         req_hanshake_len = 20 + self.keyobj.size()
 
         if self._buffered > req_hanshake_len:
-            self._reply_handshake(sender, b"PROTOCOL_ERROR", success=False,
+            self._reply_handshake(b"PROTOCOL_ERROR", success=False,
                                   log_message="Handshake message too long")
 
         elif self._buffered == req_hanshake_len:
             signature = self._buf[20:req_hanshake_len]
 
             if not self.keyobj:
-                self._reply_handshake(sender, b"AUTH_FAILED", success=False,
+                self._reply_handshake(b"AUTH_FAILED", success=False,
                                       log_message="Unknow Access ID")
 
             elif not self.keyobj.verify(self.randbytes, signature):
-                self._reply_handshake(sender, b"AUTH_FAILED", success=False,
+                self._reply_handshake(b"AUTH_FAILED", success=False,
                                       log_message="Bad signature")
 
             else:
@@ -158,14 +185,14 @@ class LocalConnectionAsyncIO(object):
                 self._buffered = 0
                 self._recv_handler = self._on_message
 
-    def _on_message(self, sender, length):
+    def _on_message(self, length):
         chunk = self._bufview[self._buffered - length:self._buffered]
         self.aes.decrypt_into(chunk, chunk)
 
         if self.binary_mode:
             ret = self._buffered
             self._buffered = 0
-            sender.on_message(bytes(self._buf[:ret]), self)
+            self.kernel.on_message(bytes(self._buf[:ret]), self)
         else:
             while self._buffered > 2:
                 # Try unpack
@@ -177,15 +204,15 @@ class LocalConnectionAsyncIO(object):
                     self._bufview[:l - self._buffered] = \
                         self._bufview[l:self._buffered]
                     self._buffered -= l
-                    sender.on_message(payload, self)
+                    self.kernel.on_message(payload, self)
                 elif self._buffered == l:
                     payload = self._bufview[2:l].tobytes()
                     self._buffered = 0
-                    sender.on_message(payload, self)
+                    self.kernel.on_message(payload, self)
                 else:
                     break
 
-    def _reply_handshake(self, sender, message, success, log_message=None):
+    def _reply_handshake(self, message, success, log_message=None):
         if len(message) < 16:
             message += b"\x00" * (16 - len(message))
         else:
@@ -219,8 +246,6 @@ class LocalConnectionAsyncIO(object):
 
     def close(self, reason=""):
         self._recv_handler = None
-        self.server.remove_read_event(self)
-        self.server.remove_loop_event(self)
         self.sock.close()
         self.logger.debug("Client %s disconnected (reason=%s)" %
                           (self.client[0], reason))

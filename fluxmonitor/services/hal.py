@@ -20,9 +20,6 @@ class HalService(ServiceBase):
         self.hal = klass(self)
         logger.info("UART %s HAL selected" % self.hal.hal_name)
 
-    def each_loop(self):
-        pass
-
     def on_start(self):
         pass
 

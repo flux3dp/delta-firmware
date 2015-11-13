@@ -165,7 +165,7 @@ class MulticastInterface(object):
         key = "%s+%i" % (endpoint[0], action_id)
 
         val = self.poke_counter.get(key, 0)
-        if val > 15:
+        if val > 60:
             return True
         else:
             self.poke_counter[key] = val + 3
@@ -345,7 +345,9 @@ class UpnpServiceMixIn(object):
 
         nw_config = ("config_network" + "\x00" +
                      NCE.to_bytes(options)).encode()
-        self.add_loop_event(DelayNetworkConfigure(nw_config))
+
+        self.task_signal.data = DelayNetworkConfigure(nw_config)
+        self.task_signal.send()
 
         return {"timestemp": time()}
 
@@ -408,6 +410,9 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
         # upnp is running (Its takes times and will cause timeout)
         self.master_key = security.get_private_key()
         self.slave_pkey = security.RSAObject(keylength=1024)
+        self.task_signal = self.loop.signal(self.on_delay_task)
+        self.task_signal.start()
+
         self.meta = CommonMetadata()
 
         self._callback = {
@@ -501,6 +506,11 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
         except Exception as e:
             logger.exception("Unhandle exception")
 
+    def on_delay_task(self, watcher, revent):
+        if watcher.data:
+            watcher.data.fire()
+            watcher.data = None
+
 
 class RobotLaunchAgent(Process):
     @classmethod
@@ -538,8 +548,7 @@ class DelayNetworkConfigure(object):
     def __init__(self, config):
         self.config = config
 
-    def on_loop(self, caller):
-        caller.remove_loop_event(self)
+    def fire(self):
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
         sock.connect(network_config["unixsocket"])
         sock.send(self.config)

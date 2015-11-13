@@ -99,7 +99,7 @@ class Robot(ServiceBase):
 
     def on_shutdown(self):
         self.running = False
-        self.local_control.close(self)
+        self.local_control.close()
         self.local_control = None
 
         if self.button_control:

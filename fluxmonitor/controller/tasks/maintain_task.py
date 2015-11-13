@@ -83,11 +83,14 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
         )
 
         ExclusiveMixIn.__init__(self, server, sock)
-        self.server.add_loop_event(self)
+
+        self.timer_watcher = server.loop.timer(5, 5, self.on_timer)
+        self.timer_watcher.start()
 
     def on_exit(self, sender):
         self.main_ctrl.close(self)
-        self.server.remove_loop_event(self)
+        self.timer_watcher.stop()
+        self.timer_watcher = None
         self.disconnect()
 
     def _on_mainboard_ready(self, ctrl):
@@ -100,13 +103,23 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
     def send_headboard(self, msg):
         self._uart_mb.send(msg)
 
-    def on_mainboard_message(self, sender):
-        for msg in self.recv_from_mainboard(sender):
+    def on_mainboard_message(self, watcher, revent):
+        buf = watcher.data.recv(1024)
+        if not buf:
+            logger.error("Mainboard connection broken")
+            self.server.exit_task(self)
+
+        for msg in self.recv_from_mainboard(buf):
             if self._mainboard_msg_filter:
                 self._mainboard_msg_filter(msg)
             self.main_ctrl.on_message(msg, self)
 
-    def on_headboard_message(self, sender):
+    def on_headboard_message(self, watcher, revent):
+        buf = watcher.data.recv(1024)
+        if not buf:
+            logger.error("Headboard connection broken")
+            self.server.exit_task(self)
+
         for msg in self.recv_from_headboard(sender):
             pass
 
@@ -264,7 +277,7 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
         self.main_ctrl.send_cmd("G30X0Y0", self)
         return "continue"
 
-    def on_loop(self, loop):
+    def on_timer(self, watcher, revent):
         try:
             self.main_ctrl.patrol(self)
         except SystemError:

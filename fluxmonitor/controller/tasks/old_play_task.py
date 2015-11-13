@@ -29,14 +29,17 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
         self._task_total = os.fstat(task_file.fileno()).st_size
         self._task_executed = 0
         self._task_in_queue = 0
-        self.server.add_loop_event(self)
         logger.info("Start task with size %i", (self._task_total))
+
+        self.timer_watcher = server.loop.timer(60, 60, self.on_timer)
+        self.timer_watcher.start()
 
         self._status = "RUNNING"
         self.next_cmd()
 
     def on_exit(self, sender):
-        self.server.remove_loop_event(self)
+        self.timer_watcher.stop()
+        self.timer_watcher = None
         self._task_file.close()
         self.disconnect()
 
@@ -155,5 +158,5 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
             logger.debug("Can not handle: '%s'" % cmd)
             raise RuntimeError(UNKNOW_COMMAND)
 
-    def on_loop(self, sender):
+    def on_timer(self, watcher, revent):
         self.server.renew_timer()
