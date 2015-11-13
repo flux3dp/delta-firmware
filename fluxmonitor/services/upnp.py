@@ -426,7 +426,7 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
 
         super(UpnpService, self).__init__(logger)
 
-        self.task_signal = self.loop.signal(self.on_delay_task)
+        self.task_signal = self.loop.async(self.on_delay_task)
         self.task_signal.start()
 
         self.nw_monitor = NetworkMonitor(None)
