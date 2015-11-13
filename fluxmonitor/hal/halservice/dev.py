@@ -2,93 +2,99 @@
 import logging
 import os
 
-logger = logging.getLogger(__name__)
+import pyev
 
+logger = logging.getLogger(__name__)
 
 from fluxmonitor.halprofile import MODEL_DARWIN_DEV, MODEL_LINUX_DEV
 from fluxmonitor.misc.async_signal import AsyncIO
 from fluxmonitor.config import general_config
 from .base import UartHalBase
 
-
 class UartHal(UartHalBase):
     hal_name = "dev"
     support_hal = [MODEL_DARWIN_DEV, MODEL_LINUX_DEV]
 
-    def __init__(self, server):
-        super(UartHal, self).__init__(server)
+    def __init__(self, kernel):
+        super(UartHal, self).__init__(kernel)
 
         p = general_config["db"]
-        self.listen_mainboard = self.create_socket(os.path.join(p, "mb"))
-        self.listen_headboard = self.create_socket(os.path.join(p, "hb"))
-        self.listen_pc = self.create_socket(os.path.join(p, "pc"))
-        server.add_read_event(
-            AsyncIO(self.listen_mainboard, self.on_fake_mainboard_connected))
-        server.add_read_event(
-            AsyncIO(self.listen_headboard, self.on_fake_headboard_connected))
-        server.add_read_event(
-            AsyncIO(self.listen_pc, self.on_fake_pc_connected))
 
-        self.fake_mainboard_socks = []
-        self.fake_headboard_socks = []
-        self.fake_pc_socks = []
+        self.listen_mainboard = self.create_socket(kernel.loop,
+            os.path.join(p, "mb"), self.on_fake_mainboard_connected)
+        
+        self.listen_headboard = self.create_socket(kernel.loop,
+            os.path.join(p, "hb"), self.on_fake_headboard_connected)
 
-    def on_fake_mainboard_connected(self, sender):
+        self.listen_pc = self.create_socket(kernel.loop,
+            os.path.join(p, "pc"), self.on_fake_pc_connected)
+
+        self.fake_mainboard_watchers = []
+        self.fake_headboard_watchers = []
+        self.fake_pc_watchers = []
+
+    def on_fake_mainboard_connected(self, watcher, revent):
         logger.debug("Connect from mainboard")
-        request, _ = sender.obj.accept()
-        self.fake_mainboard_socks.append(request)
-        self.server.add_read_event(
-            AsyncIO(request, self.on_recvfrom_mainboard))
+        request, _ = watcher.data.accept()
+        watcher = watcher.loop.io(request, pyev.EV_READ,
+                                  self.on_recvfrom_mainboard, request)
+        watcher.start()
+        self.fake_mainboard_watchers.append(watcher)
 
-    def on_fake_headboard_connected(self, sender):
+    def on_fake_headboard_connected(self, watcher, revent):
         logger.debug("Connect from headboard")
-        request, _ = sender.obj.accept()
-        self.fake_headboard_socks.append(request)
-        self.server.add_read_event(
-            AsyncIO(request, self.on_recvfrom_headboard))
+        request, _ = watcher.data.accept()
+        watcher = watcher.loop.io(request, pyev.EV_READ,
+                                  self.on_recvfrom_headboard, request)
+        watcher.start()
+        self.fake_headboard_watchers.append(watcher)
 
-    def on_fake_pc_connected(self, sender):
+    def on_fake_pc_connected(self, watcher, revent):
         logger.debug("Connect from pc")
-        request, _ = sender.obj.accept()
-        self.fake_pc_socks.append(request)
-        self.server.add_read_event(
-            AsyncIO(request, self.on_recvfrom_pc))
+        request, _ = watcher.data.accept()
+        watcher = watcher.loop.io(request, pyev.EV_READ,
+                                  self.on_recvfrom_pc, request)
+        watcher.start()
+        self.fake_pc_watchers.append(watcher)
 
-    def on_recvfrom_mainboard(self, sender):
-        buf = sender.obj.recv(1024)
+    def on_recvfrom_mainboard(self, watcher, revent):
+        buf = watcher.data.recv(1024)
         if buf:
-            for sock in self.mainboard_socks:
-                sock.send(buf)
+            for w in self.mainboard_watchers:
+                w.data.send(buf)
         else:
-            self.server.remove_read_event(sender)
-            self.fake_mainboard_socks.remove(sender.obj)
+            watcher.stop()
+            watcher.data.close()
+            self.fake_mainboard_watchers.remove(watcher)
 
-    def on_recvfrom_headboard(self, sender):
-        buf = sender.obj.recv(1024)
+    def on_recvfrom_headboard(self, watcher, revent):
+        buf = watcher.data.recv(1024)
         if buf:
-            for sock in self.headboard_socks:
-                sock.send(buf)
+            for w in self.headboard_watchers:
+                w.data.send(buf)
         else:
-            self.server.remove_read_event(sender)
-            self.fake_headboard_socks.remove(sender.obj)
+            watcher.stop()
+            watcher.data.close()
+            self.fake_headboard_watchers.remove(watcher)
 
-    def on_recvfrom_pc(self, sender):
-        buf = sender.obj.recv(1024)
+    def on_recvfrom_pc(self, watcher, revent):
+        buf = watcher.data.recv(1024)
         if buf:
-            for sock in self.pc_socks:
-                sock.send(buf)
+            for w in self.pc_watchers:
+                w.data.send(buf)
         else:
-            self.server.remove_read_event(sender)
-            self.fake_pc_socks.remove(sender.obj)
+            watcher.stop()
+            watcher.data.close()
+            self.fake_pc_watchers.remove(watcher)
 
     def sendto_mainboard(self, buf):
-        for sock in self.fake_mainboard_socks:
-            sock.send(buf)
+        for w in self.fake_mainboard_watchers:
+            w.data.send(buf)
 
     def sendto_headboard(self, buf):
-        for sock in self.fake_headboard_socks:
-            sock.send(buf)
+        for w in self.fake_headboard_watchers:
+            w.data.send(buf)
 
     def sendto_pc(self, buf):
-        for sock in self.fake_pc_socks:
-            sock.send(buf)
+        for w in self.fake_pc_watchers:
+            w.data.send(buf)
