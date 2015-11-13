@@ -154,7 +154,6 @@ class BroadcastInterface(object):
 
 
 class MulticastInterface(object):
-    poke_counter = {}
     temp_rsakey = None
     timer = 0
 
@@ -162,6 +161,7 @@ class MulticastInterface(object):
         self.server = server
         self.pkey = pkey
         self.meta = meta
+        self.poke_counter = {}
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM,
                                   socket.IPPROTO_UDP)
