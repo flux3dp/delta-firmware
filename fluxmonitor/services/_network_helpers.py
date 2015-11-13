@@ -13,7 +13,7 @@ class NetworkMonitorMix(object):
     descriptor and call NetworkMonitorMix_on_status_changed method.
     """
 
-    def bootstrap_network_monitor(self, memcache):
+    def bootstrap_network_monitor(self):
         self.nic_status = {}
         self._monitor = Monitor(self._on_status_changed)
         self._on_status_changed(self._monitor.full_status())
@@ -33,4 +33,3 @@ class NetworkMonitorMix(object):
         nic_status = json.dumps(self.nic_status)
         if DEBUG:
             self.logger.debug("Status: " + nic_status)
-        self.memcache.set("nic_status", nic_status)
