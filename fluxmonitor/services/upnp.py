@@ -127,6 +127,7 @@ class BroadcastInterface(object):
         Device Serial: device 16 (binary format). be 0 for broadcase.
         OP: Request code, looks for CODE_* consts
         """
+
         buf, remote = self.sock.recvfrom(4096)
         if len(buf) < 21:
             return  # drop if payload length too short
@@ -234,6 +235,7 @@ class MulticastInterface(object):
         OP: Request code, looks for CODE_* consts
         """
 
+        t1 = time()
         buf, endpoint = self.sock.recvfrom(4096)
 
         if len(buf) < 22:
@@ -249,6 +251,8 @@ class MulticastInterface(object):
                 self.on_touch(endpoint)
             else:
                 self.server.on_request(endpoint, action_id, buf[22:], self)
+            logger.debug("%s request 0x%x (t=%f)" % (
+                endpoint[0], action_id, time() - t1))
         else:
             # UUID not match, ignore message
             return
@@ -495,7 +499,6 @@ class UpnpService(ServiceBase, UpnpServiceMixIn, NetworkMonitorMix):
             return
 
         try:
-            t1 = time()
             if request_code < 0x80:
                 data = callback(payload)
                 if data:
@@ -511,8 +514,6 @@ class UpnpService(ServiceBase, UpnpServiceMixIn, NetworkMonitorMix):
                 else:
                     raise RuntimeError(AUTH_ERROR)
 
-            logger.debug("Handle request 0x%x (%f)" % (request_code,
-                                                       time() - t1))
         except RuntimeError as e:
             data = ("E" + e.args[0]).encode()
             interface.send_response(remote, request_code, data)
