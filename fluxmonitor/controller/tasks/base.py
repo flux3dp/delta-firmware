@@ -5,6 +5,8 @@ import logging
 import socket
 import re
 
+import pyev
+
 logger = logging.getLogger(__name__)
 
 from fluxmonitor.misc.async_signal import AsyncIO
@@ -73,14 +75,14 @@ class CommandMixIn(object):
 class DeviceOperationMixIn(object):
     """
     DeviceOperationMixIn require implement methods:
-        on_mainboard_message(self, sender)
-        on_headboard_message(self, sender)
+        on_mainboard_message(self, watcher, revent)
+        on_headboard_message(self, watcher, revent)
     And require `self.server` property
     """
     connected = False
 
     _uart_mb = _uart_hb = None
-    _async_mb = _async_hb = None
+    _mb_watcher = _hb_watcher = None
 
     def connect(self, mainboard_only=False):
         try:
@@ -89,17 +91,19 @@ class DeviceOperationMixIn(object):
                                                socket.SOCK_STREAM)
             logger.info("Connect to mainboard %s" % uart_config["mainboard"])
             mb.connect(uart_config["mainboard"])
-            self._async_mb = AsyncIO(mb, self.on_mainboard_message)
-            self.server.add_read_event(self._async_mb)
+            self._mb_watcher = self.server.loop.io(
+                mb, pyev.EV_READ, self.on_mainboard_message, mb)
+            self._mb_watcher.start()
 
             if not mainboard_only:
                 self._uart_hb = hb = socket.socket(socket.AF_UNIX,
                                                    socket.SOCK_STREAM)
-                self._async_hb = AsyncIO(hb, self.on_headboard_message)
-                self.server.add_read_event(self._async_hb)
                 logger.info("Connect to headboard %s" %
                             uart_config["headboard"])
                 hb.connect(uart_config["headboard"])
+                self._hb_watcher = self.server.loop.io(
+                    hb, pyev.EV_READ, self.on_headboard_message, hb)
+                self._hb_watcher.start()
 
         except socket.error as err:
             logger.exception("Connect to %s failed" % uart_config["mainboard"])
@@ -110,22 +114,22 @@ class DeviceOperationMixIn(object):
             else:
                 raise
 
-    def on_mainboard_message(self, sender):
+    def on_mainboard_message(self, watcher, revent):
         logger.warn("Recive message from mainboard but not handle: %s" %
-                    sender.obj.recv(4096).decode("utf8", "ignore"))
+                    watcher.data.recv(4096).decode("utf8", "ignore"))
 
-    def on_headboard_message(self, sender):
+    def on_headboard_message(self, watcher, revent):
         logger.warn("Recive message from headboard but not handle: %s" %
-                    sender.obj.recv(4096).decode("utf8", "ignore"))
+                    watcher.data.recv(4096).decode("utf8", "ignore"))
 
     def disconnect(self):
-        if self._async_mb:
-            self.server.remove_read_event(self._async_mb)
-            self._async_mb = None
+        if self._hb_watcher:
+            self._hb_watcher.stop()
+            self._hb_watcher = None
 
-        if self._async_hb:
-            self.server.remove_read_event(self._async_hb)
-            self._async_hb = None
+        if self._mb_watcher:
+            self._mb_watcher.stop()
+            self._mb_watcher = None
 
         if self._uart_mb:
             logger.info("Disconnect from mainboard")
@@ -143,8 +147,7 @@ class DeviceOperationMixIn(object):
 class DeviceMessageReceiverMixIn(object):
     _mb_swap = _hb_swap = None
 
-    def recv_from_mainboard(self, sender):
-        buf = sender.obj.recv(4096)
+    def recv_from_mainboard(self, buf):
         if self._mb_swap:
             self._mb_swap += buf.decode("ascii", "ignore")
         else:
@@ -156,8 +159,7 @@ class DeviceMessageReceiverMixIn(object):
         for msg in messages:
             yield msg
 
-    def recv_from_headboard(self, sender):
-        buf = sender.obj.recv(4096)
+    def recv_from_headboard(self, buf):
         if self._hb_swap:
             self._hb_swap += buf.decode("ascii", "ignore")
         else:

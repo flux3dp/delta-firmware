@@ -5,9 +5,11 @@ import socket
 import json
 import os
 
+import pyev
+
 from fluxmonitor.security._security import get_wpa_psk
 from fluxmonitor.hal.nl80211 import config as nl80211_config
-from fluxmonitor.hal.net.monitor import Monitor as NetworkNotifier
+from fluxmonitor.hal.net.monitor import Monitor as NetworkMonitor
 from fluxmonitor.storage import Storage, CommonMetadata
 from fluxmonitor.hal.net import config as net_configure
 from fluxmonitor.config import network_config
@@ -28,7 +30,7 @@ def is_network_ready(nic_status):
     return True if len(addrs) > 0 else False
 
 
-class NetworkConfigMixin(object):
+class NetworkConfigMixIn(object):
     """Part of NetworkService
 
     Provide get and set network config functions"""
@@ -62,16 +64,25 @@ class NetworkConfigMixin(object):
         return None
 
 
-class NetworkNotifierMixIn(object):
+class NetworkMonitorMixIn(object):
     """Monitor NIC status changed event from system"""
 
     def start_network_notifier(self):
-        self._network_notifier = NetworkNotifier(self.update_nic_status)
-        self.add_read_event(self._network_notifier)
+        self._network_notifier = NetworkMonitor()
+        self._network_notifier_watcher = self.loop.io(
+            self._network_notifier, pyev.EV_READ, self._on_network_changed)
+        self._network_notifier_watcher.start()
+
         self.update_nic_status()
 
     def shutdown_network_notifier(self):
-        self.remove_read_event(self._network_notifier)
+        self._network_notifier_watcher.stop()
+        self._network_notifier_watcher = None
+        self._network_notifier.close()
+        self._network_notifier = None
+
+    def _on_network_changed(self, watcher, revent):
+        self.update_nic_status(self._network_notifier.read())
 
     def update_nic_status(self, status=None):
         if not status:
@@ -89,16 +100,21 @@ class NetworkNotifierMixIn(object):
         self.logger.debug("Status Changed: " + nic_status)
 
 
-class NetworkService(ServiceBase, NetworkConfigMixin, NetworkNotifierMixIn):
+class NetworkService(ServiceBase, NetworkConfigMixIn, NetworkMonitorMixIn):
     def __init__(self, options):
         super(NetworkService, self).__init__(logger)
         self.cm = CommonMetadata()
         self.nic_status = {}
         self.daemons = {}
 
+        self.timer_watcher = self.loop.timer(0, 5, self.on_timer)
+        self.timer_watcher.start()
+
     def on_start(self):
-        self.nms = NetworkManageSocket(self)
-        self.add_read_event(self.nms)
+        self.nms = nms = NetworkManageSocket(self)
+        self.nms_watcher = self.loop.io(nms, pyev.EV_READ, nms.on_message,
+                                        nms)
+        self.nms_watcher.start()
         self.start_network_notifier()
 
         for ifname in self.nic_status.keys():
@@ -108,15 +124,17 @@ class NetworkService(ServiceBase, NetworkConfigMixin, NetworkNotifierMixIn):
                 logger.exception("Error while bootstrap %s" % ifname)
 
     def on_shutdown(self):
-        self.remove_read_event(self.nms)
+        self.nms_watcher.stop()
+        self.nms_watcher = None
         self.nms.close()
+        self.nms = None
         self.shutdown_network_notifier()
 
         for ifname, daemons in self.daemons.items():
             for dname, instance in daemons.items():
                 instance.kill()
 
-    def each_loop(self):
+    def on_timer(self, watcher, revent):
         if is_nic_ready(self.nic_status):
             self.cm.wifi_status &= ~128
             if is_network_ready(self.nic_status):
@@ -264,7 +282,7 @@ class NetworkManageSocket(socket.socket):
         self.master.logger.debug(
             "network manage socket created at: %s" % path)
 
-    def on_read(self, sender):
+    def on_message(self, watcher, revent):
         buf = self.recv(4096)
         payloads = buf.split("\x00", 1)
 
@@ -284,28 +302,3 @@ class NetworkManageSocket(socket.socket):
         self.master.logger.info(
             "Update '%s' config with %s" % (ifname, config))
         self.master.bootstrap(ifname, rebootstrap=True)
-
-
-# class NetworkMonitor(object):
-#     """A sub-thread process to monitor wifi ssid and internet access status.
-#
-#     Please note that this class will use multi-thread.
-#     """
-#
-#     def __init__(self):
-#         from threading import Thread
-#         self.thread = Thread(target=self.__thread_entry__)
-#         self.thread.daemon = True
-#
-#         self.running = True
-#         self.thread.start()
-#
-#     def close(self):
-#         self.running = False
-#
-#     def __thread_entry__(self):
-#         from time import sleep
-#
-#         # while self.running:
-#         #
-#

@@ -11,17 +11,23 @@ class RawTask(ExclusiveMixIn, DeviceOperationMixIn):
     def on_exit(self, sender):
         self.disconnect()
 
-    def on_mainboard_message(self, sender):
+    def on_mainboard_message(self, watcher, revent):
         try:
-            buf = sender.obj.recv(4096)
-            self.owner().send(buf)
+            buf = watcher.data.recv(4096)
+            if buf:
+                self.owner().send(buf)
+            else:
+                self.on_dead(self, "DISCONNECTED")
         except Exception as e:
             self.on_dead(self, repr(e))
 
-    def on_headboard_message(self, sender):
+    def on_headboard_message(self, watcher, revent):
         try:
-            buf = sender.obj.recv(4096)
-            self.owner().send(buf)
+            buf = watcher.data.recv(4096)
+            if buf:
+                self.owner().send(buf)
+            else:
+                self.on_dead(self, "DISCONNECTED")
         except Exception as e:
             self.on_dead(self, repr(e))
 

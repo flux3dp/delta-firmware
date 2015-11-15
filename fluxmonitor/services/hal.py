@@ -8,8 +8,6 @@ from .base import ServiceBase
 
 
 class HalService(ServiceBase):
-    POLL_TIMEOUT = 3.0
-
     def __init__(self, options):
         super(HalService, self).__init__(logger)
         self.options = options
@@ -21,9 +19,6 @@ class HalService(ServiceBase):
 
         self.hal = klass(self)
         logger.info("UART %s HAL selected" % self.hal.hal_name)
-
-    def each_loop(self):
-        pass
 
     def on_start(self):
         pass

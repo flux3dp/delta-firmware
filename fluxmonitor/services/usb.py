@@ -6,6 +6,8 @@ import logging
 import socket
 import struct
 
+import pyev
+
 from fluxmonitor.hal.nl80211.config import get_wlan_ssid
 from fluxmonitor.hal.net.monitor import Monitor as NetworkMonitor
 from fluxmonitor.misc import network_config_encoder as NCE
@@ -46,23 +48,22 @@ REQ_PHOTO = 0x81
 
 class UsbService(ServiceBase):
     usb = None
-    usb_io = None
+    usb_watcher = None
 
     def __init__(self, options):
-        self.options = options
         super(UsbService, self).__init__(logger)
-
-    def start(self):
-        self.connect_usb_serial()
+        self.timer_watcher = self.loop.timer(0, 30, self.on_timer)
+        self.timer_watcher.start()
 
     def connect_usb_serial(self):
         try:
             s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             s.connect(uart_config["pc"])
-            io = UsbIO(self, s)
-
-            self.usb_io = io
-            self.add_read_event(io)
+            usb = UsbIO(s)
+            self.usb = usb
+            self.usb_watcher = self.loop.io(usb, pyev.EV_READ,
+                                            usb.on_message, self)
+            self.usb_watcher.start()
             logger.info("Ready on port %s" % uart_config["pc"])
 
         except socket.error as e:
@@ -74,9 +75,13 @@ class UsbService(ServiceBase):
                 logger.exception("USB Connection error")
 
     def close_usb_serial(self, *args):
-        self.remove_read_event(self.usb_io)
-        self.usb = None
-        self.usb_io = None
+        if self.usb_watcher:
+            self.usb_watcher.stop()
+            self.usb_watcher = None
+
+        if self.usb:
+            self.usb.close()
+            self.usb = None
 
     def on_start(self):
         pass
@@ -84,17 +89,17 @@ class UsbService(ServiceBase):
     def on_shutdown(self):
         pass
 
-    def each_loop(self):
-        if not self.usb_io:
+    def on_timer(self, watcher, revent):
+        if not self.usb:
             self.connect_usb_serial()
 
 
 class UsbIO(object):
     _vector = None
 
-    def __init__(self, server, sock):
+    def __init__(self, sock):
         self.sock = sock
-        self.server = server
+
         self.nw_monitor = NetworkMonitor(None)
         self.meta = CommonMetadata()
 
@@ -120,14 +125,14 @@ class UsbIO(object):
     def fileno(self):
         return self.sock.fileno()
 
-    def on_read(self, sender):
+    def on_message(self, watcher, revent):
         l = self.sock.recv_into(self._recv_view[self._recv_offset:])
         if l:
             self._recv_offset += l
             self.check_recv_buffer()
         else:
             self.callbacks = None
-            self.server.close_usb_serial()
+            watcher.data.close_usb_serial()
 
     def check_recv_buffer(self):
         if self._request_len is None and self._recv_offset >= 7:

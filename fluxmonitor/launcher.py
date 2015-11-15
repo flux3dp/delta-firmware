@@ -189,15 +189,10 @@ def deamon_entry(options, service=None):
         sys.stderr.write("\n")
         server.shutdown(log="Recive SIGTERM/SIGINT")
 
-    def sigUSRn(signum, frame):
-        server.user_signal(signum)
-
-    if hasattr(server, "user_signal"):
-        signal.signal(signal.SIGUSR1, sigUSRn)
-        signal.signal(signal.SIGUSR2, sigUSRn)
-
-    signal.signal(signal.SIGTERM, sigTerm)
-    signal.signal(signal.SIGINT, sigTerm)
+    watcher1 = server.loop.signal(signal.SIGTERM, sigTerm)
+    watcher1.start()
+    watcher2 = server.loop.signal(signal.SIGINT, sigTerm)
+    watcher2.start()
 
     try:
         if server.run() is False:
