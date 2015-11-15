@@ -24,15 +24,21 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
 
         self.executor = FcodeExecutor(self._uart_mb, self._uart_hb, task_file,
                                       settings.play_bufsize)
-        self.server.add_loop_event(self)
+        self.timer_watcher = server.loop.timer(3, 3, self.on_timer)
+        self.timer_watcher.start()
 
     def on_exit(self, sender):
-        self.server.remove_loop_event(self)
+        self.timer_watcher.stop()
+        self.timer_watcher = None
         self.executor.close()
         self.disconnect()
 
-    def on_mainboard_message(self, sender):
-        buf = sender.obj.recv(4096)
+    def on_mainboard_message(self, watcher, revent):
+        buf = watcher.data.recv(4096)
+        if not buf:
+            logger.error("Mainboard connection broken")
+            self.executor.abort("CONTROL_FAILED", "MB_CONN_BROKEN")
+
         if self._mb_swap:
             self._mb_swap += buf.decode("ascii", "ignore")
         else:
@@ -43,8 +49,12 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
         for msg in messages:
             self.executor.on_mainboard_message(msg)
 
-    def on_headboard_message(self, sender):
+    def on_headboard_message(self, watcher, revent):
         buf = sender.obj.recv(4096)
+        if not buf:
+            logger.error("Headboard connection broken")
+            self.executor.abort("CONTROL_FAILED", "HB_CONN_BROKEN")
+
         if self._hb_swap:
             self._hb_swap += buf.decode("ascii", "ignore")
         else:
@@ -88,7 +98,7 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
             logger.debug("Can not handle: '%s'" % cmd)
             raise RuntimeError(UNKNOW_COMMAND)
 
-    def on_loop(self, sender):
+    def on_timer(self, watcher, revent):
         self.server.renew_timer()
         if not self.executor.is_closed():
             self.executor.on_loop(sender)

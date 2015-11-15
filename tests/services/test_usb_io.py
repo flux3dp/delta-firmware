@@ -17,7 +17,7 @@ from fluxmonitor import security
 
 from tests._utils.echo_server import EchoServer
 
-SERIAL_HEX = security.get_uuid()
+SERIAL_HEX = 'XXXXXXXXXX'
 MODEL_ID = get_model_id()
 MAGIC_NUMBER = b"\x97\xae\x02"
 
@@ -25,7 +25,7 @@ MAGIC_NUMBER = b"\x97\xae\x02"
 class UsbIoTest(unittest.TestCase):
     def setUp(self):
         self.sock, sock = socket.socketpair()
-        self.usbio = UsbIO(self, sock)
+        self.usbio = UsbIO(sock)
 
     def tearDown(self):
         self.sock.close()
