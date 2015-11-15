@@ -1,6 +1,6 @@
 
 from binascii import b2a_hex as to_hex
-from weakref import WeakSet
+import weakref
 import logging
 import struct
 import socket
@@ -39,26 +39,34 @@ class LocalControl(object):
         s.listen(1)
 
     def on_accept(self, watcher, revent):
-        sock, endpoint = watcher.data.accept()
         try:
-            der = self.meta.shared_der_rsakey
-            key = security.RSAObject(der=der)
-            h = LocalConnectionHandler(sock, endpoint, self.kernel, key,
-                                       self.logger)
-        except RuntimeError:
-            logger.error("Slave key not ready, use master key instead")
-            h = LocalConnectionHandler(sock, endpoint, self.kernel,
-                                       security.get_private_key(), self.logger)
+            sock, endpoint = watcher.data.accept()
+            sublogger = logger.getChild("%s:%s" % endpoint)
 
-        io_watcher = watcher.loop.io(sock, pyev.EV_READ, self.on_read, h)
-        io_watcher.start()
-        self.io_list.append(io_watcher)
+            try:
+                der = self.meta.shared_der_rsakey
+                key = security.RSAObject(der=der)
+                h = LocalConnectionHandler(sock, key, sublogger,
+                                           self.kernel.on_message)
+            except RuntimeError:
+                logger.error("Slave key not ready, use master key instead")
+                h = LocalConnectionHandler(sock, security.get_private_key(),
+                                           sublogger, self.kernel.on_message)
+
+            io_watcher = watcher.loop.io(sock, pyev.EV_READ, self.on_read, h)
+            io_watcher.start()
+            self.io_list.append(io_watcher)
+        except Exception:
+            logger.exception("Unhandle Error")
 
     def on_read(self, watcher, revent):
-        if not watcher.data.on_read():
-            watcher.data.close("Remote gone")
-            watcher.stop()
-            self.io_list.pop(watcher)
+        try:
+            if not watcher.data.on_read():
+                watcher.data.close("Remote gone")
+                watcher.stop()
+                self.io_list.remove(watcher)
+        except Exception:
+            logger.exception("Unhandle Error")
 
     def on_timer(self, watcher, revent):
         dead = []
@@ -69,7 +77,7 @@ class LocalControl(object):
         for w in dead:
             w.data.close("Idle timeout")
             watcher.stop()
-            self.io_list.pop(watcher)
+            self.io_list.remove(watcher)
 
     def close(self):
         self.timer_watcher.stop()
@@ -85,13 +93,12 @@ class LocalControl(object):
 
 class LocalConnectionHandler(object):
     @T.update_time
-    def __init__(self, sock, endpoint, kernel, slave_key, logger):
+    def __init__(self, sock, slave_key, logger, on_message_callback):
         self.binary_mode = False
 
-        self.kernel = kernel
-        self.client = endpoint
+        self._on_message_callback = on_message_callback
         self.rsakey = slave_key
-        self.logger = logger.getChild("%s:%s" % self.client)
+        self.logger = logger
 
         self.randbytes = security.randbytes(128)
 
@@ -128,7 +135,8 @@ class LocalConnectionHandler(object):
             return False
             self.close("Remote closed")
 
-    def on_write(self, watcher, revent):
+    @T.update_time
+    def on_write(self):
         pass
 
     def _on_handshake_identify(self, length):
@@ -175,8 +183,7 @@ class LocalConnectionHandler(object):
             else:
                 self.randbytes = None
                 self.sock.send(b"OK" + b"\x00" * 14)
-                self.logger.info("Client %s connected (access_id=%s)" %
-                                 (self.client[0], self.access_id))
+                self.logger.info("Connected (access_id=%s)", self.access_id)
 
                 aes_key, aes_iv = os.urandom(32), os.urandom(16)
                 self.aes = security.AESObject(aes_key, aes_iv)
@@ -192,7 +199,7 @@ class LocalConnectionHandler(object):
         if self.binary_mode:
             ret = self._buffered
             self._buffered = 0
-            self.kernel.on_message(bytes(self._buf[:ret]), self)
+            self._on_message_callback(bytes(self._buf[:ret]), self)
         else:
             while self._buffered > 2:
                 # Try unpack
@@ -204,11 +211,11 @@ class LocalConnectionHandler(object):
                     self._bufview[:l - self._buffered] = \
                         self._bufview[l:self._buffered]
                     self._buffered -= l
-                    self.kernel.on_message(payload, self)
+                    self._on_message_callback(payload, self)
                 elif self._buffered == l:
                     payload = self._bufview[2:l].tobytes()
                     self._buffered = 0
-                    self.kernel.on_message(payload, self)
+                    self._on_message_callback(payload, self)
                 else:
                     break
 
@@ -244,8 +251,10 @@ class LocalConnectionHandler(object):
         buf = struct.pack("<H", l) + bmessage
         return self.send(buf)
 
+    def send_large_data(self, binary):
+        pass
+
     def close(self, reason=""):
         self._recv_handler = None
         self.sock.close()
-        self.logger.debug("Client %s disconnected (reason=%s)" %
-                          (self.client[0], reason))
+        self.logger.debug("Client disconnected (reason=%s)", reason)
