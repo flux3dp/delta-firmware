@@ -10,7 +10,7 @@ from .misc import ControlTestBase
 
 class MainboardControlStartupTest(ControlTestBase):
     def test_startup_simple(self):
-        with self.assertSendMainboard(b"X17O\n") as executor:
+        with self.assertSendMainboard(b"C1O\n") as executor:
             mc = MainController(executor, ready_callback=self.raiseException)
 
         with self.assertSendMainboard() as executor:
@@ -20,23 +20,23 @@ class MainboardControlStartupTest(ControlTestBase):
         self.assertTrue(mc.ready, True)
 
     def test_startup_no_response(self):
-        with self.assertSendMainboard(b"X17O\n") as executor:
+        with self.assertSendMainboard(b"C1O\n") as executor:
             mc = MainController(executor, ready_callback=self.raiseException)
 
         with self.assertSendMainboard() as executor:
             mc.patrol(executor)
         mc._last_recv_ts = -1
-        with self.assertSendMainboard(b"X17O\n") as executor:
+        with self.assertSendMainboard(b"C1O\n") as executor:
             # TTL: 1
             mc.patrol(executor)
         with self.assertSendMainboard() as executor:
             mc.patrol(executor)
         mc._last_recv_ts = -1
-        with self.assertSendMainboard(b"X17O\n") as executor:
+        with self.assertSendMainboard(b"C1O\n") as executor:
             # TTL: 2
             mc.patrol(executor)
         mc._last_recv_ts = -1
-        with self.assertSendMainboard(b"X17O\n") as executor:
+        with self.assertSendMainboard(b"C1O\n") as executor:
             # TTL: 3
             mc.patrol(executor)
         mc._last_recv_ts = -1
@@ -45,17 +45,17 @@ class MainboardControlStartupTest(ControlTestBase):
             self.assertRaises(SystemError, mc.patrol, executor)
 
     def test_startup_with_lineno_enabled(self):
-        with self.assertSendMainboard(b"X17O\n") as executor:
+        with self.assertSendMainboard(b"C1O\n") as executor:
             mc = MainController(executor, ready_callback=self.raiseException)
 
-        with self.assertSendMainboard(b"X17F N3*69\n", b"X17O\n") as executor:
+        with self.assertSendMainboard(b"X17F N3*69\n", b"C1O\n") as executor:
             mc.on_message("ER MISSING_LINENUMBER 3", executor)
 
 class MainboardControlTest(ControlTestBase):
     def setUp(self):
         super(MainboardControlTest, self).setUp()
 
-        with self.assertSendMainboard(b"X17O\n") as executor:
+        with self.assertSendMainboard(b"C1O\n") as executor:
             mc = MainController(executor, ready_callback=self.raiseException)
 
         mc._ln = 0

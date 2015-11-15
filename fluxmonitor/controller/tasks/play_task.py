@@ -33,8 +33,12 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
         self.executor.close()
         self.disconnect()
 
-    def on_mainboard_message(self, sender):
-        buf = sender.obj.recv(4096)
+    def on_mainboard_message(self, watcher, revent):
+        buf = watcher.data.recv(4096)
+        if not buf:
+            logger.error("Mainboard connection broken")
+            self.executor.abort("CONTROL_FAILED", "MB_CONN_BROKEN")
+
         if self._mb_swap:
             self._mb_swap += buf.decode("ascii", "ignore")
         else:
@@ -45,8 +49,12 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
         for msg in messages:
             self.executor.on_mainboard_message(msg)
 
-    def on_headboard_message(self, sender):
+    def on_headboard_message(self, watcher, revent):
         buf = sender.obj.recv(4096)
+        if not buf:
+            logger.error("Headboard connection broken")
+            self.executor.abort("CONTROL_FAILED", "HB_CONN_BROKEN")
+
         if self._hb_swap:
             self._hb_swap += buf.decode("ascii", "ignore")
         else:

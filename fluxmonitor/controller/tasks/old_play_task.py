@@ -53,8 +53,8 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
                 return
 
             self._task_executed += len(buf)
-            if DEBUG:
-                logger.debug("GCODE: %s" % buf.decode("ascii").strip())
+            # if DEBUG:
+            #     logger.debug("GCODE: %s" % buf.decode("ascii").strip())
 
             cmd = buf.split(b";", 1)[0].rstrip()
 
@@ -73,8 +73,12 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
     def clean_task(self):
         self._status = "COMPLETED"
 
-    def on_mainboard_message(self, sender):
-        buf = sender.obj.recv(4096)
+    def on_mainboard_message(self, watcher, revent):
+        buf = watcher.data.recv(4096)
+        if not buf:
+            logger.error("Mainboard connection broken")
+            self.executor.abort("CONTROL_FAILED", "MB_CONN_BROKEN")
+
         if self._mb_swap:
             self._mb_swap += buf.decode("ascii", "ignore")
         else:
@@ -83,8 +87,8 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
         messages = re.split("\r\n|\n", self._mb_swap)
         self._mb_swap = messages.pop()
         for msg in messages:
-            if DEBUG:
-                logger.debug("MB: %s" % msg)
+            # if DEBUG:
+            #     logger.debug("MB: %s" % msg)
             if msg.startswith("ok"):
                 if self._task_in_queue is not None:
                     self._task_in_queue -= 1
@@ -92,8 +96,12 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
         if self._status == "RUNNING":
             self.next_cmd()
 
-    def on_headboard_message(self, sender):
+    def on_headboard_message(self, watcher, revent):
         buf = sender.obj.recv(4096)
+        if not buf:
+            logger.error("Headboard connection broken")
+            self.executor.abort("CONTROL_FAILED", "HB_CONN_BROKEN")
+
         if self._hb_swap:
             self._hb_swap += buf.decode("ascii", "ignore")
         else:
@@ -101,9 +109,9 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
 
         messages = re.split("\r\n|\n", self._hb_swap)
         self._hb_swap = messages.pop()
-        for msg in messages:
-            if DEBUG:
-                logger.debug("HB: %s" % msg)
+        # for msg in messages:
+        #     if DEBUG:
+        #         logger.debug("HB: %s" % msg)
 
     def pause(self, reason):
         if self._status == "RUNNING":

@@ -57,7 +57,9 @@ class UsbService(ServiceBase):
 
     def connect_usb_serial(self):
         try:
-            usb = UsbIO(uart_config["pc"])
+            s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            s.connect(uart_config["pc"])
+            usb = UsbIO(s)
             self.usb = usb
             self.usb_watcher = self.loop.io(usb, pyev.EV_READ,
                                             usb.on_message, self)
@@ -95,10 +97,8 @@ class UsbService(ServiceBase):
 class UsbIO(object):
     _vector = None
 
-    def __init__(self, path):
-        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        s.connect(path)
-        self.sock = s
+    def __init__(self, sock):
+        self.sock = sock
 
         self.nw_monitor = NetworkMonitor(None)
         self.meta = CommonMetadata()
