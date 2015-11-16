@@ -110,6 +110,7 @@ class FrontButtonMonitor(object):
 
     def send_click(self, callback):
         logging.debug("Btn event: CLICK")
+        callback('PLAYTOGL')
 
     def send_db_click(self, callback):
         logging.debug("Btn event: DBCLICK")

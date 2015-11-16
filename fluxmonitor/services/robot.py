@@ -40,10 +40,12 @@ class Robot(ServiceBase):
         try:
             if options.taskfile:
                 sender = NullSender()
-                ret = cmd_task.select_file(options.taskfile, sender, raw=True)
-                assert ret == "ok", "got: %s" % ret
-                ret = cmd_task.play(sender=sender)
-                assert ret == "ok", "got: %s" % ret
+                cmd_task.select_file(options.taskfile, sender, raw=True)
+                cmd_task.play(sender=sender)
+            elif options.autoplay:
+                sender = NullSender()
+                if cmd_task.autoselect():
+                    cmd_task.play(sender=sender)
         except Exception:
             logger.exception("Error while setting task at init")
 
@@ -58,6 +60,24 @@ class Robot(ServiceBase):
                     self.this_task.resume()
                 elif st == "RUNNING":
                     self.this_task.pause("USER_OPERATE")
+        if message == "PLAYTOGL":
+            if task_label == "PlayTask":
+                st = self.this_task.get_status()["st_label"]
+                if st in ("ABORTED", "COMPLETED"):
+                    if not self.this_task.do_exit():
+                        logger.error("Can not quit task")
+                        return
+                else:
+                    logger.error("Can not quit task because busy")
+                    return
+
+            elif task_label != "CommandTask":
+                logger.error("Can not start autoplay at %s", task_label)
+                return
+
+            sender = NullSender()
+            if self.this_task.autoselect():
+                self.this_task.play(sender=sender)
 
     @T.update_time
     def on_message(self, message, sender):

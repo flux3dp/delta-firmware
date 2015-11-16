@@ -136,6 +136,13 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
         else:
             raise RuntimeError(NO_TASK)
 
+    def do_exit(self):
+        if self._status in ["ABORT", "COMPLETED"]:
+            self.server.exit_task(self)
+            return True
+        else:
+            return False
+
     def get_status(self):
         return {"st_label": self._status, "st_id": -1,
                 "executed": self._task_executed, "total": self._task_total}
@@ -157,8 +164,7 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
             return "ok"
 
         elif cmd == "quit":
-            if self._status in ["ABORT", "COMPLETED"]:
-                self.server.exit_task(self)
+            if self.do_exit():
                 return "ok"
             else:
                 raise RuntimeError(RESOURCE_BUSY)

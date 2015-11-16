@@ -88,8 +88,7 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
                 raise RuntimeError(RESOURCE_BUSY)
 
         elif cmd == "quit":
-            if self.executor.is_closed():
-                self.server.exit_task(self)
+            if self.do_exit():
                 return "ok"
             else:
                 raise RuntimeError(RESOURCE_BUSY)
@@ -97,6 +96,13 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
         else:
             logger.debug("Can not handle: '%s'" % cmd)
             raise RuntimeError(UNKNOW_COMMAND)
+
+    def do_exit(self):
+        if self.executor.is_closed():
+            self.server.exit_task(self)
+            return True
+        else:
+            return False
 
     def on_timer(self, watcher, revent):
         self.server.renew_timer()

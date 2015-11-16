@@ -22,20 +22,26 @@ class ButtonControl(object):
         self.watcher.start()
         self._buf = ""
 
-    def fileno(self):
-        return self.sock.fileno()
+    @property
+    def running(self):
+        return self.watcher.active
 
     def on_message(self, watcher, revent):
-        self._buf += self.sock.recv(8 - len(self._buf))
-        if len(self._buf) == 8:
-            try:
-                watcher.data.on_button_control(self._buf.strip())
-            except Exception:
-                self.logger.exception("Unhandle error")
-            finally:
-                self._buf = ""
+        buf = self.sock.recv(8 - len(self._buf))
+        if buf:
+            self._buf += buf
+            if len(self._buf) == 8:
+                try:
+                    watcher.data.on_button_control(self._buf.strip())
+                except Exception:
+                    self.logger.exception("Unhandle error")
+                finally:
+                    self._buf = ""
+        else:
+            logger.error("Button control disconnected.")
+            watcher.stop()
 
-    def close(self, kernel):
+    def close(self):
         self.watcher.stop()
         self.watcher = None
         self.sock.close()

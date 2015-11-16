@@ -113,6 +113,22 @@ class FileManagerMixIn(object):
         sender.send_text(buf.encode("utf8"))
         sender.send_text("ok")
 
+    def autoselect(self):
+        pathlist = ("USB autoplay.fc", "USB autoplay.gcode", "SD autoplay.fc",
+                    "SD autoplay.gcode")
+        for candidate in pathlist:
+            try:
+                abspath = self._storage_dispatch(candidate)
+                if os.path.isfile(abspath):
+                    logger.debug("Autoselect: %s", abspath)
+                    self._task_file = open(abspath, "rb")
+                    self._task_mimetype, _ = mimetypes.guess_type(abspath)
+                    return True
+            except RuntimeError:
+                pass
+        logger.debug("Auto select failed")
+        return False
+
     def select_file(self, path, sender, raw=False):
         if raw:
             abspath = os.path.realpath(path)
