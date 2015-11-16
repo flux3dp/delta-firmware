@@ -213,7 +213,8 @@ class UsbIO(object):
                 "time=%.2f\x00pwd=%i\x00vector=%s") % (
                     VERSION, MODEL_ID, UUID_HEX, SERIAL, self.meta.nickname,
                     time(), security.has_password(), self._vector)
-        self.send_response(REQ_IDENTIFY, True, resp.encode())
+        # NOTE: encoding
+        self.send_response(REQ_IDENTIFY, True, resp)
 
     def on_rsakey(self, buf):
         pkey = security.get_private_key()
