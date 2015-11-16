@@ -1,5 +1,6 @@
 
 import logging
+import json
 import re
 import os
 
@@ -115,12 +116,12 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
 
     def pause(self, reason):
         if self._status == "RUNNING":
-            self._status = "PAUSE"
+            self._status = "PAUSED"
         else:
             raise RuntimeError(NOT_RUNNING)
 
     def resume(self):
-        if self._status == "PAUSE":
+        if self._status == "PAUSED":
             self._status = "RUNNING"
             self.next_cmd()
         elif self._status == "RUNNING":
@@ -129,14 +130,15 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
             raise RuntimeError(NO_TASK)
 
     def abort(self, reason):
-        if self._status in ["RUNNING", "PAUSE"]:
+        if self._status in ["RUNNING", "PAUSED"]:
             self._uart_mb.send(b"G28\nM84\n")
             self._status = "ABORT"
         else:
             raise RuntimeError(NO_TASK)
 
     def get_status(self):
-        return {"status": self._status}
+        return {"st_label": self._status, "st_id": -1,
+                "executed": self._task_executed, "total": self._task_total}
 
     def dispatch_cmd(self, cmd, sender):
         if cmd == "pause":
@@ -144,8 +146,7 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
             return "ok"
 
         elif cmd == "report" or cmd == "r":
-            return "%s/%i/%i/%s" % (self._status, self._task_executed,
-                                    self._task_total, self._task_last)
+            return json.dumps(self.get_status())
 
         elif cmd == "resume":
             self.resume()

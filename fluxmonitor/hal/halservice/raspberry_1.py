@@ -12,6 +12,8 @@ import pyev
 from fluxmonitor.misc.async_signal import AsyncIO
 from fluxmonitor.halprofile import MODEL_G1
 from fluxmonitor.storage import Storage, CommonMetadata
+from fluxmonitor.config import LENGTH_OF_LONG_PRESS_TIME as LLPT, \
+    GAP_BETWEEN_DOUBLE_CLICK as GBDC
 
 from .base import UartHalBase, BaseOnSerial
 
@@ -41,57 +43,89 @@ MAIN_BUTTON_UP = 1
 
 
 class FrontButtonMonitor(object):
-    def __init__(self):
+    def __init__(self, loop, callback):
         GPIO.setup(12, GPIO.IN)
 
-        self.running = True
         self._rfd, self._wfd = os.pipe()
         self._proc = Process(target=self.serve_forever)
         self._proc.daemon = True
         self._proc.start()
         os.close(self._wfd)
 
+        self._io_tigger = loop.io(self._rfd, pyev.EV_READ, self.on_trigger,
+                                  callback)
+        self._io_tigger.start()
+        self._db_click_timer = loop.timer(GBDC, 0, self.on_trigger, callback)
+
     def fileno(self):
         return self._rfd
 
     def serve_forever(self):
+        # Stand alone process entry
         try:
             setproctitle(getproctitle() + " (button monitor)")
 
             os.close(self._rfd)
-            while self.running:
-                abort_sent = False
+            lastpress = 0
+            while True:
+                long_press_sent = False
 
                 GPIO.wait_for_edge(12, GPIO.FALLING)
                 d = time()
                 while GPIO.input(12) == 0:
                     sleep(0.002)
 
-                    if not abort_sent and time() - d > 3:
-                        abort_sent = True
+                    if not long_press_sent and time() - d > LLPT:
+                        long_press_sent = True
                         os.write(self._wfd, '9')
-                        L.debug("Btn long press event triggered")
 
-                if time() - d < 3:
+                if long_press_sent:
+                    continue
+                else:
                     os.write(self._wfd, '1')
-                    L.debug("Btn press event triggered")
+
         finally:
             os.close(self._wfd)
 
     def on_trigger(self, watcher, revent):
-        buf = os.read(self._rfd, 1)
-        if buf:
-            if buf == '1':
-                watcher.data('RUNTOGL ')
-            elif buf == '9':
-                watcher.data('ABORT   ')
-        else:
-            L.error("ButtonInterface is down")
-            kernel.remove_read_event(self)
+        if revent == pyev.EV_READ:
+            buf = os.read(self._rfd, 1)
+            if buf:
+                if buf == '1':
+                    if self._db_click_timer.active:
+                        self.send_db_click(watcher.data)
+                        self._db_click_timer.stop()
+                    else:
+                        self._db_click_timer.set(GBDC, 0)
+                        self._db_click_timer.start()
+                elif buf == '9':
+                    self.send_long_press(watcher.data)
+            else:
+                L.error("ButtonInterface is down")
+                kernel.remove_read_event(self)
+
+        elif revent == pyev.EV_TIMER:
+            # CLICK
+            self.send_click(watcher.data)
+
+    def send_click(self, callback):
+        logging.debug("Btn event: CLICK")
+
+    def send_db_click(self, callback):
+        logging.debug("Btn event: DBCLICK")
+        callback('RUNTOGL ')
+
+    def send_long_press(self, callback):
+        logging.debug("Btn event: LONG_PRESS")
+        callback('ABORT   ')
 
     def close(self):
-        self.running = False
+        self._io_tigger.stop()
+        self._io_tigger = None
         os.close(self._rfd)
+
+        self._db_click_timer.stop()
+        self._db_click_timer = None
 
 
 class GPIOConteol(object):
@@ -223,11 +257,8 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOConteol):
 
         self.init_gpio_control()
 
-        self.btn_monitor = FrontButtonMonitor()
-        self.btn_watcher = kernel.loop.io(self.btn_monitor, pyev.EV_READ,
-                                          self.btn_monitor.on_trigger,
-                                          self.send_button_event)
-        self.btn_watcher.start()
+        self.btn_monitor = FrontButtonMonitor(kernel.loop,
+                                              self.send_button_event)
 
         self._rasp_connect(kernel.loop)
         self.mainboard_connect(kernel.loop)
@@ -342,4 +373,4 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOConteol):
 
     def send_button_event(self, event_buffer):
         for w in self.control_watchers:
-            w.data.sendt(event_buffer)
+            w.data.send(event_buffer)
