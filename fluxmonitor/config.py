@@ -1,4 +1,6 @@
 
+LENGTH_OF_LONG_PRESS_TIME = 1.5
+GAP_BETWEEN_DOUBLE_CLICK = 0.3
 DEBUG = False
 
 # The following is default config

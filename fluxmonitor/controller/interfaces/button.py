@@ -6,6 +6,8 @@ import pyev
 
 from fluxmonitor.config import uart_config
 
+logger = logging.getLogger("halservice.rasp")
+
 
 class ButtonControl(object):
     def __init__(self, kernel, logger=None):
@@ -27,7 +29,7 @@ class ButtonControl(object):
         self._buf += self.sock.recv(8 - len(self._buf))
         if len(self._buf) == 8:
             try:
-                watcher.data.kernel.on_button_control(self._buf.strip())
+                watcher.data.on_button_control(self._buf.strip())
             except Exception:
                 self.logger.exception("Unhandle error")
             finally:
