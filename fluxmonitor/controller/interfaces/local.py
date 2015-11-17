@@ -54,6 +54,7 @@ class LocalControl(object):
                                            sublogger, self.kernel.on_message)
 
             io_watcher = watcher.loop.io(sock, pyev.EV_READ, self.on_read, h)
+            h.io_watcher = io_watcher
             io_watcher.start()
             self.io_list.append(io_watcher)
         except Exception:
@@ -119,6 +120,12 @@ class LocalConnectionHandler(object):
 
         self.sock = sock
         self._recv_handler = self._on_handshake_identify
+
+    def disable_read_event(self):
+        self.io_watcher.stop()
+
+    def enable_read_event(self):
+        self.io_watcher.start()
 
     @property
     def is_timeout(self):

@@ -149,7 +149,7 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
         return "ok"
 
     def scan_check(self, sock):
-        self.server.remove_read_event(sock)
+        sock.disable_read_event()
         self._background_job = (self.scan_check_worker, (sock, ))
 
     def get_img(self):
@@ -166,7 +166,7 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
         # self.camera_read()
         # img_l = self._img_buf
 
-        self.server.add_read_event(sock)
+        sock.enable_read_event()
 
     def calib(self, sock):
         _ScanChecking = ScanChecking()
@@ -228,7 +228,7 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
             return False
 
     def oneshot(self, sock):
-        self.server.remove_read_event(sock)
+        sock.disable_read_event()
         self._background_job = (self._oneshot_worker, (sock, ))
 
     def _oneshot_worker(self, sock):
@@ -236,11 +236,12 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
             self._take_image(sock)
             sock.send_text("ok")
         finally:
-            self.server.add_read_event(sock)
+            sock.enable_read_event()
 
     def take_images(self, sock):
-        self.server.remove_read_event(sock)
-        self.server.remove_read_event(self._async_mb)
+        sock.disable_read_event()
+        # TODO
+        # self.server.remove_read_event(self._async_mb)
         self._background_job = (self._take_images_worker, (sock, ))
 
     def _take_images_worker(self, sock):
@@ -253,8 +254,9 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
             self._take_image(sock)
             sock.send_text("ok")
         finally:
-            self.server.add_read_event(self._async_mb)
-            self.server.add_read_event(sock)
+            # TODO
+            # self.server.add_read_event(self._async_mb)
+            sock.enable_read_event()
 
     def _take_image(self, sock):
         try:
