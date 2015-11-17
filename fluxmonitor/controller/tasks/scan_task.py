@@ -254,6 +254,7 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
         sock.disable_read_event()
         # TODO
         # self.server.remove_read_event(self._async_mb)
+        self._mb_watcher.stop()
         self._background_job = (self._take_images_worker, (sock, ))
 
     def _take_images_worker(self, sock):
@@ -268,6 +269,7 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
         finally:
             # TODO
             # self.server.add_read_event(self._async_mb)
+            self._mb_watcher.start()
             sock.enable_read_event()
 
     def _take_image(self, sock):
