@@ -162,7 +162,7 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
         a = s.readall('calibration')
         if a is None:
             a = '0 0'
-        self.sock.send_text(a)
+        sock.send_text(a)
 
     def get_img(self):
         self.camera_read()
