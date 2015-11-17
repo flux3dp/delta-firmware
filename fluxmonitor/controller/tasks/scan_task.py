@@ -6,6 +6,8 @@ import logging
 
 from fluxmonitor.err_codes import DEVICE_ERROR, NOT_SUPPORT, UNKNOW_COMMAND
 from fluxmonitor.config import hal_config
+from fluxmonitor.storage import Storage
+
 
 from .base import ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn
 
@@ -103,6 +105,9 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
         elif cmd == "scan_check":
             self.scan_check(sock)
 
+        elif cmd == "get_cab":
+            self.get_cab(sock)
+
         elif cmd == "calib":
             self.calib(sock)
 
@@ -151,6 +156,13 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
     def scan_check(self, sock):
         self.server.remove_read_event(sock)
         self._background_job = (self.scan_check_worker, (sock, ))
+
+    def get_cab(self, sock):
+        s = Storage('camera')
+        a = s.readall('calibration')
+        if a is None:
+            a = '0 0'
+        self.sock.send_text(a)
 
     def get_img(self):
         self.camera_read()
