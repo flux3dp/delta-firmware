@@ -134,6 +134,8 @@ def _write_dhcpd_config(filepath):
 default-lease-time 600;
 max-lease-time 7200;
 log-facility local7;
+option routers 192.168.1.1;
+option domain-name-servers 192.168.1.1;
 
 subnet 192.168.1.0 netmask 255.255.255.0 {
   range 192.168.1.100 192.168.1.200;

@@ -197,7 +197,7 @@ class NetworkService(ServiceBase, NetworkConfigMixIn, NetworkMonitorMixIn):
         elif self.is_wireless(ifname):
             daemon['hostapd'] = nl80211_config.wlan_ap_daemon(self, ifname)
             net_configure.config_ipaddr(ifname, {'ipaddr': '192.168.1.1',
-                                        'mask': 24})
+                                        'mask': 24, 'route': '192.168.1.254'})
             daemon['dhcpd'] = net_configure.dhcp_server_daemon(self, ifname)
             logger.debug("[%s] Wireless is not configured, "
                          "start with ap mode" % ifname)
