@@ -148,13 +148,13 @@ class UsbIO(object):
                     self._recv_view[:remnant] = \
                         self._recv_view[index:self._recv_offset]
                     self._recv_offset = remnant
-                    logger.error("Protocol magic number error, shift buffer")
+                    logger.debug("Protocol magic number error, shift buffer")
 
                     if remnant < 7:
                         return
 
             except ValueError:
-                logger.error("Protocol magic number error, clean buffer")
+                logger.debug("Protocol magic number error, clean buffer")
                 self._recv_offset = 0
                 return
 
