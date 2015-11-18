@@ -5,10 +5,12 @@ from time import time
 import logging
 import socket
 import struct
+import json
 
 import pyev
 
 from fluxmonitor.hal.nl80211.config import get_wlan_ssid
+from fluxmonitor.hal.nl80211.scan import scan as wifiscan
 from fluxmonitor.hal.net.monitor import Monitor as NetworkMonitor
 from fluxmonitor.misc import network_config_encoder as NCE
 from fluxmonitor.security.passwd import set_password
@@ -39,6 +41,7 @@ REQ_AUTH = 0x02
 REQ_CONFIG_GENERAL = 0x03
 REQ_CONFIG_NETWORK = 0x04
 REQ_GET_SSID = 0x05
+REQ_LIST_SSID = 0x08
 REQ_GET_IPADDR = 0x07
 REQ_SET_PASSWORD = 0x06
 
@@ -115,6 +118,7 @@ class UsbIO(object):
             REQ_CONFIG_GENERAL: self.on_config_general,
             REQ_CONFIG_NETWORK: self.on_config_network,
             REQ_GET_SSID: self.on_query_ssid,
+            REQ_LIST_SSID: self.on_list_ssid,
             REQ_GET_IPADDR: self.on_query_ipaddr,
             REQ_SET_PASSWORD: self.on_set_password,
 
@@ -290,7 +294,15 @@ class UsbIO(object):
             self.send_response(REQ_GET_SSID, True, ssid.encode())
         except Exception:
             logger.exception("Error while getting ssid %s" % "wlan0")
-            self.send_response(REQ_GET_SSID, False, "NOT_FOUND")
+            self.send_response(REQ_GET_SSID, False, "UNKNOW_ERROR")
+
+    def on_list_ssid(self, buf):
+        try:
+            result = wifiscan()
+            self.send_response(REQ_LIST_SSID, True, json.dumps(result))
+        except Exception:
+            logger.exception("Error while list ssid %s" % "wlan0")
+            self.send_response(REQ_LIST_SSID, False, "UNKNOW_ERROR")
 
     def on_query_ipaddr(self, buf):
         status = self.nw_monitor.full_status()
