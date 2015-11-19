@@ -24,7 +24,7 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
 
         self.executor = FcodeExecutor(self._uart_mb, self._uart_hb, task_file,
                                       settings.play_bufsize)
-        self.timer_watcher = server.loop.timer(3, 3, self.on_timer)
+        self.timer_watcher = server.loop.timer(0.8, 0.8, self.on_timer)
         self.timer_watcher.start()
 
     def on_exit(self, sender):

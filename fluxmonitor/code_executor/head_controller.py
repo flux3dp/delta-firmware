@@ -110,8 +110,8 @@ class ExtruderController(object):
         self._temperatures[0] = temperature
         self._padding_cmd = create_chksum_cmd("1 H:%i T:%.1f", 
                                               heater_id, temperature)
-        self._send_cmd(executor)
         self._cmd_callback = callback
+        self._send_cmd(executor)
 
     def set_fanspeed(self, executor, fan_id, fan_speed, callback=None):
         if self._padding_cmd:
@@ -119,7 +119,7 @@ class ExtruderController(object):
                               "Busy: %s" % self._padding_cmd)
 
         self._fanspeed = f = max(min(1.0, fan_speed), 0)
-        self._padding_cmd = create_chksum_cmd("1 F:%i S:%i\n", fan_id, f * 255)
+        self._padding_cmd = create_chksum_cmd("1 F:%i S:%i", fan_id, f * 255)
         self._send_cmd(executor)
         self._cmd_callback = callback
 
@@ -204,8 +204,9 @@ class ExtruderController(object):
             raise SystemError("UNKNOW_COMMAND", "HEAD_MESSAGE")
 
     def _send_cmd(self, executor):
-        executor.send_headboard(self._padding_cmd)
-        self._cmd_sent_at = time()
+        if not self._wait_update:
+            executor.send_headboard(self._padding_cmd)
+            self._cmd_sent_at = time()
 
     def _parse_cmd_response(self, msg, executor):
         if msg.startswith("OK "):
@@ -266,6 +267,10 @@ class ExtruderController(object):
                         L.error("Recive header boot")
                         self._raise_error(EXEC_HEADER_OFFLINE,
                                           "HEAD_RESET")
+
+        if self._padding_cmd:
+            self._send_cmd(executor)
+
     def patrol(self, executor, strict=True):
         if self._wait_update:
             if self._update_retry > 2 and strict:
@@ -275,10 +280,6 @@ class ExtruderController(object):
                 self._update_retry += 1 if strict else 0
                 L.debug("Header ping timeout, retry (%i)", self._update_retry)
 
-        elif time() - self._lastupdate > 1.0:
-            self._handle_ping(executor)
-            self._wait_update = True
-
         if self._padding_cmd:
             if self._cmd_retry > 2 and strict:
                 self._raise_error(EXEC_HEADER_OFFLINE)
@@ -286,6 +287,11 @@ class ExtruderController(object):
                 self._send_cmd(executor)
                 self._cmd_retry += 1
                 L.debug("Header cmd timeout, retry (%i)", self._update_retry)
+
+        elif time() - self._lastupdate > 1.0:
+            if not self._padding_cmd:
+                self._handle_ping(executor)
+                self._wait_update = True
 
     def _raise_error(self, *args):
         self._ready = False
