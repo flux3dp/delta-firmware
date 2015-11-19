@@ -50,7 +50,7 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
             self.executor.on_mainboard_message(msg)
 
     def on_headboard_message(self, watcher, revent):
-        buf = sender.obj.recv(4096)
+        buf = watcher.data.recv(4096)
         if not buf:
             logger.error("Headboard connection broken")
             self.executor.abort("CONTROL_FAILED", "HB_CONN_BROKEN")
