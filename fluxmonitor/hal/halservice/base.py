@@ -51,6 +51,7 @@ class UartHalBase(object):
     def on_connected_control(self, watcher, revent):
         logger.debug("Connected to control")
         request, _ = watcher.data.accept()
+        request.setblocking(False)
         watcher = watcher.loop.io(request, pyev.EV_READ,
                                   self.on_control_message, request)
         watcher.start()
@@ -82,6 +83,7 @@ class UartHalBase(object):
     def on_connected_mainboard(self, watcher, revent):
         logger.debug("Connect to mainboard")
         request, _ = watcher.data.accept()
+        request.setblocking(False)
         watcher = watcher.loop.io(request, pyev.EV_READ,
                                   self.on_sendto_mainboard, request)
         watcher.start()
@@ -95,6 +97,7 @@ class UartHalBase(object):
     def on_connected_headboard(self, watcher, revent):
         logger.debug("Connect to headboard")
         request, _ = watcher.data.accept()
+        request.setblocking(False)
         watcher = watcher.loop.io(request, pyev.EV_READ,
                                   self.on_sendto_headboard, request)
         watcher.start()
@@ -108,6 +111,7 @@ class UartHalBase(object):
     def on_connected_pc(self, watcher, revent):
         logger.debug("Connect to pc")
         request, _ = watcher.data.accept()
+        request.setblocking(False)
         watcher = watcher.loop.io(request, pyev.EV_READ,
                                   self.on_sendto_pc, request)
         watcher.start()
@@ -166,17 +170,26 @@ class BaseOnSerial(object):
     def on_recvfrom_mainboard(self, watcher, revent):
         buf = watcher.data.read(4096)
         for w in self.mainboard_watchers:
-            w.data.send(buf)
+            try:
+                w.data.send(buf)
+            except Exception:
+                logger.error("Send mainboard message to %s failed", w.data)
         return buf
 
     def on_recvfrom_headboard(self, watcher, revent):
         buf = watcher.data.read(4096)
         for w in self.headboard_watchers:
-            w.data.send(buf)
+            try:
+                w.data.send(buf)
+            except Exception:
+                logger.error("Send mainboard message to %s failed", w.data)
         return buf
 
     def on_recvfrom_pc(self, watcher, revent):
         buf = watcher.data.read(4096)
         for w in self.pc_watchers:
-            w.data.send(buf)
+            try:
+                w.data.send(buf)
+            except Exception:
+                logger.error("Send mainboard message to %s failed", w.data)
         return buf
