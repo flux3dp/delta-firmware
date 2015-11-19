@@ -442,14 +442,15 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
         self.cron_watcher.start()
 
     def on_network_changed(self, watcher, revent):
-        status = self.nw_monitor.read()
-        nested = [st.get('ipaddr', [])
-                  for _, st in status.items()]
-        ipaddress = list(chain(*nested))
+        if self.nw_monitor.read():
+            status = self.nw_monitor.full_status()
+            nested = [st.get('ipaddr', [])
+                      for _, st in status.items()]
+            ipaddress = list(chain(*nested))
 
-        if self.ipaddress != ipaddress:
-            self.ipaddress = ipaddress
-            self._replace_upnp_sock()
+            if self.ipaddress != ipaddress:
+                self.ipaddress = ipaddress
+                self._replace_upnp_sock()
 
     def on_button_control(self, command):
         if command == "PLAYTOGL":

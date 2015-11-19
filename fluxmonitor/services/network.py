@@ -82,7 +82,8 @@ class NetworkMonitorMixIn(object):
         self._network_notifier = None
 
     def _on_network_changed(self, watcher, revent):
-        self.update_nic_status(self._network_notifier.read())
+        if self._network_notifier.read():
+            self.update_nic_status()
 
     def update_nic_status(self, status=None):
         if not status:
