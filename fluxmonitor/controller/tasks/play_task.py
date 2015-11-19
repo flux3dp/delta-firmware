@@ -107,7 +107,7 @@ class PlayTask(CommandMixIn, DeviceOperationMixIn):
     def on_timer(self, watcher, revent):
         self.server.renew_timer()
         if not self.executor.is_closed():
-            self.executor.on_loop(sender)
+            self.executor.on_loop()
 
     def get_status(self):
         return self.executor.get_status()
