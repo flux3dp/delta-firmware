@@ -40,15 +40,14 @@ def main():
         sys.stdout.flush()
 
         for i in range(options.index_from, options.index_to):
-            sys.stdout.write("\rRunning ... (%04i)" % i)
-            sys.stdout.flush()
             sn = get_sn(options.prefix, i)
             pri_der, pub_der = gen_key()
             uuid = get_uuid(options.prefix, i, pub_der)
             sign = sign_id(options.pkey, sn, pub_der, uuid)
 
+            print(sn)
             outputfile = os.path.join(options.output,
-                                      "%s-%04i.flux_sn" % (options.prefix, i))
+                                      "%04i-%s.flux_sn" % (i, sn))
             with open(outputfile, "w") as f:
                 f.write(sn)
                 f.write("\n")
