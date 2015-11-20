@@ -90,9 +90,42 @@ def load_service_klass(klass_name):
 
 def init_service(klass_name, options):
     create_logger(options)
+
+    if options.signal_debug:
+        import pyev
+        pyev.default_loop(pyev.EVFLAG_NOSIGMASK)
+
     service_klass = load_service_klass(klass_name)
     return service_klass(options)
 
+
+def bind_signal(server, debug):
+    if debug:
+        def sigTerm(sig, frame):
+            sys.stderr.write("\n")
+            server.shutdown(log="Recive SIGTERM/SIGINT")
+
+        signal.signal(signal.SIGTERM, sigTerm)
+        signal.signal(signal.SIGINT, sigTerm)
+
+        import traceback
+
+        def sigUSR2(sig, frame):
+            for l in traceback.format_stack():
+                server.logger.error(l.rstrip())
+
+        signal.signal(signal.SIGUSR2, sigUSR2)
+
+    else:
+        def sigTerm(watcher, revent):
+            sys.stderr.write("\n")
+            server.shutdown(log="Recive SIGTERM/SIGINT")
+
+        watcher1 = server.loop.signal(signal.SIGTERM, sigTerm)
+        watcher1.start()
+        watcher2 = server.loop.signal(signal.SIGINT, sigTerm)
+        watcher2.start()
+        return (watcher1, watcher2)
 
 def deamon_entry(options, service=None):
     pid_handler = None
@@ -185,14 +218,11 @@ def deamon_entry(options, service=None):
         server = init_service(service, options)
 
 
-    def sigTerm(watcher, revent):
+    def sigTerm(sig, frame):
         sys.stderr.write("\n")
         server.shutdown(log="Recive SIGTERM/SIGINT")
 
-    watcher1 = server.loop.signal(signal.SIGTERM, sigTerm)
-    watcher1.start()
-    watcher2 = server.loop.signal(signal.SIGINT, sigTerm)
-    watcher2.start()
+    dummy = bind_signal(server, options.signal_debug)
 
     try:
         if server.run() is False:

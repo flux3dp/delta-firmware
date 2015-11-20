@@ -23,6 +23,9 @@ def add_daemon_arguments(proc_name, parser):
 
     parser.add_argument('--daemon', dest='daemon', action='store_const',
                         const=True, default=False, help='Run as daemon')
+    parser.add_argument('--signal_debug', dest='signal_debug',
+                        action='store_const', const=True, default=False,
+                        help='Use signal2 for callstack debug')
     parser.add_argument('--stop', dest='stop_daemon', action='store_const',
                         const=True, default=False, help='Stop daemon')
     parser.add_argument('--pid', dest='pidfile', type=str,
