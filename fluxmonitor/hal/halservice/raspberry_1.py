@@ -129,7 +129,7 @@ class FrontButtonMonitor(object):
         self._db_click_timer = None
 
 
-class GPIOConteol(object):
+class GPIOControl(object):
     _last_mainboard_sig = GPIO_TOGGLE[0]
     _last_sig_timestemp = 0
     _last_active_st = -1
@@ -245,7 +245,7 @@ class GPIOConteol(object):
             L.exception("Error while update fireware")
 
 
-class UartHal(UartHalBase, BaseOnSerial, GPIOConteol):
+class UartHal(UartHalBase, BaseOnSerial, GPIOControl):
     mainboard_uart = raspi_uart = None
     mainboard_io = raspi_io = None
 
