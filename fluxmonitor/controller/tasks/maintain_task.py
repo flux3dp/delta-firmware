@@ -246,7 +246,8 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
     @check_mainboard
     def do_h_correction(self, sender, h=None):
         if h is not None:
-            cmd = do_h_correction(h=h)
+            corr_cmd = do_h_correction(h=h)
+            self.main_ctrl.send_cmd(corr_cmd, self)
             sender.send_text("continue")
             sender.send_text("ok 0")
             return
