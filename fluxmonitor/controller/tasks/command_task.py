@@ -10,7 +10,7 @@ import shutil
 import os
 
 from fluxmonitor.code_executor.fcode_parser import fast_read_meta
-from fluxmonitor.err_codes import (UNKNOW_COMMAND, NOT_EXIST, TOO_LARGE, NO_TASK, BAD_PARAMS, BAD_FILE_FORMAT)
+from fluxmonitor.err_codes import (UNKNOW_COMMAND, NOT_EXIST, TOO_LARGE, NO_TASK, BAD_PARAMS, BAD_FILE_FORMAT, RESOURCE_BUSY)
 from fluxmonitor.hal.usbmount import get_usbmount_hal
 from fluxmonitor.storage import CommonMetadata
 from fluxmonitor.config import robot_config
@@ -238,7 +238,55 @@ class FileManagerMixIn(object):
             self._task_file = None
 
 
-class CommandTask(CommandMixIn, FileManagerMixIn):
+class PlayManagerMixIn(object):
+    def validate_status(callback):
+        def wrapper(self, *args):
+            component = self.stack.kernel.exclusive_component
+            if isinstance(component, PlayerManager):
+                callback(self, component, *args)
+            else:
+                raise RuntimeError(NO_TASK)
+        return wrapper
+
+    @validate_status
+    def play_pause(self, manager, handler):
+        handler.send_text(manager.pause())
+
+    @validate_status
+    def play_resume(self, manager, handler):
+        handler.send_text(manager.resume())
+
+    @validate_status
+    def play_abort(self, manager, handler):
+        handler.send_text(manager.abort())
+
+    @validate_status
+    def play_report(self, manager, handler):
+        handler.send_text(manager.report())
+
+    def dispatch_playmanage_cmd(self, handler, cmd, *args):
+        kernel = self.stack.kernel
+        if cmd == "pause":
+            self.play_pause(handler)
+            return True
+        elif cmd == "resume":
+            self.play_resume(handler)
+            return True
+        elif cmd == "abort":
+            self.play_abort(handler)
+            return True
+        elif cmd == "report":
+            self.play_report(handler)
+            return True
+        elif cmd == "load_filament":
+            return False
+        elif cmd == "eject_filament":
+            return False
+        else:
+            return False
+
+
+class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn):
     _task_file = None
     _task_mimetype = None
 
@@ -250,6 +298,8 @@ class CommandTask(CommandMixIn, FileManagerMixIn):
 
     def dispatch_cmd(self, handler, cmd, *args):
         if self.dispatch_filemanage_cmd(handler, cmd, *args):
+            pass
+        elif self.dispatch_playmanage_cmd(handler, cmd, *args):
             pass
         elif cmd == "scan":
             return self.scan(handler)
@@ -267,8 +317,7 @@ class CommandTask(CommandMixIn, FileManagerMixIn):
                 raise RuntimeError(BAD_PARAMS)
             return self.setting_setter(*params)
         elif cmd == "kick":
-            kernel = self.stack.loop.data
-            kernel.destory_exclusive()
+            self.stack.kernel.destory_exclusive()
             # TODO: more message?
             handler.send_text("ok")
         else:
@@ -292,7 +341,7 @@ class CommandTask(CommandMixIn, FileManagerMixIn):
 
     def play(self, handler):
         if self._task_file:
-            kernel = self.stack.loop.data
+            kernel = self.stack.kernel
             if kernel.is_exclusived():
                 raise RuntimeError(RESOURCE_BUSY)
             else:

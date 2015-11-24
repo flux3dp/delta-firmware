@@ -89,4 +89,11 @@ class PlayerManager(object):
     #     return self.sock.recv(4096)
 
     def report(self):
-        pass
+        self.sock.send("REPORT")
+        return self.sock.recv(4096)
+
+    def is_alive(self):
+        return self.proc.poll() == None
+
+    def terminate(self):
+        self.proc.kill()

@@ -272,6 +272,10 @@ class ServiceStack(object):
     def __del__(self):
         logger.debug("ServiceStack GC")
 
+    @property
+    def kernel(self):
+        return self.loop.data
+
     def on_text(self, message, handler):
         self.this_task.on_text(message, handler)
 
