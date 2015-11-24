@@ -1,5 +1,6 @@
 
 from errno import ECONNREFUSED, ENOENT
+from shlex import split as shlex_split
 import weakref
 import logging
 import socket
@@ -14,34 +15,34 @@ from fluxmonitor.config import uart_config, DEBUG
 from fluxmonitor.err_codes import NO_RESPONSE, UNKNOW_ERROR, RESOURCE_BUSY
 
 
-class ExclusiveMixIn(object):
-    def __init__(self, server, sender):
-        self.server = server
-        self.owner = weakref.ref(sender, self.on_dead)
-
-    def on_message(self, message, sender):
-        if self.owner() == sender:
-            if isinstance(self, CommandMixIn):
-                CommandMixIn.on_message(self, message, sender)
-            else:
-                self.on_owner_message(message, sender)
-        else:
-            if message.rstrip("\x00") == b"kick":
-                self.owner().close("kicked")
-                self.on_dead(self.owner, "Kicked")
-                sender.send_text("ok")
-            else:
-                err = "error %s %s" % (RESOURCE_BUSY, self.__class__.__name__)
-                sender.send_text(err.encode())
-
-    def on_dead(self, sender_proxy, reason=None):
-        if self.server.this_task != self:
-            return
-
-        if not reason:
-            reason = "Connection/Owner gone"
-        logger.info("%s abort (%s)" % (self.__class__.__name__, reason))
-        self.server.exit_task(self, False)
+# class ExclusiveMixIn(object):
+#     def __init__(self, server, sender):
+#         self.server = server
+#         self.owner = weakref.ref(sender, self.on_dead)
+#
+#     def on_message(self, message, sender):
+#         if self.owner() == sender:
+#             if isinstance(self, CommandMixIn):
+#                 CommandMixIn.on_message(self, message, sender)
+#             else:
+#                 self.on_owner_message(message, sender)
+#         else:
+#             if message.rstrip("\x00") == b"kick":
+#                 self.owner().close("kicked")
+#                 self.on_dead(self.owner, "Kicked")
+#                 sender.send_text("ok")
+#             else:
+#                 err = "error %s %s" % (RESOURCE_BUSY, self.__class__.__name__)
+#                 sender.send_text(err.encode())
+#
+#     def on_dead(self, sender_proxy, reason=None):
+#         if self.server.this_task != self:
+#             return
+#
+#         if not reason:
+#             reason = "Connection/Owner gone"
+#         logger.info("%s abort (%s)" % (self.__class__.__name__, reason))
+#         self.server.exit_task(self, False)
 
 
 class CommandMixIn(object):
@@ -52,7 +53,8 @@ class CommandMixIn(object):
             if cmd == "position":
                 handler.send_text(self.__class__.__name__)
             else:
-                response = self.dispatch_cmd(cmd, handler)
+                params = shlex_split(cmd)
+                response = self.dispatch_cmd(handler, *params)
                 if response is not None:
                     logger.error("Shoud not response anything")
                     handler.send_text(response)

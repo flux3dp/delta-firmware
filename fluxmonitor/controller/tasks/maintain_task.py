@@ -86,10 +86,10 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         self.timer_watcher.start()
 
     def on_exit(self, handler):
-        super(MaintainTask, self).on_exit(handler)
-        self.main_ctrl.close(self)
         self.timer_watcher.stop()
         self.timer_watcher = None
+        self.main_ctrl.close(self)
+        super(MaintainTask, self).on_exit(handler)
 
     def _on_mainboard_ready(self, ctrl):
         self._ready |= 1
@@ -121,40 +121,37 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         for msg in self.recv_from_headboard(buf):
             pass
 
-    def dispatch_cmd(self, cmdline, sock):
+    def dispatch_cmd(self, handler, cmd, *args):
         if self._busy:
             raise RuntimeError(RESOURCE_BUSY)
 
-        params = shlex_split(cmdline)
-        cmd = params[0]
-
         if cmd == "home":
-            return self.do_home(sock)
+            self.do_home(handler)
 
         elif cmd == "eadj":
-            clean = (len(params) > 1 and params[1] == "clean")
-            return self.do_eadj(sock, clean=clean)
+            clean = "clean" in args
+            self.do_eadj(handler, clean=clean)
 
         elif cmd == "cor_h":
-            if len(params) > 1:
-                h = float(params[1])
-                return self.do_h_correction(sock, h=h)
+            if len(args) > 1:
+                h = float(args[1])
+                self.do_h_correction(handler, h=h)
             else:
-                return self.do_h_correction(sock)
+                self.do_h_correction(handler)
 
         elif cmd == "madj":
-            return self.do_madj(sock)
+            self.do_madj(handler)
 
         elif cmd == "reset_mb":
             s = socket.socket(socket.AF_UNIX)
             s.connect(uart_config["control"])
             s.send(b"reset mb")
             s.close()
-            return "ok"
+            handler.send_text("ok")
 
         elif cmd == "quit":
             self.stack.exit_task(self)
-            return "ok"
+            handler.send_text("ok")
         else:
             logger.debug("Can not handle: '%s'" % cmd)
             raise RuntimeError(UNKNOW_COMMAND)
@@ -240,7 +237,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         self._mainboard_msg_filter = stage1_test_x
         # self.main_ctrl.send_cmd("G28", self)
         self.main_ctrl.send_cmd("G30X-73.6122Y-42.5", self)
-        return "continue"
+        handler.send_text("continue")
 
     @check_mainboard
     def do_h_correction(self, sender, h=None):
@@ -275,7 +272,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         self._busy = True
         self._mainboard_msg_filter = stage_test_h
         self.main_ctrl.send_cmd("G30X0Y0", self)
-        return "continue"
+        handler.send_text("continue")
 
     def on_timer(self, watcher, revent):
         try:

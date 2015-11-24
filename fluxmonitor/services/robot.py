@@ -81,6 +81,9 @@ class Robot(ServiceBase):
             self.button_control.close(self)
             self.button_control = None
 
+    def is_exclusived(self):
+        return True if self.exclusive_component else False
+
     def exclusive(self, component):
         if self.exclusive_component:
             raise RuntimeError(RESOURCE_BUSY)
