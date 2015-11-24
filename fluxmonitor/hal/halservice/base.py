@@ -163,7 +163,8 @@ class UartHalBase(object):
             watcher.stop()
             watcher.data.close()
         for watcher in self.control_watchers:
-            sock.close()
+            watcher.stop()
+            watcher.data.close()
 
 
 class BaseOnSerial(object):
