@@ -8,7 +8,7 @@ import os
 
 import pyev
 
-from fluxmonitor.misc.async_signal import AsyncIO
+from fluxmonitor.controller.tasks.command_task import CommandTask
 from fluxmonitor.storage import CommonMetadata
 from fluxmonitor.misc import timer as T
 from fluxmonitor import security
@@ -18,10 +18,8 @@ IDLE_TIMEOUT = 3600.  # Close conn if idel after seconds.
 
 
 class LocalControl(object):
-    def __init__(self, kernel, logger=None, port=23811):
-        self.kernel = kernel
-        self.logger = logger.getChild("lc") if logger \
-            else logging.getLogger(__name__)
+    def __init__(self, kernel, port=23811):
+        self.logger = logger
         self.meta = CommonMetadata()
 
         s = socket.socket()
@@ -32,53 +30,39 @@ class LocalControl(object):
                                              s)
         self.listen_watcher.start()
         self.timer_watcher = kernel.loop.timer(30, 30, self.on_timer)
+        self.timer_watcher.start()
 
-        self.io_list = []
-        self.logger.info("Listen on %s:%i" % ("", port))
+        self.clients = []
+        logger.info("Listen on %s:%i" % ("", port))
 
-        s.listen(1)
+        s.listen(2)
 
     def on_accept(self, watcher, revent):
         try:
             sock, endpoint = watcher.data.accept()
-            sublogger = logger.getChild("%s:%s" % endpoint)
 
             try:
-                der = self.meta.shared_der_rsakey
-                key = security.RSAObject(der=der)
-                h = LocalConnectionHandler(sock, key, sublogger,
-                                           self.kernel.on_message)
+                pkey = security.RSAObject(der=self.meta.shared_der_rsakey)
             except RuntimeError:
                 logger.error("Slave key not ready, use master key instead")
-                h = LocalConnectionHandler(sock, security.get_private_key(),
-                                           sublogger, self.kernel.on_message)
+                pkey = security.get_private_key()
 
-            io_watcher = watcher.loop.io(sock, pyev.EV_READ, self.on_read, h)
-            h.io_watcher = io_watcher
-            io_watcher.start()
-            self.io_list.append(io_watcher)
-        except Exception:
-            logger.exception("Unhandle Error")
-
-    def on_read(self, watcher, revent):
-        try:
-            if not watcher.data.on_read():
-                watcher.data.close("Remote gone")
-                watcher.stop()
-                self.io_list.remove(watcher)
+            handler = LocalConnectionHandler(sock, endpoint, pkey,
+                                             watcher.loop)
+            self.clients.append(handler)
         except Exception:
             logger.exception("Unhandle Error")
 
     def on_timer(self, watcher, revent):
-        dead = []
-        for w in self.io_list:
-            if w.data.is_timeout:
-                dead.append(w)
+        zombie = []
+        for h in self.clients:
+            if (not h.alive) or h.is_timeout:
+                zombie.append(h)
 
-        for w in dead:
-            w.data.close("Idle timeout")
-            watcher.stop()
-            self.io_list.remove(watcher)
+        for h in zombie:
+            h.close("Timeout")
+            logger.debug("Clean zombie %s", h)
+            self.clients.remove(h)
 
     def close(self):
         self.timer_watcher.stop()
@@ -86,20 +70,22 @@ class LocalControl(object):
         self.listen_watcher.stop()
         self.listen_watcher = None
 
-        while self.io_list:
-            watcher = self.io_list.pop()
-            watcher.data.close()
-            watcher.stop()
+        while self.clients:
+            h = self.clients.pop()
+            h.close()
 
 
 class LocalConnectionHandler(object):
     @T.update_time
-    def __init__(self, sock, slave_key, logger, on_message_callback):
+    def __init__(self, sock, endpoint, slave_key, loop):
+        self.logger = logger.getChild("%s:%s" % endpoint)
         self.binary_mode = False
 
-        self._on_message_callback = on_message_callback
+        self.alive = True
+        self.ready = False
+        self.stack = None
+
         self.rsakey = slave_key
-        self.logger = logger
 
         self.randbytes = security.randbytes(128)
 
@@ -119,32 +105,34 @@ class LocalConnectionHandler(object):
         sock.send(buf)
 
         self.sock = sock
-        self._recv_handler = self._on_handshake_identify
+        self.recv_watcher = loop.io(sock, pyev.EV_READ, self.on_recv)
+        self.recv_watcher.start()
 
-    def disable_read_event(self):
-        self.io_watcher.stop()
-
-    def enable_read_event(self):
-        self.io_watcher.start()
+    @property
+    def kernel(self):
+        return self.recv_watcher.loop.data
 
     @property
     def is_timeout(self):
         return T.time_since_update(self) > IDLE_TIMEOUT
 
     @T.update_time
-    def on_read(self):
+    def on_recv(self, watcher, revent):
         l = self.sock.recv_into(self._bufview[self._buffered:])
         if l:
             self._buffered += l
-            self._recv_handler(l)
-            return True
+            if self.ready:
+                self._on_message(l)
+            else:
+                self._on_handshake_identify(l)
         else:
-            return False
-            self.close("Remote closed")
+            self.close("CONNECTION_GONE")
 
-    @T.update_time
-    def on_write(self):
-        pass
+    def disable_read_event(self):
+        self.recv_watcher.stop()
+
+    def enable_read_event(self):
+        self.recv_watcher.start()
 
     def _on_handshake_identify(self, length):
         if self._buffered >= 20:
@@ -158,8 +146,6 @@ class LocalConnectionHandler(object):
 
                 if self._buffered >= (20 + self.keyobj.size()):
                     self._on_handshake_validate(length)
-                else:
-                    self._recv_handler = self._on_handshake_identify
 
     def _on_handshake_validate(self, length):
         """
@@ -189,15 +175,31 @@ class LocalConnectionHandler(object):
 
             else:
                 self.randbytes = None
-                self.sock.send(b"OK" + b"\x00" * 14)
-                self.logger.info("Connected (access_id=%s)", self.access_id)
+                self._reply_handshake(b"OK", True)
 
-                aes_key, aes_iv = os.urandom(32), os.urandom(16)
-                self.aes = security.AESObject(aes_key, aes_iv)
-                self.sock.send(self.keyobj.encrypt(aes_key + aes_iv))
+    def _reply_handshake(self, message, success, log_message=None):
+        if len(message) < 16:
+            message += b"\x00" * (16 - len(message))
+        else:
+            message = message[:16]
 
-                self._buffered = 0
-                self._recv_handler = self._on_message
+        if success:
+            self._on_ready()
+            self.logger.info("Connected (access_id=%s)", self.access_id)
+            self.sock.send(message)
+
+            aes_key, aes_iv = os.urandom(32), os.urandom(16)
+            self.aes = security.AESObject(aes_key, aes_iv)
+            self.sock.send(self.keyobj.encrypt(aes_key + aes_iv))
+            self._buffered = 0
+        else:
+            self.logger.info("Handshake fail (%s)", log_message)
+            self.sock.send(message)
+            self.close()
+
+    def _on_ready(self):
+        self.ready = True
+        self.stack = ServiceStack(self.recv_watcher.loop)
 
     def _on_message(self, length):
         chunk = self._bufview[self._buffered - length:self._buffered]
@@ -206,7 +208,7 @@ class LocalConnectionHandler(object):
         if self.binary_mode:
             ret = self._buffered
             self._buffered = 0
-            self._on_message_callback(bytes(self._buf[:ret]), self)
+            self.stack.on_binary(bytes(self._buf[:ret]), self)
         else:
             while self._buffered > 2:
                 # Try unpack
@@ -218,27 +220,13 @@ class LocalConnectionHandler(object):
                     self._bufview[:l - self._buffered] = \
                         self._bufview[l:self._buffered]
                     self._buffered -= l
-                    self._on_message_callback(payload, self)
+                    self.stack.on_text(payload.decode("utf8", "ignore"), self)
                 elif self._buffered == l:
                     payload = self._bufview[2:l].tobytes()
                     self._buffered = 0
-                    self._on_message_callback(payload, self)
+                    self.stack.on_text(payload.decode("utf8", "ignore"), self)
                 else:
                     break
-
-    def _reply_handshake(self, message, success, log_message=None):
-        if len(message) < 16:
-            message += b"\x00" * (16 - len(message))
-        else:
-            message = message[:16]
-
-        if success:
-            self.logger.info(log_message)
-            self.sock.send(message)
-        else:
-            self.logger.error(log_message)
-            self.sock.send(message)
-            self.close()
 
     def send(self, buf):
         length = len(buf)
@@ -258,10 +246,61 @@ class LocalConnectionHandler(object):
         buf = struct.pack("<H", l) + bmessage
         return self.send(buf)
 
-    def send_large_data(self, binary):
+    def close(self, reason=""):
+        if self.alive:
+            self.alive = False
+            self.recv_watcher.stop()
+            self.recv_watcher = None
+            self.sock.close()
+            if self.stack:
+                self.stack.terminate()
+                self.stack = None
+
+            if reason:
+                self.logger.info("Client disconnected (reason=%s)", reason)
+
+
+class ServiceStack(object):
+    def __init__(self, loop):
+        self.loop = loop
+        self.task_callstack = []
+        self.this_task = None
+
+        cmd_task = CommandTask(weakref.proxy(self))
+        self.enter_task(cmd_task, None)
+
+    def __del__(self):
+        logger.debug("ServiceStack GC")
+
+    def on_text(self, message, handler):
+        self.this_task.on_text(message, handler)
+
+    def on_binary(self, buf, handler):
+        self.this_task.on_binary(buf, handler)
+
+    def enter_task(self, invoke_task, return_callback):
+        logger.debug("Enter %s" % invoke_task.__class__.__name__)
+        self.task_callstack.append((self.this_task, return_callback))
+        self.this_task = invoke_task
+
+    def exit_task(self, task, *return_args):
+        if self.this_task != task:
+            raise Exception("Task not match")
+
+        try:
+            task.on_exit(self)
+        except Exception:
+            logger.exception("Exit %s" % self.this_task.__class__.__name__)
+
+        try:
+            current_task, callback = self.task_callstack.pop()
+            callback(*return_args)
+            logger.debug("Exit %s" % self.this_task.__class__.__name__)
+        except Exception:
+            logger.exception("Exit %s" % self.this_task.__class__.__name__)
+        finally:
+            self.this_task = current_task
+
+    def terminate(self):
         pass
 
-    def close(self, reason=""):
-        self._recv_handler = None
-        self.sock.close()
-        self.logger.debug("Client disconnected (reason=%s)", reason)

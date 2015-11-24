@@ -11,7 +11,7 @@ from fluxmonitor.config import uart_config
 
 from fluxmonitor.err_codes import RESOURCE_BUSY, UNKNOW_COMMAND
 
-from .base import CommandMixIn, ExclusiveMixIn, DeviceOperationMixIn, \
+from .base import CommandMixIn, DeviceOperationMixIn, \
     DeviceMessageReceiverMixIn
 
 RE_REPORT_DIST = re.compile("X:(?P<X>(-)?[\d]+(.[\d]+)?) "
@@ -68,30 +68,28 @@ def check_mainboard(method):
     return wrap
 
 
-class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
-                   DeviceMessageReceiverMixIn):
-    def __init__(self, server, sock):
+class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
+                   CommandMixIn):
+    def __init__(self, stack, handler):
+        super(MaintainTask, self).__init__(stack, handler)
+
         self._ready = 0
         self._busy = False
         self._mainboard_msg_filter = None
 
-        self.server = server
-        self.connect()
         self.main_ctrl = MainController(
             executor=self, bufsize=14,
             ready_callback=self._on_mainboard_ready,
         )
 
-        ExclusiveMixIn.__init__(self, server, sock)
-
-        self.timer_watcher = server.loop.timer(5, 5, self.on_timer)
+        self.timer_watcher = stack.loop.timer(1, 1, self.on_timer)
         self.timer_watcher.start()
 
-    def on_exit(self, sender):
+    def on_exit(self, handler):
+        super(MaintainTask, self).on_exit(handler)
         self.main_ctrl.close(self)
         self.timer_watcher.stop()
         self.timer_watcher = None
-        self.disconnect()
 
     def _on_mainboard_ready(self, ctrl):
         self._ready |= 1
@@ -107,7 +105,7 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
         buf = watcher.data.recv(1024)
         if not buf:
             logger.error("Mainboard connection broken")
-            self.server.exit_task(self)
+            self.stack.exit_task(self)
 
         for msg in self.recv_from_mainboard(buf):
             if self._mainboard_msg_filter:
@@ -118,9 +116,9 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
         buf = watcher.data.recv(1024)
         if not buf:
             logger.error("Headboard connection broken")
-            self.server.exit_task(self)
+            self.stack.exit_task(self)
 
-        for msg in self.recv_from_headboard(sender):
+        for msg in self.recv_from_headboard(buf):
             pass
 
     def dispatch_cmd(self, cmdline, sock):
@@ -155,7 +153,7 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
             return "ok"
 
         elif cmd == "quit":
-            self.server.exit_task(self)
+            self.stack.exit_task(self)
             return "ok"
         else:
             logger.debug("Can not handle: '%s'" % cmd)
@@ -166,6 +164,7 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
         def callback(ctrl):
             self._busy = False
             sender.send_text("ok")
+
         self.main_ctrl.callback_msg_empty = callback
         self.main_ctrl.send_cmd("G28", self)
         self._busy = True
@@ -186,7 +185,7 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
             except Exception:
                 logger.exception("Unhandle Error")
                 sender.send_text("error UNKNOW_ERROR")
-                self.server.exit_task(self)
+                self.stack.exit_task(self)
 
         def stage2_test_y(msg):
             try:
@@ -200,7 +199,7 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
             except Exception:
                 logger.exception("Unhandle Error")
                 sender.send_text("error UNKNOW_ERROR")
-                self.server.exit_task(self)
+                self.stack.exit_task(self)
 
         def stage3_test_z(msg):
             try:
@@ -227,7 +226,7 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
             except Exception:
                 logger.exception("Unhandle Error")
                 sender.send_text("error UNKNOW_ERROR")
-                self.server.exit_task(self)
+                self.stack.exit_task(self)
 
         self._busy = True
 
@@ -271,7 +270,7 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
             except Exception:
                 logger.exception("Unhandle Error")
                 sender.send_text("error UNKNOW_ERROR")
-                self.server.exit_task(self)
+                self.stack.exit_task(self)
 
         self._busy = True
         self._mainboard_msg_filter = stage_test_h
@@ -282,4 +281,4 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
         try:
             self.main_ctrl.patrol(self)
         except SystemError:
-            self.server.exit_task(self)
+            self.stack.exit_task(self)

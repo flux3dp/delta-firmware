@@ -4,46 +4,40 @@ from errno import errorcode
 import logging
 import socket
 
-from fluxmonitor.err_codes import SUBSYSTEM_ERROR
+from fluxmonitor.err_codes import TOO_LARGE, PROTOCOL_ERROR, SUBSYSTEM_ERROR
 from fluxmonitor.config import uart_config
 from fluxmonitor.storage import Storage
-from .base import ExclusiveMixIn
 
 logger = logging.getLogger(__name__)
 
 
-class UpdateFwTask(ExclusiveMixIn):
-    def __init__(self, server, sender, length):
-        super(UpdateFwTask, self).__init__(server, sender)
+class UpdateFwTask(object):
+    def __init__(self, stack, handler, length):
+        self.stack = stack
         self.tmpfile = TemporaryFile()
         self.padding_length = length
-        sender.binary_mode = True
+        handler.binary_mode = True
 
-    def on_exit(self, sender):
+    def on_exit(self, handler):
         pass
 
-    def send_upload_request(self):
-        try:
-            s = socket.socket(socket.AF_UNIX)
-            s.connect(uart_config["control"])
-            s.send("update_fw")
-        except socket.error:
-            raise RuntimeError(SUBSYSTEM_ERROR)
+    def on_text(self, message, handler):
+        raise ProtocolError(PROTOCOL_ERROR, "UPLOADING_BINARY")
 
-    def on_owner_message(self, message, sender):
+    def on_binary(self, buf, handler):
         try:
-            l = len(message)
+            l = len(buf)
 
             if self.padding_length > l:
-                self.tmpfile.write(message)
+                self.tmpfile.write(buf)
                 self.padding_length -= l
 
             else:
                 if self.padding_length == l:
-                    self.tmpfile.write(message)
+                    self.tmpfile.write(buf)
                 else:
-                    self.tmpfile.write(message[:self.padding_length])
-                sender.binary_mode = False
+                    self.tmpfile.write(buf[:self.padding_length])
+                handler.binary_mode = False
 
                 self.tmpfile.seek(0)
                 s = Storage("update_fw")
@@ -53,12 +47,20 @@ class UpdateFwTask(ExclusiveMixIn):
 
                 logging.warn("Fireware uploaded, start processing")
                 self.send_upload_request()
-                sender.send_text("ok")
+                handler.send_text("ok")
 
                 self.server.exit_task(self, True)
         except RuntimeError as e:
-            sender.send_text(("error %s" % e.args[0]).encode())
+            handler.send_text(("error %s" % e.args[0]).encode())
         except Exception:
             logger.exception("Unhandle Error")
-            sender.send_text("error %s" % UNKNOW_ERROR)
+            handler.send_text("error %s" % UNKNOW_ERROR)
+
+    def send_upload_request(self):
+        try:
+            s = socket.socket(socket.AF_UNIX)
+            s.connect(uart_config["control"])
+            s.send("update_fw")
+        except socket.error:
+            raise RuntimeError(SUBSYSTEM_ERROR)
 

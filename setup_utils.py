@@ -109,6 +109,7 @@ ENTRY_POINTS = {
         "fluxhald=fluxmonitor.bin.fluxhald:main",
         "fluxnetworkd=fluxmonitor.bin.fluxnetworkd:main",
         "fluxusbd=fluxmonitor.bin.fluxusbd:main",
+        "fluxplayer=fluxmonitor.bin.fluxplayer:main",
         "fluxcamerad=fluxmonitor.bin.fluxcamera:main",
 
         "fluxrobot=fluxmonitor.bin.fluxrobot:main",

@@ -103,7 +103,7 @@ class FileManagerMixIn(object):
             node = os.path.join(abspath, n).encode("utf8")
             if os.path.isdir(node):
                 buf_obj.write(u"D%s\x00" % n)
-            elif node.endswith(".fcode"):
+            elif node.endswith(".fc"):
                 buf_obj.write(u"F%s\x00" % n)
             elif node.endswith(".gcode"):
                 buf_obj.write(u"F%s\x00" % n)
@@ -228,8 +228,8 @@ class FileManagerMixIn(object):
 
         logger.debug("Upload task file '%s', size %i", mimetype, filesize)
 
-        task = UploadTask(self.server, sender, self._task_file, filesize)
-        self.server.enter_task(task, self.end_upload_file)
+        task = UploadTask(self.stack, sender, self._task_file, filesize)
+        self.stack.enter_task(task, self.end_upload_file)
         sender.send_text("continue")
 
     def end_upload_file(self, is_success):
@@ -244,8 +244,8 @@ class CommandTask(CommandMixIn, FileManagerMixIn):
     _task_file = None
     _task_mimetype = None
 
-    def __init__(self, server):
-        self.server = server
+    def __init__(self, stack):
+        self.stack = stack
         self.settings = CommonMetadata()
         self.usbmount = get_usbmount_hal()
         self.filepool = os.path.realpath(robot_config["filepool"])
@@ -258,7 +258,7 @@ class CommandTask(CommandMixIn, FileManagerMixIn):
         elif cmd == "start":
             return self.play(sender)
         elif cmd == "raw":
-            return self.raw_access(sender)
+            self.raw_access(sender)
         elif cmd == "maintain":
             return self.maintain(sender)
         elif cmd.startswith("update_fw "):
@@ -269,6 +269,11 @@ class CommandTask(CommandMixIn, FileManagerMixIn):
             if len(params) != 2:
                 raise RuntimeError(BAD_PARAMS)
             return self.setting_setter(*params)
+        elif cmd == "kick":
+            kernel = self.stack.loop.data
+            kernel.destory_exclusive()
+            # TODO: more message?
+            sender.send_text("ok")
         else:
             logger.debug("Can not handle: %s" % repr(cmd))
             raise RuntimeError(UNKNOW_COMMAND)
@@ -278,26 +283,26 @@ class CommandTask(CommandMixIn, FileManagerMixIn):
             raise RuntimeError(TOO_LARGE)
 
         logger.info("Upload fireware file size: %i" % filesize)
-        task = UpdateFwTask(self.server, sender, filesize)
-        self.server.enter_task(task, empty_callback)
+        task = UpdateFwTask(self.stack, sender, filesize)
+        self.stack.enter_task(task, empty_callback)
 
         return "continue"
 
-    def raw_access(self, sender):
-        task = RawTask(self.server, sender)
-        self.server.enter_task(task, empty_callback)
-        return "continue"
+    def raw_access(self, handler):
+        task = RawTask(self.stack, handler)
+        self.stack.enter_task(task, empty_callback)
+        handler.send_text("continue")
 
     def play(self, sender):
         if self._task_file:
             if self._task_mimetype == mimetypes.MIMETYPE_GCODE:
-                task = OldPlayTask(self.server, sender, self._task_file)
-                self.server.enter_task(task, empty_callback)
+                task = OldPlayTask(self.stack, sender, self._task_file)
+                self.stack.enter_task(task, empty_callback)
                 self._task_file = None
                 self._task_mimetype = None
             elif self._task_mimetype == mimetypes.MIMETYPE_FCODE:
-                task = PlayTask(self.server, sender, self._task_file)
-                self.server.enter_task(task, empty_callback)
+                task = PlayTask(self.stack, sender, self._task_file)
+                self.stack.enter_task(task, empty_callback)
                 self._task_file = None
                 self._task_mimetype = None
             else:
@@ -307,14 +312,14 @@ class CommandTask(CommandMixIn, FileManagerMixIn):
             raise RuntimeError(NO_TASK)
 
     def scan(self, sender):
-        task = ScanTask(self.server, sender)
-        self.server.enter_task(task, empty_callback)
+        task = ScanTask(self.stack, sender)
+        self.stack.enter_task(task, empty_callback)
         return "ok"
 
-    def maintain(self, sender):
-        task = MaintainTask(self.server, sender)
-        self.server.enter_task(task, empty_callback)
-        return "ok"
+    def maintain(self, handler):
+        task = MaintainTask(self.stack, handler)
+        self.stack.enter_task(task, empty_callback)
+        handler.send_text("ok")
 
     def setting_setter(self, key, raw_value):
         try:
