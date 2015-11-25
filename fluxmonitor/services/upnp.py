@@ -438,7 +438,7 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
         self.nw_monitor_watcher = self.loop.io(self.nw_monitor, pyev.EV_READ,
                                                self.on_network_changed)
         self.nw_monitor_watcher.start()
-        self.cron_watcher = self.loop.timer(5.0, 5.0, self.on_cron)
+        self.cron_watcher = self.loop.timer(3.0, 3.0, self.on_cron)
         self.cron_watcher.start()
 
     def on_network_changed(self, watcher, revent):
