@@ -126,7 +126,7 @@ class MulticastInterface(object):
         temp_pkey_sign = self.master_key.sign(
             struct.pack("<f", temp_ts) + temp_pkey_der)
 
-        self.meta.shared_der_rsakey = temp_pkey_der
+        self.meta.shared_der_rsakey = self.server.slave_pkey.export_der()
 
         main_pubder = self.master_key.export_pubkey_der()
         identify = security.get_identify()
