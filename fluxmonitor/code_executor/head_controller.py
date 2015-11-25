@@ -264,9 +264,18 @@ class ExtruderController(object):
 
                 if er > 0:
                     if er & 4:
-                        L.error("Recive header boot")
                         self._raise_error(EXEC_HEADER_OFFLINE,
                                           "HEAD_RESET")
+                    if er & 8:
+                        self._raise_error("HEAD_CALIBRATION_FAILED")
+                    if er & 16:
+                        self._raise_error("HEAD_SHAKE")
+                    if er & 32:
+                        self._raise_error("HEAD_TILT")
+                    if er & 64:
+                        self._raise_error("HEAD_FAILED", "PID_OUT_OF_CONTROL")
+                    if er & 128:
+                        self._raise_error("HEAD_FAILED", "FAN_FAILURE")
 
         if self._padding_cmd:
             self._send_cmd(executor)
