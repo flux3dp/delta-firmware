@@ -3,9 +3,11 @@ import logging
 
 from fluxmonitor.controller.interfaces.local import LocalControl
 from fluxmonitor.controller.interfaces.button import ButtonControl
-from fluxmonitor.code_executor.base import ST_RUNNING, ST_PAUSED
+from fluxmonitor.controller.tasks.play_manager import PlayerManager
 from fluxmonitor.services.base import ServiceBase
 from fluxmonitor.err_codes import RESOURCE_BUSY
+from fluxmonitor.storage import UserSpace
+
 
 STATUS_IDLE = 0x0
 STATUS_RUNNING = 0x1
@@ -40,34 +42,28 @@ class Robot(ServiceBase):
             logger.exception("Error while setting task at init")
 
     def on_button_control(self, message):
-        task_label = self.this_task.__class__.__name__
-        if task_label == "PlayTask":
-            if message == "ABORT":
-                self.this_task.abort("CANCELED")
-            elif message == "RUNTOGL":
-                st = self.this_task.get_status()["st_label"]
-                if st == "PAUSED":
-                    self.this_task.resume()
-                elif st == "RUNNING":
-                    self.this_task.pause("USER_OPERATE")
-        if message == "PLAYTOGL":
-            if task_label == "PlayTask":
-                st = self.this_task.get_status()["st_label"]
-                if st in ("ABORTED", "COMPLETED"):
-                    if not self.this_task.do_exit():
-                        logger.error("Can not quit task")
-                        return
-                else:
-                    logger.error("Can not quit task because busy")
-                    return
+        logger.debug("Button trigger: %s", message)
 
-            elif task_label != "CommandTask":
-                logger.error("Can not start autoplay at %s", task_label)
-                return
-
-            sender = NullSender()
-            if self.this_task.autoselect():
-                self.this_task.play(sender=sender)
+        if self.exclusive_component:
+            if isinstance(self.exclusive_component, PlayerManager):
+                if message == "PLAYTOGL":
+                    if self.exclusive_component.is_terminated:
+                        self.exclusive_component.terminate()
+                        self.exclusive_component = None
+                        self.autoplay()
+                elif message == "RUNTOGL":
+                    if self.exclusive_component.is_paused:
+                        self.exclusive_component.resume()
+                    elif self.exclusive_component.is_running:
+                        self.exclusive_component.pause()
+                elif message == "ABORT":
+                    self.exclusive_component.abort()
+            else:
+                logger.debug("Button trigger failed: Resource busy")
+        else:
+            # Not playing, autoplay
+            if message == "PLAYTOGL":
+                self.autoplay()
 
     def on_start(self):
         pass
@@ -78,8 +74,24 @@ class Robot(ServiceBase):
         self.local_control = None
 
         if self.button_control:
-            self.button_control.close(self)
+            self.button_control.close()
             self.button_control = None
+
+    def autoplay(self):
+        pathlist = (("USB", "autoplay.fc"), ("SD", "autoplay.fc",))
+        us = UserSpace()
+
+        for candidate in pathlist:
+            try:
+                abspath = us.get_path(*candidate, require_file=True)
+                logger.debug("Autoplay: %s", abspath)
+                pm = PlayerManager(self.loop, abspath, self.release_exclusive)
+                self.exclusive(pm)
+                return
+            except RuntimeError:
+                continue
+
+        logger.debug("Autoplay failed")
 
     def is_exclusived(self):
         return True if self.exclusive_component else False

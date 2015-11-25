@@ -14,7 +14,6 @@ import pyev
 
 from fluxmonitor.misc._process import Process
 from fluxmonitor.misc import network_config_encoder as NCE
-from fluxmonitor.controller.interfaces.button import ButtonControl
 from fluxmonitor.halprofile import get_model_id
 from fluxmonitor.hal.net.monitor import Monitor as NetworkMonitor
 from fluxmonitor.storage import CommonMetadata
@@ -246,7 +245,6 @@ class MulticastInterface(object):
 
 class UpnpServiceMixIn(object):
     padding_request_pubkey = None
-    robot_agent = None
 
     @json_payload_wrapper
     def cmd_nopwd_access(self, payload):
@@ -364,28 +362,29 @@ class UpnpServiceMixIn(object):
 
     @json_payload_wrapper
     def cmd_require_robot(self, access_id, message):
-        if self.robot_agent:
-            ret = self.robot_agent.poll()
-            if ret is None:
-                return {"status": "launching"}
-            else:
-                self.robot_agent = None
-
-                if ret == 0:
-                    return {"status": "launched"}
-                elif ret == 0x80:
-                    return {"status": "launched", "info": "double launch"}
-                else:
-                    logger.error("Robot daemon return statuscode %i" % ret)
-                    raise RuntimeError(UNKNOW_ERROR, "%i" % ret)
-
-        else:
-            pid = control_mutex.locking_status()
-            if pid:
-                return {"status": "launched", "info": "already running"}
-            else:
-                self.robot_agent = RobotLaunchAgent(self)
-                return {"status": "initial"}
+        return {"status": "launched"}
+        # if self.robot_agent:
+        #     ret = self.robot_agent.poll()
+        #     if ret is None:
+        #         return {"status": "launching"}
+        #     else:
+        #         self.robot_agent = None
+        #
+        #         if ret == 0:
+        #             return {"status": "launched"}
+        #         elif ret == 0x80:
+        #             return {"status": "launched", "info": "double launch"}
+        #         else:
+        #             logger.error("Robot daemon return statuscode %i" % ret)
+        #             raise RuntimeError(UNKNOW_ERROR, "%i" % ret)
+        #
+        # else:
+        #     pid = control_mutex.locking_status()
+        #     if pid:
+        #         return {"status": "launched", "info": "already running"}
+        #     else:
+        #         self.robot_agent = RobotLaunchAgent(self)
+        #         return {"status": "initial"}
 
     @json_payload_wrapper
     def cmd_reset_control(self, access_id, message):
@@ -403,7 +402,7 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
     mcst = None
     mcst_watcher = None
     cron_watcher = None
-    button_control = None
+    # button_control = None
 
     def __init__(self, options):
         # Create RSA key if not exist. This will prevent upnp create key during
@@ -429,11 +428,6 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
         self.task_signal = self.loop.async(self.on_delay_task)
         self.task_signal.start()
 
-        try:
-            self.button_control = ButtonControl(self)
-        except Exception:
-            logger.error("Button control init failed")
-
         self.nw_monitor = NetworkMonitor(None)
         self.nw_monitor_watcher = self.loop.io(self.nw_monitor, pyev.EV_READ,
                                                self.on_network_changed)
@@ -451,22 +445,6 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
             if self.ipaddress != ipaddress:
                 self.ipaddress = ipaddress
                 self._replace_upnp_sock()
-
-    def on_button_control(self, command):
-        if command == "PLAYTOGL":
-            if self.robot_agent:
-                logger.debug("Button event PLAYTOGL ignore because robot is"
-                             " already starting")
-                return
-            elif control_mutex.locking_status():
-                logger.debug("Button event PLAYTOGL ignore because robot is"
-                             " already running")
-                return
-            else:
-                logger.debug("Start autoplay!")
-                self.robot_agent = RobotLaunchAgent(self, autoplay=True)
-        else:
-            logger.debug("Ignore button event: %s", command)
 
     def _replace_upnp_sock(self):
         self._try_close_upnp_sock()
@@ -496,22 +474,11 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
 
     def on_shutdown(self):
         self._try_close_upnp_sock()
-        if self.button_control:
-            self.button_control.close()
+        # if self.button_control:
+        #     self.button_control.close()
 
     def on_cron(self, watcher, revent):
         self.mcst.send_discover()
-        self.check_botton_control()
-
-    def check_botton_control(self):
-        if self.button_control:
-            if not self.button_control.running:
-                self.button_control = None
-        else:
-            try:
-                self.button_control = ButtonControl(self)
-            except Exception:
-                self.button_control = None
 
     def on_request(self, remote, request_code, payload, interface):
         callback = self._callback.get(request_code)
@@ -547,40 +514,40 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
             watcher.data = None
 
 
-class RobotLaunchAgent(Process):
-    @classmethod
-    def init(cls, service):
-        logfile = Storage("log").get_path("robot.log")
-        pidfile = control_mutex.pidfile()
-
-        return cls(service, ["fluxrobot", "--pid", pidfile, "--log", logfile,
-                             "--daemon"])
-
-    def __init__(self, services, autoplay=False):
-        pid = control_mutex.locking_status()
-        if pid:
-            raise RuntimeError(ALREADY_RUNNING)
-
-        logfile = Storage("log").get_path("robot.log")
-        pidfile = control_mutex.pidfile()
-
-        cmdline = ["fluxrobot", "--pid", pidfile, "--log", logfile, "--daemon"]
-        if autoplay:
-            cmdline += ["--autoplay"]
-        Process.__init__(self, services, cmdline)
-
-    def on_daemon_closed(self):
-        timestemp = time()
-
-        ret = self.poll()
-        while ret is None and (time() - timestemp) < 3:
-            sleep(0.05)
-            ret = self.poll()
-
-        if ret is None:
-            self.kill()
-
-
+# class RobotLaunchAgent(Process):
+#     @classmethod
+#     def init(cls, service):
+#         logfile = Storage("log").get_path("robot.log")
+#         pidfile = control_mutex.pidfile()
+#
+#         return cls(service, ["fluxrobot", "--pid", pidfile, "--log", logfile,
+#                              "--daemon"])
+#
+#     def __init__(self, services, autoplay=False):
+#         pid = control_mutex.locking_status()
+#         if pid:
+#             raise RuntimeError(ALREADY_RUNNING)
+#
+#         logfile = Storage("log").get_path("robot.log")
+#         pidfile = control_mutex.pidfile()
+#
+#         cmdline = ["fluxrobot", "--pid", pidfile, "--log", logfile, "--daemon"]
+#         if autoplay:
+#             cmdline += ["--autoplay"]
+#         Process.__init__(self, services, cmdline)
+#
+#     def on_daemon_closed(self):
+#         timestemp = time()
+#
+#         ret = self.poll()
+#         while ret is None and (time() - timestemp) < 3:
+#             sleep(0.05)
+#             ret = self.poll()
+#
+#         if ret is None:
+#             self.kill()
+#
+#
 class DelayNetworkConfigure(object):
     def __init__(self, config):
         self.config = config

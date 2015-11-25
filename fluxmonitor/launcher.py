@@ -127,6 +127,7 @@ def bind_signal(server, debug):
         watcher2.start()
         return (watcher1, watcher2)
 
+
 def deamon_entry(options, service=None):
     pid_handler = None
     server = None

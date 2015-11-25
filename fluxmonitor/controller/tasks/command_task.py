@@ -11,9 +11,7 @@ import os
 
 from fluxmonitor.code_executor.fcode_parser import fast_read_meta
 from fluxmonitor.err_codes import (UNKNOW_COMMAND, NOT_EXIST, TOO_LARGE, NO_TASK, BAD_PARAMS, BAD_FILE_FORMAT, RESOURCE_BUSY)
-from fluxmonitor.hal.usbmount import get_usbmount_hal
-from fluxmonitor.storage import CommonMetadata
-from fluxmonitor.config import robot_config
+from fluxmonitor.storage import CommonMetadata, UserSpace
 from fluxmonitor.misc import mimetypes
 
 from .base import CommandMixIn
@@ -64,29 +62,10 @@ class FileManagerMixIn(object):
         else:
             return False
 
-    def _storage_dispatch(self, _entry, _path, sd_only=False,
-                          require_file=False, require_dir=False):
-        if _entry == "SD":
-            entry, path = self.filepool, _path
-        elif _entry == "USB":
-            if sd_only:
-                raise RuntimeError(BAD_PARAMS, "USB_NOT_ACCESSABLE")
-            filepool = self.usbmount.get_entry()
-            if filepool:
-                entry, path = filepool, _path
-            else:
-                raise RuntimeError(NOT_EXIST, "BAD_NODE")
-        else:
-            raise RuntimeError(NOT_EXIST, "BAD_ENTRY")
-
-        abspath = os.path.realpath(os.path.join(entry, path))
-        if not abspath.startswith(entry):
-            raise RuntimeError(NOT_EXIST, "SECURITY_ISSUE")
-        if require_file and (not os.path.isfile(abspath)):
-            raise RuntimeError(NOT_EXIST, "NOT_FILE")
-        if require_dir and (not os.path.isdir(abspath)):
-            raise RuntimeError(NOT_EXIST, "NOT_DIR")
-        return abspath
+    def _storage_dispatch(self, entry, path, sd_only=False, require_file=False,
+                          require_dir=False):
+        return self.user_space.get_path(entry, path, sd_only, require_file,
+                                        require_dir)
 
     def list_files(self, handler, entry, path=""):
         abspath = self._storage_dispatch(entry, path, require_dir=True)
@@ -110,22 +89,6 @@ class FileManagerMixIn(object):
         handler.send_text("continue")
         handler.send_text(buf.encode("utf8"))
         handler.send_text("ok")
-
-    # def autoselect(self):
-    #     pathlist = ("USB autoplay.fc", "USB autoplay.gcode", "SD autoplay.fc",
-    #                 "SD autoplay.gcode")
-    #     for candidate in pathlist:
-    #         try:
-    #             abspath = self._storage_dispatch(candidate)
-    #             if os.path.isfile(abspath):
-    #                 logger.debug("Autoselect: %s", abspath)
-    #                 self._task_file = open(abspath, "rb")
-    #                 self._task_mimetype, _ = mimetypes.guess_type(abspath)
-    #                 return True
-    #         except RuntimeError:
-    #             pass
-    #     logger.debug("Auto select failed")
-    #     return False
 
     def select_file(self, handler, entry, path):
         abspath = self._storage_dispatch(entry, path, require_file=True)
@@ -160,9 +123,6 @@ class FileManagerMixIn(object):
     def rmdir(self, handler, entry, path):
         abspath = self._storage_dispatch(entry, path, sd_only=True,
                                          require_dir=True)
-        if abspath == os.path.realpath(self.filepool):
-            raise RuntimeError("OSERR_EACCES")
-
         try:
             shutil.rmtree(abspath)
             handler.send_text("ok")
@@ -264,6 +224,11 @@ class PlayManagerMixIn(object):
     def play_report(self, manager, handler):
         handler.send_text(manager.report())
 
+    @validate_status
+    def play_quit(self, manager, handler):
+        if manager.is_terminated:
+            handler.send_text(manager.quit())
+
     def dispatch_playmanage_cmd(self, handler, cmd, *args):
         kernel = self.stack.kernel
         if cmd == "pause":
@@ -282,6 +247,9 @@ class PlayManagerMixIn(object):
             return False
         elif cmd == "eject_filament":
             return False
+        elif cmd == "quit" or cmd == "quit_play":
+            self.play_quit(handler)
+            return True
         else:
             return False
 
@@ -293,8 +261,7 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn):
     def __init__(self, stack):
         self.stack = stack
         self.settings = CommonMetadata()
-        self.usbmount = get_usbmount_hal()
-        self.filepool = os.path.realpath(robot_config["filepool"])
+        self.user_space = UserSpace()
 
     def dispatch_cmd(self, handler, cmd, *args):
         if self.dispatch_filemanage_cmd(handler, cmd, *args):
@@ -345,7 +312,8 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn):
             if kernel.is_exclusived():
                 raise RuntimeError(RESOURCE_BUSY)
             else:
-                pm = PlayerManager(self.stack.loop, self._task_file.name)
+                pm = PlayerManager(self.stack.loop, self._task_file.name,
+                                   terminated_callback=kernel.release_exclusive)
                 kernel.exclusive(pm)
             handler.send_text("ok")
         else:

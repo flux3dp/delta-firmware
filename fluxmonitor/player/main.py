@@ -11,6 +11,7 @@ import pyev
 from fluxmonitor.code_executor.fcode_executor import FcodeExecutor
 from fluxmonitor.config import PLAY_ENDPOINT, HEADBOARD_ENDPOINT, \
     MAINBOARD_ENDPOING
+from fluxmonitor.storage import CommonMetadata as Metadata
 from fluxmonitor.services.base import ServiceBase
 
 logger = logging.getLogger(__name__)
@@ -26,6 +27,11 @@ class Player(ServiceBase):
             os.nice(-5)
         except Exception:
             logger.error("Can not renice process to -5")
+
+        if os.path.exists(PLAY_ENDPOINT):
+            os.unlink(PLAY_ENDPOINT)
+
+        self.meta = Metadata()
 
         cmd_sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
         cmd_sock.bind(PLAY_ENDPOINT)
@@ -124,6 +130,12 @@ class Player(ServiceBase):
                     self.send_cmd_response(S, R, "ok")
                 else:
                     self.send_cmd_response(S, R, "ERROR RESOURCE_BUSY")
+            elif cmd == "QUIT":
+                if self.executor.is_closed():
+                    self.send_cmd_response(S, R, "ok")
+                    self.shutdown("BYE")
+                else:
+                    self.send_cmd_response(S, R, "ERROR RESOURCE_BUSY")
         except Exception:
             logger.exception("Unhandle error")
 
@@ -132,9 +144,15 @@ class Player(ServiceBase):
             sock.sendto(message, remote)
 
     def on_timer(self, watcher, revent):
+        self.executor.on_loop()
+
+        if self.executor._err_symbol:
+            err = self.executor._err_symbol[0]
+        else:
+            err = ""
+
+        self.meta.update_device_status(self.executor.status_id,
+            0, "UNKNOW_HEAD", err_label=err)
+
         if self.executor.is_closed():
             watcher.stop()
-        else:
-            self.executor.on_loop()
-
-

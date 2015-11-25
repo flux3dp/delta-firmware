@@ -57,9 +57,9 @@ class FcodeExecutor(BaseExecutor):
     def on_controller_ready(self, controller):
         logging.debug("Controller %s ready", controller.__class__.__name__)
         if self.main_ctrl.ready and self.head_ctrl.ready:
-            if self._status == ST_STARTING:
+            if self.status_id == ST_STARTING:
                 self._do_startup()
-            elif self._status == ST_RESUMING:
+            elif self.status_id == ST_RESUMING:
                 if self._ctrl_flag & FLAG_WAITTING_HEADER:
                     self._ctrl_flag &= ~FLAG_WAITTING_HEADER
                 self.resumed()
@@ -77,7 +77,7 @@ class FcodeExecutor(BaseExecutor):
         self.main_ctrl.callback_msg_empty = self._on_startup_complete
 
     def _on_startup_complete(self, sender):
-        self._status = ST_RUNNING
+        self.status_id = ST_RUNNING
         self._cmd_queue = deque()
         self._ctrl_flag = 0
 
@@ -90,18 +90,18 @@ class FcodeExecutor(BaseExecutor):
     def pause(self, *args):
         if BaseExecutor.pause(self, *args):
             if self.main_ctrl.buffered_cmd_size == 0:
-                if self._status == ST_PAUSING:
-                    self._status = ST_PAUSED
+                if self.status_id == ST_PAUSING:
+                    self.status_id = ST_PAUSED
             return True
         else:
             return False
 
     def resume(self):
         if BaseExecutor.resume(self):
-            if self._status == ST_STARTING:
+            if self.status_id == ST_STARTING:
                 self.head_ctrl.bootstrap(self)
                 self.on_controller_ready(None)
-            elif self._status == ST_RESUMING:
+            elif self.status_id == ST_RESUMING:
                 self.head_ctrl.bootstrap(self)
             return True
         else:
@@ -119,7 +119,7 @@ class FcodeExecutor(BaseExecutor):
             return False
 
     def fire(self):
-        if self._status == ST_RUNNING:
+        if self.status_id == ST_RUNNING:
             while (not self._eof) and len(self._cmd_queue) < 24:
                 if self._fsm.feed(self._task_loader.fileno(),
                                   self._cb_feed_command) == 0:
@@ -165,14 +165,14 @@ class FcodeExecutor(BaseExecutor):
         self.fire()
 
     def _on_mainboard_empty(self, sender):
-        if self._status == ST_RUNNING and self._eof:
-            self._status = ST_COMPLETING
+        if self.status_id == ST_RUNNING and self._eof:
+            self.status_id = ST_COMPLETING
             self.main_ctrl.send_cmd("G28", self)
-        elif self._status == ST_COMPLETING:
+        elif self.status_id == ST_COMPLETING:
             self.main_ctrl.close(self)
-            self._status = ST_COMPLETED
-        elif self._status == ST_PAUSING:
-            self._status = ST_PAUSED
+            self.status_id = ST_COMPLETED
+        elif self.status_id == ST_PAUSING:
+            self.status_id = ST_PAUSED
         else:
             self.fire()
 
@@ -200,7 +200,7 @@ class FcodeExecutor(BaseExecutor):
             self.fire()
         except RuntimeError as err:
             if not self.pause(err.args[0]):
-                if self._status == ST_RUNNING:
+                if self.status_id == ST_RUNNING:
                     raise SystemError("BAD_LOGIC")
         except SystemError as err:
             self.abort(*err.args)
@@ -213,12 +213,12 @@ class FcodeExecutor(BaseExecutor):
     def on_loop(self):
         try:
             self.main_ctrl.patrol(self)
-            self.head_ctrl.patrol(self, (self._status == ST_STARTING or
-                                         self._status == ST_RUNNING or
-                                         self._status == ST_RESUMING))
+            self.head_ctrl.patrol(self, (self.status_id == ST_STARTING or
+                                         self.status_id == ST_RUNNING or
+                                         self.status_id == ST_RESUMING))
         except RuntimeError as err:
             if not self.pause(err.args[0]):
-                if self._status == ST_RUNNING:
+                if self.status_id == ST_RUNNING:
                     raise SystemError("BAD_LOGIC")
         except SystemError as err:
             self.abort(*err.args)
