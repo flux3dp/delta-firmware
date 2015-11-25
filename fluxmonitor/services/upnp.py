@@ -39,8 +39,8 @@ MODEL_ID = get_model_id()
 CODE_NOPWD_ACCESS = 0x04
 CODE_PWD_ACCESS = 0x06
 
-CODE_CONTROL_STATUS = 0x80
-CODE_RESET_CONTROL = 0x82
+# CODE_CONTROL_STATUS = 0x80
+# CODE_RESET_CONTROL = 0x82
 CODE_REQUEST_ROBOT = 0x84
 CODE_CHANGE_PWD = 0xa0
 CODE_SET_NETWORK = 0xa2
@@ -234,9 +234,10 @@ class MulticastInterface(object):
         self.sock.sendto(payload + message + signature, endpoint)
 
     def send_discover(self):
-        if time() - self.timer > 5:
+        if time() - self.timer > 2.5:
             self.reduce_drop_request()
-            self.sock.sendto(self._discover_payload, self.mcst_addr)
+            self.sock.sendto(self._discover_payload + self.meta.device_status,
+                             self.mcst_addr)
             self.timer = time()
 
     def close(self):
@@ -350,15 +351,15 @@ class UpnpServiceMixIn(object):
 
         return {"timestemp": time()}
 
-    @json_payload_wrapper
-    def cmd_control_status(self, access_id, message):
-        pid = control_mutex.locking_status()
-        if pid:
-            status = "running"
-        else:
-            status = "idel"
-
-        return {"timestemp": time(), "onthefly": status}
+    # @json_payload_wrapper
+    # def cmd_control_status(self, access_id, message):
+    #     pid = control_mutex.locking_status()
+    #     if pid:
+    #         status = "running"
+    #     else:
+    #         status = "idel"
+    #
+    #     return {"timestemp": time(), "onthefly": status}
 
     @json_payload_wrapper
     def cmd_require_robot(self, access_id, message):
@@ -386,15 +387,15 @@ class UpnpServiceMixIn(object):
         #         self.robot_agent = RobotLaunchAgent(self)
         #         return {"status": "initial"}
 
-    @json_payload_wrapper
-    def cmd_reset_control(self, access_id, message):
-        do_kill = message == b"\x01"
-        label = control_mutex.terminate(kill=do_kill)
-
-        if label:
-            return {}
-        else:
-            raise RuntimeError(NOT_RUNNING)
+    # @json_payload_wrapper
+    # def cmd_reset_control(self, access_id, message):
+    #     do_kill = message == b"\x01"
+    #     label = control_mutex.terminate(kill=do_kill)
+    #
+    #     if label:
+    #         return {}
+    #     else:
+    #         raise RuntimeError(NOT_RUNNING)
 
 
 class UpnpService(ServiceBase, UpnpServiceMixIn):
@@ -418,8 +419,8 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
             CODE_CHANGE_PWD: self.cmd_change_pwd,
             CODE_SET_NETWORK: self.cmd_set_network,
 
-            CODE_CONTROL_STATUS: self.cmd_control_status,
-            CODE_RESET_CONTROL: self.cmd_reset_control,
+            # CODE_CONTROL_STATUS: self.cmd_control_status,
+            # CODE_RESET_CONTROL: self.cmd_reset_control,
             CODE_REQUEST_ROBOT: self.cmd_require_robot
         }
 
