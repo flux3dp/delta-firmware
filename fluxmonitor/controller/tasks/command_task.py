@@ -221,13 +221,20 @@ class PlayManagerMixIn(object):
         handler.send_text(manager.abort())
 
     @validate_status
-    def play_report(self, manager, handler):
-        handler.send_text(manager.report())
-
-    @validate_status
     def play_quit(self, manager, handler):
         if manager.is_terminated:
             handler.send_text(manager.quit())
+        else:
+            raise RuntimeError(RESOURCE_BUSY)
+
+    def play_report(self, handler):
+        component = self.stack.kernel.exclusive_component
+        if isinstance(component, PlayerManager):
+            handler.send_text(component.report())
+        elif component:
+            handler.send_text('{"st_id": 0, "st_label": "OCCUPIED"}')
+        else:
+            raise RuntimeError(NO_TASK)
 
     def dispatch_playmanage_cmd(self, handler, cmd, *args):
         kernel = self.stack.kernel
