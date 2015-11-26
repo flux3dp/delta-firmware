@@ -4,7 +4,7 @@ from errno import errorcode
 import logging
 import socket
 
-from fluxmonitor.err_codes import TOO_LARGE, PROTOCOL_ERROR, SUBSYSTEM_ERROR
+from fluxmonitor.err_codes import PROTOCOL_ERROR, SUBSYSTEM_ERROR, UNKNOW_ERROR
 from fluxmonitor.config import uart_config
 from fluxmonitor.storage import Storage
 
@@ -49,7 +49,7 @@ class UpdateFwTask(object):
                 self.send_upload_request()
                 handler.send_text("ok")
 
-                self.server.exit_task(self, True)
+                self.stack.exit_task(self, True)
         except RuntimeError as e:
             handler.send_text(("error %s" % e.args[0]).encode())
         except Exception:
