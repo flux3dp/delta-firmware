@@ -102,24 +102,30 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         self._uart_mb.send(msg)
 
     def on_mainboard_message(self, watcher, revent):
-        buf = watcher.data.recv(1024)
-        if not buf:
-            logger.error("Mainboard connection broken")
-            self.stack.exit_task(self)
+        try:
+            buf = watcher.data.recv(1024)
+            if not buf:
+                logger.error("Mainboard connection broken")
+                self.stack.exit_task(self)
 
-        for msg in self.recv_from_mainboard(buf):
-            if self._mainboard_msg_filter:
-                self._mainboard_msg_filter(msg)
-            self.main_ctrl.on_message(msg, self)
+            for msg in self.recv_from_mainboard(buf):
+                if self._mainboard_msg_filter:
+                    self._mainboard_msg_filter(msg)
+                self.main_ctrl.on_message(msg, self)
+        except Exception:
+            logger.exception("Unhandle Error")
 
     def on_headboard_message(self, watcher, revent):
-        buf = watcher.data.recv(1024)
-        if not buf:
-            logger.error("Headboard connection broken")
-            self.stack.exit_task(self)
+        try:
+            buf = watcher.data.recv(1024)
+            if not buf:
+                logger.error("Headboard connection broken")
+                self.stack.exit_task(self)
 
-        for msg in self.recv_from_headboard(buf):
-            pass
+            for msg in self.recv_from_headboard(buf):
+                pass
+        except Exception:
+            logger.exception("Unhandle Error")
 
     def dispatch_cmd(self, handler, cmd, *args):
         if self._busy:
@@ -160,6 +166,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
     def do_home(self, sender):
         def callback(ctrl):
             self._busy = False
+            self.main_ctrl.callback_msg_empty = None
             sender.send_text("ok")
 
         self.main_ctrl.callback_msg_empty = callback
@@ -167,62 +174,62 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         self._busy = True
 
     @check_mainboard
-    def do_eadj(self, sender, clean=False):
+    def do_eadj(self, handler, clean=False):
         data = []
 
         def stage1_test_x(msg):
             try:
-                sender.send_text("DEBUG MB %s" % msg)
+                handler.send_text("DEBUG MB %s" % msg)
                 if msg.startswith("Bed Z-Height at"):
                     data.append(float(msg.rsplit(" ", 1)[-1]))
-                    sender.send_text("DEBUG X: %.4f" % data[-1])
+                    handler.send_text("DEBUG X: %.4f" % data[-1])
                     self.main_ctrl.send_cmd("G30X73.6122Y-42.5", self)
                     self._mainboard_msg_filter = stage2_test_y
 
             except Exception:
                 logger.exception("Unhandle Error")
-                sender.send_text("error UNKNOW_ERROR")
+                handler.send_text("error UNKNOW_ERROR")
                 self.stack.exit_task(self)
 
         def stage2_test_y(msg):
             try:
-                sender.send_text("DEBUG MB %s" % msg)
+                handler.send_text("DEBUG MB %s" % msg)
                 if msg.startswith("Bed Z-Height at"):
                     data.append(float(msg.rsplit(" ", 1)[-1]))
-                    sender.send_text("DEBUG Y: %.4f" % data[-1])
+                    handler.send_text("DEBUG Y: %.4f" % data[-1])
                     self.main_ctrl.send_cmd("G30X0Y85", self)
                     self._mainboard_msg_filter = stage3_test_z
 
             except Exception:
                 logger.exception("Unhandle Error")
-                sender.send_text("error UNKNOW_ERROR")
+                handler.send_text("error UNKNOW_ERROR")
                 self.stack.exit_task(self)
 
         def stage3_test_z(msg):
             try:
-                sender.send_text("DEBUG MB %s" % msg)
+                handler.send_text("DEBUG MB %s" % msg)
                 if msg.startswith("Bed Z-Height at"):
                     self._mainboard_msg_filter = None
                     self._busy = False
 
                     data.append(float(msg.rsplit(" ", 1)[-1]))
-                    sender.send_text("DEBUG Z: %.4f" % data[-1])
+                    handler.send_text("DEBUG Z: %.4f" % data[-1])
 
                     if clean:
-                        sender.send_text("DEBUG: Clean")
+                        handler.send_text("DEBUG: Clean")
                     old_cmd, new_cmd = do_correction(*data)
-                    sender.send_text("DEBUG OLD --> %s" % old_cmd)
-                    sender.send_text("DEBUG NEW --> %s" % new_cmd)
+                    handler.send_text("DEBUG OLD --> %s" % old_cmd)
+                    handler.send_text("DEBUG NEW --> %s" % new_cmd)
                     self.main_ctrl.send_cmd(new_cmd, self)
 
-                    sender.send_text("ok %.4f %.4f %.4f" % (data[0], data[1],
+                    handler.send_text("ok %.4f %.4f %.4f" % (data[0], data[1],
                                                             data[2]))
             except ValueError as e:
-                sender.send_text("error %s" % e.args[0])
+                handler.send_text("error %s" % e.args[0])
 
             except Exception:
                 logger.exception("Unhandle Error")
-                sender.send_text("error UNKNOW_ERROR")
+                handler.send_text("error UNKNOW_ERROR")
                 self.stack.exit_task(self)
 
         self._busy = True
@@ -240,12 +247,12 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         handler.send_text("continue")
 
     @check_mainboard
-    def do_h_correction(self, sender, h=None):
+    def do_h_correction(self, handler, h=None):
         if h is not None:
             corr_cmd = do_h_correction(h=h)
             self.main_ctrl.send_cmd(corr_cmd, self)
-            sender.send_text("continue")
-            sender.send_text("ok 0")
+            handler.send_text("continue")
+            handler.send_text("ok 0")
             return
 
         def stage_test_h(msg):
@@ -255,18 +262,18 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
                     self._busy = False
 
                     data = float(msg.rsplit(" ", 1)[-1])
-                    sender.send_text("DEBUG H: %.4f" % data)
+                    handler.send_text("DEBUG H: %.4f" % data)
 
                     corr_cmd = do_h_correction(delta=data)
                     self.main_ctrl.send_cmd(corr_cmd, self)
 
-                    sender.send_text("ok %.4f" % data)
+                    handler.send_text("ok %.4f" % data)
             except ValueError as e:
-                sender.send_text("error %s" % e.args[0])
+                handler.send_text("error %s" % e.args[0])
 
             except Exception:
                 logger.exception("Unhandle Error")
-                sender.send_text("error UNKNOW_ERROR")
+                handler.send_text("error UNKNOW_ERROR")
                 self.stack.exit_task(self)
 
         self._busy = True
