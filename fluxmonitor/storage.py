@@ -9,8 +9,7 @@ import sysv_ipc
 
 from fluxmonitor.config import general_config, robot_config
 from fluxmonitor.hal.usbmount import get_usbmount_hal
-from fluxmonitor.err_codes import NOT_EXIST
-
+from fluxmonitor.err_codes import NOT_EXIST, BAD_PARAMS
 
 
 class Storage(object):
@@ -104,7 +103,7 @@ class CommonMetadata(object):
                         self.shm.write(flag, 0)
 
                         return dict(zip("XYZABCIJKRDH", vals))
-                    except Exception as e:
+                    except Exception:
                         # Ignore error and return default
                         raise
 
@@ -196,9 +195,9 @@ class CommonMetadata(object):
         return self.shm.read(64, 3584)
 
     def format_device_status(self):
-        buf =  self.device_status
+        buf = self.device_status
         timestemp, st_id, progress, head_type, err_label = \
-             struct.unpack("dif16s32s", buf[:64])
+            struct.unpack("dif16s32s", buf[:64])
         return {"timestemp": timestemp, "st_id": st_id, "progress": progress,
                 "head_type": head_type, "err_label": err_label}
 

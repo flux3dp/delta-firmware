@@ -9,7 +9,7 @@ import os
 import pyev
 
 from fluxmonitor.player.base import (ST_COMPLETED, ST_ABORTED,
-    ST_PAUSED, ST_RUNNING)
+                                     ST_PAUSED, ST_RUNNING)
 from fluxmonitor.err_codes import RESOURCE_BUSY
 from fluxmonitor.config import PLAY_ENDPOINT
 from fluxmonitor.storage import Metadata
@@ -140,7 +140,7 @@ class PlayerManager(object):
         return self.sock.recv(4096)
 
     def is_alive(self):
-        return self.proc.poll() == None
+        return self.proc.poll() is None
 
     def terminate(self):
         self.proc.kill()

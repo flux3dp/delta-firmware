@@ -1,5 +1,4 @@
 
-from shlex import split as shlex_split
 import logging
 import socket
 import re
@@ -223,7 +222,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
                     self.main_ctrl.send_cmd(new_cmd, self)
 
                     handler.send_text("ok %.4f %.4f %.4f" % (data[0], data[1],
-                                                            data[2]))
+                                                             data[2]))
             except ValueError as e:
                 handler.send_text("error %s" % e.args[0])
 

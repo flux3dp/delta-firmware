@@ -5,7 +5,6 @@ import sys
 
 from fluxmonitor.misc.flux_argparse import add_daemon_arguments, \
     apply_daemon_arguments
-from fluxmonitor.launcher import create_logger
 from fluxmonitor.launcher import deamon_entry
 
 

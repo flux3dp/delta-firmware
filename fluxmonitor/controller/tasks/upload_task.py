@@ -17,7 +17,7 @@ class UploadTask(object):
         pass
 
     def on_text(self, message, handler):
-        raise ProtocolError(PROTOCOL_ERROR, "UPLOADING_BINARY")
+        raise SystemError(PROTOCOL_ERROR, "UPLOADING_BINARY")
 
     def on_binary(self, buf, handler):
         l = len(buf)
@@ -33,4 +33,4 @@ class UploadTask(object):
             self.stack.exit_task(self, True)
 
         else:
-            raise ProtocolError(TOO_LARGE)
+            raise SystemError(TOO_LARGE)

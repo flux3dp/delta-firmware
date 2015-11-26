@@ -218,12 +218,11 @@ def deamon_entry(options, service=None):
 
         server = init_service(service, options)
 
-
     def sigTerm(sig, frame):
         sys.stderr.write("\n")
         server.shutdown(log="Recive SIGTERM/SIGINT")
 
-    dummy = bind_signal(server, options.signal_debug)
+    dummy = bind_signal(server, options.signal_debug)  # NOQA
 
     try:
         if server.run() is False:

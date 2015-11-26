@@ -236,7 +236,7 @@ class MainController(object):
 
         if self._cmd_sent:
             if self._resend_counter >= 4:
-                L.error("Mainboard no response, restart it (%i)", 
+                L.error("Mainboard no response, restart it (%i)",
                         self._resend_counter)
                 self.reset_mainboard()
                 raise SystemError(EXEC_MAINBOARD_OFFLINE)

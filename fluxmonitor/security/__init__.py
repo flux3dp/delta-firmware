@@ -1,3 +1,4 @@
+# flake8: noqa
 
 from .identify import get_uuid, get_serial, get_private_key, get_identify
 

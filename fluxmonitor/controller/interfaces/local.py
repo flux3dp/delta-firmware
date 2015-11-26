@@ -307,4 +307,3 @@ class ServiceStack(object):
 
     def terminate(self):
         pass
-

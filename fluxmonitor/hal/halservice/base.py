@@ -5,7 +5,6 @@ import os
 
 import pyev
 
-from fluxmonitor.misc.async_signal import AsyncIO
 from fluxmonitor.config import uart_config
 from fluxmonitor.storage import Storage
 
@@ -23,7 +22,7 @@ class UartHalBase(object):
             loop=kernel.loop, path=uart_config["mainboard"],
             callback=self.on_connected_mainboard)
         self.headboard = self.create_socket(
-            loop=kernel.loop, path= uart_config["headboard"],
+            loop=kernel.loop, path=uart_config["headboard"],
             callback=self.on_connected_headboard)
         self.pc = self.create_socket(
             loop=kernel.loop, path=uart_config["pc"],

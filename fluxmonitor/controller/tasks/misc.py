@@ -1,5 +1,4 @@
 
-from setproctitle import setproctitle
 from multiprocessing import Process
 from select import select, error
 from errno import EINTR
@@ -58,4 +57,3 @@ class TaskLoader(Process):
         self.io_in.close()
         self.io_out.close()
         self.fout.close()
-

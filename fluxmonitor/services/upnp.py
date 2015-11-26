@@ -1,6 +1,6 @@
 
 from itertools import chain
-from time import time, sleep
+from time import time
 import uuid as _uuid
 import binascii
 import logging
@@ -12,16 +12,12 @@ logger = logging.getLogger(__name__)
 
 import pyev
 
-from fluxmonitor.misc._process import Process
 from fluxmonitor.misc import network_config_encoder as NCE
 from fluxmonitor.halprofile import get_model_id
 from fluxmonitor.hal.net.monitor import Monitor as NetworkMonitor
 from fluxmonitor.storage import CommonMetadata
 from fluxmonitor.config import network_config
-from fluxmonitor.misc import control_mutex
-from fluxmonitor.storage import Storage
-from fluxmonitor.err_codes import ALREADY_RUNNING, BAD_PASSWORD, NOT_RUNNING, \
-    RESOURCE_BUSY, AUTH_ERROR, UNKNOW_ERROR
+from fluxmonitor.err_codes import BAD_PASSWORD, AUTH_ERROR
 
 from fluxmonitor import __version__ as VERSION
 from fluxmonitor import security
@@ -100,7 +96,6 @@ def parse_signed_request(payload, secretkey):
     return True, access_id, body[32:]
 
 
-
 class MulticastInterface(object):
     temp_rsakey = None
     timer = 0
@@ -157,7 +152,7 @@ class MulticastInterface(object):
         for key in self.poke_counter.keys():
             val = self.poke_counter[key]
             if val > 1:
-                self.poke_counter[key] = val -1
+                self.poke_counter[key] = val - 1
             else:
                 self.poke_counter.pop(key)
 
@@ -351,51 +346,10 @@ class UpnpServiceMixIn(object):
 
         return {"timestemp": time()}
 
-    # @json_payload_wrapper
-    # def cmd_control_status(self, access_id, message):
-    #     pid = control_mutex.locking_status()
-    #     if pid:
-    #         status = "running"
-    #     else:
-    #         status = "idel"
-    #
-    #     return {"timestemp": time(), "onthefly": status}
-
     @json_payload_wrapper
     def cmd_require_robot(self, access_id, message):
+        # TODO: to be delete
         return {"status": "launched"}
-        # if self.robot_agent:
-        #     ret = self.robot_agent.poll()
-        #     if ret is None:
-        #         return {"status": "launching"}
-        #     else:
-        #         self.robot_agent = None
-        #
-        #         if ret == 0:
-        #             return {"status": "launched"}
-        #         elif ret == 0x80:
-        #             return {"status": "launched", "info": "double launch"}
-        #         else:
-        #             logger.error("Robot daemon return statuscode %i" % ret)
-        #             raise RuntimeError(UNKNOW_ERROR, "%i" % ret)
-        #
-        # else:
-        #     pid = control_mutex.locking_status()
-        #     if pid:
-        #         return {"status": "launched", "info": "already running"}
-        #     else:
-        #         self.robot_agent = RobotLaunchAgent(self)
-        #         return {"status": "initial"}
-
-    # @json_payload_wrapper
-    # def cmd_reset_control(self, access_id, message):
-    #     do_kill = message == b"\x01"
-    #     label = control_mutex.terminate(kill=do_kill)
-    #
-    #     if label:
-    #         return {}
-    #     else:
-    #         raise RuntimeError(NOT_RUNNING)
 
 
 class UpnpService(ServiceBase, UpnpServiceMixIn):
@@ -515,40 +469,6 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
             watcher.data = None
 
 
-# class RobotLaunchAgent(Process):
-#     @classmethod
-#     def init(cls, service):
-#         logfile = Storage("log").get_path("robot.log")
-#         pidfile = control_mutex.pidfile()
-#
-#         return cls(service, ["fluxrobot", "--pid", pidfile, "--log", logfile,
-#                              "--daemon"])
-#
-#     def __init__(self, services, autoplay=False):
-#         pid = control_mutex.locking_status()
-#         if pid:
-#             raise RuntimeError(ALREADY_RUNNING)
-#
-#         logfile = Storage("log").get_path("robot.log")
-#         pidfile = control_mutex.pidfile()
-#
-#         cmdline = ["fluxrobot", "--pid", pidfile, "--log", logfile, "--daemon"]
-#         if autoplay:
-#             cmdline += ["--autoplay"]
-#         Process.__init__(self, services, cmdline)
-#
-#     def on_daemon_closed(self):
-#         timestemp = time()
-#
-#         ret = self.poll()
-#         while ret is None and (time() - timestemp) < 3:
-#             sleep(0.05)
-#             ret = self.poll()
-#
-#         if ret is None:
-#             self.kill()
-#
-#
 class DelayNetworkConfigure(object):
     def __init__(self, config):
         self.config = config

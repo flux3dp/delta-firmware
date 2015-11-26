@@ -9,7 +9,6 @@ from serial import Serial, SerialException
 from RPi import GPIO
 import pyev
 
-from fluxmonitor.misc.async_signal import AsyncIO
 from fluxmonitor.halprofile import MODEL_G1
 from fluxmonitor.storage import Storage, CommonMetadata
 from fluxmonitor.config import LENGTH_OF_LONG_PRESS_TIME as LLPT, \
@@ -66,7 +65,6 @@ class FrontButtonMonitor(object):
             setproctitle(getproctitle() + " (button monitor)")
 
             os.close(self._rfd)
-            lastpress = 0
             while True:
                 long_press_sent = False
 
@@ -102,7 +100,7 @@ class FrontButtonMonitor(object):
                     self.send_long_press(watcher.data)
             else:
                 L.error("ButtonInterface is down")
-                kernel.remove_read_event(self)
+                watcher.stop()
 
         elif revent == pyev.EV_TIMER:
             # CLICK

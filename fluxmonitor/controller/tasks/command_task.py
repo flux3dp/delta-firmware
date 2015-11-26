@@ -10,7 +10,9 @@ import shutil
 import os
 
 from fluxmonitor.player.fcode_parser import fast_read_meta
-from fluxmonitor.err_codes import (UNKNOW_COMMAND, NOT_EXIST, TOO_LARGE, NO_TASK, BAD_PARAMS, BAD_FILE_FORMAT, RESOURCE_BUSY)
+from fluxmonitor.err_codes import (UNKNOW_COMMAND, NOT_EXIST, TOO_LARGE,
+                                   NO_TASK, BAD_PARAMS, BAD_FILE_FORMAT,
+                                   RESOURCE_BUSY)
 from fluxmonitor.storage import CommonMetadata, UserSpace
 from fluxmonitor.misc import mimetypes
 
@@ -108,7 +110,8 @@ class FileManagerMixIn(object):
             handler.send_text("binary image/png %i" % len(image))
             handler.send(image)
             handler.send_text(
-                "ok %s" % "\x00".join("%s=%s" % (k, v) for k, v in metadata.items()))
+                "ok %s" % "\x00".join(
+                    "%s=%s" % (k, v)for k, v in metadata.items()))
         else:
             handler.send_text("ok size=%i" % os.path.getsize(abspath))
 
@@ -237,7 +240,6 @@ class PlayManagerMixIn(object):
             raise RuntimeError(NO_TASK)
 
     def dispatch_playmanage_cmd(self, handler, cmd, *args):
-        kernel = self.stack.kernel
         if cmd == "pause":
             self.play_pause(handler)
             return True
@@ -289,7 +291,7 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn):
         elif cmd == "set":
             if len(args) != 2:
                 raise RuntimeError(BAD_PARAMS)
-            return self.setting_setter(*params)
+            return self.setting_setter(*args)
         elif cmd == "kick":
             self.stack.kernel.destory_exclusive()
             # TODO: more message?
@@ -319,8 +321,9 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn):
             if kernel.is_exclusived():
                 raise RuntimeError(RESOURCE_BUSY)
             else:
-                pm = PlayerManager(self.stack.loop, self._task_file.name,
-                                   terminated_callback=kernel.release_exclusive)
+                pm = PlayerManager(
+                    self.stack.loop, self._task_file.name,
+                    terminated_callback=kernel.release_exclusive)
                 kernel.exclusive(pm)
             handler.send_text("ok")
         else:

@@ -13,6 +13,7 @@ except ImportError:
     cv2 = None
     ScanChecking = None
 
+from fluxmonitor.err_codes import PROTOCOL_ERROR, DEVICE_ERROR
 from fluxmonitor.config import CAMERA_ENDPOINT
 from .base import ServiceBase
 

@@ -2,7 +2,6 @@
 from shlex import split as shlex_split
 from time import time
 import logging
-import re
 
 from fluxmonitor.err_codes import EXEC_HEADER_OFFLINE, EXEC_OPERATION_ERROR, \
     EXEC_WRONG_HEADER
@@ -108,8 +107,8 @@ class ExtruderController(object):
             raise SystemError(EXEC_OPERATION_ERROR, "BAD TEMP")
 
         self._temperatures[0] = temperature
-        self._padding_cmd = create_chksum_cmd("1 H:%i T:%.1f", 
-                                              heater_id, temperature)
+        self._padding_cmd = create_chksum_cmd("1 H:%i T:%.1f", heater_id,
+                                              temperature)
         self._cmd_callback = callback
         self._send_cmd(executor)
 
@@ -250,7 +249,7 @@ class ExtruderController(object):
                         self._heaters_callback(self)
                         self._heaters_callback = None
                     elif abs(self._temperatures[0] -
-                           self._current_temp[0]) < 3:
+                             self._current_temp[0]) < 3:
                         self._heaters_callback(self)
                         self._heaters_callback = None
 

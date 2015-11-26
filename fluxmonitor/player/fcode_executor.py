@@ -3,9 +3,9 @@ from collections import deque
 import logging
 
 from fluxmonitor.err_codes import UNKNOW_ERROR
-from .base import BaseExecutor, ST_STARTING, ST_WAITTING_HEADER, ST_RUNNING, \
-    ST_PAUSING, ST_PAUSED, ST_RESUMING, ST_ABORTING, ST_ABORTED, \
-    ST_COMPLETING, ST_COMPLETED
+from .base import BaseExecutor, ST_STARTING, ST_WAITTING_HEADER  # NOQA
+from .base import ST_RUNNING, ST_PAUSING, ST_PAUSED, ST_RESUMING  # NOQA
+from .base import ST_ABORTING, ST_ABORTED, ST_COMPLETING, ST_COMPLETED  # NOQA
 from .misc import TaskLoader
 from ._device_fsm import PyDeviceFSM
 

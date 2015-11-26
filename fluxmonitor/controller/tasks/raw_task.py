@@ -33,7 +33,7 @@ class RawTask(DeviceOperationMixIn):
             self.on_dead(self, repr(e))
 
     def on_text(self, buf, handler):
-        raise ProtocolError(PROTOCOL_ERROR, "RAW_MODE")
+        raise SystemError(PROTOCOL_ERROR, "RAW_MODE")
 
     def on_binary(self, buf, handler):
         if buf.startswith(b"+"):

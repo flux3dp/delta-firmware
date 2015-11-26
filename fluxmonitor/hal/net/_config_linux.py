@@ -1,9 +1,6 @@
 
 import tempfile
 import logging
-import os
-
-logger = logging.getLogger(__name__)
 
 from pyroute2 import IPRoute
 
@@ -15,6 +12,8 @@ DHCPD = network_config['dhcpd']
 
 __all__ = ["ifup", "ifdown", "config_ipaddr", "config_nameserver",
            "dhcp_client_daemon", "dhcp_server_daemon"]
+
+logger = logging.getLogger(__name__)
 
 
 def ifup(ifname):
@@ -105,6 +104,7 @@ def _clean_ipaddr(ifname, index, ipr):
             ipr.addr('del', index=index, address=address, mask=mask)
         except Exception:
             logger.exception("Remove ipaddr error")
+
 
 def _clean_route():
     ipr = IPRoute()

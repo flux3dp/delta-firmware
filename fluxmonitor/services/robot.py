@@ -5,7 +5,7 @@ from fluxmonitor.controller.interfaces.local import LocalControl
 from fluxmonitor.controller.interfaces.button import ButtonControl
 from fluxmonitor.controller.tasks.play_manager import PlayerManager
 from fluxmonitor.services.base import ServiceBase
-from fluxmonitor.err_codes import RESOURCE_BUSY
+from fluxmonitor.err_codes import RESOURCE_BUSY, DEVICE_ERROR
 from fluxmonitor.storage import UserSpace
 
 
@@ -31,13 +31,12 @@ class Robot(ServiceBase):
 
         try:
             if options.taskfile:
-                sender = NullSender()
-                cmd_task.select_file(options.taskfile, sender, raw=True)
-                cmd_task.play(sender=sender)
+                logger.debug("Autoplay: %s", options.taskfile)
+                pm = PlayerManager(self.loop, options.taskfile,
+                                   self.release_exclusive)
+                self.exclusive(pm)
             elif options.autoplay:
-                sender = NullSender()
-                if cmd_task.autoselect():
-                    cmd_task.play(sender=sender)
+                self.autoplay()
         except Exception:
             logger.exception("Error while setting task at init")
 

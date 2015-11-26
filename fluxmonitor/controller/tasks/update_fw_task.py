@@ -1,6 +1,5 @@
 
 from tempfile import TemporaryFile
-from errno import errorcode
 import logging
 import socket
 
@@ -22,7 +21,7 @@ class UpdateFwTask(object):
         pass
 
     def on_text(self, message, handler):
-        raise ProtocolError(PROTOCOL_ERROR, "UPLOADING_BINARY")
+        raise SystemError(PROTOCOL_ERROR, "UPLOADING_BINARY")
 
     def on_binary(self, buf, handler):
         try:
@@ -41,7 +40,7 @@ class UpdateFwTask(object):
 
                 self.tmpfile.seek(0)
                 s = Storage("update_fw")
-            
+
                 with s.open("mainboard.bin", "wb") as f:
                     f.write(self.tmpfile.read())
 
@@ -63,4 +62,3 @@ class UpdateFwTask(object):
             s.send("update_fw")
         except socket.error:
             raise RuntimeError(SUBSYSTEM_ERROR)
-
