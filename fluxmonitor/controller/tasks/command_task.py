@@ -303,7 +303,7 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn):
             raise RuntimeError(TOO_LARGE)
 
         logger.info("Upload fireware file size: %i" % filesize)
-        task = UpdateFwTask(self.stack, sender, filesize)
+        task = UpdateFwTask(self.stack, handler, filesize)
         self.stack.enter_task(task, empty_callback)
 
         return "continue"
@@ -326,8 +326,8 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn):
         else:
             raise RuntimeError(NO_TASK)
 
-    def scan(self, sender):
-        task = ScanTask(self.stack, sender)
+    def scan(self, handler):
+        task = ScanTask(self.stack, handler)
         self.stack.enter_task(task, empty_callback)
         return "ok"
 
