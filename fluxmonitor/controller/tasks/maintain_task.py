@@ -4,7 +4,7 @@ import logging
 import socket
 import re
 
-from fluxmonitor.code_executor.main_controller import MainController
+from fluxmonitor.player.main_controller import MainController
 from fluxmonitor.storage import CommonMetadata
 from fluxmonitor.misc import correction
 from fluxmonitor.config import uart_config

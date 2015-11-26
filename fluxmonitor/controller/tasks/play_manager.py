@@ -8,7 +8,7 @@ import os
 
 import pyev
 
-from fluxmonitor.code_executor.base import (ST_COMPLETED, ST_ABORTED,
+from fluxmonitor.player.base import (ST_COMPLETED, ST_ABORTED,
     ST_PAUSED, ST_RUNNING)
 from fluxmonitor.err_codes import RESOURCE_BUSY
 from fluxmonitor.config import PLAY_ENDPOINT

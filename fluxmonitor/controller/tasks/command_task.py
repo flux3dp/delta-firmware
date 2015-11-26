@@ -9,7 +9,7 @@ import logging
 import shutil
 import os
 
-from fluxmonitor.code_executor.fcode_parser import fast_read_meta
+from fluxmonitor.player.fcode_parser import fast_read_meta
 from fluxmonitor.err_codes import (UNKNOW_COMMAND, NOT_EXIST, TOO_LARGE, NO_TASK, BAD_PARAMS, BAD_FILE_FORMAT, RESOURCE_BUSY)
 from fluxmonitor.storage import CommonMetadata, UserSpace
 from fluxmonitor.misc import mimetypes

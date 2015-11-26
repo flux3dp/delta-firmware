@@ -8,7 +8,7 @@ import re
 
 import pyev
 
-from fluxmonitor.code_executor.fcode_executor import FcodeExecutor
+from .fcode_executor import FcodeExecutor
 from fluxmonitor.config import PLAY_ENDPOINT, HEADBOARD_ENDPOINT, \
     MAINBOARD_ENDPOING
 from fluxmonitor.storage import CommonMetadata as Metadata
