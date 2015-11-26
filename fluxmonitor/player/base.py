@@ -130,7 +130,7 @@ class BaseExecutor(object):
         return st
 
     def is_closed(self):
-        return (self.status_id & 192) > 0
+        return self.status_id and (self.status_id & ~192) == 0
 
     def send_mainboard(self, msg):
         if self.__mbio.send(msg) != len(msg):

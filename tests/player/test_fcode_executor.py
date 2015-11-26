@@ -4,9 +4,9 @@ from time import time, sleep
 import unittest
 import socket
 
-from fluxmonitor.code_executor.base import ST_PAUSING, ST_PAUSED, ST_ABORTED, \
+from fluxmonitor.player.base import ST_PAUSING, ST_PAUSED, ST_ABORTED, \
     ST_COMPLETED
-from fluxmonitor.code_executor.fcode_executor import FcodeExecutor
+from fluxmonitor.player.fcode_executor import FcodeExecutor
 
 from tests.fixtures import Fixtures
 from tests import TEST_FLAGS

@@ -131,12 +131,15 @@ class MainController(object):
                                           "IMPOSSIBLE_SYNC_LN")
 
             elif msg.startswith("ER CHECKSUM_MISMATCH "):
-                err_ln, trigger_ln = (int(v) for v in msg[17:].split(" "))
+                err_ln, trigger_ln = (int(v) for v in msg[21:].split(" "))
                 ttl = err_ln - trigger_ln
                 if not self._resend_cmd_from(err_ln, executor,
                                              ttl_offset=ttl):
                     raise SystemError(EXEC_INTERNAL_ERROR,
                                       "IMPOSSIBLE_SYNC_LN")
+
+            elif msg == "CTRL LINECHECK_DISABLED":
+                executor.send_mainboard(b"C1O\n")
 
             else:
                 L.debug("Unhandle MB MSG: %s" % msg)
@@ -232,7 +235,7 @@ class MainController(object):
                 executor.send_mainboard("C1O\n")
 
         if self._cmd_sent:
-            if self._resend_counter >= 10:
+            if self._resend_counter >= 4:
                 L.error("Mainboard no response, restart it (%i)", 
                         self._resend_counter)
                 self.reset_mainboard()
