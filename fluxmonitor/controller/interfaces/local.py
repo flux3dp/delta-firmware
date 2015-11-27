@@ -118,7 +118,11 @@ class LocalConnectionHandler(object):
 
     @T.update_time
     def on_recv(self, watcher, revent):
-        l = self.sock.recv_into(self._bufview[self._buffered:])
+        try:
+            l = self.sock.recv_into(self._bufview[self._buffered:])
+        except Exception:
+            self.close("CONNECTION_GONE")
+
         if l:
             self._buffered += l
             if self.ready:
