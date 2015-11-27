@@ -366,6 +366,7 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
         self.slave_pkey = security.RSAObject(keylength=1024)
 
         self.meta = CommonMetadata()
+        self.meta.update_device_status(0, 0, "OFFLINE", "")
 
         self._callback = {
             CODE_NOPWD_ACCESS: self.cmd_nopwd_access,

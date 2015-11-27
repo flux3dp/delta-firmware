@@ -14,7 +14,7 @@ from fluxmonitor.config import PLAY_ENDPOINT, HEADBOARD_ENDPOINT, \
 from fluxmonitor.storage import CommonMetadata as Metadata
 from fluxmonitor.services.base import ServiceBase
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("")
 
 
 class Player(ServiceBase):
@@ -109,7 +109,7 @@ class Player(ServiceBase):
     def on_cmd_message(self, watcher, revent):
         try:
             S = watcher.data
-            argstr, R = S.recvfrom(4096)
+            argstr, R = S.recvfrom(128)
             args = shlex_split(argstr.decode("ascii", "ignore"))
             cmd = args[0]
             if cmd == "PAUSE":  # Pause
@@ -130,6 +130,16 @@ class Player(ServiceBase):
                     self.send_cmd_response(S, R, "ok")
                 else:
                     self.send_cmd_response(S, R, "ERROR RESOURCE_BUSY")
+            elif cmd == "LOAD_FILAMENT":
+                if self.executor.load_filament(int(args[1])):
+                    self.send_cmd_response(S, R, "ok")
+                else:
+                    self.send_cmd_response(S, R, "ERROR RESOURCE_BUSY")
+            elif cmd == "EJECT_FILAMENT":
+                if self.executor.eject_filament(int(args[1])):
+                    self.send_cmd_response(S, R, "ok")
+                else:
+                    self.send_cmd_response(S, R, "ERROR RESOURCE_BUSY")
             elif cmd == "QUIT":
                 if self.executor.is_closed():
                     self.send_cmd_response(S, R, "ok")
@@ -144,15 +154,22 @@ class Player(ServiceBase):
             sock.sendto(message, remote)
 
     def on_timer(self, watcher, revent):
-        self.executor.on_loop()
+        try:
+            self.executor.on_loop()
 
-        if self.executor._err_symbol:
-            err = self.executor._err_symbol[0]
-        else:
-            err = ""
+            if self.executor._err_symbol:
+                err = str(self.executor._err_symbol[0])
+            else:
+                err = ""
 
-        self.meta.update_device_status(self.executor.status_id, 0,
-                                       "UNKNOW_HEAD", err_label=err)
+            self.meta.update_device_status(self.executor.status_id, 0,
+                                           "UNKNOW_HEAD", err_label=err)
 
-        if self.executor.is_closed():
-            watcher.stop()
+            if self.executor.is_closed():
+                watcher.stop()
+
+            self.meta.update_device_status(self.executor.status_id,
+                                           0, self.executor.head_ctrl.module,
+                                           self.executor.error_symbol)
+        except Exception:
+            logger.exception("Unhandler Error")

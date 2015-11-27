@@ -2,6 +2,8 @@
 from multiprocessing import Process
 from time import time, sleep
 import logging
+import struct
+import signal
 import os
 
 from setproctitle import getproctitle, setproctitle
@@ -129,8 +131,6 @@ class FrontButtonMonitor(object):
 
 class GPIOControl(object):
     _last_mainboard_sig = GPIO_TOGGLE[0]
-    _last_sig_timestemp = 0
-    _last_active_st = -1
     __usb_serial_gpio__ = USB_SERIAL_OFF
     head_enabled = True
 
@@ -140,7 +140,7 @@ class GPIOControl(object):
         GPIO.setup(GPIO_HEAD_BOOT_MODE, GPIO.OUT, initial=GPIO.HIGH)
         GPIO.setup(GPIO_MAINBOARD_SIG, GPIO.OUT, initial=GPIO_TOGGLE[0])
         GPIO.setup(GPIO_ACTIVE_SIG, GPIO.OUT)
-        self._active_sig_pwm = GPIO.PWM(GPIO_ACTIVE_SIG, 1.0)
+        self._active_sig_pwm = GPIO.PWM(GPIO_ACTIVE_SIG, 10)
         self._active_sig_pwm.start(50)
 
         for pin in GPIO_NOT_DEFINED:
@@ -154,24 +154,34 @@ class GPIOControl(object):
         self.update_ama0_routing()
 
     def proc_sig(self):
-        if time() - self._last_sig_timestemp > 0.5:
-            _1 = self._last_mainboard_sig = (self._last_mainboard_sig + 1) % 2
-            GPIO.output(GPIO_MAINBOARD_SIG, GPIO_TOGGLE[_1])
+        wifi_flag = self.sm.wifi_status
+        freq = 0
 
-            st = self.sm.wifi_status
-            if st != self._last_active_st:
-                self._last_active_st = st
-                self._active_sig_pwm.stop()
+        if wifi_flag & 128 > 0:
+            freq = 500
 
-                wifi_st = self.sm.wifi_status
-                if wifi_st & 128:
-                    self._active_sig_pwm.start(0)
-                elif wifi_st & 64:
-                    self._active_sig_pwm.start(100)
+        elif wifi_flag & 64 > 0:
+            freq = 60
+
+        stbuf = self.sm.device_status
+        st_ts, st_id = struct.unpack("di", stbuf[:12])
+
+        if time() - st_ts > 5:
+            freq += 10
+        else:
+            # TODO
+            if st_id == 48 or st_id == 50:
+                if stbuf[32:46] == "USER_OPERATION":
+                    freq += 20
                 else:
-                    self._active_sig_pwm.start(50)
+                    freq += 50
 
-            self._last_sig_timestemp = time()
+        logging.debug("LED (ts=%.2f, wifi=%i, st=%i) %i", st_ts, wifi_flag,
+                      st_id, freq)
+        self._active_sig_pwm.ChangeFrequency(freq)
+
+        _1 = self._last_mainboard_sig = (self._last_mainboard_sig + 1) % 2
+        GPIO.output(GPIO_MAINBOARD_SIG, GPIO_TOGGLE[_1])
 
     def __del__(self):
         L.debug("GPIO/PWM cleanup")
@@ -265,6 +275,8 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOControl):
 
         self.loop_watcher = kernel.loop.timer(5, 5, self.on_loop)
         self.loop_watcher.start()
+        self.sigusr2_watcher = kernel.loop.signal(signal.SIGUSR2, self.on_loop)
+        self.sigusr2_watcher.start()
 
     def _init_mainboard_status(self):
         corr_str = "M666 X%(X).4f Y%(Y).4f Z%(Z).4f H%(H).4f\n" % \

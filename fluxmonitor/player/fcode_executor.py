@@ -6,6 +6,7 @@ from fluxmonitor.err_codes import UNKNOW_ERROR
 from .base import BaseExecutor, ST_STARTING, ST_WAITTING_HEADER  # NOQA
 from .base import ST_RUNNING, ST_PAUSING, ST_PAUSED, ST_RESUMING  # NOQA
 from .base import ST_ABORTING, ST_ABORTED, ST_COMPLETING, ST_COMPLETED  # NOQA
+from .base import ST_STARTING_PAUSED
 from .misc import TaskLoader
 from ._device_fsm import PyDeviceFSM
 
@@ -27,6 +28,7 @@ class FcodeExecutor(BaseExecutor):
     _eof = False
     # Gcode parser
     _fsm = None
+    _mb_stashed = False
 
     def __init__(self, mainboard_io, headboard_io, fileobj, play_bufsize=16):
         super(FcodeExecutor, self).__init__(mainboard_io, headboard_io)
@@ -62,13 +64,15 @@ class FcodeExecutor(BaseExecutor):
             elif self.status_id == ST_RESUMING:
                 if self._ctrl_flag & FLAG_WAITTING_HEADER:
                     self._ctrl_flag &= ~FLAG_WAITTING_HEADER
-                self.resumed()
+                self.main_ctrl.send_cmd("C2F", self)
+                self._mb_stashed = False
 
     def _do_startup(self):
         try:
             self.main_ctrl.send_cmd("T0", self)   # Select extruder 0
             self.main_ctrl.send_cmd("G21", self)  # Set units to mm
             self.main_ctrl.send_cmd("G90", self)  # Absolute Positioning
+            self.main_ctrl.send_cmd("G92E0", self)  # Set E to 0
             self.main_ctrl.send_cmd("G28", self)  # Home
         except Exception as e:
             logging.exception("Error while send init gcode")
@@ -89,9 +93,16 @@ class FcodeExecutor(BaseExecutor):
 
     def pause(self, *args):
         if BaseExecutor.pause(self, *args):
-            if self.main_ctrl.buffered_cmd_size == 0:
-                if self.status_id == ST_PAUSING:
+            pass
+            if self.status_id == ST_STARTING_PAUSED:
+                pass
+            elif self.status_id == ST_PAUSING:
+                if self._mb_stashed:
                     self.status_id = ST_PAUSED
+                else:
+                    if self.main_ctrl.buffered_cmd_size == 0:
+                        self.main_ctrl.send_cmd("C2O", self)
+                        self._mb_stashed = True
             return True
         else:
             return False
@@ -172,7 +183,17 @@ class FcodeExecutor(BaseExecutor):
             self.main_ctrl.close(self)
             self.status_id = ST_COMPLETED
         elif self.status_id == ST_PAUSING:
-            self.status_id = ST_PAUSED
+            if self._mb_stashed:
+                self.status_id = ST_PAUSED
+            else:
+                self.main_ctrl.send_cmd("C2O", self)
+                self._mb_stashed = True
+        elif self.status_id == ST_RESUMING:
+            if self._mb_stashed:
+                self.main_ctrl.send_cmd("C2F", self)
+                self._mb_stashed = False
+            else:
+                self.resumed()
         else:
             self.fire()
 
@@ -184,7 +205,7 @@ class FcodeExecutor(BaseExecutor):
             self.main_ctrl.on_message(msg, self)
             self.fire()
         except RuntimeError as err:
-            if not self.pause(err.args[0]):
+            if not self.pause(*err.args):
                 raise SystemError("BAD_LOGIC")
         except SystemError as err:
             self.abort(*err.args)
@@ -199,7 +220,7 @@ class FcodeExecutor(BaseExecutor):
             self.head_ctrl.on_message(msg, self)
             self.fire()
         except RuntimeError as err:
-            if not self.pause(err.args[0]):
+            if not self.pause(*err.args):
                 if self.status_id == ST_RUNNING:
                     raise SystemError("BAD_LOGIC")
         except SystemError as err:
@@ -210,6 +231,12 @@ class FcodeExecutor(BaseExecutor):
             logger.exception("Unhandle error")
             self.abort(UNKNOW_ERROR, "HEADBOARD_MESSAGE")
 
+    # def load_filament(self, extruder_id):
+    #     self.send_mainboard("@\n")
+    #
+    # def eject_filament(self, extruder_id):
+    #     pass
+    #
     def on_loop(self):
         try:
             self.main_ctrl.patrol(self)

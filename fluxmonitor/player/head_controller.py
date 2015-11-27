@@ -28,6 +28,8 @@ def get_head_controller(head_type, *args, **kw):
 
 
 class ExtruderController(object):
+    _module = None
+
     # FSM
     # (use this data to recover status if headbored reconnected)
     _fanspeed = 0
@@ -88,9 +90,13 @@ class ExtruderController(object):
     def is_busy(self):
         return self._padding_cmd is not None
 
+    @property
+    def module(self):
+        return self._module
+
     def status(self):
         return {
-            "module": "executor",
+            "module": self.module,
             "tt": (self._temperatures[0], ),
             "rt": (self._current_temp[0], ),
             "tf": (self._fanspeed, )
@@ -162,7 +168,7 @@ class ExtruderController(object):
                         if len(sparam) == 2:
                             module_info[sparam[0]] = sparam[1]
 
-                    self.module = module_info.get("TYPE", "UNKNOW")
+                    self._module = module_info.get("TYPE", "UNKNOW")
                     if self.module == "EXTRUDER":
                         self._cmd_sent_at = 0
                         self._cmd_retry = 0

@@ -73,7 +73,7 @@ class BaseExecutor(object):
         if self.status_id == ST_STARTING:
             nst = ST_STARTING_PAUSED
         elif self.status_id == ST_RESUMING or self.status_id == ST_RUNNING:
-            nst = ST_PAUSED
+            nst = ST_PAUSING
 
         if nst > 0:
             L.debug("ST %3i -> %3i:%s", self.status_id, nst, main_info)
@@ -119,6 +119,16 @@ class BaseExecutor(object):
             return True
         else:
             return False
+
+    @property
+    def error_symbol(self):
+        if self._err_symbol:
+            if self._err_symbol[1]:
+                return " ".join(self._err_symbol)
+            else:
+                return self._err_symbol[0]
+        else:
+            return ""
 
     def get_status(self):
         st = {

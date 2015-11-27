@@ -48,6 +48,7 @@ class PlayerManager(object):
             self.watchers = (std_watcher, err_watcher, child_watcher)
             self.proc = proc
             self._terminated_callback = terminated_callback
+            self.logger = logging.getLogger("Player")
 
         except Exception:
             raise
@@ -86,7 +87,7 @@ class PlayerManager(object):
     def on_console(self, watcher, revent):
         buf = watcher.data.read(4096).strip()
         if buf:
-            logger.getChild("CONSOLE").debug(buf)
+            self.logger.info(buf)
         else:
             watcher.data.close()
             watcher.data = None
@@ -123,13 +124,13 @@ class PlayerManager(object):
         self.sock.send("ABORT")
         return self.sock.recv(4096)
 
-    # def load_filament(self):
-    #     self.sock.send("LOAD_FILAMENT")
-    #     return self.sock.recv(4096)
-    #
-    # def eject_filament(self):
-    #     self.sock.send("EJECT_FILAMENT")
-    #     return self.sock.recv(4096)
+    def load_filament(self):
+        self.sock.send("LOAD_FILAMENT")
+        return self.sock.recv(4096)
+
+    def eject_filament(self):
+        self.sock.send("EJECT_FILAMENT")
+        return self.sock.recv(4096)
 
     def report(self):
         self.sock.send("REPORT")
