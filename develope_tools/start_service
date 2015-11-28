@@ -18,6 +18,8 @@ SERVICE_LIST = (
                    '--log', '/var/log/fluxupnpd.log', '--daemon')),
     ("fluxrobotd", ('--pid', '/var/run/fluxrobotd.pid',
                    '--log', '/var/log/fluxrobotd.log', '--daemon')),
+    ("fluxcamerad", ('--pid', '/var/run/fluxcamerad.pid',
+                     '--log', '/var/log/fluxcamerad.log', '--daemon')),
 )
 
 def main():
