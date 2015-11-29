@@ -3,7 +3,7 @@ from time import time
 import socket
 import os
 
-from fluxmonitor.code_executor.main_controller import MainController
+from fluxmonitor.player.main_controller import MainController, FLAG_READY
 from fluxmonitor.config import uart_config
 from .misc import ControlTestBase
 
@@ -14,9 +14,9 @@ class MainboardControlStartupTest(ControlTestBase):
             mc = MainController(executor, ready_callback=self.raiseException)
 
         with self.assertSendMainboard() as executor:
-            mc.on_message("CTRL LINECHECK_ENABLED", executor)
-        with self.assertSendMainboard() as executor:
-            self.assertRaises(RuntimeWarning, mc.on_message, "ok", executor)
+            self.assertRaises(RuntimeWarning, mc.on_message,
+                              "CTRL LINECHECK_ENABLED", executor)
+
         self.assertTrue(mc.ready, True)
 
     def test_startup_no_response(self):
@@ -48,8 +48,12 @@ class MainboardControlStartupTest(ControlTestBase):
         with self.assertSendMainboard(b"C1O\n") as executor:
             mc = MainController(executor, ready_callback=self.raiseException)
 
-        with self.assertSendMainboard(b"X17F N3*69\n", b"C1O\n") as executor:
+        with self.assertSendMainboard(b"C1F N3*105\n") as executor:
             mc.on_message("ER MISSING_LINENUMBER 3", executor)
+
+        with self.assertSendMainboard(b"C1O\n") as executor:
+            mc.on_message("CTRL LINECHECK_DISABLED", executor)
+
 
 class MainboardControlTest(ControlTestBase):
     def setUp(self):
@@ -60,7 +64,7 @@ class MainboardControlTest(ControlTestBase):
 
         mc._ln = 0
         mc._waitting_ok = False
-        mc._ready = True
+        mc._flags |= FLAG_READY
         mc.callback_ready = None
         self.mc = mc
 
@@ -167,7 +171,7 @@ class MainboardControlTest(ControlTestBase):
         # This ER message trigger by command N2 self
         with self.assertSendMainboard(b"G1 Z0 N2*96\n",
                                       b"G1 X5 N3*102\n") as executor:
-            self.mc.on_message("ER CHECKSUM_MISMATCH 2", executor)
+            self.mc.on_message("ER CHECKSUM_MISMATCH 2 3", executor)
 
         # This ER message trigger by command N3 because N2 got checksum error,
         # and is fixed before. This ER message comes too close, ignore
@@ -195,7 +199,8 @@ class MainboardControlTest(ControlTestBase):
                               (3, b"G1 X5 N3*102\n")),
                     ln=3, last_recv_ln=time() - 10, resend_counter=4)
 
-        self.assertRaises(SystemError, self.mc.patrol, self)
+        with self.assertSendMainboard() as executor:
+            self.assertRaises(SystemError, self.mc.patrol, executor)
 
         # Check if reset send
         self.assertEqual(uart_ctrl.accept()[0].recv(4096), b"reset mb")

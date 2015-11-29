@@ -66,7 +66,7 @@ setup(
             libraries=["crypto"], extra_objects=[], include_dirs=["src"]
         ),
         Extension(
-            'fluxmonitor.code_executor._device_fsm', sources=[
+            'fluxmonitor.player._device_fsm', sources=[
                 "src/device_fsm/device_fsm.cpp",
                 "src/device_fsm/fsm.pyx", ],
             language="c++",

@@ -1,7 +1,7 @@
 
 from __future__ import absolute_import
 
-from tempfile import TemporaryFile
+from tempfile import NamedTemporaryFile
 from errno import errorcode
 from io import StringIO
 from md5 import md5
@@ -9,21 +9,20 @@ import logging
 import shutil
 import os
 
-from fluxmonitor.code_executor.fcode_parser import fast_read_meta
-from fluxmonitor.err_codes import (UNKNOW_COMMAND, NOT_EXIST, TOO_LARGE, NO_TASK, BAD_PARAMS, BAD_FILE_FORMAT)
-from fluxmonitor.hal.usbmount import get_usbmount_hal
-from fluxmonitor.storage import CommonMetadata
-from fluxmonitor.config import robot_config
+from fluxmonitor.player.fcode_parser import fast_read_meta
+from fluxmonitor.err_codes import (UNKNOW_COMMAND, NOT_EXIST, TOO_LARGE,
+                                   NO_TASK, BAD_PARAMS, BAD_FILE_FORMAT,
+                                   RESOURCE_BUSY)
+from fluxmonitor.storage import CommonMetadata, UserSpace
 from fluxmonitor.misc import mimetypes
 
 from .base import CommandMixIn
-from .old_play_task import PlayTask as OldPlayTask
-from .play_task import PlayTask
 from .scan_task import ScanTask
 from .upload_task import UploadTask
 from .raw_task import RawTask
 from .maintain_task import MaintainTask
 from .update_fw_task import UpdateFwTask
+from .play_manager import PlayerManager
 
 logger = logging.getLogger(__name__)
 
@@ -33,65 +32,45 @@ def empty_callback(*args):
 
 
 class FileManagerMixIn(object):
-    def dispatch_filemanage_cmd(self, cmd, sender):
-        if cmd.startswith("ls "):
-            self.list_files(cmd[3:], sender)
+    def dispatch_filemanage_cmd(self, handler, cmd, *args):
+        if cmd == "ls":
+            self.list_files(handler, *args)
             return True
-        elif cmd.startswith("select "):
-            self.select_file(cmd[7:], sender)
+        elif cmd == "select":
+            self.select_file(handler, *args)
             return True
-        elif cmd.startswith("fileinfo "):
-            self.fileinfo(cmd[9:], sender)
+        elif cmd == "fileinfo":
+            self.fileinfo(handler, *args)
             return True
-        elif cmd.startswith("mkdir "):
-            self.mkdir(cmd[6:], sender)
+        elif cmd == "mkdir":
+            self.mkdir(handler, *args)
             return True
-        elif cmd.startswith("rmdir "):
-            self.rmdir(cmd[6:], sender)
+        elif cmd == "rmdir":
+            self.rmdir(handler, *args)
             return True
-        elif cmd.startswith("cp "):
-            self.cpfile(cmd[3:], sender)
+        elif cmd == "cp":
+            self.cpfile(handler, *args)
             return True
-        elif cmd.startswith("rm "):
-            self.rmfile(cmd[3:], sender)
+        elif cmd == "rm":
+            self.rmfile(handler, *args)
             return True
-        elif cmd.startswith("upload "):
-            # upload [mimetype] [size] [filename]
-            _, mimetype, filesize, filename = cmd.split(" ", 3)
-            self.upload_file(mimetype, int(filesize, 10), filename, sender)
+        elif cmd == "upload":
+            # upload [mimetype] [size] [entry] [path]
+            self.upload_file(handler, *args)
             return True
-        elif cmd.startswith("md5 "):
-            self.md5(cmd[4:], sender)
+        elif cmd == "md5":
+            self.md5(handler, *args)
             return True
         else:
             return False
 
-    def _storage_dispatch(self, rawpath, sd_only=False, require_file=False,
+    def _storage_dispatch(self, entry, path, sd_only=False, require_file=False,
                           require_dir=False):
-        if rawpath.startswith("SD "):
-            entry, path = self.filepool, rawpath[3:]
-        elif rawpath.startswith("USB "):
-            if sd_only:
-                raise RuntimeError(BAD_PARAMS, "USB_NOT_ACCESSABLE")
-            filepool = self.usbmount.get_entry()
-            if filepool:
-                entry, path = filepool, rawpath[4:]
-            else:
-                raise RuntimeError(NOT_EXIST, "BAD_NODE")
-        else:
-            raise RuntimeError(NOT_EXIST, "BAD_ENTRY")
+        return self.user_space.get_path(entry, path, sd_only, require_file,
+                                        require_dir)
 
-        abspath = os.path.realpath(os.path.join(entry, path))
-        if not abspath.startswith(entry):
-            raise RuntimeError(NOT_EXIST, "SECURITY_ISSUE")
-        if require_file and (not os.path.isfile(abspath)):
-            raise RuntimeError(NOT_EXIST, "NOT_FILE")
-        if require_dir and (not os.path.isdir(abspath)):
-            raise RuntimeError(NOT_EXIST, "NOT_DIR")
-        return abspath
-
-    def list_files(self, path, sender):
-        abspath = self._storage_dispatch(path, require_dir=True).decode("utf8")
+    def list_files(self, handler, entry, path=""):
+        abspath = self._storage_dispatch(entry, path, require_dir=True)
 
         buf_obj = StringIO()
         for n in os.listdir(abspath):
@@ -103,100 +82,81 @@ class FileManagerMixIn(object):
             node = os.path.join(abspath, n).encode("utf8")
             if os.path.isdir(node):
                 buf_obj.write(u"D%s\x00" % n)
-            elif node.endswith(".fcode"):
+            elif node.endswith(".fc"):
                 buf_obj.write(u"F%s\x00" % n)
             elif node.endswith(".gcode"):
                 buf_obj.write(u"F%s\x00" % n)
 
         buf = buf_obj.getvalue()
-        sender.send_text("continue")
-        sender.send_text(buf.encode("utf8"))
-        sender.send_text("ok")
+        handler.send_text("continue")
+        handler.send_text(buf.encode("utf8"))
+        handler.send_text("ok")
 
-    def autoselect(self):
-        pathlist = ("USB autoplay.fc", "USB autoplay.gcode", "SD autoplay.fc",
-                    "SD autoplay.gcode")
-        for candidate in pathlist:
-            try:
-                abspath = self._storage_dispatch(candidate)
-                if os.path.isfile(abspath):
-                    logger.debug("Autoselect: %s", abspath)
-                    self._task_file = open(abspath, "rb")
-                    self._task_mimetype, _ = mimetypes.guess_type(abspath)
-                    return True
-            except RuntimeError:
-                pass
-        logger.debug("Auto select failed")
-        return False
-
-    def select_file(self, path, sender, raw=False):
-        if raw:
-            abspath = os.path.realpath(path)
-        else:
-            abspath = self._storage_dispatch(path, require_file=True)
+    def select_file(self, handler, entry, path):
+        abspath = self._storage_dispatch(entry, path, require_file=True)
 
         if not os.path.isfile(abspath):
             raise RuntimeError(NOT_EXIST, "NOT_FILE")
 
         self._task_file = open(abspath, "rb")
         self._task_mimetype, _ = mimetypes.guess_type(abspath)
-        sender.send_text("ok")
+        handler.send_text("ok")
 
-    def fileinfo(self, path, sender):
-        abspath = self._storage_dispatch(path, require_file=True)
+    def fileinfo(self, handler, entry, path):
+        abspath = self._storage_dispatch(entry, path, require_file=True)
         if mimetypes.guess_type(abspath)[0] == mimetypes.MIMETYPE_FCODE:
             metadata, image = fast_read_meta(abspath)
             metadata["size"] = os.path.getsize(abspath)
-            sender.send_text("binary image/png %i" % len(image))
-            sender.send(image)
-            sender.send_text(
-                "ok %s" % "\x00".join("%s=%s" % (k, v) for k, v in metadata.items()))
+            handler.send_text("binary image/png %i" % len(image))
+            handler.send(image)
+            handler.send_text(
+                "ok %s" % "\x00".join(
+                    "%s=%s" % (k, v)for k, v in metadata.items()))
         else:
-            sender.send_text("ok size=%i" % os.path.getsize(abspath))
+            handler.send_text("ok size=%i" % os.path.getsize(abspath))
 
-    def mkdir(self, path, sender):
-        abspath = self._storage_dispatch(path, sd_only=True)
+    def mkdir(self, handler, entry, path):
+        abspath = self._storage_dispatch(entry, path, sd_only=True)
         try:
             os.mkdir(abspath)
-            sender.send_text("ok")
+            handler.send_text("ok")
         except OSError as e:
             raise RuntimeError("OSERR_" + errorcode.get(e.args[0], "UNKNOW"))
 
-    def rmdir(self, path, sender):
-        abspath = self._storage_dispatch(path, sd_only=True, require_dir=True)
-        if abspath == os.path.realpath(self.filepool):
-            raise RuntimeError("OSERR_EACCES")
-
+    def rmdir(self, handler, entry, path):
+        abspath = self._storage_dispatch(entry, path, sd_only=True,
+                                         require_dir=True)
         try:
             shutil.rmtree(abspath)
-            sender.send_text("ok")
+            handler.send_text("ok")
         except OSError as e:
             raise RuntimeError("OSERR_" + errorcode.get(e.args[0], "UNKNOW"))
 
-    def cpfile(self, path, sender):
+    def cpfile(self, handler, from_entry, from_path, to_entry, to_path):
         try:
-            source, target = path.split("\x00", 1)
-            abssource = self._storage_dispatch(source, require_file=True)
-            abstarget = self._storage_dispatch(target, sd_only=True)
+            abssource = self._storage_dispatch(from_entry, from_path,
+                                               require_file=True)
+            abstarget = self._storage_dispatch(to_entry, to_path,
+                                               sd_only=True)
             shutil.copy(abssource, abstarget)
-            sender.send_text("ok")
+            handler.send_text("ok")
         except OSError as e:
             raise RuntimeError("OSERR_" + errorcode.get(e.args[0], "UNKNOW"))
         except ValueError as e:
             raise RuntimeError(BAD_PARAMS)
 
-    def rmfile(self, path, sender):
+    def rmfile(self, handler, entry, path):
         try:
-            abspath = self._storage_dispatch(path, sd_only=True,
+            abspath = self._storage_dispatch(entry, path, sd_only=True,
                                              require_file=True)
             os.remove(abspath)
-            sender.send_text("ok")
+            handler.send_text("ok")
         except OSError as e:
             raise RuntimeError("OSERR_" + errorcode.get(e.args[0], "UNKNOW"))
 
-    def md5(self, path, sender):
+    def md5(self, handler, entry, path):
         try:
-            with open(self._storage_dispatch(path,
+            with open(self._storage_dispatch(entry, path,
                                              require_file=True), "rb") as f:
                 buf = bytearray(4096)
                 l = f.readinto(buf)
@@ -207,19 +167,20 @@ class FileManagerMixIn(object):
                     else:
                         m.update(buf[:l])
                     l = f.readinto(buf)
-            sender.send_text("md5 %s" % m.hexdigest())
+            handler.send_text("md5 %s" % m.hexdigest())
         except OSError as e:
             raise RuntimeError("OSERR_" + errorcode.get(e.args[0], "UNKNOW"))
 
-    def upload_file(self, mimetype, filesize, filename, sender):
+    def upload_file(self, handler, mimetype, sfilesize, entry, path=""):
+        filesize = int(sfilesize, 10)
         if filesize > 2 ** 30:
             raise RuntimeError(TOO_LARGE)
 
-        if filename == "#":
-            self._task_file = TemporaryFile()
+        if entry == "#":
+            self._task_file = NamedTemporaryFile()
             self._task_mimetype = mimetype
         else:
-            abspath = self._storage_dispatch(filename, sd_only=True)
+            abspath = self._storage_dispatch(entry, path, sd_only=True)
             if mimetypes.validate_ext(abspath, mimetype):
                 self._task_file = open(abspath, "wb")
             else:
@@ -228,9 +189,9 @@ class FileManagerMixIn(object):
 
         logger.debug("Upload task file '%s', size %i", mimetype, filesize)
 
-        task = UploadTask(self.server, sender, self._task_file, filesize)
-        self.server.enter_task(task, self.end_upload_file)
-        sender.send_text("continue")
+        task = UploadTask(self.stack, handler, self._task_file, filesize)
+        self.stack.enter_task(task, self.end_upload_file)
+        handler.send_text("continue")
 
     def end_upload_file(self, is_success):
         if is_success:
@@ -240,81 +201,143 @@ class FileManagerMixIn(object):
             self._task_file = None
 
 
-class CommandTask(CommandMixIn, FileManagerMixIn):
+class PlayManagerMixIn(object):
+    def validate_status(callback):
+        def wrapper(self, *args):
+            component = self.stack.kernel.exclusive_component
+            if isinstance(component, PlayerManager):
+                callback(self, component, *args)
+            else:
+                raise RuntimeError(NO_TASK)
+        return wrapper
+
+    @validate_status
+    def play_pause(self, manager, handler):
+        handler.send_text(manager.pause())
+
+    @validate_status
+    def play_resume(self, manager, handler):
+        handler.send_text(manager.resume())
+
+    @validate_status
+    def play_abort(self, manager, handler):
+        handler.send_text(manager.abort())
+
+    @validate_status
+    def play_quit(self, manager, handler):
+        if manager.is_terminated:
+            handler.send_text(manager.quit())
+        else:
+            raise RuntimeError(RESOURCE_BUSY)
+
+    def play_report(self, handler):
+        component = self.stack.kernel.exclusive_component
+        if isinstance(component, PlayerManager):
+            handler.send_text(component.report())
+        elif component:
+            handler.send_text('{"st_id": 0, "st_label": "OCCUPIED"}')
+        else:
+            raise RuntimeError(NO_TASK)
+
+    def dispatch_playmanage_cmd(self, handler, cmd, *args):
+        if cmd == "pause":
+            self.play_pause(handler)
+            return True
+        elif cmd == "resume":
+            self.play_resume(handler)
+            return True
+        elif cmd == "abort":
+            self.play_abort(handler)
+            return True
+        elif cmd == "report":
+            self.play_report(handler)
+            return True
+        elif cmd == "load_filament":
+            return False
+        elif cmd == "eject_filament":
+            return False
+        elif cmd == "quit" or cmd == "quit_play":
+            self.play_quit(handler)
+            return True
+        else:
+            return False
+
+
+class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn):
     _task_file = None
     _task_mimetype = None
 
-    def __init__(self, server):
-        self.server = server
+    def __init__(self, stack):
+        self.stack = stack
         self.settings = CommonMetadata()
-        self.usbmount = get_usbmount_hal()
-        self.filepool = os.path.realpath(robot_config["filepool"])
+        self.user_space = UserSpace()
 
-    def dispatch_cmd(self, cmd, sender):
-        if self.dispatch_filemanage_cmd(cmd, sender):
+    def dispatch_cmd(self, handler, cmd, *args):
+        if self.dispatch_filemanage_cmd(handler, cmd, *args):
             pass
-        elif cmd.startswith("scan"):
-            return self.scan(sender)
+        elif self.dispatch_playmanage_cmd(handler, cmd, *args):
+            pass
+        elif cmd == "scan":
+            return self.scan(handler)
         elif cmd == "start":
-            return self.play(sender)
+            self.play(handler)
         elif cmd == "raw":
-            return self.raw_access(sender)
+            self.raw_access(handler)
         elif cmd == "maintain":
-            return self.maintain(sender)
-        elif cmd.startswith("update_fw "):
-            _, mimetype, filesize, upload_to = cmd.split(" ")
-            return self.update_fw(int(filesize, 10), sender)
-        elif cmd.startswith("set "):
-            params = cmd.split(" ", 2)[1:]
-            if len(params) != 2:
+            return self.maintain(handler)
+        elif cmd == "update_fw":
+            mimetype, filesize, upload_to = args
+            return self.update_fw(handler, int(filesize, 10))
+        elif cmd == "set":
+            if len(args) != 2:
                 raise RuntimeError(BAD_PARAMS)
-            return self.setting_setter(*params)
+            return self.setting_setter(*args)
+        elif cmd == "kick":
+            self.stack.kernel.destory_exclusive()
+            # TODO: more message?
+            handler.send_text("ok")
         else:
             logger.debug("Can not handle: %s" % repr(cmd))
             raise RuntimeError(UNKNOW_COMMAND)
 
-    def update_fw(self, filesize, sender):
+    def update_fw(self, handler, filesize):
         if filesize > 2 ** 20:
             raise RuntimeError(TOO_LARGE)
 
         logger.info("Upload fireware file size: %i" % filesize)
-        task = UpdateFwTask(self.server, sender, filesize)
-        self.server.enter_task(task, empty_callback)
+        task = UpdateFwTask(self.stack, handler, filesize)
+        self.stack.enter_task(task, empty_callback)
 
         return "continue"
 
-    def raw_access(self, sender):
-        task = RawTask(self.server, sender)
-        self.server.enter_task(task, empty_callback)
-        return "continue"
+    def raw_access(self, handler):
+        task = RawTask(self.stack, handler)
+        self.stack.enter_task(task, empty_callback)
+        handler.send_text("continue")
 
-    def play(self, sender):
+    def play(self, handler):
         if self._task_file:
-            if self._task_mimetype == mimetypes.MIMETYPE_GCODE:
-                task = OldPlayTask(self.server, sender, self._task_file)
-                self.server.enter_task(task, empty_callback)
-                self._task_file = None
-                self._task_mimetype = None
-            elif self._task_mimetype == mimetypes.MIMETYPE_FCODE:
-                task = PlayTask(self.server, sender, self._task_file)
-                self.server.enter_task(task, empty_callback)
-                self._task_file = None
-                self._task_mimetype = None
+            kernel = self.stack.kernel
+            if kernel.is_exclusived():
+                raise RuntimeError(RESOURCE_BUSY)
             else:
-                raise RuntimeError(BAD_FILE_FORMAT, self._task_mimetype)
-            return "ok"
+                pm = PlayerManager(
+                    self.stack.loop, self._task_file.name,
+                    terminated_callback=kernel.release_exclusive)
+                kernel.exclusive(pm)
+            handler.send_text("ok")
         else:
             raise RuntimeError(NO_TASK)
 
-    def scan(self, sender):
-        task = ScanTask(self.server, sender)
-        self.server.enter_task(task, empty_callback)
+    def scan(self, handler):
+        task = ScanTask(self.stack, handler)
+        self.stack.enter_task(task, empty_callback)
         return "ok"
 
-    def maintain(self, sender):
-        task = MaintainTask(self.server, sender)
-        self.server.enter_task(task, empty_callback)
-        return "ok"
+    def maintain(self, handler):
+        task = MaintainTask(self.stack, handler)
+        self.stack.enter_task(task, empty_callback)
+        handler.send_text("ok")
 
     def setting_setter(self, key, raw_value):
         try:

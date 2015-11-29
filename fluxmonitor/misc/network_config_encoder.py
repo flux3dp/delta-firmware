@@ -29,7 +29,7 @@ def to_bytes(options):
 
 def validate_options(orig):
     options = {}
-    
+
     if b"ifname" in orig:
         options["ifname"] = _b2s(orig[b"ifname"])
 

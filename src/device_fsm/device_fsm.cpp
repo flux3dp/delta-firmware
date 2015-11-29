@@ -206,7 +206,7 @@ inline int DeviceController::G1(command_cb_t callback, void* data,
     fsm.traveled += length;
 
     tcost = length / f * 100;
-    section = (int)(tcost / 0.5);
+    section = (int)(tcost / 10000);
 
     for(int i=1;i<section;i++) {
       char* buf_offset = _proc_buf + 3;

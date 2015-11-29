@@ -1,7 +1,7 @@
 
 from time import time
 
-from fluxmonitor.code_executor.head_controller import ExtruderController
+from fluxmonitor.player.head_controller import ExtruderController
 from .misc import ControlTestBase
 
 

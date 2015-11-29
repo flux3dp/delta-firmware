@@ -94,6 +94,15 @@ class MainController(object):
         else:
             L.debug("Recv unknow msg: '%s'", msg)
 
+    def remove_complete_command(self, cmd=None):
+        self._cmd_padding.popleft()
+
+        if self.buffered_cmd_size + 1 == self.bufsize and \
+           self.callback_msg_sendable:
+            self.callback_msg_sendable(self)
+        if self.buffered_cmd_size == 0 and self.callback_msg_empty:
+            self.callback_msg_empty(self)
+
     def on_message(self, msg, executor):
         if self.ready:
             if msg.startswith("LN "):
@@ -113,13 +122,7 @@ class MainController(object):
                 self._cmd_padding.append(this_cmd)
 
             elif msg == "ok":
-                self._cmd_padding.popleft()
-
-                if self.buffered_cmd_size + 1 == self.bufsize and \
-                   self.callback_msg_sendable:
-                    self.callback_msg_sendable(self)
-                if self.buffered_cmd_size == 0 and self.callback_msg_empty:
-                    self.callback_msg_empty(self)
+                self.remove_complete_command()
 
             elif msg.startswith("ER LINE_MISMATCH "):
                 correct_ln, trigger_ln = (int(v) for v in msg[17:].split(" "))
@@ -131,14 +134,26 @@ class MainController(object):
                                           "IMPOSSIBLE_SYNC_LN")
 
             elif msg.startswith("ER CHECKSUM_MISMATCH "):
-                err_ln, trigger_ln = (int(v) for v in msg[17:].split(" "))
+                err_ln, trigger_ln = (int(v) for v in msg[21:].split(" "))
                 ttl = err_ln - trigger_ln
                 if not self._resend_cmd_from(err_ln, executor,
                                              ttl_offset=ttl):
                     raise SystemError(EXEC_INTERNAL_ERROR,
                                       "IMPOSSIBLE_SYNC_LN")
 
+            elif msg == "CTRL LINECHECK_DISABLED":
+                executor.send_mainboard(b"C1O\n")
+
+            elif msg == "CTRL STASH":
+                self.remove_complete_command()
+
+            elif msg == "CTRL STASH_POP":
+                self.remove_complete_command()
+
             else:
+                if msg.startswith("ER "):
+                    raise SystemError(*(msg.split(" ")[1:]))
+
                 L.debug("Unhandle MB MSG: %s" % msg)
         elif not self.closed:
             self._process_init(msg, executor)
@@ -212,9 +227,8 @@ class MainController(object):
 
     def close(self, executor):
         if self.ready:
-            self.send_cmd("G28", executor, force=True)
-            self.send_cmd("M84", executor, force=True)
-            self.send_cmd("C1F", executor, force=True)
+            executor.send_mainboard("@DISABLE_LINECHECK\n")
+            executor.send_mainboard("G28\n")
             self._flags &= ~FLAG_READY
             self._flags |= FLAG_CLOSED
 
@@ -232,8 +246,8 @@ class MainController(object):
                 executor.send_mainboard("C1O\n")
 
         if self._cmd_sent:
-            if self._resend_counter >= 10:
-                L.error("Mainboard no response, restart it (%i)", 
+            if self._resend_counter >= 4:
+                L.error("Mainboard no response, restart it (%i)",
                         self._resend_counter)
                 self.reset_mainboard()
                 raise SystemError(EXEC_MAINBOARD_OFFLINE)

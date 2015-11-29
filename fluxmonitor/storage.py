@@ -7,7 +7,9 @@ import os
 
 import sysv_ipc
 
-from fluxmonitor.config import general_config
+from fluxmonitor.config import general_config, robot_config
+from fluxmonitor.hal.usbmount import get_usbmount_hal
+from fluxmonitor.err_codes import NOT_EXIST, BAD_PARAMS
 
 
 class Storage(object):
@@ -101,7 +103,7 @@ class CommonMetadata(object):
                         self.shm.write(flag, 0)
 
                         return dict(zip("XYZABCIJKRDH", vals))
-                    except Exception as e:
+                    except Exception:
                         # Ignore error and return default
                         raise
 
@@ -190,19 +192,50 @@ class CommonMetadata(object):
 
     @property
     def device_status(self):
-        l = struct.unpack("H", self.shm.read(2, 3584))[0]
-        return self.shm.read(l, 3586)
+        return self.shm.read(64, 3584)
 
-    @device_status.setter
-    def device_status(self, val):
-        # val struct:
-        # (
-        #   [Main Status, str label],
-        #   [Minor Status, str label],
-        #   [Head Type, str label],
-        #   [Progress, float 0 ~ 1],
-        # )
-        prog = struct.pack("f", val[3])
-        buf = val[0] + "\x00" + val[1] + "\x00" + val[2] + "\x00" + prog
-        payload = struct.pack("H", len(buf)) + buf
-        self.shm.write(payload, 3584)
+    def format_device_status(self):
+        buf = self.device_status
+        timestemp, st_id, progress, head_type, err_label = \
+            struct.unpack("dif16s32s", buf[:64])
+        return {"timestemp": timestemp, "st_id": st_id, "progress": progress,
+                "head_type": head_type, "err_label": err_label}
+
+    def update_device_status(self, st_id, progress, head_type,
+                             err_label=""):
+        buf = struct.pack("dif16s32s", time(), st_id, progress, head_type,
+                          err_label)
+        self.shm.write(buf, 3584)
+
+
+Metadata = CommonMetadata
+
+
+class UserSpace(object):
+    def __init__(self):
+        self.filepool = os.path.realpath(robot_config["filepool"])
+        self.usbmount = get_usbmount_hal()
+
+    def get_path(self, _entry, _path, sd_only=False, require_file=False,
+                 require_dir=False):
+        if _entry == "SD":
+            entry, path = self.filepool, _path
+        elif _entry == "USB":
+            if sd_only:
+                raise RuntimeError(BAD_PARAMS, "USB_NOT_ACCESSABLE")
+            filepool = self.usbmount.get_entry()
+            if filepool:
+                entry, path = filepool, _path
+            else:
+                raise RuntimeError(NOT_EXIST, "BAD_NODE")
+        else:
+            raise RuntimeError(NOT_EXIST, "BAD_ENTRY")
+
+        abspath = os.path.realpath(os.path.join(entry, path))
+        if not abspath.startswith(entry):
+            raise RuntimeError(NOT_EXIST, "SECURITY_ISSUE")
+        if require_file and (not os.path.isfile(abspath)):
+            raise RuntimeError(NOT_EXIST, "NOT_FILE")
+        if require_dir and (not os.path.isdir(abspath)):
+            raise RuntimeError(NOT_EXIST, "NOT_DIR")
+        return abspath

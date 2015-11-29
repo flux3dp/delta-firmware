@@ -2,7 +2,6 @@
 from shlex import split as shlex_split
 from time import time
 import logging
-import re
 
 from fluxmonitor.err_codes import EXEC_HEADER_OFFLINE, EXEC_OPERATION_ERROR, \
     EXEC_WRONG_HEADER
@@ -29,6 +28,8 @@ def get_head_controller(head_type, *args, **kw):
 
 
 class ExtruderController(object):
+    _module = None
+
     # FSM
     # (use this data to recover status if headbored reconnected)
     _fanspeed = 0
@@ -89,9 +90,13 @@ class ExtruderController(object):
     def is_busy(self):
         return self._padding_cmd is not None
 
+    @property
+    def module(self):
+        return self._module
+
     def status(self):
         return {
-            "module": "executor",
+            "module": self.module,
             "tt": (self._temperatures[0], ),
             "rt": (self._current_temp[0], ),
             "tf": (self._fanspeed, )
@@ -108,8 +113,8 @@ class ExtruderController(object):
             raise SystemError(EXEC_OPERATION_ERROR, "BAD TEMP")
 
         self._temperatures[0] = temperature
-        self._padding_cmd = create_chksum_cmd("1 H:%i T:%.1f", 
-                                              heater_id, temperature)
+        self._padding_cmd = create_chksum_cmd("1 H:%i T:%.1f", heater_id,
+                                              temperature)
         self._cmd_callback = callback
         self._send_cmd(executor)
 
@@ -163,7 +168,7 @@ class ExtruderController(object):
                         if len(sparam) == 2:
                             module_info[sparam[0]] = sparam[1]
 
-                    self.module = module_info.get("TYPE", "UNKNOW")
+                    self._module = module_info.get("TYPE", "UNKNOW")
                     if self.module == "EXTRUDER":
                         self._cmd_sent_at = 0
                         self._cmd_retry = 0
@@ -250,7 +255,7 @@ class ExtruderController(object):
                         self._heaters_callback(self)
                         self._heaters_callback = None
                     elif abs(self._temperatures[0] -
-                           self._current_temp[0]) < 3:
+                             self._current_temp[0]) < 3:
                         self._heaters_callback(self)
                         self._heaters_callback = None
 
@@ -264,9 +269,18 @@ class ExtruderController(object):
 
                 if er > 0:
                     if er & 4:
-                        L.error("Recive header boot")
                         self._raise_error(EXEC_HEADER_OFFLINE,
                                           "HEAD_RESET")
+                    if er & 8:
+                        self._raise_error("HEAD_CALIBRATION_FAILED")
+                    if er & 16:
+                        self._raise_error("HEAD_SHAKE")
+                    if er & 32:
+                        self._raise_error("HEAD_TILT")
+                    if er & 64:
+                        self._raise_error("HEAD_FAILED", "PID_OUT_OF_CONTROL")
+                    if er & 128:
+                        self._raise_error("HEAD_FAILED", "FAN_FAILURE")
 
         if self._padding_cmd:
             self._send_cmd(executor)

@@ -1,17 +1,16 @@
 
-from shlex import split as shlex_split
 import logging
 import socket
 import re
 
-from fluxmonitor.code_executor.main_controller import MainController
+from fluxmonitor.player.main_controller import MainController
 from fluxmonitor.storage import CommonMetadata
 from fluxmonitor.misc import correction
 from fluxmonitor.config import uart_config
 
 from fluxmonitor.err_codes import RESOURCE_BUSY, UNKNOW_COMMAND
 
-from .base import CommandMixIn, ExclusiveMixIn, DeviceOperationMixIn, \
+from .base import CommandMixIn, DeviceOperationMixIn, \
     DeviceMessageReceiverMixIn
 
 RE_REPORT_DIST = re.compile("X:(?P<X>(-)?[\d]+(.[\d]+)?) "
@@ -68,30 +67,28 @@ def check_mainboard(method):
     return wrap
 
 
-class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
-                   DeviceMessageReceiverMixIn):
-    def __init__(self, server, sock):
+class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
+                   CommandMixIn):
+    def __init__(self, stack, handler):
+        super(MaintainTask, self).__init__(stack, handler)
+
         self._ready = 0
         self._busy = False
         self._mainboard_msg_filter = None
 
-        self.server = server
-        self.connect()
         self.main_ctrl = MainController(
             executor=self, bufsize=14,
             ready_callback=self._on_mainboard_ready,
         )
 
-        ExclusiveMixIn.__init__(self, server, sock)
-
-        self.timer_watcher = server.loop.timer(5, 5, self.on_timer)
+        self.timer_watcher = stack.loop.timer(1, 1, self.on_timer)
         self.timer_watcher.start()
 
-    def on_exit(self, sender):
-        self.main_ctrl.close(self)
+    def on_exit(self, handler):
         self.timer_watcher.stop()
         self.timer_watcher = None
-        self.disconnect()
+        self.main_ctrl.close(self)
+        super(MaintainTask, self).on_exit(handler)
 
     def _on_mainboard_ready(self, ctrl):
         self._ready |= 1
@@ -104,59 +101,62 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
         self._uart_mb.send(msg)
 
     def on_mainboard_message(self, watcher, revent):
-        buf = watcher.data.recv(1024)
-        if not buf:
-            logger.error("Mainboard connection broken")
-            self.server.exit_task(self)
+        try:
+            buf = watcher.data.recv(1024)
+            if not buf:
+                logger.error("Mainboard connection broken")
+                self.stack.exit_task(self)
 
-        for msg in self.recv_from_mainboard(buf):
-            if self._mainboard_msg_filter:
-                self._mainboard_msg_filter(msg)
-            self.main_ctrl.on_message(msg, self)
+            for msg in self.recv_from_mainboard(buf):
+                if self._mainboard_msg_filter:
+                    self._mainboard_msg_filter(msg)
+                self.main_ctrl.on_message(msg, self)
+        except Exception:
+            logger.exception("Unhandle Error")
 
     def on_headboard_message(self, watcher, revent):
-        buf = watcher.data.recv(1024)
-        if not buf:
-            logger.error("Headboard connection broken")
-            self.server.exit_task(self)
+        try:
+            buf = watcher.data.recv(1024)
+            if not buf:
+                logger.error("Headboard connection broken")
+                self.stack.exit_task(self)
 
-        for msg in self.recv_from_headboard(sender):
-            pass
+            for msg in self.recv_from_headboard(buf):
+                pass
+        except Exception:
+            logger.exception("Unhandle Error")
 
-    def dispatch_cmd(self, cmdline, sock):
+    def dispatch_cmd(self, handler, cmd, *args):
         if self._busy:
             raise RuntimeError(RESOURCE_BUSY)
 
-        params = shlex_split(cmdline)
-        cmd = params[0]
-
         if cmd == "home":
-            return self.do_home(sock)
+            self.do_home(handler)
 
         elif cmd == "eadj":
-            clean = (len(params) > 1 and params[1] == "clean")
-            return self.do_eadj(sock, clean=clean)
+            clean = "clean" in args
+            self.do_eadj(handler, clean=clean)
 
         elif cmd == "cor_h":
-            if len(params) > 1:
-                h = float(params[1])
-                return self.do_h_correction(sock, h=h)
+            if len(args) > 1:
+                h = float(args[1])
+                self.do_h_correction(handler, h=h)
             else:
-                return self.do_h_correction(sock)
+                self.do_h_correction(handler)
 
         elif cmd == "madj":
-            return self.do_madj(sock)
+            self.do_madj(handler)
 
         elif cmd == "reset_mb":
             s = socket.socket(socket.AF_UNIX)
             s.connect(uart_config["control"])
             s.send(b"reset mb")
             s.close()
-            return "ok"
+            handler.send_text("ok")
 
         elif cmd == "quit":
-            self.server.exit_task(self)
-            return "ok"
+            self.stack.exit_task(self)
+            handler.send_text("ok")
         else:
             logger.debug("Can not handle: '%s'" % cmd)
             raise RuntimeError(UNKNOW_COMMAND)
@@ -165,69 +165,71 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
     def do_home(self, sender):
         def callback(ctrl):
             self._busy = False
+            self.main_ctrl.callback_msg_empty = None
             sender.send_text("ok")
+
         self.main_ctrl.callback_msg_empty = callback
         self.main_ctrl.send_cmd("G28", self)
         self._busy = True
 
     @check_mainboard
-    def do_eadj(self, sender, clean=False):
+    def do_eadj(self, handler, clean=False):
         data = []
 
         def stage1_test_x(msg):
             try:
-                sender.send_text("DEBUG MB %s" % msg)
+                handler.send_text("DEBUG MB %s" % msg)
                 if msg.startswith("Bed Z-Height at"):
                     data.append(float(msg.rsplit(" ", 1)[-1]))
-                    sender.send_text("DEBUG X: %.4f" % data[-1])
+                    handler.send_text("DEBUG X: %.4f" % data[-1])
                     self.main_ctrl.send_cmd("G30X73.6122Y-42.5", self)
                     self._mainboard_msg_filter = stage2_test_y
 
             except Exception:
                 logger.exception("Unhandle Error")
-                sender.send_text("error UNKNOW_ERROR")
-                self.server.exit_task(self)
+                handler.send_text("error UNKNOW_ERROR")
+                self.stack.exit_task(self)
 
         def stage2_test_y(msg):
             try:
-                sender.send_text("DEBUG MB %s" % msg)
+                handler.send_text("DEBUG MB %s" % msg)
                 if msg.startswith("Bed Z-Height at"):
                     data.append(float(msg.rsplit(" ", 1)[-1]))
-                    sender.send_text("DEBUG Y: %.4f" % data[-1])
+                    handler.send_text("DEBUG Y: %.4f" % data[-1])
                     self.main_ctrl.send_cmd("G30X0Y85", self)
                     self._mainboard_msg_filter = stage3_test_z
 
             except Exception:
                 logger.exception("Unhandle Error")
-                sender.send_text("error UNKNOW_ERROR")
-                self.server.exit_task(self)
+                handler.send_text("error UNKNOW_ERROR")
+                self.stack.exit_task(self)
 
         def stage3_test_z(msg):
             try:
-                sender.send_text("DEBUG MB %s" % msg)
+                handler.send_text("DEBUG MB %s" % msg)
                 if msg.startswith("Bed Z-Height at"):
                     self._mainboard_msg_filter = None
                     self._busy = False
 
                     data.append(float(msg.rsplit(" ", 1)[-1]))
-                    sender.send_text("DEBUG Z: %.4f" % data[-1])
+                    handler.send_text("DEBUG Z: %.4f" % data[-1])
 
                     if clean:
-                        sender.send_text("DEBUG: Clean")
+                        handler.send_text("DEBUG: Clean")
                     old_cmd, new_cmd = do_correction(*data)
-                    sender.send_text("DEBUG OLD --> %s" % old_cmd)
-                    sender.send_text("DEBUG NEW --> %s" % new_cmd)
+                    handler.send_text("DEBUG OLD --> %s" % old_cmd)
+                    handler.send_text("DEBUG NEW --> %s" % new_cmd)
                     self.main_ctrl.send_cmd(new_cmd, self)
 
-                    sender.send_text("ok %.4f %.4f %.4f" % (data[0], data[1],
-                                                            data[2]))
+                    handler.send_text("ok %.4f %.4f %.4f" % (data[0], data[1],
+                                                             data[2]))
             except ValueError as e:
-                sender.send_text("error %s" % e.args[0])
+                handler.send_text("error %s" % e.args[0])
 
             except Exception:
                 logger.exception("Unhandle Error")
-                sender.send_text("error UNKNOW_ERROR")
-                self.server.exit_task(self)
+                handler.send_text("error UNKNOW_ERROR")
+                self.stack.exit_task(self)
 
         self._busy = True
 
@@ -241,15 +243,15 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
         self._mainboard_msg_filter = stage1_test_x
         # self.main_ctrl.send_cmd("G28", self)
         self.main_ctrl.send_cmd("G30X-73.6122Y-42.5", self)
-        return "continue"
+        handler.send_text("continue")
 
     @check_mainboard
-    def do_h_correction(self, sender, h=None):
+    def do_h_correction(self, handler, h=None):
         if h is not None:
             corr_cmd = do_h_correction(h=h)
             self.main_ctrl.send_cmd(corr_cmd, self)
-            sender.send_text("continue")
-            sender.send_text("ok 0")
+            handler.send_text("continue")
+            handler.send_text("ok 0")
             return
 
         def stage_test_h(msg):
@@ -259,27 +261,27 @@ class MaintainTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn,
                     self._busy = False
 
                     data = float(msg.rsplit(" ", 1)[-1])
-                    sender.send_text("DEBUG H: %.4f" % data)
+                    handler.send_text("DEBUG H: %.4f" % data)
 
                     corr_cmd = do_h_correction(delta=data)
                     self.main_ctrl.send_cmd(corr_cmd, self)
 
-                    sender.send_text("ok %.4f" % data)
+                    handler.send_text("ok %.4f" % data)
             except ValueError as e:
-                sender.send_text("error %s" % e.args[0])
+                handler.send_text("error %s" % e.args[0])
 
             except Exception:
                 logger.exception("Unhandle Error")
-                sender.send_text("error UNKNOW_ERROR")
-                self.server.exit_task(self)
+                handler.send_text("error UNKNOW_ERROR")
+                self.stack.exit_task(self)
 
         self._busy = True
         self._mainboard_msg_filter = stage_test_h
         self.main_ctrl.send_cmd("G30X0Y0", self)
-        return "continue"
+        handler.send_text("continue")
 
     def on_timer(self, watcher, revent):
         try:
             self.main_ctrl.patrol(self)
         except SystemError:
-            self.server.exit_task(self)
+            self.stack.exit_task(self)

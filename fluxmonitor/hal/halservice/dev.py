@@ -7,9 +7,9 @@ import pyev
 logger = logging.getLogger(__name__)
 
 from fluxmonitor.halprofile import MODEL_DARWIN_DEV, MODEL_LINUX_DEV
-from fluxmonitor.misc.async_signal import AsyncIO
 from fluxmonitor.config import general_config
 from .base import UartHalBase
+
 
 class UartHal(UartHalBase):
     hal_name = "dev"
@@ -20,14 +20,16 @@ class UartHal(UartHalBase):
 
         p = general_config["db"]
 
-        self.listen_mainboard = self.create_socket(kernel.loop,
-            os.path.join(p, "mb"), self.on_fake_mainboard_connected)
-        
-        self.listen_headboard = self.create_socket(kernel.loop,
-            os.path.join(p, "hb"), self.on_fake_headboard_connected)
+        self.listen_mainboard = self.create_socket(
+            kernel.loop, os.path.join(p, "mb"),
+            self.on_fake_mainboard_connected)
 
-        self.listen_pc = self.create_socket(kernel.loop,
-            os.path.join(p, "pc"), self.on_fake_pc_connected)
+        self.listen_headboard = self.create_socket(
+            kernel.loop, os.path.join(p, "hb"),
+            self.on_fake_headboard_connected)
+
+        self.listen_pc = self.create_socket(kernel.loop, os.path.join(p, "pc"),
+                                            self.on_fake_pc_connected)
 
         self.fake_mainboard_watchers = []
         self.fake_headboard_watchers = []
