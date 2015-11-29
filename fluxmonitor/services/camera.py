@@ -73,20 +73,84 @@ class CameraService(ServiceBase):
         self.internal_conn.append(w)
         self.update_camera_status()
 
-    # def on_external_connected(self, watcher, revent):
-    #     pass
+    def on_internal_disconnected(self, watcher):
+        watcher.stop()
+        watcher.data = None
+        self.internal_conn.remove(watcher)
+        self.update_camera_status()
 
     def on_internal_request(self, watcher, revent):
         try:
             watcher.data.on_recv()
-            cmd = watcher.data.fetch_command()
-            if cmd:
-                self.handle_command(watcher, cmd[0], cmd[1])
-        except CameraProtocolError:
-            watcher.data.close()
-            watcher.stop()
-            self.internal_conn.remove(watcher)
-            self.update_camera_status()
+            command = watcher.data.fetch_command()
+            if command:
+                self.handle_command(watcher, command[0], command[1])
+        except CameraProtocolError as e:
+            logger.debug("%s", e)
+            self.on_internal_disconnected(watcher)
+        except Exception:
+            logger.exception("Unhandle error")
+            self.on_internal_disconnected(watcher)
+
+    def shake_check(self, camera):
+        img = camera.fetch()
+        if ScanChecking.find_board(img)[0]:
+            base_a = [ScanChecking.chess_area(img)]
+
+        for step_l in [0.9, -0.9]:
+            i = 0
+            now = 0
+            while True:  # try this way
+                ret = self.make_gcode_cmd("G1 F500 E%.5f" % (step_l))
+                if ret == 'ok':
+                    now += step_l
+                    sleep(1)
+                else:
+                    logger.debug(ret)
+                    continue
+
+                img = self.get_img()
+                if ScanChecking.find_board(img)[0]:
+                    i += 1
+                else:
+                    pass
+                a = ScanChecking.chess_area(img)
+                base_a.append(a)
+                logger.info('shake %f' % a)
+
+                if i == 1:
+                    break
+            ret = self.make_gcode_cmd("G1 F500 E%.5f" % (-now))
+
+        if base_a[0] < base_a[1] and base_a[0] > base_a[2]:
+            return True  # keep going
+        elif base_a[0] < base_a[1] and base_a[0] > base_a[2]:
+            return False
+
+    def do_calib(self, handler, camera):
+        _ScanChecking = ScanChecking()
+        init_find = False
+        tmp_cout = 4
+        while tmp_cout:
+            img = camera.fetch()
+            init_find = _ScanChecking.find_board(img)[0]
+            handler.send_text("ER BOARD_NOT_FIND")
+            if init_find:
+                break
+            else:
+                ret = self.make_gcode_cmd("G1 F500 E%.5f" % (90))
+                sleep(1)
+            tmp_cout -= 1
+        if tmp_cout == 0:
+            logger.info('fail')
+            # handler.send_text('fail')
+        else:
+            logger.info('find init')
+            # handler.send_text('ok')
+        sub_step = 100
+        logger.info(self.shake_check(camera))
+
+        handler.send_text('yeah')
 
     def handle_command(self, watcher, cmd_id, camera_id):
         camera = self.cameras[camera_id]
@@ -94,6 +158,14 @@ class CameraService(ServiceBase):
             camera.fetch()
             mimetype, length, stream = camera.imagefile
             watcher.data.send_image(mimetype, length, stream, self.loop)
+        elif cmd_id == 1:
+            sc = ScanChecking()
+            img = camera.fetch()
+            watcher.data.send_text("ok " + sc.check(img))
+        elif cmd_id == 2:
+            self.do_calib(watcher.data, camera)
+        else:
+            raise CameraProtocolError("Unknow command")
 
 
 class CameraControl(object):
@@ -112,6 +184,7 @@ class CameraControl(object):
             logger.error("Take image failed (camera id=%i)", self.camera_id)
             ret, self.img_buf = self.camera.read(self.img_buf)
         self._img_file = None
+        return self.img_buf
 
     @property
     def imagefile(self):
@@ -145,18 +218,17 @@ class InternalSocketWrapper(object):
         if len(self.buf) == 2:
             swap = self.buf
             self.buf = b""
-            return struct.unpack("<BB", swap)
+            return struct.unpack("@BB", swap)
 
     def send_text(self, message):
-        buf = struct.pack("<H", len(message)) + message
+        buf = struct.pack("@B", len(message)) + message
         self.s.send(buf)
 
     def send_image(self, mimetype, length, stream, loop):
-        self.send_text(msg)
-
         if self.writer:
             raise CameraProtocolError(PROTOCOL_ERROR)
 
+        self.send_text("binary %s %i" % (mimetype, length))
         self.writer = loop.io(self.s, pyev.EV_WRITE, self.on_send, stream)
         self.writer.start()
 

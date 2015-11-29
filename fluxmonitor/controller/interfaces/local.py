@@ -76,6 +76,8 @@ class LocalControl(object):
 
 
 class LocalConnectionHandler(object):
+    send_watcher = None
+
     @T.update_time
     def __init__(self, sock, endpoint, slave_key, loop):
         self.logger = logger.getChild("%s:%s" % endpoint)
@@ -132,11 +134,38 @@ class LocalConnectionHandler(object):
         else:
             self.close("CONNECTION_GONE")
 
-    def disable_read_event(self):
-        self.recv_watcher.stop()
+    @T.update_time
+    def on_send(self, watcher, revent):
+        length, sent_length, stream, callback = watcher.data
 
-    def enable_read_event(self):
-        self.recv_watcher.start()
+        buf = stream.read(min(length - sent_length, 4096))
+        try:
+            l = self.send(buf)
+            if l == 0:
+                self.close("Socket send 0")
+                return
+
+            sent_length += l
+            stream.seek(l - len(buf), 1)
+
+            if sent_length == length:
+                self.recv_watcher.start()
+
+                logger.debug("Binary sent")
+                watcher.stop()
+                self.send_watcher = None
+                callback(self)
+
+            elif sent_length > length:
+                self.close("GG")
+
+            else:
+                watcher.data = (length, sent_length, stream, callback)
+
+        except socket.error as e:
+            self.close(repr(e))
+        except Exception:
+            logger.exception("Unknow error")
 
     def _on_handshake_identify(self, length):
         if self._buffered >= 20:
@@ -250,11 +279,25 @@ class LocalConnectionHandler(object):
         buf = struct.pack("<H", l) + bmessage
         return self.send(buf)
 
+    def async_send_binary(self, mimetype, length, stream, complete_cb):
+        self.send_text("binary %s %i" % (mimetype, length))
+        self.recv_watcher.stop()
+
+        self.send_watcher = self.recv_watcher.loop.io(
+            self.sock, pyev.EV_WRITE, self.on_send, (length, 0, stream,
+                                                     complete_cb))
+        self.send_watcher.start()
+
     def close(self, reason=""):
         if self.alive:
             self.alive = False
             self.recv_watcher.stop()
             self.recv_watcher = None
+
+            if self.send_watcher:
+                self.send_watcher.stop()
+                self.send_watcher = None
+
             self.sock.close()
             if self.stack:
                 self.stack.terminate()

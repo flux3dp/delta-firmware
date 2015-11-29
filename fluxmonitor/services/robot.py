@@ -1,4 +1,5 @@
 
+import weakref
 import logging
 
 from fluxmonitor.controller.interfaces.local import LocalControl
@@ -17,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class Robot(ServiceBase):
-    exclusive_component = None
+    _exclusive_component = None
 
     def __init__(self, options):
         ServiceBase.__init__(self, logger)
@@ -91,6 +92,20 @@ class Robot(ServiceBase):
                 continue
 
         logger.debug("Autoplay failed")
+
+    @property
+    def exclusive_component(self):
+        if self._exclusive_component:
+            return self._exclusive_component()
+        else:
+            return None
+
+    @exclusive_component.setter
+    def exclusive_component(self, val):
+        if isinstance(val, PlayerManager):
+            self._exclusive_component = val
+        else:
+            self._exclusive_component = weakref.ref(val)
 
     def is_exclusived(self):
         return True if self.exclusive_component else False
