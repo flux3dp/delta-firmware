@@ -96,7 +96,7 @@ class Robot(ServiceBase):
     @property
     def exclusive_component(self):
         if self._exclusive_component:
-            if isinstance(self._exclusive_component, PlayerManager)
+            if isinstance(self._exclusive_component, PlayerManager):
                 return self._exclusive_component
             else:
                 return self._exclusive_component()
