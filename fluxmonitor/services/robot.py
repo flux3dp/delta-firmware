@@ -104,6 +104,8 @@ class Robot(ServiceBase):
     def exclusive_component(self, val):
         if isinstance(val, PlayerManager):
             self._exclusive_component = val
+        elif val is None:
+            self._exclusive_component = None
         else:
             self._exclusive_component = weakref.ref(val)
 
