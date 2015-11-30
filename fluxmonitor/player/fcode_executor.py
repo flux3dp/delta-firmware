@@ -32,9 +32,9 @@ class FcodeExecutor(BaseExecutor):
     _mb_stashed = False
 
     def __init__(self, mainboard_io, headboard_io, fileobj, play_bufsize=16):
+        self._task_loader = TaskLoader(fileobj)
         super(FcodeExecutor, self).__init__(mainboard_io, headboard_io)
 
-        self._task_loader = TaskLoader(fileobj)
         self._padding_bufsize = max(play_bufsize * 2, 64)
 
         self.main_ctrl = MainController(
