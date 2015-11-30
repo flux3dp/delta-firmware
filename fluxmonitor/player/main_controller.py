@@ -6,7 +6,7 @@ import socket
 
 from fluxmonitor.err_codes import EXEC_OPERATION_ERROR, EXEC_INTERNAL_ERROR,\
     EXEC_MAINBOARD_OFFLINE
-from fluxmonitor.config import uart_config
+from fluxmonitor.config import MAINBOARD_RETRY_TTL, uart_config
 
 L = logging.getLogger(__name__)
 
@@ -234,7 +234,7 @@ class MainController(object):
 
     def patrol(self, executor):
         if not self.ready and not self.closed:
-            if self._resend_counter >= 3:
+            if self._resend_counter >= MAINBOARD_RETRY_TTL:
                 L.error("Mainboard no response, restart it")
                 self.reset_mainboard()
                 raise SystemError(EXEC_MAINBOARD_OFFLINE)
@@ -246,7 +246,7 @@ class MainController(object):
                 executor.send_mainboard("C1O\n")
 
         if self._cmd_sent:
-            if self._resend_counter >= 4:
+            if self._resend_counter >= MAINBOARD_RETRY_TTL:
                 L.error("Mainboard no response, restart it (%i)",
                         self._resend_counter)
                 self.reset_mainboard()

@@ -38,6 +38,9 @@ uart_config = {
     "control": "/tmp/.uart-control"
 }
 
+MAINBOARD_RETRY_TTL = 10
+HEADBOARD_RETRY_TTL = 5
+
 HEADBOARD_ENDPOINT = "/tmp/.headboard"
 MAINBOARD_ENDPOING = "/tmp/.mainboard"
 

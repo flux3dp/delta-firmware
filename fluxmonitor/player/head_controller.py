@@ -4,7 +4,8 @@ from time import time
 import logging
 
 from fluxmonitor.err_codes import EXEC_HEADER_OFFLINE, EXEC_OPERATION_ERROR, \
-    EXEC_WRONG_HEADER
+    EXEC_WRONG_HEADER, EXEC_HEADER_ERROR
+from fluxmonitor.config import HEADBOARD_RETRY_TTL
 
 TYPE_3DPRINT = 0
 TYPE_LASER = 1
@@ -28,7 +29,7 @@ def get_head_controller(head_type, *args, **kw):
 
 
 class ExtruderController(object):
-    _module = None
+    _module = "NONE"
 
     # FSM
     # (use this data to recover status if headbored reconnected)
@@ -227,7 +228,7 @@ class ExtruderController(object):
             return True
         elif msg.startswith("ER "):
             err = shlex_split(msg[3:])
-            raise RuntimeError(EXEC_HEADER_OFFLINE, *err)
+            raise RuntimeError(EXEC_HEADER_ERROR, *err)
 
         else:
             return False
@@ -264,7 +265,7 @@ class ExtruderController(object):
                     er = int(status[1])
                 except ValueError:
                         L.error("Head er flag failed")
-                        self._raise_error(EXEC_HEADER_OFFLINE,
+                        self._raise_error(EXEC_HEADER_ERROR,
                                           "ER_ERROR")
 
                 if er > 0:
