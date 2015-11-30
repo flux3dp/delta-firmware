@@ -235,8 +235,10 @@ class PlayManagerMixIn(object):
         if isinstance(component, PlayerManager):
             handler.send_text(component.report())
         elif component:
-            handler.send_text('{"st_id": 0, "st_label": "OCCUPIED"}')
+            handler.send_text('{"st_id": 0, "st_label": "OCCUPIED", '
+                              '"task": "%s"}' % component.__class__.__name__)
         else:
+            handler.send_text('{"st_id": 0, "st_label": "IDLE"}')
             raise RuntimeError(NO_TASK)
 
     def dispatch_playmanage_cmd(self, handler, cmd, *args):
