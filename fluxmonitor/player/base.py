@@ -76,7 +76,8 @@ class BaseExecutor(object):
             nst = ST_PAUSING
 
         if nst > 0:
-            L.debug("ST %3i -> %3i:%s", self.status_id, nst, main_info)
+            L.debug("ST %3i -> %3i:%s %s", self.status_id, nst, main_info,
+                    minor_info)
             self.status_id = nst
             self._err_symbol = (main_info, minor_info)
             return True

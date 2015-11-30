@@ -38,6 +38,8 @@ uart_config = {
     "control": "/tmp/.uart-control"
 }
 
+DEVICE_POSITION_LIMIT = (170, 170, 190)
+
 MAINBOARD_RETRY_TTL = 10
 HEADBOARD_RETRY_TTL = 5
 

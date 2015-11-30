@@ -2,7 +2,8 @@
 from collections import deque
 import logging
 
-from fluxmonitor.err_codes import UNKNOW_ERROR
+from fluxmonitor.config import DEVICE_POSITION_LIMIT
+from fluxmonitor.err_codes import UNKNOW_ERROR, EXEC_BAD_COMMAND
 from .base import BaseExecutor, ST_STARTING, ST_WAITTING_HEADER  # NOQA
 from .base import ST_RUNNING, ST_PAUSING, ST_PAUSED, ST_RESUMING  # NOQA
 from .base import ST_ABORTING, ST_ABORTED, ST_COMPLETING, ST_COMPLETED  # NOQA
@@ -88,7 +89,9 @@ class FcodeExecutor(BaseExecutor):
         self.main_ctrl.callback_msg_empty = self._on_mainboard_empty
         self.main_ctrl.callback_msg_sendable = self._on_mainboard_sendable
 
-        self._fsm = PyDeviceFSM()
+        self._fsm = PyDeviceFSM(max_x=DEVICE_POSITION_LIMIT[0],
+                                max_y=DEVICE_POSITION_LIMIT[1],
+                                max_z=DEVICE_POSITION_LIMIT[2])
         self.fire()
 
     def pause(self, *args):
@@ -132,9 +135,14 @@ class FcodeExecutor(BaseExecutor):
     def fire(self):
         if self.status_id == ST_RUNNING:
             while (not self._eof) and len(self._cmd_queue) < 24:
-                if self._fsm.feed(self._task_loader.fileno(),
-                                  self._cb_feed_command) == 0:
+                ret = self._fsm.feed(self._task_loader.fileno(),
+                                     self._cb_feed_command)
+                if ret == 0:
                     self._eof = True
+                elif ret == -1:
+                    self.abort(EXEC_BAD_COMMAND, "MOVE")
+                elif ret == -3:
+                    self.abort(EXEC_BAD_COMMAND, "MULTI_E")
 
             if (self._ctrl_flag & FLAG_WAITTING_HEADER) == 0:
                 while self._cmd_queue:
@@ -165,6 +173,9 @@ class FcodeExecutor(BaseExecutor):
                             return
                         else:
                             return
+                    elif target == 128:
+                        self.abort(self._cmd_queue[0][0])
+
                     else:
                         raise SystemError("UNKNOW_ERROR", "target=%i" % target)
 

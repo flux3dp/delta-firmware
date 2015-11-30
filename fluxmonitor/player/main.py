@@ -85,7 +85,7 @@ class Player(ServiceBase):
             for msg in messages:
                 self.executor.on_mainboard_message(msg)
         except Exception:
-            logger.exception("Unhandle error")
+            logger.exception("Mainboard Failed")
 
     def on_headboard_message(self, watcher, revent):
         try:
@@ -104,7 +104,7 @@ class Player(ServiceBase):
             for msg in messages:
                 self.executor.on_headboard_message(msg)
         except Exception:
-            logger.exception("Unhandle error")
+            logger.exception("Headboard Failed")
 
     def on_cmd_message(self, watcher, revent):
         try:
