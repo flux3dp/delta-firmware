@@ -144,10 +144,10 @@ class MainController(object):
                 executor.send_mainboard(b"C1O\n")
 
             elif msg == "CTRL STASH":
-                self.remove_complete_command()
+                pass
 
             elif msg == "CTRL STASH_POP":
-                self.remove_complete_command()
+                pass
 
             elif msg == "ok":
                 pass
