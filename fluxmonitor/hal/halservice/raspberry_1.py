@@ -194,6 +194,7 @@ class GPIOControl(object):
         GPIO.output(GPIO_MAINBOARD, MAINBOARD_ON)
         sleep(1.5)
         self.mainboard_connect(watcher.loop)
+        self._init_mainboard_status()
 
     def update_ama0_routing(self):
         if len(self.headboard_watchers) > 0:
