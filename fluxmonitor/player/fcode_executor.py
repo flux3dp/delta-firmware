@@ -2,7 +2,7 @@
 from collections import deque
 import logging
 
-from fluxmonitor.config import DEVICE_POSITION_LIMIT
+from fluxmonitor.config import DEVICE_POSITION_LIMIT, MAINBOARD_RETRY_TTL
 from fluxmonitor.err_codes import UNKNOW_ERROR, EXEC_BAD_COMMAND
 from .base import BaseExecutor, ST_STARTING, ST_WAITTING_HEADER  # NOQA
 from .base import ST_RUNNING, ST_PAUSING, ST_PAUSED, ST_RESUMING  # NOQA
@@ -40,6 +40,7 @@ class FcodeExecutor(BaseExecutor):
         self.main_ctrl = MainController(
             executor=self, bufsize=play_bufsize,
             ready_callback=self.on_controller_ready,
+            retry_ttl=MAINBOARD_RETRY_TTL
         )
 
         self.head_ctrl = get_head_controller(

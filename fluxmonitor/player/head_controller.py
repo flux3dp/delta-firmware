@@ -54,7 +54,7 @@ class ExtruderController(object):
     _required_module = False
     _ignore_status_error = False
 
-    def __init__(self, executor, ready_callback, required_module=None
+    def __init__(self, executor, ready_callback, required_module=None,
                  ignore_status_error=False):
         self._ignore_status_error = ignore_status_error
         self._required_module = required_module

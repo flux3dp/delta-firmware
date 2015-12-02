@@ -18,6 +18,7 @@ setup(
     author_email="cerberus@flux3dp.com",
     description="",
     license="?",
+    include_package_data=True,
     packages=setup_utils.get_packages(),
     test_suite="tests.main.everything",
     entry_points=setup_utils.ENTRY_POINTS,

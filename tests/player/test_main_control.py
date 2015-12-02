@@ -5,7 +5,7 @@ import os
 
 from fluxmonitor.player.main_controller import MainController, FLAG_READY
 from fluxmonitor.config import uart_config
-from .misc import ControlTestBase
+from .misc import ControlTestBase, UnittestError
 
 
 class MainboardControlStartupTest(ControlTestBase):
@@ -14,31 +14,24 @@ class MainboardControlStartupTest(ControlTestBase):
             mc = MainController(executor, ready_callback=self.raiseException)
 
         with self.assertSendMainboard() as executor:
-            self.assertRaises(RuntimeWarning, mc.on_message,
+            self.assertRaises(UnittestError, mc.on_message,
                               "CTRL LINECHECK_ENABLED", executor)
 
         self.assertTrue(mc.ready, True)
 
     def test_startup_no_response(self):
         with self.assertSendMainboard(b"C1O\n") as executor:
-            mc = MainController(executor, ready_callback=self.raiseException)
+            mc = MainController(executor, ready_callback=self.raiseException,
+                                retry_ttl=2)
 
-        with self.assertSendMainboard() as executor:
-            mc.patrol(executor)
-        mc._last_recv_ts = -1
-        with self.assertSendMainboard(b"C1O\n") as executor:
-            # TTL: 1
-            mc.patrol(executor)
-        with self.assertSendMainboard() as executor:
-            mc.patrol(executor)
-        mc._last_recv_ts = -1
-        with self.assertSendMainboard(b"C1O\n") as executor:
-            # TTL: 2
-            mc.patrol(executor)
-        mc._last_recv_ts = -1
-        with self.assertSendMainboard(b"C1O\n") as executor:
-            # TTL: 3
-            mc.patrol(executor)
+        for i in range(2):
+            mc._last_recv_ts = -1
+            with self.assertSendMainboard(b"C1O\n") as executor:
+                # TTL: 1
+                mc.patrol(executor)
+            with self.assertSendMainboard() as executor:
+                mc.patrol(executor)
+
         mc._last_recv_ts = -1
         with self.assertSendMainboard() as executor:
             # Bomb
@@ -60,7 +53,7 @@ class MainboardControlTest(ControlTestBase):
         super(MainboardControlTest, self).setUp()
 
         with self.assertSendMainboard(b"C1O\n") as executor:
-            mc = MainController(executor, ready_callback=self.raiseException)
+            mc = MainController(executor)
 
         mc._ln = 0
         mc._waitting_ok = False
@@ -89,44 +82,51 @@ class MainboardControlTest(ControlTestBase):
             self.mc.callback_msg_sendable = msg_sendable_callback
 
     def test_append_command_from_empty(self):
+        # Send G28 command
         with self.assertSendMainboard(b"G28 N1*18\n") as executor:
             self.mc.send_cmd(b"G28", executor)
-
-        self.assertItemsEqual(self.mc._cmd_sent,
-                              ((1, b"G28"),))
+        # Compair sent queue
+        self.assertItemsEqual(self.mc._cmd_sent, ((1, b"G28"),))
+        # Compair padding queue
         self.assertItemsEqual(self.mc._cmd_padding, ())
+        # Check linenumber
         self.assertEqual(self.mc._ln, 1)
 
     def test_append_command_from_not_empty(self):
+        # Preset a command already in sent queue
         self.preset(cmd_sent=((1, b"G28"), ), ln=1)
-
+        # Send a command
         with self.assertSendMainboard(b"G1 Z0 N2*96\n") as executor:
             self.mc.send_cmd(b"G1 Z0", executor)
+        # Compair sent queue
         self.assertItemsEqual(self.mc._cmd_sent, ((1, b"G28"), (2, b"G1 Z0")))
+        # Compair padding queue
         self.assertItemsEqual(self.mc._cmd_padding, ())
+        # Check linenumber
         self.assertEqual(self.mc._ln, 2)
 
     def test_append_command_when_full(self):
+        # Preset padding/sent queue with correct linenumber
         self.preset(cmd_padding=((1, "G"), (2, "G"), (3, "G"), (4, "G"),
                                  (5, "G"), (6, "G"), (7, "G")),
                     cmd_sent=((8, "G"), (9, "G"), (10, "G"), (11, "G"),
                               (12, "G"), (13, "G"), (14, "G"), (15, "G"),
                               (16, "G")),
                     ln=16, ln_ack=7)
-
+        # Send command
         self.assertRaises(RuntimeError, self.mc.send_cmd, b"G1 Z0", self)
 
     def test_recv_ln_normal(self):
         self.preset(cmd_sent=((1, b"G28 N1*18\n"), (2, b"G1 Z0 N2*96\n"),
                               (3, b"G1 X5 N3*102\n")),
-                    ln=3)
+                    ln=3, ln_ack=0)
 
-        self.mc.on_message("LN 1 0", self)
+        self.mc.on_message("LN 1 1", self)
         self.assertItemsEqual(self.mc._cmd_sent,
                               ((2, b"G1 Z0 N2*96\n"), (3, b"G1 X5 N3*102\n")))
         self.assertItemsEqual(self.mc._cmd_padding, ((1, b"G28 N1*18\n"), ))
 
-        self.mc.on_message("LN 2 1", self)
+        self.mc.on_message("LN 2 2", self)
         self.assertItemsEqual(self.mc._cmd_sent, ((3, b"G1 X5 N3*102\n"), ))
         self.assertItemsEqual(self.mc._cmd_padding,
                               ((1, b"G28 N1*18\n"), (2, b"G1 Z0 N2*96\n")))
@@ -136,7 +136,7 @@ class MainboardControlTest(ControlTestBase):
                               (3, b"G1 X5 N3*102\n")),
                     ln=3)
 
-        self.mc.on_message("LN 2 1", self)
+        self.mc.on_message("LN 2 2", self)
         self.assertItemsEqual(self.mc._cmd_sent, ((3, b"G1 X5 N3*102\n"), ))
         self.assertItemsEqual(self.mc._cmd_padding,
                               ((1, b"G28 N1*18\n"), (2, b"G1 Z0 N2*96\n")))
@@ -216,11 +216,11 @@ class MainboardControlTest(ControlTestBase):
                     ln=2, ln_ack=2, msg_empty_callback=self.raiseException)
 
         with self.assertSendMainboard() as executor:
-            self.mc.on_message("ok", executor)
+            self.mc.on_message("LN 2 1", executor)
         self.assertItemsEqual(self.mc._cmd_padding, ((2, b"G1 Z0 N2*96\n"), ))
 
         with self.assertSendMainboard() as executor:
-            self.assertRaises(RuntimeWarning, self.mc.on_message, "ok",
+            self.assertRaises(UnittestError, self.mc.on_message, "LN 2 0",
                               executor)
         self.assertItemsEqual(self.mc._cmd_padding, ())
 
@@ -233,5 +233,5 @@ class MainboardControlTest(ControlTestBase):
                     ln=16, ln_ack=7, msg_sendable_callback=self.raiseException)
 
         with self.assertSendMainboard() as executor:
-            self.assertRaises(RuntimeWarning, self.mc.on_message, "ok",
+            self.assertRaises(UnittestError, self.mc.on_message, "LN 16 15",
                               executor)
