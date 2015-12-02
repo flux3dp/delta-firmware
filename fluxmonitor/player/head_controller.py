@@ -51,8 +51,13 @@ class ExtruderController(object):
     _wait_update = False
 
     _recover_queue = None
+    _required_module = False
+    _ignore_status_error = False
 
-    def __init__(self, executor, ready_callback):
+    def __init__(self, executor, ready_callback, required_module=None,
+                 ignore_status_error=False):
+        self._ignore_status_error = ignore_status_error
+        self._required_module = required_module
         self._temperatures = [float("NaN")]
         self._ready_callback = ready_callback
 
@@ -272,16 +277,19 @@ class ExtruderController(object):
                     if er & 4:
                         self._raise_error(EXEC_HEADER_OFFLINE,
                                           "HEAD_RESET")
-                    if er & 8:
-                        self._raise_error("HEAD_CALIBRATION_FAILED")
-                    if er & 16:
-                        self._raise_error("HEAD_SHAKE")
-                    if er & 32:
-                        self._raise_error("HEAD_TILT")
-                    if er & 64:
-                        self._raise_error("HEAD_FAILED", "PID_OUT_OF_CONTROL")
-                    if er & 128:
-                        self._raise_error("HEAD_FAILED", "FAN_FAILURE")
+                    if not self._ignore_status_error:
+                        # if er & 8:
+                        #     self._raise_error("HEAD_ERROR",
+                        #                       "CALIBRATIING")
+                        if er & 16:
+                            self._raise_error(EXEC_HEADER_ERROR, "SHAKE")
+                        if er & 32:
+                            self._raise_error(EXEC_HEADER_ERROR, "TILT")
+                        if er & 64:
+                            self._raise_error(EXEC_HEADER_ERROR,
+                                              "PID_OUT_OF_CONTROL")
+                        if er & 128:
+                            self._raise_error(EXEC_HEADER_ERROR, "FAN_FAILURE")
 
         if self._padding_cmd:
             self._send_cmd(executor)

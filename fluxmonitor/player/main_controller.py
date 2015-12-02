@@ -6,7 +6,7 @@ import socket
 
 from fluxmonitor.err_codes import EXEC_OPERATION_ERROR, EXEC_INTERNAL_ERROR,\
     EXEC_MAINBOARD_OFFLINE
-from fluxmonitor.config import MAINBOARD_RETRY_TTL, uart_config
+from fluxmonitor.config import uart_config
 
 L = logging.getLogger(__name__)
 
@@ -26,6 +26,8 @@ class MainController(object):
     # Booean
     _flags = 0
 
+    _retry_ttl = 3
+
     # Callable object
     _callback_ready = None
     # Tuple: (ttl(int), time(float), ln(int))
@@ -34,7 +36,10 @@ class MainController(object):
     _bufsize = None
 
     def __init__(self, executor, bufsize=16, ready_callback=None,
-                 msg_empty_callback=None, msg_sendable_callback=None):
+                 msg_empty_callback=None, msg_sendable_callback=None,
+                 retry_ttl=3):
+        self._retry_ttl = retry_ttl
+
         self._cmd_sent = deque()
         self._cmd_padding = deque()
         self.callback_ready = ready_callback
@@ -107,22 +112,16 @@ class MainController(object):
         if self.ready:
             if msg.startswith("LN "):
                 recv_ln, cmd_in_queue = (int(x) for x in msg.split(" ", 2)[1:])
-                self._ln_ack = recv_ln
                 self._last_recv_ts = time()
                 self._resend_counter = 0
 
-                this_cmd = self._cmd_sent.popleft()
-                while this_cmd[0] < recv_ln:
-                    self._cmd_padding.append(this_cmd)
-                    L.info("Missing LN: %i" % this_cmd[0])
-                    this_cmd = self._cmd_sent.popleft()
+                while self._ln_ack < recv_ln:
+                    cmd = self._cmd_sent.popleft()
+                    self._cmd_padding.append(cmd)
+                    self._ln_ack += 1
 
                 while len(self._cmd_padding) > cmd_in_queue:
-                    self._cmd_padding.popleft()
-                self._cmd_padding.append(this_cmd)
-
-            elif msg == "ok":
-                self.remove_complete_command()
+                    self.remove_complete_command()
 
             elif msg.startswith("ER LINE_MISMATCH "):
                 correct_ln, trigger_ln = (int(v) for v in msg[17:].split(" "))
@@ -149,6 +148,9 @@ class MainController(object):
 
             elif msg == "CTRL STASH_POP":
                 self.remove_complete_command()
+
+            elif msg == "ok":
+                pass
 
             else:
                 if msg.startswith("ER "):
@@ -234,19 +236,19 @@ class MainController(object):
 
     def patrol(self, executor):
         if not self.ready and not self.closed:
-            if self._resend_counter >= MAINBOARD_RETRY_TTL:
-                L.error("Mainboard no response, restart it")
-                self.reset_mainboard()
-                raise SystemError(EXEC_MAINBOARD_OFFLINE)
-
             if time() - self._last_recv_ts > 1.0:
                 self._resend_counter += 1
+                if self._resend_counter > self._retry_ttl:
+                    L.error("Mainboard no response, restart it")
+                    self.reset_mainboard()
+                    raise SystemError(EXEC_MAINBOARD_OFFLINE)
+
                 self._last_recv_ts = time()
                 # Resend, let ttl_offset takes no effect
                 executor.send_mainboard("C1O\n")
 
         if self._cmd_sent:
-            if self._resend_counter >= MAINBOARD_RETRY_TTL:
+            if self._resend_counter >= self._retry_ttl:
                 L.error("Mainboard no response, restart it (%i)",
                         self._resend_counter)
                 self.reset_mainboard()
