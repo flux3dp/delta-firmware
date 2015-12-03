@@ -63,6 +63,7 @@ class ScanChecking(object):
         cv2.cornerSubPix(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), points, cls.corner, (-1, -1), criteria)
         return points
 
+    @classmethod
     def heuristic_guess(self, img):
         ok_score = 0
         if sum(cv2.meanStdDev(img)[1]) > 70:  # TODO: record magic number?
