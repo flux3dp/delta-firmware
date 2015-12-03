@@ -39,6 +39,14 @@ class CameraInterface(object):
         self.sock.send(struct.pack("@BB", 1, 0))
         return self.recv_text()
 
+    def get_bias(self):
+        self.sock.send(struct.pack("@BB", 2, 0))
+        return self.recv_text()
+
+    def compute_cab(self):
+        self.sock.send(struct.pack("@BB", 3, 0))
+        return self.recv_text()
+
     def recv_text(self):
         buf = self.sock.recv(1)
         textlen = struct.unpack("@B", buf)[0]
@@ -109,8 +117,8 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
         elif cmd == "get_cab":
             self.get_cab(handler)
 
-        elif cmd == "calib":
-            self.calib(handler)
+        elif cmd == "calibrate":
+            self.calibrate(handler)
 
         elif cmd == "scanlaser":
             param = args[0] if args else ""
@@ -157,6 +165,12 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
     def scan_check(self, handler):
         handler.send_text(self.camera.check_camera_position())
 
+    def calibrate(self, handler):
+
+        w = self.camera.get_bias()
+
+        handler.send_text(w)
+
     def get_cab(self, handler):
         s = Storage('camera')
         a = s.readall('calibration')
@@ -182,7 +196,6 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
             mimetype, length, stream = self.camera.oneshot()
             h.async_send_binary(mimetype, length, stream, cb_shot3)
             self.change_laser(left=False, right=False)
-
 
         self.change_laser(left=True, right=False)
         sleep(0.03)

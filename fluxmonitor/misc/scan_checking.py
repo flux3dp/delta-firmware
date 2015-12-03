@@ -15,34 +15,49 @@ class ScanChecking(object):
         super(ScanChecking, self).__init__()
 
     @classmethod
-    def find_board(cls, img):
+    def find_board(cls, img, fast=True):
         # corner number
         find, points = cv2.findChessboardCorners(img, cls.corner, flags=cv2.CALIB_CB_FAST_CHECK | cv2.cv.CV_CALIB_CB_ADAPTIVE_THRESH)
-
         if not find:
             return False, False
         else:
-            criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER,
-                        100, 0.001)
-            cv2.cornerSubPix(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), points,
-                             cls.corner, (-1, -1), criteria)
+            if not fast:
+                criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
+                cv2.cornerSubPix(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), points, cls.corner, (-1, -1), criteria)
+            if abs(points[0][0][0] - points[1][0][0]) > abs(points[0][0][1] - points[1][0][1]):
+                # 0-1-2-3
+                # 4-5-6-7
+                # 8-9-10-11
+                # 12-13-14-15
+                new_index = range(16)
+                pass
+            else:
+                # 12-8-4-0
+                # 13-9-5-1
+                # 14-10-6-2
+                # 15-11-7-3
+                new_index = [12, 8, 4, 0, 13, 9, 5, 1, 14, 10, 6, 2, 15, 11, 7, 3]
+            points = points[new_index, :, :]
             return True, points
 
     @classmethod
-    def chess_area(cls, img, points):
+    def chess_area(cls, points):
         def compute_area(cords):
             # use determinant to compute area size
             cords = np.concatenate((cords, [cords[0]]), axis=0)
-            tmp = [np.linalg.det(np.array([cords[i][:],
-                                 cords[i + 1][:]])) for i in range(len(cords) - 1)]
+            tmp = [np.linalg.det(np.array([cords[i][:], cords[i + 1][:]])) for i in range(len(cords) - 1)]
             tmp = abs(sum(tmp)) / 2.
             return tmp
-        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
-        cv2.cornerSubPix(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), points, (5, 5), (-1, -1), criteria)
 
         rect = np.array([points[0][0], points[cls.corner[0] - 1][0], points[-1][0], points[-cls.corner[0]][0]])
         area = compute_area(rect)
         return area
+
+    @classmethod
+    def inhence(cls, points):
+        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
+        cv2.cornerSubPix(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), points, cls.corner, (-1, -1), criteria)
+        return points
 
     def heuristic_guess(self, img):
         ok_score = 0
@@ -56,7 +71,8 @@ class ScanChecking(object):
         else:
             return False
 
-    def check(self, img):
+    @classmethod
+    def check(cls, img):
         # '00000001': open
         # '00000010': found chessboard
         result = 0
@@ -70,28 +86,18 @@ class ScanChecking(object):
                 result |= (1 << 0)
         return str(result)
 
-    def bias(p):
+    @classmethod
+    def get_bias(cls, p):
         '''
         input points of chess board
         return True(should go ccw) or False(should go cw)
         where should the plate turn
         '''
-        if abs(p[0][0][0] - p[1][0][0]) > abs(p[0][0][1] - p[1][0][1]):
-            # 0-1-2-3
-            # 4-5-6-7
-            # 8-9-10-11
-            # 12-13-14-15
-            l_index = [0, 12]
-            r_index = [15, 3]
-        else:
-            # 12-8-4-0
-            # 13-9-5-1
-            # 14-10-6-2
-            # 15-11-7-3
-            l_index = [12, 0]
-            r_index = [15, 3]
-        # print(abs(p[l_index[0]][0][1] - p[l_index[1]][0][1]) - abs(p[r_index[0]][0][1] - p[r_index[1]][0][1]))
-        return abs(p[l_index[0]][0][1] - p[l_index[1]][0][1]) < abs(p[r_index[0]][0][1] - p[r_index[1]][0][1])
+        # 0-1-2-3
+        # 4-5-6-7
+        # 8-9-10-11
+        # 12-13-14-15
+        return abs(p[0][0][1] - p[12][0][1]) - abs(p[3][0][1] - p[15][0][1])
 
     def find_red(img1, img2, mode='red'):
         '''
@@ -142,16 +148,13 @@ if __name__ == '__main__':
     p = 0
     for i in range(0, 400):
         img_o = cv2.imread('../../../1113_b/{0:0>3}_O.jpg'.format(i))
-        img_r = cv2.imread('../../../1113_b/{0:0>3}_R.jpg'.format(i))
-        print i,
+    #     img_r = cv2.imread('../../../1113_b/{0:0>3}_R.jpg'.format(i))
+    #     print i,
 
-        if find_red(img_o, img_r, 'lumin'):
-            p += 1
-    print p
-
-
-
-        # f,p = ScanChecking.find_board(img_o)
-        # if f:
-        #     print i,
-        #     bias(p)
+    #     if find_red(img_o, img_r, 'lumin'):
+    #         p += 1
+    # print p
+        f, p = ScanChecking.find_board(img_o, fast=False)
+        if f:
+            print i,
+            ScanChecking.get_bias(p)

@@ -92,42 +92,16 @@ class CameraService(ServiceBase):
             logger.exception("Unhandle error")
             self.on_internal_disconnected(watcher)
 
-    def shake_check(self, camera):
+    def get_bias(self, handler, camera):
         img = camera.fetch()
-        if ScanChecking.find_board(img)[0]:
-            base_a = [ScanChecking.chess_area(img)]
+        flag, points = ScanChecking.find_board(img, fast=False)
+        if flag:
+            m = 'ok {}'.format(ScanChecking.get_bias(points))
+        else:
+            m = 'ok nan'
+        handler.send_text(m)
 
-        for step_l in [0.9, -0.9]:
-            i = 0
-            now = 0
-            while True:  # try this way
-                ret = self.make_gcode_cmd("G1 F500 E%.5f" % (step_l))
-                if ret == 'ok':
-                    now += step_l
-                    sleep(1)
-                else:
-                    logger.debug(ret)
-                    continue
-
-                img = self.get_img()
-                if ScanChecking.find_board(img)[0]:
-                    i += 1
-                else:
-                    pass
-                a = ScanChecking.chess_area(img)
-                base_a.append(a)
-                logger.info('shake %f' % a)
-
-                if i == 1:
-                    break
-            ret = self.make_gcode_cmd("G1 F500 E%.5f" % (-now))
-
-        if base_a[0] < base_a[1] and base_a[0] > base_a[2]:
-            return True  # keep going
-        elif base_a[0] < base_a[1] and base_a[0] > base_a[2]:
-            return False
-
-    def do_calib(self, handler, camera):
+    def compute_cab(self, handler, camera):
         _ScanChecking = ScanChecking()
         init_find = False
         tmp_cout = 4
@@ -163,7 +137,9 @@ class CameraService(ServiceBase):
             img = camera.fetch()
             watcher.data.send_text("ok " + sc.check(img))
         elif cmd_id == 2:
-            self.do_calib(watcher.data, camera)
+            self.get_bias(watcher.data, camera)
+        elif cmd_id == 3:
+            self.compute_cab(watcher.data, camera)
         else:
             raise CameraProtocolError("Unknow command")
 
