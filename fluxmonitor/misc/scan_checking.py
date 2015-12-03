@@ -17,7 +17,11 @@ class ScanChecking(object):
     @classmethod
     def find_board(cls, img, fast=True):
         # corner number
-        find, points = cv2.findChessboardCorners(img, cls.corner, flags=cv2.CALIB_CB_FAST_CHECK | cv2.cv.CV_CALIB_CB_ADAPTIVE_THRESH)
+        if fast:
+            flag = cv2.CALIB_CB_FAST_CHECK | cv2.cv.CV_CALIB_CB_ADAPTIVE_THRESH
+        else:
+            flag = cv2.cv.CV_CALIB_CB_ADAPTIVE_THRESH
+        find, points = cv2.findChessboardCorners(img, cls.corner, flags=flag)
         if not find:
             return False, False
         else:
@@ -76,11 +80,11 @@ class ScanChecking(object):
         # '00000001': open
         # '00000010': found chessboard
         result = 0
-        if self.find_board(img)[0]:
+        if cls.find_board(img)[0]:
             result |= (1 << 0)
             result |= (1 << 1)
         else:
-            if not self.heuristic_guess(img):  # didn't pull out
+            if not cls.heuristic_guess(img):  # didn't pull out
                 pass
             else:
                 result |= (1 << 0)
