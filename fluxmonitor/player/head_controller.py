@@ -288,8 +288,8 @@ class ExtruderController(object):
                         if er & 64:
                             self._raise_error(EXEC_HEADER_ERROR,
                                               "PID_OUT_OF_CONTROL")
-                        if er & 128:
-                            self._raise_error(EXEC_HEADER_ERROR, "FAN_FAILURE")
+                        # if er & 128:
+                        #     self._raise_error(EXEC_HEADER_ERROR, "FAN_FAILURE")
 
         if self._padding_cmd:
             self._send_cmd(executor)
