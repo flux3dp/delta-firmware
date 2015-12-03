@@ -94,8 +94,9 @@ class CameraService(ServiceBase):
 
     def get_bias(self, handler, camera):
         img = camera.fetch()
-        cv2.imwrite('tmp.jpg', img)
         flag, points = ScanChecking.find_board(img, fast=False)
+        cv2.drawChessboardCorners(image, ScanChecking.corner, points, flag)
+        cv2.imwrite('tmp.jpg', img)
         if flag:
             m = 'ok {}'.format(ScanChecking.get_bias(points))
         else:
