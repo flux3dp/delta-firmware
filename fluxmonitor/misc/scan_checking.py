@@ -64,10 +64,10 @@ class ScanChecking(object):
             result |= (1 << 0)
             result |= (1 << 1)
         else:
-            if not self.heuristic_guess(img):
-                result |= (1 << 0)
-            else:
+            if not self.heuristic_guess(img):  # didn't pull out
                 pass
+            else:
+                result |= (1 << 0)
         return str(result)
 
     def bias(p):
