@@ -6,14 +6,6 @@ import cv2
 import numpy as np
 
 
-def compute_area(cords):
-    # use determinant to compute area size
-    cords = np.concatenate((cords, [cords[0]]), axis=0)
-    tmp = [np.linalg.det(np.array([cords[i][:], cords[i + 1][:]])) for i in range(len(cords) - 1)]
-    tmp = abs(sum(tmp)) / 2.
-    return tmp
-
-
 class ScanChecking(object):
     """docstring for ScanChecking"""
 
@@ -24,16 +16,27 @@ class ScanChecking(object):
 
     @classmethod
     def find_board(cls, img):
-        find, points = cv2.findChessboardCorners(img, cls.corner, flags=cv2.CALIB_CB_FAST_CHECK | cv2.cv.CV_CALIB_CB_ADAPTIVE_THRESH)  # corner number
+        # corner number
+        find, points = cv2.findChessboardCorners(img, cls.corner, flags=cv2.CALIB_CB_FAST_CHECK | cv2.cv.CV_CALIB_CB_ADAPTIVE_THRESH)
+
         if not find:
             return False, False
         else:
-            criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
-            cv2.cornerSubPix(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), points, cls.corner, (-1, -1), criteria)
+            criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER,
+                        100, 0.001)
+            cv2.cornerSubPix(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), points,
+                             cls.corner, (-1, -1), criteria)
             return True, points
 
     @classmethod
     def chess_area(cls, img, points):
+        def compute_area(cords):
+            # use determinant to compute area size
+            cords = np.concatenate((cords, [cords[0]]), axis=0)
+            tmp = [np.linalg.det(np.array([cords[i][:],
+                                 cords[i + 1][:]])) for i in range(len(cords) - 1)]
+            tmp = abs(sum(tmp)) / 2.
+            return tmp
         criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
         cv2.cornerSubPix(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), points, (5, 5), (-1, -1), criteria)
 
@@ -54,13 +57,19 @@ class ScanChecking(object):
             return False
 
     def check(self, img):
+        # '00000001': open
+        # '00000010': found chessboard
+        result = 0
         if self.find_board(img)[0]:
+            result |= (1 << 0)
+            result |= (1 << 1)
             return 'chess board found'
         else:
             if not self.heuristic_guess(img):
-                return 'guess didn\'t pull out'
+                result |= (1 << 0)
             else:
-                return 'guess open'
+                pass
+        return str(result)
 
     def bias(p):
         '''

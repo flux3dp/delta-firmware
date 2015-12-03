@@ -8,16 +8,11 @@ from fluxmonitor.misc.flux_argparse import add_daemon_arguments, \
 from fluxmonitor.launcher import deamon_entry
 
 
-def main():
-    parser = argparse.ArgumentParser(description='flux robot')
-    add_daemon_arguments("fluxrobot", parser)
-    parser.add_argument('--autoplay', dest='autoplay', action='store_const',
-                        const=True, default=False, help='Auto play')
-    parser.add_argument('--task', dest='taskfile', type=str, default=None,
-                        help='A g-code file, if this arg given, robot will'
-                             ' enter PlayTask and run g-code automatically')
+def main(params=None):
+    parser = argparse.ArgumentParser(description='flux camera deamon')
+    add_daemon_arguments("fluxcamerad", parser)
 
-    options = parser.parse_args()
+    options = parser.parse_args(params)
     apply_daemon_arguments(options)
 
     if options.stop_daemon:
@@ -37,9 +32,10 @@ def main():
             sys.exit(1)
     else:
         return_code = deamon_entry(
-            options, service="fluxmonitor.services.robot.Robot")
+            options,
+            service="fluxmonitor.services.camera.CameraService")
         sys.exit(return_code)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

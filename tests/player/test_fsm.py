@@ -3,7 +3,7 @@ import unittest
 import socket
 import struct
 
-from fluxmonitor.code_executor._device_fsm import PyDeviceFSM
+from fluxmonitor.player._device_fsm import PyDeviceFSM
 from tests.fixtures import Fixtures
 
 G1F6000X41Y29Z116T0E5 = struct.pack("<Bfffff", 128 + 64 + 32 + 16 + 8 + 4,
@@ -122,7 +122,7 @@ class DeviceFSMTest(unittest.TestCase):
         ))
 
     def test_run_fcode(self):
-        from fluxmonitor.code_executor.misc import TaskLoader
+        from fluxmonitor.player.misc import TaskLoader
         f = Fixtures.fcodes.open("print_simple_move.fcode", "rb")
         t = TaskLoader(f)
 

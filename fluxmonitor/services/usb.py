@@ -354,3 +354,6 @@ class UsbIO(object):
             self.send_response(REQ_PHOTO, True, MSG_OK)
         else:
             self.send_response(REQ_PHOTO, False, "Signature Error")
+
+    def close(self):
+        self.sock.close()

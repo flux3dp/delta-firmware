@@ -2,10 +2,10 @@
 from shlex import split as shlex_split
 from time import time
 import logging
-import re
 
 from fluxmonitor.err_codes import EXEC_HEADER_OFFLINE, EXEC_OPERATION_ERROR, \
-    EXEC_WRONG_HEADER
+    EXEC_WRONG_HEADER, EXEC_HEADER_ERROR
+from fluxmonitor.config import HEADBOARD_RETRY_TTL
 
 TYPE_3DPRINT = 0
 TYPE_LASER = 1
@@ -29,6 +29,8 @@ def get_head_controller(head_type, *args, **kw):
 
 
 class ExtruderController(object):
+    _module = "NONE"
+
     # FSM
     # (use this data to recover status if headbored reconnected)
     _fanspeed = 0
@@ -49,8 +51,13 @@ class ExtruderController(object):
     _wait_update = False
 
     _recover_queue = None
+    _required_module = False
+    _ignore_status_error = False
 
-    def __init__(self, executor, ready_callback):
+    def __init__(self, executor, ready_callback, required_module=None,
+                 ignore_status_error=False):
+        self._ignore_status_error = ignore_status_error
+        self._required_module = required_module
         self._temperatures = [float("NaN")]
         self._ready_callback = ready_callback
 
@@ -89,9 +96,13 @@ class ExtruderController(object):
     def is_busy(self):
         return self._padding_cmd is not None
 
+    @property
+    def module(self):
+        return self._module
+
     def status(self):
         return {
-            "module": "executor",
+            "module": self.module,
             "tt": (self._temperatures[0], ),
             "rt": (self._current_temp[0], ),
             "tf": (self._fanspeed, )
@@ -108,8 +119,8 @@ class ExtruderController(object):
             raise SystemError(EXEC_OPERATION_ERROR, "BAD TEMP")
 
         self._temperatures[0] = temperature
-        self._padding_cmd = create_chksum_cmd("1 H:%i T:%.1f", 
-                                              heater_id, temperature)
+        self._padding_cmd = create_chksum_cmd("1 H:%i T:%.1f", heater_id,
+                                              temperature)
         self._cmd_callback = callback
         self._send_cmd(executor)
 
@@ -163,7 +174,7 @@ class ExtruderController(object):
                         if len(sparam) == 2:
                             module_info[sparam[0]] = sparam[1]
 
-                    self.module = module_info.get("TYPE", "UNKNOW")
+                    self._module = module_info.get("TYPE", "UNKNOW")
                     if self.module == "EXTRUDER":
                         self._cmd_sent_at = 0
                         self._cmd_retry = 0
@@ -222,7 +233,7 @@ class ExtruderController(object):
             return True
         elif msg.startswith("ER "):
             err = shlex_split(msg[3:])
-            raise RuntimeError(EXEC_HEADER_OFFLINE, *err)
+            raise RuntimeError(EXEC_HEADER_ERROR, *err)
 
         else:
             return False
@@ -250,7 +261,7 @@ class ExtruderController(object):
                         self._heaters_callback(self)
                         self._heaters_callback = None
                     elif abs(self._temperatures[0] -
-                           self._current_temp[0]) < 3:
+                             self._current_temp[0]) < 3:
                         self._heaters_callback(self)
                         self._heaters_callback = None
 
@@ -259,14 +270,26 @@ class ExtruderController(object):
                     er = int(status[1])
                 except ValueError:
                         L.error("Head er flag failed")
-                        self._raise_error(EXEC_HEADER_OFFLINE,
+                        self._raise_error(EXEC_HEADER_ERROR,
                                           "ER_ERROR")
 
                 if er > 0:
                     if er & 4:
-                        L.error("Recive header boot")
                         self._raise_error(EXEC_HEADER_OFFLINE,
                                           "HEAD_RESET")
+                    if not self._ignore_status_error:
+                        # if er & 8:
+                        #     self._raise_error("HEAD_ERROR",
+                        #                       "CALIBRATIING")
+                        if er & 16:
+                            self._raise_error(EXEC_HEADER_ERROR, "SHAKE")
+                        if er & 32:
+                            self._raise_error(EXEC_HEADER_ERROR, "TILT")
+                        if er & 64:
+                            self._raise_error(EXEC_HEADER_ERROR,
+                                              "PID_OUT_OF_CONTROL")
+                        if er & 128:
+                            self._raise_error(EXEC_HEADER_ERROR, "FAN_FAILURE")
 
         if self._padding_cmd:
             self._send_cmd(executor)

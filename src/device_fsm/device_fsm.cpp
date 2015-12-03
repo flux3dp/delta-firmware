@@ -1,6 +1,10 @@
 
+#include <cmath>
 #include "device_fsm.h"
+
+#define POSITION_ERROR -1
 #define IO_ERROR -2
+#define MULTI_E_ERROR -3
 
 #define MACRO_READ(fd, ptr, size) \
   if(read(fd, ptr, size) != size) { \
@@ -25,7 +29,6 @@ DeviceController::DeviceController(float _x, float _y, float _z, float e1,
   fsm.f = _f; fsm.t = _t;
 }
 
-
 int DeviceController::feed(int fd, command_cb_t callback, void* data) {
   char cmd;
   ssize_t l = read(fd, &cmd, 1);
@@ -39,11 +42,21 @@ int DeviceController::feed(int fd, command_cb_t callback, void* data) {
     float f = 0, x = NAN, y = NAN, z = NAN, e[3] = {NAN, NAN, NAN};
     int e_counter = 0;
     int t;
+    int illegal = 0;
 
     if(cmd & 64) { MACRO_READ(fd, &f, 4) }  // Find F
-    if(cmd & 32) { MACRO_READ(fd, &x, 4) }  // Find X
-    if(cmd & 16) { MACRO_READ(fd, &y, 4) }  // Find Y
-    if(cmd & 8)  { MACRO_READ(fd, &z, 4) }  // Find Z
+    if(cmd & 32) {
+      MACRO_READ(fd, &x, 4)
+      if(std::abs(x) > fsm.max_x) illegal = 1;
+    }  // Find X
+    if(cmd & 16) {
+      MACRO_READ(fd, &y, 4)
+      if(std::abs(y) > fsm.max_y) illegal = 1;
+    }  // Find Y
+    if(cmd & 8)  {
+      MACRO_READ(fd, &z, 4)
+      if(std::abs(z) > fsm.max_z) illegal = 1;
+    }  // Find Z
 
       // Find E
     if(cmd & 4) {
@@ -62,7 +75,8 @@ int DeviceController::feed(int fd, command_cb_t callback, void* data) {
       e_counter++;
     }
 
-    if(e_counter > 1) return -3;  // ERRROR: Can not handle multi e
+    if(illegal > 0) return POSITION_ERROR;  // ERROR: Move to out of range
+    if(e_counter > 1) return MULTI_E_ERROR;  // ERRROR: Can not handle multi e
     if(e_counter == 1 && fsm.t != t) {
       fsm.t = t;
       snprintf(_proc_buf, 8, "T%i", fsm.t);
@@ -206,7 +220,7 @@ inline int DeviceController::G1(command_cb_t callback, void* data,
     fsm.traveled += length;
 
     tcost = length / f * 100;
-    section = (int)(tcost / 0.5);
+    section = (int)(tcost / 10000);
 
     for(int i=1;i<section;i++) {
       char* buf_offset = _proc_buf + 3;

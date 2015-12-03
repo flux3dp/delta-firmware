@@ -38,13 +38,6 @@ def create_logger(options):
             'backupCount': 9
         }
 
-    # if options.debug:
-    #     handlers['local_udp'] = {
-    #         'level': log_level,
-    #         'formatter': 'default',
-    #         'class': 'fluxmonitor.diagnosis.log_helpers.DatagramHandler',
-    #     }
-
     logging.config.dictConfig({
         'version': 1,
         'disable_existing_loggers': True,
@@ -126,6 +119,7 @@ def bind_signal(server, debug):
         watcher2 = server.loop.signal(signal.SIGINT, sigTerm)
         watcher2.start()
         return (watcher1, watcher2)
+
 
 def deamon_entry(options, service=None):
     pid_handler = None
@@ -217,12 +211,11 @@ def deamon_entry(options, service=None):
 
         server = init_service(service, options)
 
-
     def sigTerm(sig, frame):
         sys.stderr.write("\n")
         server.shutdown(log="Recive SIGTERM/SIGINT")
 
-    dummy = bind_signal(server, options.signal_debug)
+    dummy = bind_signal(server, options.signal_debug)  # NOQA
 
     try:
         if server.run() is False:

@@ -1,6 +1,5 @@
 
 from signal import SIGTERM, SIGKILL
-from errno import EAGAIN
 import fcntl
 import os
 
@@ -9,6 +8,7 @@ import psutil
 from fluxmonitor.storage import Storage
 
 _PIDFILE = None
+
 
 def pidfile():
     global _PIDFILE
