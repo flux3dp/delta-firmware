@@ -63,7 +63,6 @@ class ScanChecking(object):
         if self.find_board(img)[0]:
             result |= (1 << 0)
             result |= (1 << 1)
-            return 'chess board found'
         else:
             if not self.heuristic_guess(img):
                 result |= (1 << 0)
@@ -77,22 +76,22 @@ class ScanChecking(object):
         return True(should go ccw) or False(should go cw)
         where should the plate turn
         '''
-    if abs(p[0][0][0] - p[1][0][0]) > abs(p[0][0][1] - p[1][0][1]):
-        # 0-1-2-3
-        # 4-5-6-7
-        # 8-9-10-11
-        # 12-13-14-15
-        l_index = [0, 12]
-        r_index = [15, 3]
-    else:
-        # 12-8-4-0
-        # 13-9-5-1
-        # 14-10-6-2
-        # 15-11-7-3
-        l_index = [12, 0]
-        r_index = [15, 3]
-    # print(abs(p[l_index[0]][0][1] - p[l_index[1]][0][1]) - abs(p[r_index[0]][0][1] - p[r_index[1]][0][1]))
-    return abs(p[l_index[0]][0][1] - p[l_index[1]][0][1]) < abs(p[r_index[0]][0][1] - p[r_index[1]][0][1])
+        if abs(p[0][0][0] - p[1][0][0]) > abs(p[0][0][1] - p[1][0][1]):
+            # 0-1-2-3
+            # 4-5-6-7
+            # 8-9-10-11
+            # 12-13-14-15
+            l_index = [0, 12]
+            r_index = [15, 3]
+        else:
+            # 12-8-4-0
+            # 13-9-5-1
+            # 14-10-6-2
+            # 15-11-7-3
+            l_index = [12, 0]
+            r_index = [15, 3]
+        # print(abs(p[l_index[0]][0][1] - p[l_index[1]][0][1]) - abs(p[r_index[0]][0][1] - p[r_index[1]][0][1]))
+        return abs(p[l_index[0]][0][1] - p[l_index[1]][0][1]) < abs(p[r_index[0]][0][1] - p[r_index[1]][0][1])
 
     def find_red(img1, img2, mode='red'):
         '''
