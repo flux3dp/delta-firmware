@@ -109,6 +109,8 @@ class MainController(object):
             self.callback_msg_empty(self)
 
     def on_message(self, msg, executor):
+        if self._resend_counter > 0:
+            L.error("@ %s" % msg)
         if self.ready:
             if msg.startswith("LN "):
                 recv_ln, cmd_in_queue = (int(x) for x in msg.split(" ", 2)[1:])
@@ -221,11 +223,12 @@ class MainController(object):
         s = socket.socket(socket.AF_UNIX)
         self._flags &= ~FLAG_READY
         self._flags |= FLAG_CLOSED
-        try:
-            s.connect(uart_config["control"])
-            s.send(b"reset mb")
-        except Exception:
-            L.exception("Error while send resset mb signal")
+        # TODO
+        # try:
+        #     s.connect(uart_config["control"])
+        #     s.send(b"reset mb")
+        # except Exception:
+        #     L.exception("Error while send resset mb signal")
 
     def close(self, executor):
         if self.ready:
