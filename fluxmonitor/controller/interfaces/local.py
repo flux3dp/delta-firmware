@@ -115,6 +115,10 @@ class LocalConnectionHandler(object):
         return self.recv_watcher.loop.data
 
     @property
+    def address(self):
+        return self.sock.getsockname()[0]
+
+    @property
     def is_timeout(self):
         return T.time_since_update(self) > IDLE_TIMEOUT
 

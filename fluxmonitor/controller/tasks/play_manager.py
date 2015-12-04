@@ -62,6 +62,10 @@ class PlayerManager(object):
         self._sock = None
 
     @property
+    def label(self):
+        return "Playing"
+
+    @property
     def sock(self):
         try:
             if not self._sock:

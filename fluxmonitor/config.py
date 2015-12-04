@@ -46,7 +46,7 @@ MAINBOARD_RETRY_TTL = 10
 HEADBOARD_RETRY_TTL = 5
 
 HEADBOARD_ENDPOINT = "/tmp/.headboard"
-MAINBOARD_ENDPOING = "/tmp/.mainboard"
+MAINBOARD_ENDPOINT = "/tmp/.mainboard"
 
 CAMERA_ENDPOINT = "/tmp/.camera"
 

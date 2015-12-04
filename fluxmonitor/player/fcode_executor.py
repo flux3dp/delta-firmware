@@ -4,16 +4,16 @@ import logging
 
 from fluxmonitor.config import DEVICE_POSITION_LIMIT, MAINBOARD_RETRY_TTL
 from fluxmonitor.err_codes import UNKNOW_ERROR, EXEC_BAD_COMMAND
+from fluxmonitor.storage import Storage
 from .base import BaseExecutor, ST_STARTING, ST_WAITTING_HEADER  # NOQA
 from .base import ST_RUNNING, ST_PAUSING, ST_PAUSED, ST_RESUMING  # NOQA
 from .base import ST_ABORTING, ST_ABORTED, ST_COMPLETING, ST_COMPLETED  # NOQA
 from .base import ST_STARTING_PAUSED
-from .misc import TaskLoader
 from ._device_fsm import PyDeviceFSM
 from .macro import StartupMacro, CorrectionMacro, ZprobeMacro
 
 from .main_controller import MainController
-from .head_controller import get_head_controller, TYPE_3DPRINT
+from .head_controller import HeadController
 
 logger = logging.getLogger(__name__)
 
@@ -21,9 +21,41 @@ FLAG_WAITTING_HEADER = 1
 
 
 class Options(object):
-    def __init__(self, correction="H", play_bufsize=15):
-        self.correction = correction
-        self.play_bufsize = play_bufsize
+    correction = None
+    head_error_level = None
+    play_bufsize = None
+
+    def __init__(self, taskloader):
+        self.__load_from_taskfile__(taskloader)
+        self.__load_form_local__()
+
+    def __load_from_taskfile__(self, taskloader):
+        self.correction = taskloader.metadata.get("CORRECTION")
+        self.head_error_level = self.__parse_int__(
+            taskloader.metadata.get("HEAD_ERROR_LEVEL"), None)
+
+    def __load_form_local__(self):
+        self.play_bufsize = 15
+
+        storage = Storage("general", "meta")
+        if not self.correction:
+            self.correction = self.__ensure_value__(
+                storage.readall("auto_correction"), "H")
+
+        if not self.head_error_level:
+            self.head_error_level = self.__parse_int__(
+                storage.readall("head_error_level"), 256)
+
+    def __ensure_value__(self, val, default):
+        return val if val else default
+
+    def __parse_int__(self, val, default):
+        if val:
+            try:
+                return int(val, 10)
+            except Exception:
+                pass
+        return default
 
 
 class FcodeExecutor(BaseExecutor):
@@ -41,11 +73,11 @@ class FcodeExecutor(BaseExecutor):
     _cmd_queue = None
     macro = None
 
-    def __init__(self, mainboard_io, headboard_io, fileobj, **kw):
-        self._task_loader = TaskLoader(fileobj)
+    def __init__(self, mainboard_io, headboard_io, task_loader, options):
         super(FcodeExecutor, self).__init__(mainboard_io, headboard_io)
 
-        self.options = options = Options(**kw)
+        self._task_loader = task_loader
+        self.options = options
 
         self._padding_bufsize = max(options.play_bufsize * 2, 64)
 
@@ -55,9 +87,10 @@ class FcodeExecutor(BaseExecutor):
             retry_ttl=MAINBOARD_RETRY_TTL
         )
 
-        self.head_ctrl = get_head_controller(
-            head_type=TYPE_3DPRINT, executor=self,
-            ready_callback=self.on_controller_ready,
+        self.head_ctrl = HeadController(
+            executor=self, ready_callback=self.on_controller_ready,
+            required_module="EXTRUDER", 
+            error_level=self.options.head_error_level
         )
 
         self.main_ctrl.callback_msg_empty = self._on_mainboard_empty
@@ -204,9 +237,7 @@ class FcodeExecutor(BaseExecutor):
                             if not self.head_ctrl.is_busy:
                                 self.head_ctrl.send_cmd(cmd, self,
                                                         self._cb_head_ready)
-                            return
-                        else:
-                            return
+                        return
                     elif target == 128:
                         self.abort(self._cmd_queue[0][0])
 
