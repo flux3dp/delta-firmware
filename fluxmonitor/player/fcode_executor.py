@@ -10,7 +10,7 @@ from .base import ST_ABORTING, ST_ABORTED, ST_COMPLETING, ST_COMPLETED  # NOQA
 from .base import ST_STARTING_PAUSED
 from .misc import TaskLoader
 from ._device_fsm import PyDeviceFSM
-from .macro import StartupMacro, CorrectionMacro
+from .macro import StartupMacro, CorrectionMacro, ZprobeMacro
 
 from .main_controller import MainController
 from .head_controller import get_head_controller, TYPE_3DPRINT
@@ -18,6 +18,12 @@ from .head_controller import get_head_controller, TYPE_3DPRINT
 logger = logging.getLogger(__name__)
 
 FLAG_WAITTING_HEADER = 1
+
+
+class Options(object):
+    def __init__(self, correction="H", play_bufsize=15):
+        self.correction = correction
+        self.play_bufsize = play_bufsize
 
 
 class FcodeExecutor(BaseExecutor):
@@ -35,14 +41,16 @@ class FcodeExecutor(BaseExecutor):
     _cmd_queue = None
     macro = None
 
-    def __init__(self, mainboard_io, headboard_io, fileobj, play_bufsize=16):
+    def __init__(self, mainboard_io, headboard_io, fileobj, **kw):
         self._task_loader = TaskLoader(fileobj)
         super(FcodeExecutor, self).__init__(mainboard_io, headboard_io)
 
-        self._padding_bufsize = max(play_bufsize * 2, 64)
+        self.options = options = Options(**kw)
+
+        self._padding_bufsize = max(options.play_bufsize * 2, 64)
 
         self.main_ctrl = MainController(
-            executor=self, bufsize=play_bufsize,
+            executor=self, bufsize=options.play_bufsize,
             ready_callback=self.on_controller_ready,
             retry_ttl=MAINBOARD_RETRY_TTL
         )
@@ -90,15 +98,33 @@ class FcodeExecutor(BaseExecutor):
             self._fsm = PyDeviceFSM(max_x=DEVICE_POSITION_LIMIT[0],
                                     max_y=DEVICE_POSITION_LIMIT[1],
                                     max_z=DEVICE_POSITION_LIMIT[2])
-            self.macro = CorrectionMacro(self.on_macro_complete, 
+
+            if self.options.correction == "A":
+                logging.debug("Run macro: CorrectionMacro")
+                self.macro = CorrectionMacro(self.on_macro_complete,
+                                             self.on_macro_error)
+                self.macro.start(self)
+            elif self.options.correction == "H":
+                logging.debug("Run macro: ZprobeMacro")
+                self.macro = ZprobeMacro(self.on_macro_complete,
                                          self.on_macro_error)
-            self.macro.start(self)
+                self.macro.start(self)
+            else:
+                self.fire()
 
         elif isinstance(self.macro, CorrectionMacro):
             self.macro = None
+            self.macro = ZprobeMacro(self.on_macro_complete,
+                                     self.on_macro_error)
+            self.macro.start(self)
+        elif isinstance(self.macro, ZprobeMacro):
+            self.macro = None
             self.fire()
+
         else:
-            raise SystemError(UNKNOW_ERROR, "UNKNOW_MACRO")
+            logging.error("Unknow macro: %s", self.macro)
+            self.macro = None
+            self.fire()
 
     def on_macro_error(self, err_code):
         raise SystemError(err_code)

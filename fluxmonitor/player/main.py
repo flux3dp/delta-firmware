@@ -54,7 +54,7 @@ class Player(ServiceBase):
         self.head_watcher.start()
 
         taskfile = open(options.taskfile, "rb")
-        self.executor = FcodeExecutor(main_sock, head_sock, taskfile, 15)
+        self.executor = FcodeExecutor(main_sock, head_sock, taskfile)
 
         self.timer_watcher = self.loop.timer(0.8, 0.8, self.on_timer)
         self.timer_watcher.start()
