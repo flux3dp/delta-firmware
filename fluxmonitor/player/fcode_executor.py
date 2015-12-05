@@ -2,9 +2,8 @@
 from collections import deque
 import logging
 
-from fluxmonitor.config import DEVICE_POSITION_LIMIT, MAINBOARD_RETRY_TTL
+from fluxmonitor.config import MAINBOARD_RETRY_TTL
 from fluxmonitor.err_codes import UNKNOW_ERROR, EXEC_BAD_COMMAND
-from fluxmonitor.storage import Storage
 from .base import BaseExecutor, ST_STARTING, ST_WAITTING_HEADER  # NOQA
 from .base import ST_RUNNING, ST_PAUSING, ST_PAUSED, ST_RESUMING  # NOQA
 from .base import ST_ABORTING, ST_ABORTED, ST_COMPLETING, ST_COMPLETED  # NOQA
@@ -18,44 +17,6 @@ from .head_controller import HeadController
 logger = logging.getLogger(__name__)
 
 FLAG_WAITTING_HEADER = 1
-
-
-class Options(object):
-    correction = None
-    head_error_level = None
-    play_bufsize = None
-
-    def __init__(self, taskloader):
-        self.__load_from_taskfile__(taskloader)
-        self.__load_form_local__()
-
-    def __load_from_taskfile__(self, taskloader):
-        self.correction = taskloader.metadata.get("CORRECTION")
-        self.head_error_level = self.__parse_int__(
-            taskloader.metadata.get("HEAD_ERROR_LEVEL"), None)
-
-    def __load_form_local__(self):
-        self.play_bufsize = 15
-
-        storage = Storage("general", "meta")
-        if not self.correction:
-            self.correction = self.__ensure_value__(
-                storage.readall("auto_correction"), "H")
-
-        if not self.head_error_level:
-            self.head_error_level = self.__parse_int__(
-                storage.readall("head_error_level"), 256)
-
-    def __ensure_value__(self, val, default):
-        return val if val else default
-
-    def __parse_int__(self, val, default):
-        if val:
-            try:
-                return int(val, 10)
-            except Exception:
-                pass
-        return default
 
 
 class FcodeExecutor(BaseExecutor):
@@ -111,7 +72,7 @@ class FcodeExecutor(BaseExecutor):
         if self.main_ctrl.ready and self.head_ctrl.ready:
             if self.status_id == ST_STARTING:
                 self.macro = StartupMacro(self.on_macro_complete,
-                                          self.on_macro_error)
+                                          self.on_macro_error, self.options)
                 self.macro.start(self)
             elif self.status_id == ST_RESUMING:
                 if self._ctrl_flag & FLAG_WAITTING_HEADER:
@@ -128,9 +89,9 @@ class FcodeExecutor(BaseExecutor):
             self._cmd_queue = deque()
             self._ctrl_flag = 0
 
-            self._fsm = PyDeviceFSM(max_x=DEVICE_POSITION_LIMIT[0],
-                                    max_y=DEVICE_POSITION_LIMIT[1],
-                                    max_z=DEVICE_POSITION_LIMIT[2])
+            self._fsm = PyDeviceFSM(max_x=self.options.max_x, 
+                                    max_y=self.options.max_y,
+                                    max_z=self.options.max_z)
 
             if self.options.correction == "A":
                 logging.debug("Run macro: CorrectionMacro")

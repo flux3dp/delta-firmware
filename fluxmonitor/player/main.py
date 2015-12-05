@@ -13,7 +13,8 @@ from fluxmonitor.config import PLAY_ENDPOINT, HEADBOARD_ENDPOINT, \
 from fluxmonitor.storage import CommonMetadata as Metadata
 from fluxmonitor.services.base import ServiceBase
 
-from .fcode_executor import FcodeExecutor, Options
+from .fcode_executor import FcodeExecutor
+from .options import Options
 from .misc import TaskLoader
 
 

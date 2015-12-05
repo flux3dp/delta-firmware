@@ -1,9 +1,14 @@
 
 
 class StartupMacro(object):
-    def __init__(self, on_success_cb, on_error_cb):
+    filament_detect = True
+
+    def __init__(self, on_success_cb, on_error_cb, options=None):
         self._on_success_cb = on_success_cb
         self._on_error_cb = on_error_cb
+        
+        if options:
+            self.filament_detect = options.filament_detect == "Y"
 
     def start(self, executor):
         # Select extruder 0
@@ -16,6 +21,11 @@ class StartupMacro(object):
         executor.main_ctrl.send_cmd("G92E0", executor)
         # Home
         executor.main_ctrl.send_cmd("G28", executor)
+
+        if self.filament_detect:
+            executor.main_ctrl.send_cmd("X8O", executor)
+        else:
+            executor.main_ctrl.send_cmd("X8F", executor)
 
     def on_command_empty(self, executor):
         self._on_success_cb()

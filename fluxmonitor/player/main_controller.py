@@ -5,7 +5,7 @@ import logging
 import socket
 
 from fluxmonitor.err_codes import EXEC_OPERATION_ERROR, EXEC_INTERNAL_ERROR,\
-    EXEC_MAINBOARD_OFFLINE
+    EXEC_MAINBOARD_OFFLINE, EXEC_FILAMENT_RUNOUT
 from fluxmonitor.config import uart_config
 
 L = logging.getLogger(__name__)
@@ -141,6 +141,9 @@ class MainController(object):
                                              ttl_offset=ttl):
                     raise SystemError(EXEC_INTERNAL_ERROR,
                                       "IMPOSSIBLE_SYNC_LN")
+
+            elif msg.startswith("CTRL FILAMENTRUNOUT "):
+                raise RuntimeError(EXEC_FILAMENT_RUNOUT, msg.split(" ")[2])
 
             elif msg == "CTRL LINECHECK_DISABLED":
                 executor.send_mainboard(b"C1O\n")
