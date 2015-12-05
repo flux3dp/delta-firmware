@@ -117,7 +117,8 @@ class Robot(ServiceBase):
 
     def exclusive(self, component):
         if self.exclusive_component:
-            raise RuntimeError(RESOURCE_BUSY)
+            raise RuntimeError(RESOURCE_BUSY,
+                               self.exclusive_component.label)
         else:
             self.exclusive_component = component
 
