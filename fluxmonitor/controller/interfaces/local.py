@@ -116,7 +116,10 @@ class LocalConnectionHandler(object):
 
     @property
     def address(self):
-        return self.sock.getsockname()[0]
+        try:
+            return self.sock.getsockname()[0]
+        except OSError:
+            return "ZOMBIE"
 
     @property
     def is_timeout(self):
