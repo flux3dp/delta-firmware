@@ -43,8 +43,13 @@ class CameraInterface(object):
         self.sock.send(struct.pack("@BB", 2, 0))
         return self.recv_text()
 
-    def compute_cab(self):
-        self.sock.send(struct.pack("@BB", 3, 0))
+    def compute_cab(self, step):
+        if step == 'O':
+            self.sock.send(struct.pack("@BB", 3, 0))
+        elif step == 'L':
+            self.sock.send(struct.pack("@BB", 4, 0))
+        elif step == 'R':
+            self.sock.send(struct.pack("@BB", 5, 0))
         return self.recv_text()
 
     def recv_text(self):
@@ -166,10 +171,52 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
         handler.send_text(self.camera.check_camera_position())
 
     def calibrate(self, handler):
+        table = {8: 60, 7: 51, 6: 40, 5: 32, 4: 26, 3: 19, 2: 11, 1: 6, 0: 1}  # this is measure by data set
+        flag = 0
+        while True:
+            flag += 1
+            m = self.camera.get_bias()
+            w = float(m.split()[1])
+            logger.info('w = {}'.format(w))
+            thres = 0.2
+            if w == w:  # w is not nan
 
-        w = self.camera.get_bias()
+                if abs(w) < thres:
+                    calibrate_parameter = []
+                    for step, l, r in [("O", False, False), ("L", True, False), ("R", False, True)]:
+                        self.change_laser(left=l, right=r)
+                        sleep(0.5)
+                        m = self.camera.compute_cab(step)
+                        calibrate_parameter.append(m.split()[1])
 
-        handler.send_text(w)
+                    calibrate_parameter.pop(0)
+                    output = ' '.join(calibrate_parameter)
+                    logger.info(output)
+
+                    s = Storage('camera')
+                    with s.open('calibration', "w") as f:
+                        f.write(' '.join(map(lambda x: str(round(float(x))), calibrate_parameter)))
+
+                    # s.write(' '.join(calibrate_parameter))
+                    if all(float(r) < 72 for r in calibrate_parameter):  # so naive check
+                        break
+                    else:
+                        flag = 0
+                elif w < 0:
+                    self.make_gcode_cmd("G1 F500 E{}".format(table.get(round(abs(w)), 60)))
+                elif w > 0:
+                    self.make_gcode_cmd("G1 F500 E-{}".format(table.get(round(abs(w)), 60)))
+                record = table[round(abs(w))]
+                thres += 0.05
+            else:  # TODO: what about nan
+                pass
+            if flag >= 10:
+                break
+        self.change_laser(left=False, right=False)
+        if flag < 10:
+            handler.send_text('ok ' + output)
+        else:
+            handler.send_text('ok fail')
 
     def get_cab(self, handler):
         s = Storage('camera')

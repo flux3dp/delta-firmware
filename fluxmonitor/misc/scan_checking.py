@@ -20,14 +20,15 @@ class ScanChecking(object):
         if fast:
             flag = cv2.CALIB_CB_FAST_CHECK | cv2.cv.CV_CALIB_CB_ADAPTIVE_THRESH
         else:
-            flag = cv2.cv.CV_CALIB_CB_ADAPTIVE_THRESH
+            flag = cv2.cv.CV_CALIB_CB_ADAPTIVE_THRESH | cv2.cv.CV_CALIB_CB_NORMALIZE_IMAGE
         find, points = cv2.findChessboardCorners(img, cls.corner, flags=flag)
+
         if not find:
             return False, False
         else:
             if not fast:
-                criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
-                cv2.cornerSubPix(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), points, cls.corner, (-1, -1), criteria)
+                criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 1)
+                cv2.cornerSubPix(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), points, (10, 10), (1, 1), criteria)
             if abs(points[0][0][0] - points[1][0][0]) > abs(points[0][0][1] - points[1][0][1]):
                 # 0-1-2-3
                 # 4-5-6-7
@@ -56,12 +57,6 @@ class ScanChecking(object):
         rect = np.array([points[0][0], points[cls.corner[0] - 1][0], points[-1][0], points[-cls.corner[0]][0]])
         area = compute_area(rect)
         return area
-
-    @classmethod
-    def inhence(cls, points):
-        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
-        cv2.cornerSubPix(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), points, cls.corner, (-1, -1), criteria)
-        return points
 
     @classmethod
     def heuristic_guess(self, img):
@@ -104,13 +99,14 @@ class ScanChecking(object):
         # 12-13-14-15
         return abs(p[0][0][1] - p[12][0][1]) - abs(p[3][0][1] - p[15][0][1])
 
-    def find_red(img1, img2, mode='red'):
+    @classmethod
+    def find_red(cls, img1, img2, mode='red'):
         '''
         return the indices of maximum of each row in diff(img1, img2)
         can shoose maximun of red or lumin
-        (rot: red is better)
+        (rule of thumb: red is better)
         '''
-        thres = 50
+        thres = 30
         d = cv2.absdiff(img1, img2)
 
         if mode == 'red':
@@ -122,34 +118,61 @@ class ScanChecking(object):
             indices = np.argmax(d, axis=1)
 
         cnt = Counter()
-        for i in indices:
+        for i in indices[170:]:  # only consider lower part,
             cnt[i] += 1
-        p = []
+        p = 0
+        c = 0
         for i in cnt.most_common():
-            if i[1] >= 50:
-                p.append(i[0])
+            if i[1] >= thres:  # compute weighted arithmetic mean
+                c += i[1]
+                p += i[0] * i[1]
             else:
                 break
-        if p:
-            return round(sum(p) / len(p))
+        if p > 0:
+            return round(p / c)
         else:
-            return False
+            return cnt.most_common()[0][0]
 
 
 def get_matrix():
-    img = cv2.imread('../../../1113_b/038_O.jpg')
-    f, p = ScanChecking.find_board(img)
+    # print(cv2.CALIB_CB_FAST_CHECK, cv2.cv.CV_CALIB_CB_ADAPTIVE_THRESH, cv2.cv.CV_CALIB_CB_NORMALIZE_IMAGE)
+    img = cv2.imread('../../../tmp3.jpg')
+    # print(type(img))
+    print(type(img), img.shape)
+
+    vfunc = np.vectorize(lambda x: x if x < 50 else min(255, 2 * int(x)))
+    img = vfunc(img)
+    cv2.imwrite('contrast.jpg', img)
+    img = cv2.imread('contrast.jpg')
+    print(type(img), img.shape)
+    # f, p = ScanChecking.find_board(img, fast=False)
+    _ScanChecking = ScanChecking()
+    # f, p = _ScanChecking.find_board(img)
+    f, p = cv2.findChessboardCorners(img, (4, 4), 0)
+    # f, p = ScanChecking.find_board(img)
     if f:
         cv2.drawChessboardCorners(img, (4, 4), p, f)
+        #  img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         print([i[0][0] for i in p])
         print(sum(i[0][0] for i in p) / 16)
         # cv2.imshow('image', img)
         # cv2.waitKey(0)
         # cv2.destroyAllWindows()
+    else:
+        print('not found')
+        cv2.imshow('image', cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
 
-if __name__ == '__main__':
-    # get_matrix()
+def main():
+    a = cv2.imread('./tmp_O.jpg')
+    b = cv2.imread('./tmp_R4.jpg')
+
+    print(ScanChecking.find_red(a, b))
+    return
+    get_matrix()
+    return
     p = 0
     for i in range(0, 400):
         img_o = cv2.imread('../../../1113_b/{0:0>3}_O.jpg'.format(i))
@@ -162,4 +185,8 @@ if __name__ == '__main__':
         f, p = ScanChecking.find_board(img_o, fast=False)
         if f:
             print i,
-            ScanChecking.get_bias(p)
+            bias = ScanChecking.get_bias(p)
+            print bias
+
+if __name__ == '__main__':
+    main()
