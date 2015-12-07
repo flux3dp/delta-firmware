@@ -35,7 +35,7 @@ def get_access_id(pem=None, der=None, keyobj=None):
         keyobj = get_keyobj(pem=pem, der=der)
         if not keyobj:
             raise Exception("key error")
-    return sha1(keyobj.export_pubkey_pem()).hexdigest()
+    return sha1(keyobj.export_pubkey_der()).hexdigest()
 
 
 def is_trusted_remote(access_id=None, pem=None, der=None, keyobj=None):

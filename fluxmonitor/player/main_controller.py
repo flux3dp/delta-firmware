@@ -5,7 +5,7 @@ import logging
 import socket
 
 from fluxmonitor.err_codes import EXEC_OPERATION_ERROR, EXEC_INTERNAL_ERROR,\
-    EXEC_MAINBOARD_OFFLINE
+    EXEC_MAINBOARD_OFFLINE, EXEC_FILAMENT_RUNOUT
 from fluxmonitor.config import uart_config
 
 L = logging.getLogger(__name__)
@@ -109,6 +109,8 @@ class MainController(object):
             self.callback_msg_empty(self)
 
     def on_message(self, msg, executor):
+        if self._resend_counter > 0:
+            L.error("@ %s" % msg)
         if self.ready:
             if msg.startswith("LN "):
                 recv_ln, cmd_in_queue = (int(x) for x in msg.split(" ", 2)[1:])
@@ -140,14 +142,17 @@ class MainController(object):
                     raise SystemError(EXEC_INTERNAL_ERROR,
                                       "IMPOSSIBLE_SYNC_LN")
 
+            elif msg.startswith("CTRL FILAMENTRUNOUT "):
+                raise RuntimeError(EXEC_FILAMENT_RUNOUT, msg.split(" ")[2])
+
             elif msg == "CTRL LINECHECK_DISABLED":
                 executor.send_mainboard(b"C1O\n")
 
             elif msg == "CTRL STASH":
-                self.remove_complete_command()
+                pass
 
             elif msg == "CTRL STASH_POP":
-                self.remove_complete_command()
+                pass
 
             elif msg == "ok":
                 pass
@@ -221,11 +226,12 @@ class MainController(object):
         s = socket.socket(socket.AF_UNIX)
         self._flags &= ~FLAG_READY
         self._flags |= FLAG_CLOSED
-        try:
-            s.connect(uart_config["control"])
-            s.send(b"reset mb")
-        except Exception:
-            L.exception("Error while send resset mb signal")
+        # TODO
+        # try:
+        #     s.connect(uart_config["control"])
+        #     s.send(b"reset mb")
+        # except Exception:
+        #     L.exception("Error while send resset mb signal")
 
     def close(self, executor):
         if self.ready:

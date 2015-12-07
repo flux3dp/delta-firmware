@@ -7,9 +7,6 @@ from fluxmonitor.err_codes import EXEC_HEADER_OFFLINE, EXEC_OPERATION_ERROR, \
     EXEC_WRONG_HEADER, EXEC_HEADER_ERROR
 from fluxmonitor.config import HEADBOARD_RETRY_TTL
 
-TYPE_3DPRINT = 0
-TYPE_LASER = 1
-TYPE_PENHOLDER = 2
 
 L = logging.getLogger(__name__)
 
@@ -23,12 +20,7 @@ def create_chksum_cmd(fmt, *args):
     return "%s *%i\n" % (cmd, s)
 
 
-def get_head_controller(head_type, *args, **kw):
-    if head_type == TYPE_3DPRINT:
-        return ExtruderController(*args, **kw)
-
-
-class ExtruderController(object):
+class HeadController(object):
     _module = "NONE"
 
     # FSM
@@ -51,12 +43,12 @@ class ExtruderController(object):
     _wait_update = False
 
     _recover_queue = None
-    _required_module = False
-    _ignore_status_error = False
+    _required_module = None
+    _error_level = 256
 
     def __init__(self, executor, ready_callback, required_module=None,
-                 ignore_status_error=False):
-        self._ignore_status_error = ignore_status_error
+                 error_level=256):
+        self._error_level = error_level
         self._required_module = required_module
         self._temperatures = [float("NaN")]
         self._ready_callback = ready_callback
@@ -175,21 +167,24 @@ class ExtruderController(object):
                             module_info[sparam[0]] = sparam[1]
 
                     self._module = module_info.get("TYPE", "UNKNOW")
-                    if self.module == "EXTRUDER":
-                        self._cmd_sent_at = 0
-                        self._cmd_retry = 0
-                        self._padding_cmd = None
-                        self._cmd_callback = None
+                    if self._required_module:
+                        if self.module != self._required_module:
+                            self._raise_error(EXEC_WRONG_HEADER,
+                                              "GOT_%s" % self.module)
 
-                        if self._recover_queue:
-                            self._padding_cmd = self._recover_queue.pop(0)
-                            self._send_cmd(executor)
-                        else:
-                            self._ready = True
-                            if self._ready_callback:
-                                self._ready_callback(self)
+                    self._cmd_sent_at = 0
+                    self._cmd_retry = 0
+                    self._padding_cmd = None
+                    self._cmd_callback = None
+
+                    if self._recover_queue:
+                        self._padding_cmd = self._recover_queue.pop(0)
+                        self._send_cmd(executor)
                     else:
-                        self._raise_error(EXEC_WRONG_HEADER)
+                        self._ready = True
+                        if self._ready_callback:
+                            self._ready_callback(self)
+                    return
             else:
                 if self._parse_cmd_response(msg, executor):
                     if self._recover_queue:
@@ -199,6 +194,7 @@ class ExtruderController(object):
                         self._ready = True
                         if self._ready_callback:
                             self._ready_callback(self)
+                    return
 
         L.info("RECV_UH: '%s'", msg)
 
@@ -273,23 +269,22 @@ class ExtruderController(object):
                         self._raise_error(EXEC_HEADER_ERROR,
                                           "ER_ERROR")
 
-                if er > 0:
-                    if er & 4:
-                        self._raise_error(EXEC_HEADER_OFFLINE,
-                                          "HEAD_RESET")
-                    if not self._ignore_status_error:
-                        # if er & 8:
-                        #     self._raise_error("HEAD_ERROR",
-                        #                       "CALIBRATIING")
-                        if er & 16:
-                            self._raise_error(EXEC_HEADER_ERROR, "SHAKE")
-                        if er & 32:
-                            self._raise_error(EXEC_HEADER_ERROR, "TILT")
-                        if er & 64:
-                            self._raise_error(EXEC_HEADER_ERROR,
-                                              "PID_OUT_OF_CONTROL")
-                        if er & 128:
-                            self._raise_error(EXEC_HEADER_ERROR, "FAN_FAILURE")
+                if er == 0:
+                    pass
+                elif er & 4:
+                    self._raise_error(EXEC_HEADER_OFFLINE, "HEAD_RESET")
+                elif er <=  self._error_level:
+                    if er & 8:
+                        self._raise_error("HEAD_ERROR", "CALIBRATIING")
+                    if er & 16:
+                        self._raise_error(EXEC_HEADER_ERROR, "SHAKE")
+                    if er & 32:
+                        self._raise_error(EXEC_HEADER_ERROR, "TILT")
+                    if er & 64:
+                        self._raise_error(EXEC_HEADER_ERROR,
+                                          "PID_OUT_OF_CONTROL")
+                    if er & 128:
+                        self._raise_error(EXEC_HEADER_ERROR, "FAN_FAILURE")
 
         if self._padding_cmd:
             self._send_cmd(executor)

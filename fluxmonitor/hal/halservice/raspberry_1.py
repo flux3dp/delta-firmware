@@ -14,7 +14,7 @@ import pyev
 from fluxmonitor.halprofile import MODEL_G1
 from fluxmonitor.storage import Storage, CommonMetadata
 from fluxmonitor.config import LENGTH_OF_LONG_PRESS_TIME as LLPT, \
-    GAP_BETWEEN_DOUBLE_CLICK as GBDC
+    GAP_BETWEEN_DOUBLE_CLICK as GBDC, HEAD_POWER_TIMEOUT
 
 from .base import UartHalBase, BaseOnSerial
 
@@ -23,13 +23,13 @@ L = logging.getLogger("halservice.rasp")
 GPIO_TOGGLE = (GPIO.LOW, GPIO.HIGH)
 
 
-GPIO_HEAD_BOOT_MODE = 7
-GPIO_FRONT_BUTTON = 12
-GPIO_MAINBOARD_SIG = 3
-GPIO_ACTIVE_SIG = 5
-GPIO_HEAD_POW = 13
-GPIO_USB_SERIAL = 15
-GPIO_MAINBOARD = 16
+GPIO_HEAD_BOOT_MODE_PIN = 7
+GPIO_FRONT_BUTTON_PIN = 12
+GPIO_ALIVE_SIG_PIN = 3
+GPIO_ACTIVE_SIG_PIN = 5
+GPIO_USB_SERIAL_PIN = 15
+GPIO_HEAD_POW_PIN = 13
+GPIO_MAINBOARD_POW_PIN = 16
 
 GPIO_NOT_DEFINED = (22, 24, )
 
@@ -131,24 +131,26 @@ class FrontButtonMonitor(object):
 
 class GPIOControl(object):
     _last_mainboard_sig = GPIO_TOGGLE[0]
-    __usb_serial_gpio__ = USB_SERIAL_OFF
+    _usb_serial_stat = USB_SERIAL_OFF
+    _head_power_stat = HEAD_POWER_ON
+    _head_power_timer = 0
     head_enabled = True
 
     def init_gpio_control(self):
         GPIO.setmode(GPIO.BOARD)
         GPIO.setwarnings(False)
-        GPIO.setup(GPIO_HEAD_BOOT_MODE, GPIO.OUT, initial=GPIO.HIGH)
-        GPIO.setup(GPIO_MAINBOARD_SIG, GPIO.OUT, initial=GPIO_TOGGLE[0])
-        GPIO.setup(GPIO_ACTIVE_SIG, GPIO.OUT)
-        self._active_sig_pwm = GPIO.PWM(GPIO_ACTIVE_SIG, 10)
+        GPIO.setup(GPIO_HEAD_BOOT_MODE_PIN, GPIO.OUT, initial=GPIO.HIGH)
+        GPIO.setup(GPIO_ALIVE_SIG_PIN, GPIO.OUT, initial=GPIO_TOGGLE[0])
+        GPIO.setup(GPIO_ACTIVE_SIG_PIN, GPIO.OUT)
+        self._active_sig_pwm = GPIO.PWM(GPIO_ACTIVE_SIG_PIN, 10)
         self._active_sig_pwm.start(50)
 
         for pin in GPIO_NOT_DEFINED:
             GPIO.setup(pin, GPIO.IN)
 
-        GPIO.setup(GPIO_HEAD_POW, GPIO.OUT, initial=HEAD_POWER_ON)
-        GPIO.setup(GPIO_MAINBOARD, GPIO.OUT, initial=MAINBOARD_ON)
-        GPIO.setup(GPIO_USB_SERIAL, GPIO.OUT)
+        GPIO.setup(GPIO_HEAD_POW_PIN, GPIO.OUT, initial=HEAD_POWER_ON)
+        GPIO.setup(GPIO_MAINBOARD_POW_PIN, GPIO.OUT, initial=MAINBOARD_ON)
+        GPIO.setup(GPIO_USB_SERIAL_PIN, GPIO.OUT)
         L.debug("GPIO configured")
 
         self.update_ama0_routing()
@@ -181,7 +183,13 @@ class GPIOControl(object):
         self._active_sig_pwm.ChangeFrequency(freq)
 
         _1 = self._last_mainboard_sig = (self._last_mainboard_sig + 1) % 2
-        GPIO.output(GPIO_MAINBOARD_SIG, GPIO_TOGGLE[_1])
+        GPIO.output(GPIO_ALIVE_SIG_PIN, GPIO_TOGGLE[_1])
+
+        if not self.head_enabled and self._head_power_stat == HEAD_POWER_ON:
+            if time() - self._head_power_timer > HEAD_POWER_TIMEOUT:
+                L.debug("Head Power off")
+                self._head_power_stat = HEAD_POWER_OFF
+                GPIO.output(GPIO_HEAD_POW_PIN, HEAD_POWER_OFF)
 
     def __del__(self):
         L.debug("GPIO/PWM cleanup")
@@ -189,33 +197,44 @@ class GPIOControl(object):
 
     def reset_mainboard(self, watcher):
         self.mainboard_disconnect()
-        GPIO.output(GPIO_MAINBOARD, MAINBOARD_OFF)
+        GPIO.output(GPIO_MAINBOARD_POW_PIN, MAINBOARD_OFF)
         sleep(0.3)
-        GPIO.output(GPIO_MAINBOARD, MAINBOARD_ON)
+        GPIO.output(GPIO_MAINBOARD_POW_PIN, MAINBOARD_ON)
         sleep(1.5)
         self.mainboard_connect(watcher.loop)
+        self._init_mainboard_status()
 
     def update_ama0_routing(self):
         if len(self.headboard_watchers) > 0:
-            if self.__usb_serial_gpio__ == USB_SERIAL_ON:
+            if self._usb_serial_stat == USB_SERIAL_ON:
                 L.debug("Headboard ON / USB OFF")
                 self.head_enabled = True
-                self.__usb_serial_gpio__ = USB_SERIAL_OFF
-                GPIO.output(GPIO_USB_SERIAL, self.__usb_serial_gpio__)
+                self._usb_serial_stat = USB_SERIAL_OFF
+                GPIO.output(GPIO_USB_SERIAL_PIN, self._usb_serial_stat)
         else:
-            if self.__usb_serial_gpio__ == USB_SERIAL_OFF:
+            if self._usb_serial_stat == USB_SERIAL_OFF:
                 L.debug("Headboard OFF / USB ON")
                 self.head_enabled = False
-                self.__usb_serial_gpio__ = USB_SERIAL_ON
-                GPIO.output(GPIO_USB_SERIAL, self.__usb_serial_gpio__)
+                self._usb_serial_stat = USB_SERIAL_ON
+                GPIO.output(GPIO_USB_SERIAL_PIN, self._usb_serial_stat)
+
+        if self.head_enabled:
+            if self._head_power_stat == HEAD_POWER_OFF:
+                L.debug("Head Power on")
+                GPIO.output(GPIO_HEAD_POW_PIN, HEAD_POWER_ON)
+                self._head_power_stat = HEAD_POWER_ON
+        else:
+            if self._head_power_stat == HEAD_POWER_ON:
+                L.debug("Head Power delay off")
+                self._head_power_timer = time()
 
     def update_fw(self, watcher):
         L.debug("Update mainboard fireware")
         self.mainboard_disconnect()
 
-        GPIO.output(GPIO_MAINBOARD, MAINBOARD_OFF)
+        GPIO.output(GPIO_MAINBOARD_POW_PIN, MAINBOARD_OFF)
         sleep(0.5)
-        GPIO.output(GPIO_MAINBOARD, MAINBOARD_ON)
+        GPIO.output(GPIO_MAINBOARD_POW_PIN, MAINBOARD_ON)
         sleep(1.0)
 
         storage = Storage("update_fw")
@@ -241,9 +260,9 @@ class GPIOControl(object):
 
             os.rename(fw_path, fw_path + ".updated")
 
-            GPIO.output(GPIO_MAINBOARD, MAINBOARD_OFF)
+            GPIO.output(GPIO_MAINBOARD_POW_PIN, MAINBOARD_OFF)
             sleep(0.5)
-            GPIO.output(GPIO_MAINBOARD, MAINBOARD_ON)
+            GPIO.output(GPIO_MAINBOARD_POW_PIN, MAINBOARD_ON)
             sleep(1.0)
 
             self.mainboard_connect(watcher.loop)

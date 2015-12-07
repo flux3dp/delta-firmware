@@ -28,7 +28,7 @@ class CommandMixIn(object):
                     handler.send_text(response)
 
         except RuntimeError as e:
-            handler.send_text(("error %s" % e.args[0]).encode())
+            handler.send_text(("error " + " ".join(e.args)).encode())
         except Exception as e:
             if DEBUG:
                 handler.send_text("error %s %s" % (UNKNOW_ERROR, e))
@@ -55,6 +55,10 @@ class DeviceOperationMixIn(object):
         self.stack = stack
         self.handler = handler
         self._connect(enable_watcher)
+
+    @property
+    def label(self):
+        return "%s@%s" % (self.handler.address, self.__class__.__name__)
 
     def on_exit(self, handler):
         kernel = self.stack.loop.data

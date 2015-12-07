@@ -8,11 +8,15 @@ import re
 
 import pyev
 
-from .fcode_executor import FcodeExecutor
 from fluxmonitor.config import PLAY_ENDPOINT, HEADBOARD_ENDPOINT, \
-    MAINBOARD_ENDPOING
+    MAINBOARD_ENDPOINT
 from fluxmonitor.storage import CommonMetadata as Metadata
 from fluxmonitor.services.base import ServiceBase
+
+from .fcode_executor import FcodeExecutor
+from .options import Options
+from .misc import TaskLoader
+
 
 logger = logging.getLogger("")
 
@@ -31,6 +35,9 @@ class Player(ServiceBase):
         if os.path.exists(PLAY_ENDPOINT):
             os.unlink(PLAY_ENDPOINT)
 
+        taskfile = open(options.taskfile, "rb")
+        taskloader = TaskLoader(taskfile)
+
         self.meta = Metadata()
 
         cmd_sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
@@ -41,7 +48,7 @@ class Player(ServiceBase):
         self.cmd_watcher.start()
 
         main_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        main_sock.connect(MAINBOARD_ENDPOING)
+        main_sock.connect(MAINBOARD_ENDPOINT)
 
         head_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         head_sock.connect(HEADBOARD_ENDPOINT)
@@ -53,8 +60,9 @@ class Player(ServiceBase):
                                          self.on_headboard_message, head_sock)
         self.head_watcher.start()
 
-        taskfile = open(options.taskfile, "rb")
-        self.executor = FcodeExecutor(main_sock, head_sock, taskfile, 16)
+        options = Options(taskloader)
+        self.executor = FcodeExecutor(main_sock, head_sock, taskloader,
+                                      options)
 
         self.timer_watcher = self.loop.timer(0.8, 0.8, self.on_timer)
         self.timer_watcher.start()
