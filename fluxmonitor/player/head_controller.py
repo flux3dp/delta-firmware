@@ -25,13 +25,10 @@ class HeadController(object):
 
     # FSM
     # (use this data to recover status if headbored reconnected)
-    # _fanspeed = 0
-    # _temperatures = None
 
     # On-the-fly status
     _ready = False
     _ready_callback = None
-    # _current_temp = None
 
     _cmd_sent_at = 0
     _cmd_retry = 0
@@ -50,11 +47,9 @@ class HeadController(object):
                  error_level=256):
         self._error_level = error_level
         self._required_module = required_module
-        # self._temperatures = [float("NaN")]
         self._ready_callback = ready_callback
 
         # On-the-fly status
-        # self._current_temp = [float("NaN")]
         if required_module == "EXTRUDER":
             self._plugin = ExtruderPlugin()
 
@@ -112,32 +107,6 @@ class HeadController(object):
         self._ready = True
         if self._ready_callback:
             self._ready_callback(self)
-
-    # def set_heater(self, executor, heater_id, temperature, callback=None):
-    #     if self._padding_cmd:
-    #         self._raise_error(EXEC_OPERATION_ERROR,
-    #                           "Busy: %s" % self._padding_cmd)
-    #
-    #     if temperature < 5:
-    #         raise RuntimeError(EXEC_OPERATION_ERROR, "BAD TEMP")
-    #     elif temperature > 280:
-    #         raise SystemError(EXEC_OPERATION_ERROR, "BAD TEMP")
-    #
-    #     self._temperatures[0] = temperature
-    #     self._padding_cmd = create_chksum_cmd("1 H:%i T:%.1f", heater_id,
-    #                                           temperature)
-    #     self._cmd_callback = callback
-    #     self._send_cmd(executor)
-    #
-    # def set_fanspeed(self, executor, fan_id, fan_speed, callback=None):
-    #     if self._padding_cmd:
-    #         self._raise_error(EXEC_OPERATION_ERROR,
-    #                           "Busy: %s" % self._padding_cmd)
-    #
-    #     self._fanspeed = f = max(min(1.0, fan_speed), 0)
-    #     self._padding_cmd = create_chksum_cmd("1 F:%i S:%i", fan_id, f * 255)
-    #     self._send_cmd(executor)
-    #     self._cmd_callback = callback
 
     def wait_allset(self, callback):
         self._allset_callback = callback
@@ -356,17 +325,10 @@ class ExtruderPlugin(object):
 
         self._temperatures[0] = temperature
         return create_chksum_cmd("1 H:%i T:%.1f", heater_id, temperature)
-        # self._padding_cmd = create_chksum_cmd("1 H:%i T:%.1f", heater_id,
-        #                                       temperature)
-        # self._cmd_callback = callback
-        # self._send_cmd(executor)
 
     def set_fanspeed(self, executor, fan_id, fan_speed, callback=None):
         self._fanspeed = f = max(min(1.0, fan_speed), 0)
         return create_chksum_cmd("1 F:%i S:%i", fan_id, f * 255)
-        # self._padding_cmd = create_chksum_cmd("1 F:%i S:%i", fan_id, f * 255)
-        # self._send_cmd(executor)
-        # self._cmd_callback = callback
 
     def update_status(self, key, value):
         if key == "RT":

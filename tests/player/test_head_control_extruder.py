@@ -31,7 +31,6 @@ class ExtruderHeadControlTest(ControlTestBase):
         with self.assertSendHeadboard(b"1 H:0 T:200.0 *17\n") as executor:
             self.ec.send_cmd("H200", executor,
                              complete_callback=self.raiseException)
-            # self.ec.set_heater(executor, 0, 200, callback=self.raiseException)
 
         with self.assertSendHeadboard() as executor:
             self.assertRaises(UnittestError, self.ec.on_message,
@@ -41,7 +40,6 @@ class ExtruderHeadControlTest(ControlTestBase):
         with self.assertSendHeadboard(b"1 H:0 T:201.0 *16\n") as executor:
             self.ec.send_cmd("H201", executor,
                              complete_callback=self.raiseException)
-            # self.ec.set_heater(executor, 0, 201, self.raiseException)
 
         with self.assertSendHeadboard() as executor:
             self.ec.on_message("DARA", executor)
