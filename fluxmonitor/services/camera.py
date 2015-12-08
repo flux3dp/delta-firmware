@@ -8,6 +8,7 @@ import os
 
 try:
     import cv2
+    import numpy as np
     from fluxmonitor.misc.scan_checking import ScanChecking
 except ImportError:
     cv2 = None
@@ -92,65 +93,54 @@ class CameraService(ServiceBase):
             logger.exception("Unhandle error")
             self.on_internal_disconnected(watcher)
 
-    def shake_check(self, camera):
+    def get_bias(self, handler, camera):
         img = camera.fetch()
-        if ScanChecking.find_board(img)[0]:
-            base_a = [ScanChecking.chess_area(img)]
-
-        for step_l in [0.9, -0.9]:
-            i = 0
-            now = 0
-            while True:  # try this way
-                ret = self.make_gcode_cmd("G1 F500 E%.5f" % (step_l))
-                if ret == 'ok':
-                    now += step_l
-                    sleep(1)
-                else:
-                    logger.debug(ret)
-                    continue
-
-                img = self.get_img()
-                if ScanChecking.find_board(img)[0]:
-                    i += 1
-                else:
-                    pass
-                a = ScanChecking.chess_area(img)
-                base_a.append(a)
-                logger.info('shake %f' % a)
-
-                if i == 1:
-                    break
-            ret = self.make_gcode_cmd("G1 F500 E%.5f" % (-now))
-
-        if base_a[0] < base_a[1] and base_a[0] > base_a[2]:
-            return True  # keep going
-        elif base_a[0] < base_a[1] and base_a[0] > base_a[2]:
-            return False
-
-    def do_calib(self, handler, camera):
-        _ScanChecking = ScanChecking()
-        init_find = False
-        tmp_cout = 4
-        while tmp_cout:
-            img = camera.fetch()
-            init_find = _ScanChecking.find_board(img)[0]
-            handler.send_text("ER BOARD_NOT_FIND")
-            if init_find:
-                break
-            else:
-                ret = self.make_gcode_cmd("G1 F500 E%.5f" % (90))
-                sleep(1)
-            tmp_cout -= 1
-        if tmp_cout == 0:
-            logger.info('fail')
-            # handler.send_text('fail')
+        # flag, points = ScanChecking.find_board(img, fast=False)
+        flag, points = ScanChecking.find_board(img)
+        cv2.imwrite('tmp1.jpg', img)
+        if flag:
+            ################################
+            tmp = np.copy(camera.img_buf)
+            cv2.drawChessboardCorners(tmp, ScanChecking.corner, points, flag)
+            cv2.imwrite('tmp.jpg', tmp)
+            ################################
+        if flag:
+            m = 'ok {}'.format(ScanChecking.get_bias(points))
         else:
-            logger.info('find init')
-            # handler.send_text('ok')
-        sub_step = 100
-        logger.info(self.shake_check(camera))
+            m = 'ok nan'
+        handler.send_text(m)
 
-        handler.send_text('yeah')
+    def compute_cab(self, handler, camera, cmd):
+        if cmd == 3:
+            # no need to take photo again, just retrieve the img buffer
+            self.img_o = np.copy(camera.img_buf)
+            _, points = ScanChecking.find_board(self.img_o)
+            self.s = 0
+
+            for i in xrange(16):
+                self.s += points[i][0][0]
+            self.s /= 16
+            self.s -= 2  # chess board printing is broken!
+            logger.info('find calibrat board center ' + str(self.s))
+            cv2.imwrite('tmp_O.jpg', self.img_o)
+            handler.send_text('ok done')
+        else:
+            img_r = camera.fetch()
+
+            result = ScanChecking.find_red(self.img_o, img_r)
+            ################################
+            for h in xrange(img_r.shape[0]):
+                img_r[h][result][0] = 255
+                img_r[h][result][1] = 255
+                img_r[h][result][2] = 255
+            cv2.imwrite('tmp_R{}.jpg'.format(cmd), img_r)
+            ################################
+            result -= self.s
+            if cmd == 5:
+                del self.img_o
+                del self.s
+
+            handler.send_text('ok {}'.format(result))
 
     def handle_command(self, watcher, cmd_id, camera_id):
         camera = self.cameras[camera_id]
@@ -163,7 +153,9 @@ class CameraService(ServiceBase):
             img = camera.fetch()
             watcher.data.send_text("ok " + sc.check(img))
         elif cmd_id == 2:
-            self.do_calib(watcher.data, camera)
+            self.get_bias(watcher.data, camera)
+        elif cmd_id >= 3 and cmd_id <= 5:
+            self.compute_cab(watcher.data, camera, cmd_id)
         else:
             raise CameraProtocolError("Unknow command")
 
