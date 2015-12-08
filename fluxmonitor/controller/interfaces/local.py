@@ -118,7 +118,7 @@ class LocalConnectionHandler(object):
     def address(self):
         try:
             return self.sock.getsockname()[0]
-        except OSError:
+        except (OSError, socket.error):
             return "ZOMBIE"
 
     @property
