@@ -139,7 +139,7 @@ class GPIOControl(object):
     def init_gpio_control(self):
         GPIO.setmode(GPIO.BOARD)
         GPIO.setwarnings(False)
-        GPIO.setup(GPIO_HEAD_BOOT_MODE_PIN, GPIO.OUT, initial=GPIO.HIGH)
+        GPIO.setup(GPIO_HEAD_BOOT_MODE_PIN, GPIO.OUT, initial=GPIO.LOW)
         GPIO.setup(GPIO_ALIVE_SIG_PIN, GPIO.OUT, initial=GPIO_TOGGLE[0])
         GPIO.setup(GPIO_ACTIVE_SIG_PIN, GPIO.OUT)
         self._active_sig_pwm = GPIO.PWM(GPIO_ACTIVE_SIG_PIN, 10)
