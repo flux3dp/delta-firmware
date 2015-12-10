@@ -2,7 +2,6 @@
 from multiprocessing import Process
 from time import time, sleep
 import logging
-import struct
 import signal
 import os
 
@@ -26,7 +25,7 @@ GPIO_TOGGLE = (GPIO.LOW, GPIO.HIGH)
 GPIO_HEAD_BOOT_MODE_PIN = 7
 GPIO_FRONT_BUTTON_PIN = 12
 GPIO_ALIVE_SIG_PIN = 3
-GPIO_ACTIVE_SIG_PIN = 5
+GPIO_WIFI_ST_PIN = 5
 GPIO_USB_SERIAL_PIN = 15
 GPIO_HEAD_POW_PIN = 13
 GPIO_MAINBOARD_POW_PIN = 16
@@ -141,9 +140,7 @@ class GPIOControl(object):
         GPIO.setwarnings(False)
         GPIO.setup(GPIO_HEAD_BOOT_MODE_PIN, GPIO.OUT, initial=GPIO.LOW)
         GPIO.setup(GPIO_ALIVE_SIG_PIN, GPIO.OUT, initial=GPIO_TOGGLE[0])
-        GPIO.setup(GPIO_ACTIVE_SIG_PIN, GPIO.OUT)
-        self._active_sig_pwm = GPIO.PWM(GPIO_ACTIVE_SIG_PIN, 10)
-        self._active_sig_pwm.start(50)
+        GPIO.setup(GPIO_WIFI_ST_PIN, GPIO.OUT, initial=GPIO.HIGH)
 
         for pin in GPIO_NOT_DEFINED:
             GPIO.setup(pin, GPIO.IN)
@@ -156,34 +153,18 @@ class GPIOControl(object):
         self.update_ama0_routing()
 
     def proc_sig(self):
-        wifi_flag = self.sm.wifi_status
-        freq = 0
-
-        if wifi_flag & 128 > 0:
-            freq = 500
-
-        elif wifi_flag & 64 > 0:
-            freq = 60
-
-        stbuf = self.sm.device_status
-        st_ts, st_id = struct.unpack("di", stbuf[:12])
-
-        if time() - st_ts > 5:
-            freq += 10
-        else:
-            # TODO
-            if st_id == 48 or st_id == 50:
-                if stbuf[32:46] == "USER_OPERATION":
-                    freq += 20
-                else:
-                    freq += 50
-
-        logging.debug("LED (ts=%.2f, wifi=%i, st=%i) %i", st_ts, wifi_flag,
-                      st_id, freq)
-        self._active_sig_pwm.ChangeFrequency(freq)
-
         _1 = self._last_mainboard_sig = (self._last_mainboard_sig + 1) % 2
         GPIO.output(GPIO_ALIVE_SIG_PIN, GPIO_TOGGLE[_1])
+        L.error("GPIO_ALIVE_SIG_PIN: %s", GPIO_TOGGLE[_1])
+
+        wifi_flag = self.sm.wifi_status
+
+        if wifi_flag & 64 > 0:
+            GPIO.output(GPIO_WIFI_ST_PIN, GPIO.HIGH)
+            L.error("GPIO_WIFI_ST_PIN: %s", GPIO.HIGH)
+        else:
+            GPIO.output(GPIO_WIFI_ST_PIN, GPIO_TOGGLE[_1])
+            L.error("GPIO_WIFI_ST_PIN: %s", GPIO_TOGGLE[_1])
 
         if not self.head_enabled and self._head_power_stat == HEAD_POWER_ON:
             if time() - self._head_power_timer > HEAD_POWER_TIMEOUT:
