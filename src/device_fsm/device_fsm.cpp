@@ -27,6 +27,11 @@ DeviceController::DeviceController(float _x, float _y, float _z, float e1,
   fsm.x = _x; fsm.y = _y; fsm.z = _z;
   fsm.e[0] = e1; fsm.e[1] = e2; fsm.e[2] = e3;
   fsm.f = _f; fsm.t = _t;
+  max_exec_time = 1;
+}
+
+void DeviceController::set_max_exec_time(double t) {
+  max_exec_time = t;
 }
 
 int DeviceController::feed(int fd, command_cb_t callback, void* data) {
@@ -220,7 +225,7 @@ inline int DeviceController::G1(command_cb_t callback, void* data,
     fsm.traveled += length;
 
     tcost = length / f * 100;
-    section = (int)(tcost / 10000);
+    section = (int)(tcost / max_exec_time);
 
     for(int i=1;i<section;i++) {
       char* buf_offset = _proc_buf + 3;

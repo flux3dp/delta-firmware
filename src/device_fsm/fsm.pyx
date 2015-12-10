@@ -17,6 +17,7 @@ cdef extern from "device_fsm.h":
     DeviceController()
     DeviceFSM fsm
     int feed(int, command_cb_t, void*)
+    void set_max_exec_time(double)
 
 
 cdef void pycallback(const char* wow, int target, void* data):
@@ -48,6 +49,9 @@ cdef class PyDeviceFSM:
 
   def __dealloc__(self):
     del self.ptr
+
+  cpdef set_max_exec_time(self, double t):
+    self.ptr.set_max_exec_time(t)
 
   cpdef int feed(self, int fd, callback):
     return self.ptr.feed(fd, pycallback, <void*>callback)

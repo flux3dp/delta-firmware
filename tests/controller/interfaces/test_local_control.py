@@ -5,7 +5,7 @@ import logging
 import struct
 import socket
 
-from fluxmonitor.controller.interfaces.local import LocalConnectionAsyncIO
+from fluxmonitor.controller.interfaces.local import LocalConnectionHandler
 from fluxmonitor.misc.async_signal import AsyncIO
 from fluxmonitor.event_base import EventBase
 from fluxmonitor import security as S
@@ -29,7 +29,7 @@ class LocalControlTest(unittest.TestCase):
     def test_on_handshake_identify(self):
         lc_sock, client_sock = socket.socketpair()
 
-        lc_io = LocalConnectionAsyncIO((lc_sock, ("192.168.1.2", 12345)),
+        lc_io = LocalConnectionHandler((lc_sock, ("192.168.1.2", 12345)),
                                         EventBase(), logging.getLogger())
 
         recvbuf = client_sock.recv(8 + PRIVATE_KEY.size() + 128)

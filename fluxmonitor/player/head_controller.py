@@ -4,7 +4,8 @@ from time import time
 import logging
 
 from fluxmonitor.err_codes import EXEC_HEAD_OFFLINE, EXEC_OPERATION_ERROR, \
-    EXEC_WRONG_HEAD, EXEC_HEAD_ERROR, EXEC_NEED_REMOVE_HEAD
+    EXEC_WRONG_HEAD, EXEC_HEAD_ERROR, EXEC_NEED_REMOVE_HEAD, \
+    EXEC_UNKNOW_REQUIRED_HEAD_TYPE
 from fluxmonitor.config import HEADBOARD_RETRY_TTL
 
 
@@ -21,10 +22,7 @@ def create_chksum_cmd(fmt, *args):
 
 
 class HeadController(object):
-    _module = "NONE"
-
-    # FSM
-    # (use this data to recover status if headbored reconnected)
+    _module = "N/A"
 
     # On-the-fly status
     _ready = False
@@ -49,15 +47,14 @@ class HeadController(object):
         self._required_module = required_module
         self._ready_callback = ready_callback
 
-        # TODO: will cause None issue
         if required_module == "EXTRUDER":
-            self._plugin = ExtruderPlugin()
+            self._ext = ExtruderExt()
         elif required_module == "LASER":
-            self._plugin = LaserPlugin()
+            self._ext = LaserExt()
         elif required_module == "N/A":
-            self._plugin = NAPlugin()
+            self._ext = NAExt()
         else:
-            pass
+            raise SystemError(EXEC_UNKNOW_REQUIRED_HEAD_TYPE, required_module)
 
         self.bootstrap(executor)
 
@@ -73,7 +70,7 @@ class HeadController(object):
         self._update_retry = 0
         self._wait_update = False
 
-        queue = ["1 HELLO *115\n"] + self._plugin.bootstrap_commands()
+        queue = ["1 HELLO *115\n"] + self._ext.bootstrap_commands()
         self._recover_queue = queue
         self._padding_cmd = queue.pop(0)
         self._send_cmd(executor)
@@ -91,23 +88,28 @@ class HeadController(object):
         return self._module
 
     def status(self):
-        return self._plugin.status()
+        if self._ready:
+            return self._ext.status()
+        else:
+            return {"module": "N/A"}
 
     def _on_head_hello(self, msg):
-        module_info = {}
-        for param in shlex_split(msg):
-            sparam = param.split(":", 1)
-            if len(sparam) == 2:
-                module_info[sparam[0]] = sparam[1]
+        try:
+            module_info = {}
+            for param in shlex_split(msg):
+                sparam = param.split(":", 1)
+                if len(sparam) == 2:
+                    module_info[sparam[0]] = sparam[1]
+            self._ext.hello(**module_info)
+        except Exception:
+            self._ready = False
+            raise
 
-        self._module = module_info.get("TYPE", "UNKNOW")
-        if self._required_module:
-            if self.module != self._required_module:
-                self._raise_error(EXEC_WRONG_HEAD,
-                                  "GOT_%s" % self.module)
+    def _on_head_offline(self, minor=None):
+        if minor:
+            self._raise_error(EXEC_HEAD_OFFLINE, minor)
         else:
-            self._raise_error(EXEC_NEED_REMOVE_HEAD,
-                              "GOT_%s" % self.module)
+            self._raise_error(EXEC_HEAD_OFFLINE)
 
     def _on_ready(self):
         self._ready = True
@@ -144,7 +146,7 @@ class HeadController(object):
                     self._send_cmd(executor)
             elif self._parse_cmd_response(msg, executor):
                 pass
-            elif self._plugin.on_message(msg):
+            elif self._ext.on_message(msg):
                 pass
             else:
                 L.info("RECV_UH: '%s'", msg)
@@ -174,17 +176,12 @@ class HeadController(object):
             self._raise_error(EXEC_OPERATION_ERROR,
                               "BUSY: %s" % self._padding_cmd)
 
-        if cmd.startswith("H"):
-            target_temp = float(cmd[1:])
-            self._padding_cmd = self._plugin.set_heater(executor, 0,
-                                                        target_temp)
+        padding_cmd = self._ext.generate_command(cmd)
+        if padding_cmd:
+            self._padding_cmd = padding_cmd
             self._send_cmd(executor)
             self._cmd_callback = complete_callback
             self.wait_allset(allset_callback)
-        elif cmd.startswith("F"):
-            target_speed = float(cmd[1:])
-            self.set_fanspeed(executor, 0, target_speed)
-            self.wait_allset(waitting_callback)
         else:
             logger.error("Got unknow command: %s", cmd)
             raise SystemError("UNKNOW_COMMAND", "HEAD_MESSAGE")
@@ -255,8 +252,8 @@ class HeadController(object):
                         self._raise_error(EXEC_HEAD_ERROR, "FAN_FAILURE")
 
             else:
-                self._plugin.update_status(*status)
-                if self._allset_callback and self._plugin.all_set():
+                self._ext.update_status(*status)
+                if self._allset_callback and self._ext.all_set():
                     try:
                         self._allset_callback(self)
                     finally:
@@ -273,7 +270,7 @@ class HeadController(object):
 
         if self._wait_update:
             if self._update_retry > 2 and strict:
-                self._head_offline()
+                self._on_head_offline()
             if time() - self._lastupdate > 1.5:
                 self._handle_ping(executor)
                 self._update_retry += 1 if strict else 0
@@ -281,7 +278,7 @@ class HeadController(object):
 
         if self._padding_cmd:
             if self._cmd_retry > 2 and strict:
-                self._head_offline()
+                self._on_head_offline()
             elif time() - self._cmd_sent_at > 1.0:
                 self._send_cmd(executor)
                 self._cmd_retry += 1
@@ -291,15 +288,37 @@ class HeadController(object):
             if not self._padding_cmd:
                 self._handle_ping(executor)
 
-    def _head_offline(self):
-        self._raise_error(EXEC_HEAD_OFFLINE)
-
     def _raise_error(self, *args):
         self._ready = False
         raise RuntimeError(*args)
 
 
-class ExtruderPlugin(object):
+class BaseExt(object):
+    def __init__(self, **spec):
+        self.spec = spec
+
+    def bootstrap_commands(self):
+        return []
+
+    def hello(self, **kw):
+        self.id = kw.get("ID")
+        self.vendor = kw.get("VENDOR")
+        self.version = kw.get("VERSION")
+
+    def generate_command(self, cmd):
+        pass
+
+    def update_status(self, key, value):
+        pass
+
+    def on_message(self, message):
+        return False
+
+    def all_set(self):
+        return True
+
+
+class ExtruderExt(BaseExt):
     _fanspeed = None
     _temperatures = None
     _current_temp = None
@@ -308,6 +327,12 @@ class ExtruderPlugin(object):
         self._fanspeed = [0]
         self._temperatures = [float("NaN")]
         self._current_temp = [float("NaN")]
+
+    def hello(self, **kw):
+        m = kw.get("TYPE", "UNKNOW")
+        if m != "EXTRUDER":
+            raise RuntimeError(EXEC_WRONG_HEAD, "GOT_%s" % m)
+        super(ExtruderExt, self).hello(**kw)
 
     def bootstrap_commands(self):
         cmds = []
@@ -327,7 +352,7 @@ class ExtruderPlugin(object):
             "tf": (self._fanspeed[0], )
         }
 
-    def set_heater(self, executor, heater_id, temperature, callback=None):
+    def set_heater(self, heater_id, temperature):
         if temperature < 5:
             raise RuntimeError(EXEC_OPERATION_ERROR, "BAD TEMP")
         elif temperature > 280:
@@ -336,9 +361,19 @@ class ExtruderPlugin(object):
         self._temperatures[0] = temperature
         return create_chksum_cmd("1 H:%i T:%.1f", heater_id, temperature)
 
-    def set_fanspeed(self, executor, fan_id, fan_speed, callback=None):
+    def set_fanspeed(self, fan_id, fan_speed):
         self._fanspeed = f = max(min(1.0, fan_speed), 0)
         return create_chksum_cmd("1 F:%i S:%i", fan_id, f * 255)
+
+    def generate_command(self, cmd):
+        if cmd.startswith("H"):
+            target_temp = float(cmd[1:])
+            return self.set_heater(0, target_temp)
+        elif cmd.startswith("F"):
+            target_speed = float(cmd[1:])
+            return self.set_fanspeed(0, target_speed)
+        else:
+            return
 
     def update_status(self, key, value):
         if key == "RT":
@@ -356,41 +391,21 @@ class ExtruderPlugin(object):
         return True
 
 
-class LaserPlugin(object):
-    def __init__(self):
-        pass
-
-    def bootstrap_commands(self):
-        return []
+class LaserExt(BaseExt):
+    def hello(self, **kw):
+        m = kw.get("TYPE", "UNKNOW")
+        if m != "LASER":
+            raise RuntimeError(EXEC_WRONG_HEAD, "GOT_%s" % m)
+        super(LaserExt, self).hello(**kw)
 
     def status(self):
         return {"module": "LASER",}
 
-    def update_status(self, key, value):
-        return
 
-    def on_message(self, message):
-        return False
-
-    def all_set(self):
-        return True
-
-
-class NAPlugin(object):
-    def __init__(self):
-        pass
-
-    def bootstrap_commands(self):
-        return []
+class NAExt(BaseExt):
+    def hello(self, **kw):
+        m = kw.get("TYPE", "UNKNOW")
+        raise RuntimeError(EXEC_NEED_REMOVE_HEAD, "GOT_%s" % module)
 
     def status(self):
         return {"module": "N/A",}
-
-    def update_status(self, key, value):
-        return
-
-    def on_message(self, message):
-        return False
-
-    def all_set(self):
-        return True

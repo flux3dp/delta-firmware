@@ -226,12 +226,11 @@ class MainController(object):
         s = socket.socket(socket.AF_UNIX)
         self._flags &= ~FLAG_READY
         self._flags |= FLAG_CLOSED
-        # TODO
-        # try:
-        #     s.connect(uart_config["control"])
-        #     s.send(b"reset mb")
-        # except Exception:
-        #     L.exception("Error while send resset mb signal")
+        try:
+            s.connect(uart_config["control"])
+            s.send(b"reset mb")
+        except Exception:
+            L.exception("Error while send resset mb signal")
 
     def close(self, executor):
         if self.ready:
