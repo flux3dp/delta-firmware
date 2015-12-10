@@ -144,8 +144,8 @@ int DeviceController::feed(int fd, command_cb_t callback, void* data) {
     // Laser Control
     float val;
     MACRO_READ(fd, &val, 4)
-    snprintf(_proc_buf, 32, "L%i", (int)(val * 255));
-    callback(_proc_buf, HEAD_MESSAGE, data);
+    snprintf(_proc_buf, 32, "X2O%i", (int)(val * 255));
+    callback(_proc_buf, MAIN_MESSAGE, data);
     return l;
   } else if(cmd & 16) {
     // Heater Control

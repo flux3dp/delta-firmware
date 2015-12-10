@@ -50,7 +50,7 @@ class FcodeExecutor(BaseExecutor):
 
         self.head_ctrl = HeadController(
             executor=self, ready_callback=self.on_controller_ready,
-            required_module="EXTRUDER", 
+            required_module=options.head, 
             error_level=self.options.head_error_level
         )
 

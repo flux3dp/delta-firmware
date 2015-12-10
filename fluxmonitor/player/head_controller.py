@@ -49,9 +49,11 @@ class HeadController(object):
         self._required_module = required_module
         self._ready_callback = ready_callback
 
-        # On-the-fly status
+        # TODO: will cause None issue
         if required_module == "EXTRUDER":
             self._plugin = ExtruderPlugin()
+        elif required_module == "LASER":
+            self._plugin = LaserPlugin()
 
         self.bootstrap(executor)
 
@@ -180,6 +182,7 @@ class HeadController(object):
             self.set_fanspeed(executor, 0, target_speed)
             self.wait_allset(waitting_callback)
         else:
+            logger.error("Got unknow command: %s", cmd)
             raise SystemError("UNKNOW_COMMAND", "HEAD_MESSAGE")
 
     def _send_cmd(self, executor):
@@ -311,7 +314,7 @@ class ExtruderPlugin(object):
 
     def status(self):
         return {
-            "module": self.module,
+            "module": "EXTRUDER",
             "tt": (self._temperatures[0], ),
             "rt": (self._current_temp[0], ),
             "tf": (self._fanspeed[0], )
@@ -343,4 +346,29 @@ class ExtruderPlugin(object):
                 return True
             else:
                 return False
+        return True
+
+
+class LaserPlugin(object):
+    def __init__(self):
+        pass
+
+    def bootstrap_commands(self):
+        return []
+
+    def status(self):
+        return {
+            "module": "LASER",
+            "tt": (self._temperatures[0], ),
+            "rt": (self._current_temp[0], ),
+            "tf": (self._fanspeed[0], )
+        }
+
+    def update_status(self, key, value):
+        return
+
+    def on_message(self, message):
+        return False
+
+    def all_set(self):
         return True
