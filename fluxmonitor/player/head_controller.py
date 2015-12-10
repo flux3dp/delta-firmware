@@ -3,8 +3,8 @@ from shlex import split as shlex_split
 from time import time
 import logging
 
-from fluxmonitor.err_codes import EXEC_HEADER_OFFLINE, EXEC_OPERATION_ERROR, \
-    EXEC_WRONG_HEADER, EXEC_HEADER_ERROR, EXEC_NEED_REMOVE_HEAD
+from fluxmonitor.err_codes import EXEC_HEAD_OFFLINE, EXEC_OPERATION_ERROR, \
+    EXEC_WRONG_HEAD, EXEC_HEAD_ERROR, EXEC_NEED_REMOVE_HEAD
 from fluxmonitor.config import HEADBOARD_RETRY_TTL
 
 
@@ -54,6 +54,10 @@ class HeadController(object):
             self._plugin = ExtruderPlugin()
         elif required_module == "LASER":
             self._plugin = LaserPlugin()
+        elif required_module == "N/A":
+            self._plugin = NAPlugin()
+        else:
+            pass
 
         self.bootstrap(executor)
 
@@ -99,7 +103,7 @@ class HeadController(object):
         self._module = module_info.get("TYPE", "UNKNOW")
         if self._required_module:
             if self.module != self._required_module:
-                self._raise_error(EXEC_WRONG_HEADER,
+                self._raise_error(EXEC_WRONG_HEAD,
                                   "GOT_%s" % self.module)
         else:
             self._raise_error(EXEC_NEED_REMOVE_HEAD,
@@ -204,7 +208,7 @@ class HeadController(object):
             return True
         elif msg.startswith("ER "):
             err = shlex_split(msg[3:])
-            raise RuntimeError(EXEC_HEADER_ERROR, *err)
+            raise RuntimeError(EXEC_HEAD_ERROR, *err)
 
         else:
             return False
@@ -230,25 +234,25 @@ class HeadController(object):
                     er = int(status[1])
                 except ValueError:
                         L.error("Head er flag failed")
-                        self._raise_error(EXEC_HEADER_ERROR,
+                        self._raise_error(EXEC_HEAD_ERROR,
                                           "ER_ERROR")
 
                 if er == 0:
                     pass
                 elif er & 4:
-                    self._raise_error(EXEC_HEADER_OFFLINE, "HEAD_RESET")
-                elif er <=  self._error_level:
+                    self._raise_error(EXEC_HEAD_OFFLINE, "HEAD_RESET")
+                elif er & self._error_level:
                     if er & 8:
                         self._raise_error("HEAD_ERROR", "CALIBRATIING")
                     if er & 16:
-                        self._raise_error(EXEC_HEADER_ERROR, "SHAKE")
+                        self._raise_error(EXEC_HEAD_ERROR, "SHAKE")
                     if er & 32:
-                        self._raise_error(EXEC_HEADER_ERROR, "TILT")
+                        self._raise_error(EXEC_HEAD_ERROR, "TILT")
                     if er & 64:
-                        self._raise_error(EXEC_HEADER_ERROR,
+                        self._raise_error(EXEC_HEAD_ERROR,
                                           "PID_OUT_OF_CONTROL")
                     if er & 128:
-                        self._raise_error(EXEC_HEADER_ERROR, "FAN_FAILURE")
+                        self._raise_error(EXEC_HEAD_ERROR, "FAN_FAILURE")
 
             else:
                 self._plugin.update_status(*status)
@@ -269,7 +273,7 @@ class HeadController(object):
 
         if self._wait_update:
             if self._update_retry > 2 and strict:
-                self._raise_error(EXEC_HEADER_OFFLINE)
+                self._head_offline()
             if time() - self._lastupdate > 1.5:
                 self._handle_ping(executor)
                 self._update_retry += 1 if strict else 0
@@ -277,7 +281,7 @@ class HeadController(object):
 
         if self._padding_cmd:
             if self._cmd_retry > 2 and strict:
-                self._raise_error(EXEC_HEADER_OFFLINE)
+                self._head_offline()
             elif time() - self._cmd_sent_at > 1.0:
                 self._send_cmd(executor)
                 self._cmd_retry += 1
@@ -286,6 +290,9 @@ class HeadController(object):
         elif time() - self._lastupdate > 1.0:
             if not self._padding_cmd:
                 self._handle_ping(executor)
+
+    def _head_offline(self):
+        self._raise_error(EXEC_HEAD_OFFLINE)
 
     def _raise_error(self, *args):
         self._ready = False
@@ -357,12 +364,27 @@ class LaserPlugin(object):
         return []
 
     def status(self):
-        return {
-            "module": "LASER",
-            "tt": (self._temperatures[0], ),
-            "rt": (self._current_temp[0], ),
-            "tf": (self._fanspeed[0], )
-        }
+        return {"module": "LASER",}
+
+    def update_status(self, key, value):
+        return
+
+    def on_message(self, message):
+        return False
+
+    def all_set(self):
+        return True
+
+
+class NAPlugin(object):
+    def __init__(self):
+        pass
+
+    def bootstrap_commands(self):
+        return []
+
+    def status(self):
+        return {"module": "N/A",}
 
     def update_status(self, key, value):
         return
