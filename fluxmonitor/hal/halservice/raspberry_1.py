@@ -161,10 +161,8 @@ class GPIOControl(object):
 
         if wifi_flag & 64 > 0:
             GPIO.output(GPIO_WIFI_ST_PIN, GPIO.HIGH)
-            L.error("GPIO_WIFI_ST_PIN: %s", GPIO.HIGH)
         else:
             GPIO.output(GPIO_WIFI_ST_PIN, GPIO_TOGGLE[_1])
-            L.error("GPIO_WIFI_ST_PIN: %s", GPIO_TOGGLE[_1])
 
         if not self.head_enabled and self._head_power_stat == HEAD_POWER_ON:
             if time() - self._head_power_timer > HEAD_POWER_TIMEOUT:
