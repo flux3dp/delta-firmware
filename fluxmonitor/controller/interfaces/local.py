@@ -288,12 +288,15 @@ class LocalConnectionHandler(object):
 
     def async_send_binary(self, mimetype, length, stream, complete_cb):
         self.send_text("binary %s %i" % (mimetype, length))
-        self.recv_watcher.stop()
+        if length > 0:
+            self.recv_watcher.stop()
 
-        self.send_watcher = self.recv_watcher.loop.io(
-            self.sock, pyev.EV_WRITE, self.on_send, (length, 0, stream,
-                                                     complete_cb))
-        self.send_watcher.start()
+            self.send_watcher = self.recv_watcher.loop.io(
+                self.sock, pyev.EV_WRITE, self.on_send, (length, 0, stream,
+                                                         complete_cb))
+            self.send_watcher.start()
+        else:
+            complete_cb(self)
 
     def close(self, reason=""):
         if self.alive:

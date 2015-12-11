@@ -10,7 +10,9 @@ import pyev
 
 from fluxmonitor.player.base import (ST_COMPLETED, ST_ABORTED,
                                      ST_PAUSED, ST_RUNNING)
-from fluxmonitor.err_codes import RESOURCE_BUSY
+from fluxmonitor.misc.fcode_file import FCodeFile, FCodeError
+from fluxmonitor.err_codes import FILE_BROKEN, NOT_SUPPORT
+
 from fluxmonitor.config import PLAY_ENDPOINT
 from fluxmonitor.storage import Metadata
 
@@ -24,6 +26,9 @@ class PlayerManager(object):
         try:
             if os.path.exists(PLAY_ENDPOINT):
                 os.unlink(PLAY_ENDPOINT)
+
+            ff = FCodeFile(taskfile)
+            self.playinfo = ff.metadata, ff.image_buf
 
             proc = Popen(["fluxplayer", "-c", PLAY_ENDPOINT, "--task",
                           taskfile], stdin=PIPE,
@@ -51,6 +56,8 @@ class PlayerManager(object):
             self._terminated_callback = terminated_callback
             self.logger = logging.getLogger("Player")
 
+        except FCodeError as e:
+            raise RuntimeError(FILE_BROKEN, *e.args)
         except Exception:
             raise
 
@@ -71,14 +78,14 @@ class PlayerManager(object):
         try:
             if not self._sock:
                 if not os.path.exists(PLAY_ENDPOINT):
-                    raise RuntimeError(RESOURCE_BUSY)
+                    raise RuntimeError("RESOURCE_BUSY")
                 self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
                 self._sock.bind(mktemp())
                 self._sock.connect(PLAY_ENDPOINT)
-                self._sock.settimeout(0.5)
+                self._sock.settimeout(1.5)
             return self._sock
         except socket.error:
-            raise RuntimeError(RESOURCE_BUSY)
+            raise RuntimeError("RESOURCE_BUSY")
 
     def on_process_dead(self, watcher, revent):
         watcher.stop()
@@ -100,7 +107,7 @@ class PlayerManager(object):
 
     def go_to_hell(self):
         # will be called form robot only
-        raise RuntimeError(RESOURCE_BUSY)
+        raise RuntimeError(NOT_SUPPORT)
 
     @property
     def is_running(self):
