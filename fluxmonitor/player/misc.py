@@ -21,6 +21,15 @@ UINT_PACKER = struct.Struct("<I")
 
 
 class TaskLoader(Process):
+    """
+    Useable property:
+        loader.fileno() - Endpoint to read stream data
+        loader.close() - Close io and subprocess
+        loader.script_size - Entire script size (bytes)
+        loader.io_progress - Script alread readed (bytes)
+        loader.metadata - Dict store metadata in file
+        loader.image_buf - Image bytes data (image/png)
+    """
     def _check_task(self):
         t = self.task_file
 
@@ -80,6 +89,10 @@ class TaskLoader(Process):
         # Remember to close after forked !!
         self.io_in.close()
         del self.io_in
+
+    @property
+    def io_progress(self):
+        return self.task_file.tell() - 12
 
     def __serve_forever(self):
         setproctitle("fluxplayer: TaskLoader")

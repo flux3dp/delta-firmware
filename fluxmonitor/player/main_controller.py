@@ -6,7 +6,7 @@ import socket
 
 from fluxmonitor.err_codes import EXEC_OPERATION_ERROR, EXEC_INTERNAL_ERROR,\
     EXEC_MAINBOARD_OFFLINE, EXEC_FILAMENT_RUNOUT
-from fluxmonitor.config import uart_config
+
 
 L = logging.getLogger(__name__)
 
@@ -222,15 +222,10 @@ class MainController(object):
     def _send_cmd(self, executor, lineno, cmd):
         executor.send_mainboard(self.create_cmd(lineno, cmd))
 
-    def reset_mainboard(self):
-        s = socket.socket(socket.AF_UNIX)
+    def on_mainboard_dead(self):
         self._flags &= ~FLAG_READY
         self._flags |= FLAG_CLOSED
-        try:
-            s.connect(uart_config["control"])
-            s.send(b"reset mb")
-        except Exception:
-            L.exception("Error while send resset mb signal")
+        raise SystemError(EXEC_MAINBOARD_OFFLINE)
 
     def close(self, executor):
         if self.ready:
@@ -245,8 +240,7 @@ class MainController(object):
                 self._resend_counter += 1
                 if self._resend_counter > self._retry_ttl:
                     L.error("Mainboard no response, restart it")
-                    self.reset_mainboard()
-                    raise SystemError(EXEC_MAINBOARD_OFFLINE)
+                    self.on_mainboard_dead()
 
                 self._last_recv_ts = time()
                 # Resend, let ttl_offset takes no effect
@@ -256,8 +250,7 @@ class MainController(object):
             if self._resend_counter >= self._retry_ttl:
                 L.error("Mainboard no response, restart it (%i)",
                         self._resend_counter)
-                self.reset_mainboard()
-                raise SystemError(EXEC_MAINBOARD_OFFLINE)
+                self.on_mainboard_dead()
 
             if time() - self._last_recv_ts > 3.0:
                 self._last_recv_ts = time()
