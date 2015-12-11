@@ -25,6 +25,7 @@ class DeviceFSMTest(unittest.TestCase):
 
     def setUp(self):
         self.fsm = PyDeviceFSM(x=0, y=0, z=240, e1=0, e2=0, e3=0)
+        self.fsm.set_max_exec_time(0.5)
         self.clean_queue()
         self.input, self.output = socket.socketpair()
 
@@ -49,6 +50,7 @@ class DeviceFSMTest(unittest.TestCase):
         ))
 
     def test_split_move(self):
+        self.maxDiff = None
         self.input.send(G1F6000Z0)
         self.assertEqual(
             self.fsm.feed(self.output.fileno(), self.feed_cb),

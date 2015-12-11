@@ -3,8 +3,9 @@ from shlex import split as shlex_split
 from time import time
 import logging
 
-from fluxmonitor.err_codes import EXEC_HEADER_OFFLINE, EXEC_OPERATION_ERROR, \
-    EXEC_WRONG_HEADER, EXEC_HEADER_ERROR
+from fluxmonitor.err_codes import EXEC_HEAD_OFFLINE, EXEC_OPERATION_ERROR, \
+    EXEC_WRONG_HEAD, EXEC_HEAD_ERROR, EXEC_NEED_REMOVE_HEAD, \
+    EXEC_UNKNOW_REQUIRED_HEAD_TYPE
 from fluxmonitor.config import HEADBOARD_RETRY_TTL
 
 
@@ -21,17 +22,11 @@ def create_chksum_cmd(fmt, *args):
 
 
 class HeadController(object):
-    _module = "NONE"
-
-    # FSM
-    # (use this data to recover status if headbored reconnected)
-    _fanspeed = 0
-    _temperatures = None
+    _module = "N/A"
 
     # On-the-fly status
     _ready = False
     _ready_callback = None
-    _current_temp = None
 
     _cmd_sent_at = 0
     _cmd_retry = 0
@@ -50,11 +45,17 @@ class HeadController(object):
                  error_level=256):
         self._error_level = error_level
         self._required_module = required_module
-        self._temperatures = [float("NaN")]
         self._ready_callback = ready_callback
 
-        # On-the-fly status
-        self._current_temp = [float("NaN")]
+        if required_module == "EXTRUDER":
+            self._ext = ExtruderExt()
+        elif required_module == "LASER":
+            self._ext = LaserExt()
+        elif required_module == "N/A":
+            self._ext = NAExt()
+        else:
+            raise SystemError(EXEC_UNKNOW_REQUIRED_HEAD_TYPE, required_module)
+
         self.bootstrap(executor)
 
     def bootstrap(self, executor):
@@ -63,19 +64,13 @@ class HeadController(object):
         self._cmd_retry = 0
         self._padding_cmd = None
         self._cmd_callback = None
-        self._heaters_callback = None
+        self._allset_callback = None
 
         self._lastupdate = 0
         self._update_retry = 0
         self._wait_update = False
 
-        queue = ["1 HELLO *115\n"]
-        if self._temperatures[0] > 0:
-            queue.append(
-                create_chksum_cmd("1 H:%i T:%.1f", 0, self._temperatures[0]))
-        queue.append(
-            create_chksum_cmd("1 F:%i S:%i", 0, self._fanspeed * 255))
-
+        queue = ["1 HELLO *115\n"] + self._ext.bootstrap_commands()
         self._recover_queue = queue
         self._padding_cmd = queue.pop(0)
         self._send_cmd(executor)
@@ -93,41 +88,36 @@ class HeadController(object):
         return self._module
 
     def status(self):
-        return {
-            "module": self.module,
-            "tt": (self._temperatures[0], ),
-            "rt": (self._current_temp[0], ),
-            "tf": (self._fanspeed, )
-        }
+        if self._ready:
+            return self._ext.status()
+        else:
+            return {"module": "N/A"}
 
-    def set_heater(self, executor, heater_id, temperature, callback=None):
-        if self._padding_cmd:
-            self._raise_error(EXEC_OPERATION_ERROR,
-                              "Busy: %s" % self._padding_cmd)
+    def _on_head_hello(self, msg):
+        try:
+            module_info = {}
+            for param in shlex_split(msg):
+                sparam = param.split(":", 1)
+                if len(sparam) == 2:
+                    module_info[sparam[0]] = sparam[1]
+            self._ext.hello(**module_info)
+        except Exception:
+            self._ready = False
+            raise
 
-        if temperature < 5:
-            raise RuntimeError(EXEC_OPERATION_ERROR, "BAD TEMP")
-        elif temperature > 280:
-            raise SystemError(EXEC_OPERATION_ERROR, "BAD TEMP")
+    def _on_head_offline(self, minor=None):
+        if minor:
+            self._raise_error(EXEC_HEAD_OFFLINE, minor)
+        else:
+            self._raise_error(EXEC_HEAD_OFFLINE)
 
-        self._temperatures[0] = temperature
-        self._padding_cmd = create_chksum_cmd("1 H:%i T:%.1f", heater_id,
-                                              temperature)
-        self._cmd_callback = callback
-        self._send_cmd(executor)
+    def _on_ready(self):
+        self._ready = True
+        if self._ready_callback:
+            self._ready_callback(self)
 
-    def set_fanspeed(self, executor, fan_id, fan_speed, callback=None):
-        if self._padding_cmd:
-            self._raise_error(EXEC_OPERATION_ERROR,
-                              "Busy: %s" % self._padding_cmd)
-
-        self._fanspeed = f = max(min(1.0, fan_speed), 0)
-        self._padding_cmd = create_chksum_cmd("1 F:%i S:%i", fan_id, f * 255)
-        self._send_cmd(executor)
-        self._cmd_callback = callback
-
-    def wait_heaters(self, callback):
-        self._heaters_callback = callback
+    def wait_allset(self, callback):
+        self._allset_callback = callback
 
     def on_message(self, raw_message, executor):
         if raw_message.startswith("1 "):
@@ -152,62 +142,48 @@ class HeadController(object):
         if self._ready:
             if msg.startswith("OK PONG "):
                 self._handle_pong(msg, executor)
-                return
-
+                if self._padding_cmd:
+                    self._send_cmd(executor)
             elif self._parse_cmd_response(msg, executor):
-                return
-
+                pass
+            elif self._ext.on_message(msg):
+                pass
+            else:
+                L.info("RECV_UH: '%s'", msg)
         else:
             if self._padding_cmd == "1 HELLO *115\n":
                 if msg.startswith("OK HELLO "):
-                    module_info = {}
-                    for param in shlex_split(msg[9:]):
-                        sparam = param.split(":", 1)
-                        if len(sparam) == 2:
-                            module_info[sparam[0]] = sparam[1]
-
-                    self._module = module_info.get("TYPE", "UNKNOW")
-                    if self._required_module:
-                        if self.module != self._required_module:
-                            self._raise_error(EXEC_WRONG_HEADER,
-                                              "GOT_%s" % self.module)
+                    self._on_head_hello(msg[9:])
 
                     self._cmd_sent_at = 0
                     self._cmd_retry = 0
                     self._padding_cmd = None
-                    self._cmd_callback = None
-
-                    if self._recover_queue:
-                        self._padding_cmd = self._recover_queue.pop(0)
-                        self._send_cmd(executor)
-                    else:
-                        self._ready = True
-                        if self._ready_callback:
-                            self._ready_callback(self)
-                    return
+            elif self._parse_cmd_response(msg, executor):
+                pass
             else:
-                if self._parse_cmd_response(msg, executor):
-                    if self._recover_queue:
-                        self._padding_cmd = self._recover_queue.pop(0)
-                        self._send_cmd(executor)
-                    else:
-                        self._ready = True
-                        if self._ready_callback:
-                            self._ready_callback(self)
-                    return
+                L.info("RECV_UH: '%s'", msg)
 
-        L.info("RECV_UH: '%s'", msg)
+            if self._padding_cmd is None:
+                if self._recover_queue:
+                    self._padding_cmd = self._recover_queue.pop(0)
+                    self._send_cmd(executor)
+                else:
+                    self._on_ready()
 
-    def send_cmd(self, cmd, executor, waitting_callback=None):
-        if cmd.startswith("H"):
-            target_temp = float(cmd[1:])
-            self.set_heater(executor, 0, target_temp)
-            self.wait_heaters(waitting_callback)
-        elif cmd.startswith("F"):
-            target_speed = float(cmd[1:])
-            self.set_fanspeed(executor, 0, target_speed)
-            self.wait_heaters(waitting_callback)
+    def send_cmd(self, cmd, executor, complete_callback=None,
+                 allset_callback=None):
+        if self.is_busy:
+            self._raise_error(EXEC_OPERATION_ERROR,
+                              "BUSY: %s" % self._padding_cmd)
+
+        padding_cmd = self._ext.generate_command(cmd)
+        if padding_cmd:
+            self._padding_cmd = padding_cmd
+            self._send_cmd(executor)
+            self._cmd_callback = complete_callback
+            self.wait_allset(allset_callback)
         else:
+            logger.error("Got unknow command: %s", cmd)
             raise SystemError("UNKNOW_COMMAND", "HEAD_MESSAGE")
 
     def _send_cmd(self, executor):
@@ -229,7 +205,7 @@ class HeadController(object):
             return True
         elif msg.startswith("ER "):
             err = shlex_split(msg[3:])
-            raise RuntimeError(EXEC_HEADER_ERROR, *err)
+            raise RuntimeError(EXEC_HEAD_ERROR, *err)
 
         else:
             return False
@@ -250,49 +226,51 @@ class HeadController(object):
                 # params should be "KEY:VALUE"
                 L.error("Unknow pong param: %s", param)
 
-            elif status[0] == "RT":
-                self._current_temp[0] = float(status[1])
-                if self._heaters_callback:
-                    if not (self._temperatures[0] > 0):
-                        self._heaters_callback(self)
-                        self._heaters_callback = None
-                    elif abs(self._temperatures[0] -
-                             self._current_temp[0]) < 3:
-                        self._heaters_callback(self)
-                        self._heaters_callback = None
-
             elif status[0] == "ER":
                 try:
                     er = int(status[1])
                 except ValueError:
                         L.error("Head er flag failed")
-                        self._raise_error(EXEC_HEADER_ERROR,
+                        self._raise_error(EXEC_HEAD_ERROR,
                                           "ER_ERROR")
 
                 if er == 0:
                     pass
                 elif er & 4:
-                    self._raise_error(EXEC_HEADER_OFFLINE, "HEAD_RESET")
-                elif er <=  self._error_level:
+                    self._raise_error(EXEC_HEAD_OFFLINE, "HEAD_RESET")
+                elif er & self._error_level:
                     if er & 8:
                         self._raise_error("HEAD_ERROR", "CALIBRATIING")
                     if er & 16:
-                        self._raise_error(EXEC_HEADER_ERROR, "SHAKE")
+                        self._raise_error(EXEC_HEAD_ERROR, "SHAKE")
                     if er & 32:
-                        self._raise_error(EXEC_HEADER_ERROR, "TILT")
+                        self._raise_error(EXEC_HEAD_ERROR, "TILT")
                     if er & 64:
-                        self._raise_error(EXEC_HEADER_ERROR,
+                        self._raise_error(EXEC_HEAD_ERROR,
                                           "PID_OUT_OF_CONTROL")
                     if er & 128:
-                        self._raise_error(EXEC_HEADER_ERROR, "FAN_FAILURE")
+                        self._raise_error(EXEC_HEAD_ERROR, "FAN_FAILURE")
 
-        if self._padding_cmd:
-            self._send_cmd(executor)
+            else:
+                self._ext.update_status(*status)
+                if self._allset_callback and self._ext.all_set():
+                    try:
+                        self._allset_callback(self)
+                    finally:
+                        self._allset_callback = None
 
     def patrol(self, executor, strict=True):
+        # if self._required_module is None:
+        #     if self._ready:
+        #         if self._wait_update and
+        #     else:
+        #         if self._padding_cmd and time() - self._lastupdate > 1.0:
+        #             self.on_message("OK HELLO TYPE=N/A")
+        #     return
+
         if self._wait_update:
             if self._update_retry > 2 and strict:
-                self._raise_error(EXEC_HEADER_OFFLINE)
+                self._on_head_offline()
             if time() - self._lastupdate > 1.5:
                 self._handle_ping(executor)
                 self._update_retry += 1 if strict else 0
@@ -300,7 +278,7 @@ class HeadController(object):
 
         if self._padding_cmd:
             if self._cmd_retry > 2 and strict:
-                self._raise_error(EXEC_HEADER_OFFLINE)
+                self._on_head_offline()
             elif time() - self._cmd_sent_at > 1.0:
                 self._send_cmd(executor)
                 self._cmd_retry += 1
@@ -309,8 +287,125 @@ class HeadController(object):
         elif time() - self._lastupdate > 1.0:
             if not self._padding_cmd:
                 self._handle_ping(executor)
-                self._wait_update = True
 
     def _raise_error(self, *args):
         self._ready = False
         raise RuntimeError(*args)
+
+
+class BaseExt(object):
+    def __init__(self, **spec):
+        self.spec = spec
+
+    def bootstrap_commands(self):
+        return []
+
+    def hello(self, **kw):
+        self.id = kw.get("ID")
+        self.vendor = kw.get("VENDOR")
+        self.version = kw.get("VERSION")
+
+    def generate_command(self, cmd):
+        pass
+
+    def update_status(self, key, value):
+        pass
+
+    def on_message(self, message):
+        return False
+
+    def all_set(self):
+        return True
+
+
+class ExtruderExt(BaseExt):
+    _fanspeed = None
+    _temperatures = None
+    _current_temp = None
+
+    def __init__(self):
+        self._fanspeed = [0]
+        self._temperatures = [float("NaN")]
+        self._current_temp = [float("NaN")]
+
+    def hello(self, **kw):
+        m = kw.get("TYPE", "UNKNOW")
+        if m != "EXTRUDER":
+            raise RuntimeError(EXEC_WRONG_HEAD, "GOT_%s" % m)
+        super(ExtruderExt, self).hello(**kw)
+
+    def bootstrap_commands(self):
+        cmds = []
+        if self._fanspeed[0] >= 0:
+            cmds.append(
+                create_chksum_cmd("1 F:%i S:%i", 0, self._fanspeed[0] * 255))
+        if self._temperatures[0] > 0:
+            cmds.append(
+                create_chksum_cmd("1 H:%i T:%.1f", 0, self._temperatures[0]))
+        return cmds
+
+    def status(self):
+        return {
+            "module": "EXTRUDER",
+            "tt": (self._temperatures[0], ),
+            "rt": (self._current_temp[0], ),
+            "tf": (self._fanspeed[0], )
+        }
+
+    def set_heater(self, heater_id, temperature):
+        if temperature < 5:
+            raise RuntimeError(EXEC_OPERATION_ERROR, "BAD TEMP")
+        elif temperature > 280:
+            raise SystemError(EXEC_OPERATION_ERROR, "BAD TEMP")
+
+        self._temperatures[0] = temperature
+        return create_chksum_cmd("1 H:%i T:%.1f", heater_id, temperature)
+
+    def set_fanspeed(self, fan_id, fan_speed):
+        self._fanspeed[fan_id] = f = max(min(1.0, fan_speed), 0)
+        return create_chksum_cmd("1 F:%i S:%i", fan_id, f * 255)
+
+    def generate_command(self, cmd):
+        if cmd.startswith("H"):
+            target_temp = float(cmd[1:])
+            return self.set_heater(0, target_temp)
+        elif cmd.startswith("F"):
+            target_speed = float(cmd[1:])
+            return self.set_fanspeed(0, target_speed)
+        else:
+            return
+
+    def update_status(self, key, value):
+        if key == "RT":
+            self._current_temp[0] = float(value)
+
+    def on_message(self, message):
+        return False
+
+    def all_set(self):
+        if self._temperatures[0] > 0:
+            if abs(self._temperatures[0] - self._current_temp[0]) < 3:
+                return True
+            else:
+                return False
+        return True
+
+
+class LaserExt(BaseExt):
+    def hello(self, **kw):
+        m = kw.get("TYPE", "UNKNOW")
+        if m != "LASER":
+            raise RuntimeError(EXEC_WRONG_HEAD, "GOT_%s" % m)
+        super(LaserExt, self).hello(**kw)
+
+    def status(self):
+        return {"module": "LASER",}
+
+
+class NAExt(BaseExt):
+    def hello(self, **kw):
+        m = kw.get("TYPE", "UNKNOW")
+        raise RuntimeError(EXEC_NEED_REMOVE_HEAD, "GOT_%s" % module)
+
+    def status(self):
+        return {"module": "N/A",}

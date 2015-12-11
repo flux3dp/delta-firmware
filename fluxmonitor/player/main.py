@@ -8,8 +8,7 @@ import re
 
 import pyev
 
-from fluxmonitor.config import PLAY_ENDPOINT, HEADBOARD_ENDPOINT, \
-    MAINBOARD_ENDPOINT
+from fluxmonitor.config import MAINBOARD_ENDPOINT, HEADBOARD_ENDPOINT
 from fluxmonitor.storage import CommonMetadata as Metadata
 from fluxmonitor.services.base import ServiceBase
 
@@ -32,20 +31,11 @@ class Player(ServiceBase):
         except Exception:
             logger.error("Can not renice process to -5")
 
-        if os.path.exists(PLAY_ENDPOINT):
-            os.unlink(PLAY_ENDPOINT)
-
         taskfile = open(options.taskfile, "rb")
         taskloader = TaskLoader(taskfile)
 
+        self.prepare_control_socket(options.control_endpoint)
         self.meta = Metadata()
-
-        cmd_sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-        cmd_sock.bind(PLAY_ENDPOINT)
-
-        self.cmd_watcher = self.loop.io(cmd_sock, pyev.EV_READ,
-                                        self.on_cmd_message, cmd_sock, -1)
-        self.cmd_watcher.start()
 
         main_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         main_sock.connect(MAINBOARD_ENDPOINT)
@@ -67,6 +57,20 @@ class Player(ServiceBase):
         self.timer_watcher = self.loop.timer(0.8, 0.8, self.on_timer)
         self.timer_watcher.start()
 
+    def prepare_control_socket(self, endpoint):
+        try:
+            if os.path.exists(endpoint):
+                os.unlink(endpoint)
+
+            cmd_sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+            cmd_sock.bind(endpoint)
+            self.cmd_watcher = self.loop.io(cmd_sock, pyev.EV_READ,
+                                            self.on_cmd_message, cmd_sock, -1)
+            self.cmd_watcher.start()
+        except Exception:
+            logger.exception("Error while listen endpoint at %s")
+            raise
+
     def on_start(self):
         pass
 
@@ -74,7 +78,6 @@ class Player(ServiceBase):
         self.cmd_watcher.stop()
         self.cmd_watcher.data.close()
         self.cmd_watcher = None
-        os.unlink(PLAY_ENDPOINT)
 
     def on_mainboard_message(self, watcher, revent):
         try:

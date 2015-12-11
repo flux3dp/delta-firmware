@@ -25,7 +25,8 @@ class PlayerManager(object):
             if os.path.exists(PLAY_ENDPOINT):
                 os.unlink(PLAY_ENDPOINT)
 
-            proc = Popen(["fluxplayer", "--task", taskfile], stdin=PIPE,
+            proc = Popen(["fluxplayer", "-c", PLAY_ENDPOINT, "--task",
+                          taskfile], stdin=PIPE,
                          stdout=PIPE, stderr=PIPE)
             child_watcher = loop.child(proc.pid, False, self.on_process_dead,
                                        terminated_callback)

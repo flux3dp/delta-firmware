@@ -50,7 +50,7 @@ class FcodeExecutor(BaseExecutor):
 
         self.head_ctrl = HeadController(
             executor=self, ready_callback=self.on_controller_ready,
-            required_module="EXTRUDER", 
+            required_module=options.head, 
             error_level=self.options.head_error_level
         )
 
@@ -193,11 +193,12 @@ class FcodeExecutor(BaseExecutor):
 
                     elif target == 4:
                         if self.main_ctrl.buffered_cmd_size == 0:
-                            self._ctrl_flag |= FLAG_WAITTING_HEADER
-                            cmd = self._cmd_queue.popleft()[0]
                             if not self.head_ctrl.is_busy:
-                                self.head_ctrl.send_cmd(cmd, self,
-                                                        self._cb_head_ready)
+                                self._ctrl_flag |= FLAG_WAITTING_HEADER
+                                cmd = self._cmd_queue.popleft()[0]
+                                self.head_ctrl.send_cmd(
+                                    cmd, self,
+                                    allset_callback=self._cb_head_ready)
                         return
                     elif target == 128:
                         self.abort(self._cmd_queue[0][0])

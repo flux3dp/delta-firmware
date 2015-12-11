@@ -19,6 +19,7 @@ def __parse_int__(val, default):
 
 
 class Options(object):
+    head = None
     correction = None
     head_error_level = None
     play_bufsize = None
@@ -31,6 +32,9 @@ class Options(object):
         self.__load_form_local__()
 
     def __load_from_metadata__(self, metadata):
+        self.head = metadata.get("HEAD_TYPE")
+        if self.head:
+            self.head = self.head.upper()
         self.correction = metadata.get("CORRECTION")
         self.filament_detect = metadata.get("FILAMENT_DETECT")
 
