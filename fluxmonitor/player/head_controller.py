@@ -362,7 +362,7 @@ class ExtruderExt(BaseExt):
         return create_chksum_cmd("1 H:%i T:%.1f", heater_id, temperature)
 
     def set_fanspeed(self, fan_id, fan_speed):
-        self._fanspeed = f = max(min(1.0, fan_speed), 0)
+        self._fanspeed[fan_id] = f = max(min(1.0, fan_speed), 0)
         return create_chksum_cmd("1 F:%i S:%i", fan_id, f * 255)
 
     def generate_command(self, cmd):
