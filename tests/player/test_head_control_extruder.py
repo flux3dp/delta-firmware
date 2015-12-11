@@ -60,6 +60,10 @@ class ExtruderHeadControlTest(ControlTestBase):
             self.ec.patrol(executor)
 
         with self.assertSendHeadboard() as executor:
+            self.ec.on_message("1 OK PONG ER:0 RT:160 TT:200.0 FA:0 *18",
+                               executor)
+
+        with self.assertSendHeadboard() as executor:
             self.assertRaises(UnittestError, self.ec.on_message,
                               "1 OK PONG ER:0 RT:199.4 TT:200.0 FA:0 *18",
                               executor)
