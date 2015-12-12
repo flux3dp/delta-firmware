@@ -747,9 +747,6 @@ static float __pyx_k__3;
 static float __pyx_k__4;
 static float __pyx_k__5;
 static float __pyx_k__6;
-static float __pyx_k__7;
-static float __pyx_k__8;
-static float __pyx_k__9;
 
 /* "src/device_fsm/fsm.pyx":23
  * 
@@ -854,7 +851,7 @@ static void __pyx_f_11fluxmonitor_6player_11_device_fsm_pycallback(char const *_
  *   cdef DeviceController *ptr
  * 
  *   def __init__(self, int t=0, int f=-1, float x=NAN, float y=NAN,             # <<<<<<<<<<<<<<
- *                float z=NAN, float e1=NAN, float e2=NAN, float e3=NAN,
+ *                float z=NAN, float e1=0, float e2=0, float e3=0,
  *                float max_x=INFINITY, float max_y=INFINITY,
  */
 
@@ -1005,32 +1002,32 @@ static int __pyx_pw_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_1__init__(
     if (values[5]) {
       __pyx_v_e1 = __pyx_PyFloat_AsFloat(values[5]); if (unlikely((__pyx_v_e1 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 32; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     } else {
-      __pyx_v_e1 = __pyx_k__4;
+      __pyx_v_e1 = ((float)0.0);
     }
     if (values[6]) {
       __pyx_v_e2 = __pyx_PyFloat_AsFloat(values[6]); if (unlikely((__pyx_v_e2 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 32; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     } else {
-      __pyx_v_e2 = __pyx_k__5;
+      __pyx_v_e2 = ((float)0.0);
     }
     if (values[7]) {
       __pyx_v_e3 = __pyx_PyFloat_AsFloat(values[7]); if (unlikely((__pyx_v_e3 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 32; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     } else {
-      __pyx_v_e3 = __pyx_k__6;
+      __pyx_v_e3 = ((float)0.0);
     }
     if (values[8]) {
       __pyx_v_max_x = __pyx_PyFloat_AsFloat(values[8]); if (unlikely((__pyx_v_max_x == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 33; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     } else {
-      __pyx_v_max_x = __pyx_k__7;
+      __pyx_v_max_x = __pyx_k__4;
     }
     if (values[9]) {
       __pyx_v_max_y = __pyx_PyFloat_AsFloat(values[9]); if (unlikely((__pyx_v_max_y == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 33; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     } else {
-      __pyx_v_max_y = __pyx_k__8;
+      __pyx_v_max_y = __pyx_k__5;
     }
     if (values[10]) {
       __pyx_v_max_z = __pyx_PyFloat_AsFloat(values[10]); if (unlikely((__pyx_v_max_z == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 34; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     } else {
-      __pyx_v_max_z = __pyx_k__9;
+      __pyx_v_max_z = __pyx_k__6;
     }
   }
   goto __pyx_L4_argument_unpacking_done;
@@ -1156,7 +1153,7 @@ static int __pyx_pf_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM___init__(s
  *   cdef DeviceController *ptr
  * 
  *   def __init__(self, int t=0, int f=-1, float x=NAN, float y=NAN,             # <<<<<<<<<<<<<<
- *                float z=NAN, float e1=NAN, float e2=NAN, float e3=NAN,
+ *                float z=NAN, float e1=0, float e2=0, float e3=0,
  *                float max_x=INFINITY, float max_y=INFINITY,
  */
 
@@ -3827,7 +3824,7 @@ PyMODINIT_FUNC PyInit__device_fsm(void)
  *   cdef DeviceController *ptr
  * 
  *   def __init__(self, int t=0, int f=-1, float x=NAN, float y=NAN,             # <<<<<<<<<<<<<<
- *                float z=NAN, float e1=NAN, float e2=NAN, float e3=NAN,
+ *                float z=NAN, float e1=0, float e2=0, float e3=0,
  *                float max_x=INFINITY, float max_y=INFINITY,
  */
   __pyx_k_ = NAN;
@@ -3836,33 +3833,30 @@ PyMODINIT_FUNC PyInit__device_fsm(void)
   /* "src/device_fsm/fsm.pyx":32
  * 
  *   def __init__(self, int t=0, int f=-1, float x=NAN, float y=NAN,
- *                float z=NAN, float e1=NAN, float e2=NAN, float e3=NAN,             # <<<<<<<<<<<<<<
+ *                float z=NAN, float e1=0, float e2=0, float e3=0,             # <<<<<<<<<<<<<<
  *                float max_x=INFINITY, float max_y=INFINITY,
  *                float max_z=INFINITY):
  */
   __pyx_k__3 = NAN;
-  __pyx_k__4 = NAN;
-  __pyx_k__5 = NAN;
-  __pyx_k__6 = NAN;
 
   /* "src/device_fsm/fsm.pyx":33
  *   def __init__(self, int t=0, int f=-1, float x=NAN, float y=NAN,
- *                float z=NAN, float e1=NAN, float e2=NAN, float e3=NAN,
+ *                float z=NAN, float e1=0, float e2=0, float e3=0,
  *                float max_x=INFINITY, float max_y=INFINITY,             # <<<<<<<<<<<<<<
  *                float max_z=INFINITY):
  *     self.ptr.fsm.x = x
  */
-  __pyx_k__7 = INFINITY;
-  __pyx_k__8 = INFINITY;
+  __pyx_k__4 = INFINITY;
+  __pyx_k__5 = INFINITY;
 
   /* "src/device_fsm/fsm.pyx":34
- *                float z=NAN, float e1=NAN, float e2=NAN, float e3=NAN,
+ *                float z=NAN, float e1=0, float e2=0, float e3=0,
  *                float max_x=INFINITY, float max_y=INFINITY,
  *                float max_z=INFINITY):             # <<<<<<<<<<<<<<
  *     self.ptr.fsm.x = x
  *     self.ptr.fsm.y = y
  */
-  __pyx_k__9 = INFINITY;
+  __pyx_k__6 = INFINITY;
 
   /* "src/device_fsm/fsm.pyx":2
  * 

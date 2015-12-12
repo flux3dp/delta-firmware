@@ -29,7 +29,7 @@ cdef class PyDeviceFSM:
   cdef DeviceController *ptr
 
   def __init__(self, int t=0, int f=-1, float x=NAN, float y=NAN,
-               float z=NAN, float e1=NAN, float e2=NAN, float e3=NAN,
+               float z=NAN, float e1=0, float e2=0, float e3=0,
                float max_x=INFINITY, float max_y=INFINITY,
                float max_z=INFINITY):
     self.ptr.fsm.x = x
