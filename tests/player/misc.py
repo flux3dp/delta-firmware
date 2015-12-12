@@ -7,7 +7,7 @@ class ControlTestBase(unittest.TestCase):
     _send_mainboard_sequence = None
 
     def raiseException(self, sender):
-        raise RuntimeWarning("UNITTEST")
+        raise UnittestError("UNITTEST")
 
     def assertSendHeadboard(self, *args):
         return AssertControllerSendHelper(self, headboard_send_sequence=args)
@@ -26,6 +26,7 @@ class AssertControllerSendHelper(object):
             self.mseq = list(mainboard_send_sequence)
         if headboard_send_sequence:
             self.hseq = list(headboard_send_sequence)
+        self.main_ctrl = Hook(self.send_mainboard)
 
     def send_headboard(self, msg):
         if self.hseq:
@@ -54,3 +55,15 @@ class AssertControllerSendHelper(object):
                 raise AssertionError("Mainboard does not send: %s" % self.mseq)
             if self.hseq:
                 raise AssertionError("Headboard does not send: %s" % self.hseq)
+
+
+class Hook(object):
+    def __init__(self, cb):
+        self._cb = cb
+
+    def send_cmd(self, msg, _):
+        self._cb(msg)
+
+
+class UnittestError(Exception):
+    pass

@@ -5,10 +5,12 @@ from time import time
 import logging
 import socket
 import struct
+import json
 
 import pyev
 
 from fluxmonitor.hal.nl80211.config import get_wlan_ssid
+from fluxmonitor.hal.nl80211.scan import scan as wifiscan
 from fluxmonitor.hal.net.monitor import Monitor as NetworkMonitor
 from fluxmonitor.misc import network_config_encoder as NCE
 from fluxmonitor.security.passwd import set_password
@@ -22,6 +24,7 @@ from fluxmonitor.storage import CommonMetadata
 from fluxmonitor import security
 from fluxmonitor import __version__ as VERSION
 from .base import ServiceBase
+from fluxmonitor.storage import Storage
 
 logger = logging.getLogger(__name__)
 
@@ -39,11 +42,13 @@ REQ_AUTH = 0x02
 REQ_CONFIG_GENERAL = 0x03
 REQ_CONFIG_NETWORK = 0x04
 REQ_GET_SSID = 0x05
+REQ_LIST_SSID = 0x08
 REQ_GET_IPADDR = 0x07
 REQ_SET_PASSWORD = 0x06
 
 REQ_MAINBOARD_TUNNEL = 0x80
 REQ_PHOTO = 0x81
+STORE_DATA = 0x82
 
 
 class UsbService(ServiceBase):
@@ -115,11 +120,14 @@ class UsbIO(object):
             REQ_CONFIG_GENERAL: self.on_config_general,
             REQ_CONFIG_NETWORK: self.on_config_network,
             REQ_GET_SSID: self.on_query_ssid,
+            REQ_LIST_SSID: self.on_list_ssid,
             REQ_GET_IPADDR: self.on_query_ipaddr,
             REQ_SET_PASSWORD: self.on_set_password,
 
             REQ_MAINBOARD_TUNNEL: self.on_mainboard_tunnel,
-            REQ_PHOTO: self.on_take_pic
+            REQ_PHOTO: self.on_take_pic,
+            STORE_DATA: self.on_store_data
+
         }
 
     def fileno(self):
@@ -148,13 +156,13 @@ class UsbIO(object):
                     self._recv_view[:remnant] = \
                         self._recv_view[index:self._recv_offset]
                     self._recv_offset = remnant
-                    logger.error("Protocol magic number error, shift buffer")
+                    logger.debug("Protocol magic number error, shift buffer")
 
                     if remnant < 7:
                         return
 
             except ValueError:
-                logger.error("Protocol magic number error, clean buffer")
+                logger.debug("Protocol magic number error, clean buffer")
                 self._recv_offset = 0
                 return
 
@@ -290,7 +298,15 @@ class UsbIO(object):
             self.send_response(REQ_GET_SSID, True, ssid.encode())
         except Exception:
             logger.exception("Error while getting ssid %s" % "wlan0")
-            self.send_response(REQ_GET_SSID, False, "NOT_FOUND")
+            self.send_response(REQ_GET_SSID, False, "UNKNOW_ERROR")
+
+    def on_list_ssid(self, buf):
+        try:
+            result = wifiscan()
+            self.send_response(REQ_LIST_SSID, True, json.dumps(result))
+        except Exception:
+            logger.exception("Error while list ssid %s" % "wlan0")
+            self.send_response(REQ_LIST_SSID, False, "UNKNOW_ERROR")
 
     def on_query_ipaddr(self, buf):
         status = self.nw_monitor.full_status()
@@ -342,3 +358,21 @@ class UsbIO(object):
             self.send_response(REQ_PHOTO, True, MSG_OK)
         else:
             self.send_response(REQ_PHOTO, False, "Signature Error")
+
+    def on_store_data(self, buf):
+        pem = resource_string("fluxmonitor", "data/develope.pem")
+        rsakey = get_keyobj(pem=pem)
+        location, name, value, m = buf.split('\x00', 3)
+        salt, signature = m.split(b'$', 1)
+
+        if rsakey.verify(salt + self._vector, signature):
+            s = Storage(location)
+            with s.open(name, "w") as f:
+                f.write(value)
+
+            self.send_response(STORE_DATA, True, MSG_OK)
+        else:
+            self.send_response(STORE_DATA, False, "Signature Error")
+
+    def close(self):
+        self.sock.close()

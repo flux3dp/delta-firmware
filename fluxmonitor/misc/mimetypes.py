@@ -7,7 +7,7 @@ MIMETYPE_GCODE = "text/gcode"
 MIMETYPE_FCODE = "application/fcode"
 
 add_type(MIMETYPE_GCODE, ".gcode")
-add_type(MIMETYPE_FCODE, ".fcode")
+add_type(MIMETYPE_FCODE, ".fc")
 
 
 def validate_ext(filename, match_mimetype):

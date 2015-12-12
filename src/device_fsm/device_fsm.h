@@ -10,6 +10,7 @@ typedef void (*command_cb_t)(const char* command, int target, void* data);
 
 struct DeviceFSM {
   double traveled;
+  float max_x, max_y, max_z;
   float x, y, z;
   float e[3];
   unsigned short f, t, absolute_pos;
@@ -23,10 +24,12 @@ public:
                      float _e3, int _f=6000, int _t=0);
 
     int feed(int fd, command_cb_t callback, void *data);
+    void set_max_exec_time(double);
     struct DeviceFSM fsm;
 
 private:
     int G1(command_cb_t callback, void* data, unsigned short f=0, 
            float x=NAN, float y=NAN, float z=NAN, float e=NAN);
     char _proc_buf[256];
+    double max_exec_time;
 };

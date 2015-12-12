@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+rsync -avz --delete -e ssh --exclude "push" --exclude "fluxmonitor.egg-info" --exclude ".git" --exclude "tmp" --exclude "build" --exclude "dist" --exclude='*.pyc' --exclude='*.so' . raspberry:fluxmonitor
+
+# FLUX
+# ed25d6c95f18e6784afd6a8bd4ecbb958008b274ada555affcde8d85379a51b0

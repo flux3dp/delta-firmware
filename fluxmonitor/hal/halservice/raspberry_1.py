@@ -2,6 +2,7 @@
 from multiprocessing import Process
 from time import time, sleep
 import logging
+import signal
 import os
 
 from setproctitle import getproctitle, setproctitle
@@ -9,11 +10,10 @@ from serial import Serial, SerialException
 from RPi import GPIO
 import pyev
 
-from fluxmonitor.misc.async_signal import AsyncIO
 from fluxmonitor.halprofile import MODEL_G1
 from fluxmonitor.storage import Storage, CommonMetadata
 from fluxmonitor.config import LENGTH_OF_LONG_PRESS_TIME as LLPT, \
-    GAP_BETWEEN_DOUBLE_CLICK as GBDC
+    GAP_BETWEEN_DOUBLE_CLICK as GBDC, HEAD_POWER_TIMEOUT
 
 from .base import UartHalBase, BaseOnSerial
 
@@ -22,13 +22,13 @@ L = logging.getLogger("halservice.rasp")
 GPIO_TOGGLE = (GPIO.LOW, GPIO.HIGH)
 
 
-GPIO_HEAD_BOOT_MODE = 7
-GPIO_FRONT_BUTTON = 12
-GPIO_MAINBOARD_SIG = 3
-GPIO_ACTIVE_SIG = 5
-GPIO_HEAD_POW = 13
-GPIO_USB_SERIAL = 15
-GPIO_MAINBOARD = 16
+GPIO_HEAD_BOOT_MODE_PIN = 7
+GPIO_FRONT_BUTTON_PIN = 12
+GPIO_ALIVE_SIG_PIN = 3
+GPIO_WIFI_ST_PIN = 5
+GPIO_USB_SERIAL_PIN = 15
+GPIO_HEAD_POW_PIN = 13
+GPIO_MAINBOARD_POW_PIN = 16
 
 GPIO_NOT_DEFINED = (22, 24, )
 
@@ -66,7 +66,6 @@ class FrontButtonMonitor(object):
             setproctitle(getproctitle() + " (button monitor)")
 
             os.close(self._rfd)
-            lastpress = 0
             while True:
                 long_press_sent = False
 
@@ -102,7 +101,7 @@ class FrontButtonMonitor(object):
                     self.send_long_press(watcher.data)
             else:
                 L.error("ButtonInterface is down")
-                kernel.remove_read_event(self)
+                watcher.stop()
 
         elif revent == pyev.EV_TIMER:
             # CLICK
@@ -110,6 +109,7 @@ class FrontButtonMonitor(object):
 
     def send_click(self, callback):
         logging.debug("Btn event: CLICK")
+        callback('PLAYTOGL')
 
     def send_db_click(self, callback):
         logging.debug("Btn event: DBCLICK")
@@ -128,51 +128,47 @@ class FrontButtonMonitor(object):
         self._db_click_timer = None
 
 
-class GPIOConteol(object):
+class GPIOControl(object):
     _last_mainboard_sig = GPIO_TOGGLE[0]
-    _last_sig_timestemp = 0
-    _last_active_st = -1
-    __usb_serial_gpio__ = USB_SERIAL_OFF
+    _usb_serial_stat = USB_SERIAL_OFF
+    _head_power_stat = HEAD_POWER_ON
+    _head_power_timer = 0
     head_enabled = True
 
     def init_gpio_control(self):
         GPIO.setmode(GPIO.BOARD)
         GPIO.setwarnings(False)
-        GPIO.setup(GPIO_HEAD_BOOT_MODE, GPIO.OUT, initial=GPIO.HIGH)
-        GPIO.setup(GPIO_MAINBOARD_SIG, GPIO.OUT, initial=GPIO_TOGGLE[0])
-        GPIO.setup(GPIO_ACTIVE_SIG, GPIO.OUT)
-        self._active_sig_pwm = GPIO.PWM(GPIO_ACTIVE_SIG, 1.0)
-        self._active_sig_pwm.start(50)
+        GPIO.setup(GPIO_HEAD_BOOT_MODE_PIN, GPIO.OUT, initial=GPIO.LOW)
+        GPIO.setup(GPIO_ALIVE_SIG_PIN, GPIO.OUT, initial=GPIO_TOGGLE[0])
+        GPIO.setup(GPIO_WIFI_ST_PIN, GPIO.OUT, initial=GPIO.HIGH)
 
         for pin in GPIO_NOT_DEFINED:
             GPIO.setup(pin, GPIO.IN)
 
-        GPIO.setup(GPIO_HEAD_POW, GPIO.OUT, initial=HEAD_POWER_ON)
-        GPIO.setup(GPIO_MAINBOARD, GPIO.OUT, initial=MAINBOARD_ON)
-        GPIO.setup(GPIO_USB_SERIAL, GPIO.OUT)
+        GPIO.setup(GPIO_HEAD_POW_PIN, GPIO.OUT, initial=HEAD_POWER_ON)
+        GPIO.setup(GPIO_MAINBOARD_POW_PIN, GPIO.OUT, initial=MAINBOARD_ON)
+        GPIO.setup(GPIO_USB_SERIAL_PIN, GPIO.OUT)
         L.debug("GPIO configured")
 
         self.update_ama0_routing()
 
     def proc_sig(self):
-        if time() - self._last_sig_timestemp > 0.5:
-            _1 = self._last_mainboard_sig = (self._last_mainboard_sig + 1) % 2
-            GPIO.output(GPIO_MAINBOARD_SIG, GPIO_TOGGLE[_1])
+        _1 = self._last_mainboard_sig = (self._last_mainboard_sig + 1) % 2
+        GPIO.output(GPIO_ALIVE_SIG_PIN, GPIO_TOGGLE[_1])
+        L.error("GPIO_ALIVE_SIG_PIN: %s", GPIO_TOGGLE[_1])
 
-            st = self.sm.wifi_status
-            if st != self._last_active_st:
-                self._last_active_st = st
-                self._active_sig_pwm.stop()
+        wifi_flag = self.sm.wifi_status
 
-                wifi_st = self.sm.wifi_status
-                if wifi_st & 128:
-                    self._active_sig_pwm.start(0)
-                elif wifi_st & 64:
-                    self._active_sig_pwm.start(100)
-                else:
-                    self._active_sig_pwm.start(50)
+        if wifi_flag & 64 > 0:
+            GPIO.output(GPIO_WIFI_ST_PIN, GPIO.HIGH)
+        else:
+            GPIO.output(GPIO_WIFI_ST_PIN, GPIO_TOGGLE[_1])
 
-            self._last_sig_timestemp = time()
+        if not self.head_enabled and self._head_power_stat == HEAD_POWER_ON:
+            if time() - self._head_power_timer > HEAD_POWER_TIMEOUT:
+                L.debug("Head Power off")
+                self._head_power_stat = HEAD_POWER_OFF
+                GPIO.output(GPIO_HEAD_POW_PIN, HEAD_POWER_OFF)
 
     def __del__(self):
         L.debug("GPIO/PWM cleanup")
@@ -180,33 +176,44 @@ class GPIOConteol(object):
 
     def reset_mainboard(self, watcher):
         self.mainboard_disconnect()
-        GPIO.output(GPIO_MAINBOARD, MAINBOARD_OFF)
+        GPIO.output(GPIO_MAINBOARD_POW_PIN, MAINBOARD_OFF)
         sleep(0.3)
-        GPIO.output(GPIO_MAINBOARD, MAINBOARD_ON)
+        GPIO.output(GPIO_MAINBOARD_POW_PIN, MAINBOARD_ON)
         sleep(1.5)
         self.mainboard_connect(watcher.loop)
+        self._init_mainboard_status()
 
     def update_ama0_routing(self):
         if len(self.headboard_watchers) > 0:
-            if self.__usb_serial_gpio__ == USB_SERIAL_ON:
+            if self._usb_serial_stat == USB_SERIAL_ON:
                 L.debug("Headboard ON / USB OFF")
                 self.head_enabled = True
-                self.__usb_serial_gpio__ = USB_SERIAL_OFF
-                GPIO.output(GPIO_USB_SERIAL, self.__usb_serial_gpio__)
+                self._usb_serial_stat = USB_SERIAL_OFF
+                GPIO.output(GPIO_USB_SERIAL_PIN, self._usb_serial_stat)
         else:
-            if self.__usb_serial_gpio__ == USB_SERIAL_OFF:
+            if self._usb_serial_stat == USB_SERIAL_OFF:
                 L.debug("Headboard OFF / USB ON")
                 self.head_enabled = False
-                self.__usb_serial_gpio__ = USB_SERIAL_ON
-                GPIO.output(GPIO_USB_SERIAL, self.__usb_serial_gpio__)
+                self._usb_serial_stat = USB_SERIAL_ON
+                GPIO.output(GPIO_USB_SERIAL_PIN, self._usb_serial_stat)
+
+        if self.head_enabled:
+            if self._head_power_stat == HEAD_POWER_OFF:
+                L.debug("Head Power on")
+                GPIO.output(GPIO_HEAD_POW_PIN, HEAD_POWER_ON)
+                self._head_power_stat = HEAD_POWER_ON
+        else:
+            if self._head_power_stat == HEAD_POWER_ON:
+                L.debug("Head Power delay off")
+                self._head_power_timer = time()
 
     def update_fw(self, watcher):
         L.debug("Update mainboard fireware")
         self.mainboard_disconnect()
 
-        GPIO.output(GPIO_MAINBOARD, MAINBOARD_OFF)
+        GPIO.output(GPIO_MAINBOARD_POW_PIN, MAINBOARD_OFF)
         sleep(0.5)
-        GPIO.output(GPIO_MAINBOARD, MAINBOARD_ON)
+        GPIO.output(GPIO_MAINBOARD_POW_PIN, MAINBOARD_ON)
         sleep(1.0)
 
         storage = Storage("update_fw")
@@ -232,9 +239,9 @@ class GPIOConteol(object):
 
             os.rename(fw_path, fw_path + ".updated")
 
-            GPIO.output(GPIO_MAINBOARD, MAINBOARD_OFF)
+            GPIO.output(GPIO_MAINBOARD_POW_PIN, MAINBOARD_OFF)
             sleep(0.5)
-            GPIO.output(GPIO_MAINBOARD, MAINBOARD_ON)
+            GPIO.output(GPIO_MAINBOARD_POW_PIN, MAINBOARD_ON)
             sleep(1.0)
 
             self.mainboard_connect(watcher.loop)
@@ -244,7 +251,7 @@ class GPIOConteol(object):
             L.exception("Error while update fireware")
 
 
-class UartHal(UartHalBase, BaseOnSerial, GPIOConteol):
+class UartHal(UartHalBase, BaseOnSerial, GPIOControl):
     mainboard_uart = raspi_uart = None
     mainboard_io = raspi_io = None
 
@@ -266,6 +273,8 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOConteol):
 
         self.loop_watcher = kernel.loop.timer(5, 5, self.on_loop)
         self.loop_watcher.start()
+        self.sigusr2_watcher = kernel.loop.signal(signal.SIGUSR2, self.on_loop)
+        self.sigusr2_watcher.start()
 
     def _init_mainboard_status(self):
         corr_str = "M666 X%(X).4f Y%(Y).4f Z%(Z).4f H%(H).4f\n" % \

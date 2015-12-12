@@ -39,6 +39,23 @@ uart_config = {
 }
 
 
+MAX_CORRECTION_ROUND = 10
+
+DEVICE_POSITION_LIMIT = (172, 172, 212)
+
+MAINBOARD_RETRY_TTL = 10
+HEADBOARD_RETRY_TTL = 5
+
+HEAD_POWER_TIMEOUT = 300
+
+HEADBOARD_ENDPOINT = "/tmp/.headboard"
+MAINBOARD_ENDPOINT = "/tmp/.mainboard"
+
+CAMERA_ENDPOINT = "/tmp/.camera"
+
+PLAY_ENDPOINT = "/tmp/.player"
+
+
 robot_config = {
     "filepool": "/media"
 }

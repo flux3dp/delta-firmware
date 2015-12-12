@@ -1,6 +1,6 @@
 
 import unittest
-from fluxmonitor.code_executor.misc import TaskLoader
+from fluxmonitor.player.misc import TaskLoader
 from tests.fixtures import Fixtures
 import os
 

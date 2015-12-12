@@ -20,6 +20,7 @@ setup(
     author_email="cerberus@flux3dp.com",
     description="",
     license="?",
+    include_package_data=True,
     packages=setup_utils.get_packages(),
     test_suite="tests.main.everything",
     entry_points=setup_utils.ENTRY_POINTS,
@@ -66,7 +67,7 @@ setup(
             libraries=["crypto"], extra_objects=[], include_dirs=["src"]
         ),
         Extension(
-            'fluxmonitor.code_executor._device_fsm', sources=[
+            'fluxmonitor.player._device_fsm', sources=[
                 "src/device_fsm/device_fsm.cpp",
                 "src/device_fsm/fsm.pyx", ],
             language="c++",

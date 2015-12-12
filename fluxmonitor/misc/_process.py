@@ -79,7 +79,7 @@ class Process(Popen):
                 self.kill()
 
             timeout = time() + 3.0
-            while self.poll() is None:
+            while self.poll() is None and timeout > time():
                 sleep(0.01)
 
             if self.poll() is None:

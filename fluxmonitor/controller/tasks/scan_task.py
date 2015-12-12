@@ -1,82 +1,99 @@
 
-from importlib import import_module
-from threading import Thread
+from shlex import split as shlex_split
 from time import sleep
+from io import BytesIO
 import logging
+import struct
+import socket
 
 from fluxmonitor.err_codes import DEVICE_ERROR, NOT_SUPPORT, UNKNOW_COMMAND
-from fluxmonitor.config import hal_config
+from fluxmonitor.config import hal_config, CAMERA_ENDPOINT
+from fluxmonitor.storage import Storage
 
-from .base import ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn
+import pyev
+
+from .base import CommandMixIn, DeviceOperationMixIn
 
 logger = logging.getLogger(__name__)
-ScanChecking = None
-cv2 = None
 
 
-class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
-    camera = None
-    _img_buf = None
+class CameraInterface(object):
+    def __init__(self):
+        self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self.sock.connect(CAMERA_ENDPOINT)
 
-    @staticmethod
-    def check_opencv():
-        global cv2
-        if not cv2:
+    def oneshot(self):
+        self.sock.send(struct.pack("@BB", 0, 0))
+        resp = self.recv_text()
+        args = shlex_split(resp)
+        if args[0] == "binary":
+            mimetype = args[1]
+            length = int(args[2])
+            return mimetype, length, self.recv_binary(int(int(args[2])))
+        elif args[0] == "ER":
+            raise RuntimeError(*args[1:])
+        else:
+            raise SystemError("Unknow response: %s", resp)
+
+    def check_camera_position(self):
+        self.sock.send(struct.pack("@BB", 1, 0))
+        return self.recv_text()
+
+    def get_bias(self):
+        self.sock.send(struct.pack("@BB", 2, 0))
+        return self.recv_text()
+
+    def compute_cab(self, step):
+        if step == 'O':
+            self.sock.send(struct.pack("@BB", 3, 0))
+        elif step == 'L':
+            self.sock.send(struct.pack("@BB", 4, 0))
+        elif step == 'R':
+            self.sock.send(struct.pack("@BB", 5, 0))
+        return self.recv_text()
+
+    def recv_text(self):
+        buf = self.sock.recv(1)
+        textlen = struct.unpack("@B", buf)[0]
+        return self.sock.recv(textlen).decode("ascii", "ignore")
+
+    def recv_binary(self, length):
+        l = 0
+        f = BytesIO()
+        while l < length:
             try:
-                cv2 = import_module("cv2")
-            except ImportError:
-                logger.error("Import cv2 error, please make sure opencv for "
-                             "python is installed")
-                raise RuntimeError(NOT_SUPPORT)
+                buf = self.sock.recv(min(length - l, 4096))
+            except socket.error:
+                raise SystemError("Camera service broken pipe")
 
-        m = import_module("fluxmonitor.misc.scan_checking")
-        global ScanChecking
-        ScanChecking = m.ScanChecking
-
-    def __init__(self, server, sock, camera_id=None):
-        if camera_id is None:
-            camera_id = hal_config.get("scan_camera")
-            if camera_id is None:
-                raise RuntimeError(NOT_SUPPORT, "Camera id nog given")
-
-        self.quality = 80
-        self.step_length = 0.45
-
-        self.check_opencv()
-        self.server = server
-        self.init_device(camera_id)
-
-        ExclusiveMixIn.__init__(self, server, sock)
-
-        self._background_job = None
-        t = Thread(target=self._background_thread)
-        t.daemon = True
-        t.start()
-
-    def _background_thread(self):
-        while self.camera:
-            if self._background_job:
-                logger.debug("Proc %s" % repr(self._background_job))
-                try:
-                    self._background_job[0](*self._background_job[1])
-                except Exception:
-                    logger.exception("Unhandle Error")
-                finally:
-                    self._background_job = None
+            if buf:
+                f.write(buf)
+                l += len(buf)
             else:
-                sleep(0.005)
-        logger.debug("Scan background thread quit")
+                raise SystemError("Camera service broken pipe")
+        f.seek(0)
+        return f
 
-    def on_exit(self, sender):
-        self.disconnect()
-        if self.camera:
-            self.camera.release()
-            self.camera = None
+    def close(self):
+        self.sock.close()
 
-    def init_device(self, camera_id):
-        self.connect(mainboard_only=True)
-        self.camera = cv2.VideoCapture(camera_id)
 
+class ScanTask(DeviceOperationMixIn, CommandMixIn):
+    _device_busy = False
+    step_length = 0.45
+
+    def __init__(self, stack, handler, camera_id=None):
+        self.camera = CameraInterface()
+        super(ScanTask, self).__init__(stack, handler, enable_watcher=False)
+
+        self.step_length = 0.45
+        self.init_device()
+
+    def on_exit(self, handler):
+        self.camera.close()
+        super(ScanTask, self).on_exit(handler)
+
+    def init_device(self):
         try:
             init_gcodes = ["G28", "M302", "M907 Y0.4", "T2", "G91"]
             for cmd in init_gcodes:
@@ -86,42 +103,48 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
                     logger.error(erro_msg)
                     raise RuntimeError(DEVICE_ERROR, erro_msg)
         except:
-            self.camera.release()
             raise
 
     def make_gcode_cmd(self, cmd):
         self._uart_mb.send(("%s\n" % cmd).encode())
         return self._uart_mb.recv(128).decode("ascii", "ignore").strip()
 
-    def dispatch_cmd(self, cmd, sock):
+    def dispatch_cmd(self, handler, cmd, *args):
         if cmd == "oneshot":
-            self.oneshot(sock)
+            self.oneshot(handler)
 
         elif cmd == "scanimages":
-            self.take_images(sock)
+            self.take_images(handler)
 
         elif cmd == "scan_check":
-            self.scan_check(sock)
+            self.scan_check(handler)
+
+        elif cmd == "get_cab":
+            self.get_cab(handler)
+
+        elif cmd == "calibrate":
+            self.calibrate(handler)
 
         elif cmd == "scanlaser":
-            return self.change_laser(left=False, right=False)
+            param = args[0] if args else ""
+            l_on = "l" in param
+            r_on = "r" in param
+            handler.send_text(self.change_laser(left=l_on, right=r_on))
 
-        elif cmd.startswith("scanlaser "):
-            params = cmd.split(" ")[-1]
-            l_on = "l" in params
-            r_on = "r" in params
-            return self.change_laser(left=l_on, right=r_on)
+        elif cmd == "set":
+            if args[0] == "steplen":
+                self.step_length = float(args[1])
+                handler.send_text("ok")
+            else:
+                print(args)
+                raise RuntimeError(UNKNOW_COMMAND, args[1])
 
-        elif cmd.startswith("set steplen "):
-            self.step_length = float(cmd.split(" ")[-1])
-            return "ok"
-
-        elif cmd == "scan_forword":
+        elif cmd == "scan_backward":
             ret = self.make_gcode_cmd("G1 F500 E-%.5f" % self.step_length)
             if ret != "ok":
                 raise RuntimeError(DEVICE_ERROR, ret)
             sleep(0.05)
-            return ret
+            handler.send_text(ret)
 
         elif cmd == "scan_next":
             ret = self.make_gcode_cmd("G1 F500 E%.5f" % self.step_length)
@@ -129,11 +152,11 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
                 logger.error("Mainboard response %s rather then ok", repr(ret))
                 raise RuntimeError(DEVICE_ERROR, ret)
             sleep(0.05)
-            return ret
+            handler.send_text(ret)
 
         elif cmd == "quit":
-            self.server.exit_task(self)
-            return "ok"
+            self.stack.exit_task(self)
+            handler.send_text("ok")
 
         else:
             logger.debug("Can not handle: '%s'" % cmd)
@@ -142,74 +165,88 @@ class ScanTask(ExclusiveMixIn, CommandMixIn, DeviceOperationMixIn):
     def change_laser(self, left, right):
         self.make_gcode_cmd("X1O1" if left else "X1F1")
         self.make_gcode_cmd("X1O2" if right else "X1F2")
-        sleep(0.02)
         return "ok"
 
-    def scan_check(self, sock):
-        self.server.remove_read_event(sock)
-        self._background_job = (self.scan_check_worker, (sock, ))
+    def scan_check(self, handler):
+        handler.send_text(self.camera.check_camera_position())
 
-    def scan_check_worker(self, sock):
-        self.camera_read()
-        _ScanChecking = ScanChecking()
-        sock.send_text(str(_ScanChecking.check(self._img_buf)))
-        self.server.add_read_event(sock)
+    def calibrate(self, handler):
+        table = {8: 60, 7: 51, 6: 40, 5: 32, 4: 26, 3: 19, 2: 11, 1: 6, 0: 1}  # this is measure by data set
+        flag = 0
+        while True:
+            flag += 1
+            m = self.camera.get_bias()
+            w = float(m.split()[1])
+            logger.info('w = {}'.format(w))
+            thres = 0.2
+            if w == w:  # w is not nan
 
-    def oneshot(self, sock):
-        self.server.remove_read_event(sock)
-        self._background_job = (self._oneshot_worker, (sock, ))
+                if abs(w) < thres:
+                    calibrate_parameter = []
+                    for step, l, r in [("O", False, False), ("L", True, False), ("R", False, True)]:
+                        self.change_laser(left=l, right=r)
+                        sleep(0.5)
+                        m = self.camera.compute_cab(step)
+                        calibrate_parameter.append(m.split()[1])
 
-    def _oneshot_worker(self, sock):
-        try:
-            self._take_image(sock)
-            sock.send_text("ok")
-        finally:
-            self.server.add_read_event(sock)
+                    calibrate_parameter.pop(0)
+                    output = ' '.join(calibrate_parameter)
+                    logger.info(output)
 
-    def take_images(self, sock):
-        self.server.remove_read_event(sock)
-        self.server.remove_read_event(self._async_mb)
-        self._background_job = (self._take_images_worker, (sock, ))
+                    s = Storage('camera')
+                    with s.open('calibration', "w") as f:
+                        f.write(' '.join(map(lambda x: str(round(float(x))), calibrate_parameter)))
 
-    def _take_images_worker(self, sock):
-        try:
-            self.change_laser(left=True, right=False)
-            self._take_image(sock)
-            self.change_laser(left=False, right=True)
-            self._take_image(sock)
+                    # s.write(' '.join(calibrate_parameter))
+                    if all(float(r) < 72 for r in calibrate_parameter):  # so naive check
+                        break
+                    else:
+                        flag = 0
+                elif w < 0:
+                    self.make_gcode_cmd("G1 F500 E{}".format(table.get(round(abs(w)), 60)))
+                elif w > 0:
+                    self.make_gcode_cmd("G1 F500 E-{}".format(table.get(round(abs(w)), 60)))
+                record = table[round(abs(w))]
+                thres += 0.05
+            else:  # TODO: what about nan
+                pass
+            if flag >= 10:
+                break
+        self.change_laser(left=False, right=False)
+        if flag < 10:
+            handler.send_text('ok ' + output)
+        else:
+            handler.send_text('ok fail')
+
+    def get_cab(self, handler):
+        s = Storage('camera')
+        a = s.readall('calibration')
+        if a is None:
+            a = '0 0'
+        handler.send_text("ok " + a)
+
+    def oneshot(self, handler):
+        def cb(h):
+            handler.send_text("ok")
+        mimetype, length, stream = self.camera.oneshot()
+        handler.async_send_binary(mimetype, length, stream, cb)
+
+    def take_images(self, handler):
+        def cb_complete(h):
+            handler.send_text("ok")
+
+        def cb_shot3(h):
+            mimetype, length, stream = self.camera.oneshot()
+            h.async_send_binary(mimetype, length, stream, cb_complete)
+
+        def cb_shot2(h):
+            mimetype, length, stream = self.camera.oneshot()
+            h.async_send_binary(mimetype, length, stream, cb_shot3)
             self.change_laser(left=False, right=False)
-            self._take_image(sock)
-            sock.send_text("ok")
-        finally:
-            self.server.add_read_event(self._async_mb)
-            self.server.add_read_event(sock)
 
-    def _take_image(self, sock):
-        try:
-            self.camera_read()
-            # Convert IMWRITE_JPEG_QUALITY from long type to int (a bug)
-            ret, buf = cv2.imencode(".jpg", self._img_buf,
-                                    [int(cv2.IMWRITE_JPEG_QUALITY),
-                                     self.quality])
+        self.change_laser(left=True, right=False)
+        sleep(0.03)
+        mimetype, length, stream = self.camera.oneshot()
 
-            total, sent = len(buf), 0
-            sock.send_text("binary image/jpeg %i" % total)
-            while sent < total:
-                sent += sock.send(buf[sent:sent + 4096].tostring())
-
-        except Exception:
-            logger.exception("ERR")
-
-    def camera_read(self):
-        try:
-            for i in range(4):
-                while not self.camera.grab():
-                    pass
-            ret, self._img_buf = self.camera.read(self._img_buf)
-            while not ret:
-                logger.error("Take image failed")
-                ret, self._img_buf = self.camera.read(self._img_buf)
-            return
-
-        except Exception:
-            logger.exception("ERR")
+        handler.async_send_binary(mimetype, length, stream, cb_shot2)
+        self.change_laser(left=False, right=True)
