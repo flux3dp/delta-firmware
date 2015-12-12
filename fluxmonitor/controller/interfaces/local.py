@@ -52,6 +52,7 @@ class LocalControl(object):
             self.clients.append(handler)
         except Exception:
             logger.exception("Unhandle Error")
+            sock.close()
 
     def on_timer(self, watcher, revent):
         zombie = []
@@ -184,8 +185,12 @@ class LocalConnectionHandler(object):
                 self.logger.debug("Access ID: %s" % access_id)
                 self.keyobj = security.get_keyobj(access_id=access_id)
 
-                if self._buffered >= (20 + self.keyobj.size()):
-                    self._on_handshake_validate(length)
+                if self.keyobj:
+                    if self._buffered >= (20 + self.keyobj.size()):
+                        self._on_handshake_validate(length)
+                else:
+                    self._reply_handshake(b"AUTH_FAILED", success=False,
+                                          log_message="Unknow Access ID")
 
     def _on_handshake_validate(self, length):
         """
@@ -205,11 +210,7 @@ class LocalConnectionHandler(object):
         elif self._buffered == req_hanshake_len:
             signature = self._buf[20:req_hanshake_len]
 
-            if not self.keyobj:
-                self._reply_handshake(b"AUTH_FAILED", success=False,
-                                      log_message="Unknow Access ID")
-
-            elif not self.keyobj.verify(self.randbytes, signature):
+            if not self.keyobj.verify(self.randbytes, signature):
                 self._reply_handshake(b"AUTH_FAILED", success=False,
                                       log_message="Bad signature")
 
@@ -288,12 +289,15 @@ class LocalConnectionHandler(object):
 
     def async_send_binary(self, mimetype, length, stream, complete_cb):
         self.send_text("binary %s %i" % (mimetype, length))
-        self.recv_watcher.stop()
+        if length > 0:
+            self.recv_watcher.stop()
 
-        self.send_watcher = self.recv_watcher.loop.io(
-            self.sock, pyev.EV_WRITE, self.on_send, (length, 0, stream,
-                                                     complete_cb))
-        self.send_watcher.start()
+            self.send_watcher = self.recv_watcher.loop.io(
+                self.sock, pyev.EV_WRITE, self.on_send, (length, 0, stream,
+                                                         complete_cb))
+            self.send_watcher.start()
+        else:
+            complete_cb(self)
 
     def close(self, reason=""):
         if self.alive:

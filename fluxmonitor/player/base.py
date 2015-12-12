@@ -5,50 +5,38 @@ import logging
 
 L = logging.getLogger(__name__)
 
-# 1   STARTING/RESUMING flag
-# 2   PAUSING flag
-# 4   ABORTING/COMPLETING flag
-# 16  RUNNING
-# 32  PAUSED
-# 64  COMPLETED
-# 128 ABORTED
-
-
-ST_STARTING = 1
-
-
-ST_WAITTING_HEADER = "WAITTING_HEADER"
-# ST_HEATING = "HEATING"
-
-ST_RESUMING = 17  # 1 + 16
+ST_INIT = 1
+ST_STARTING = 4
 ST_RUNNING = 16
-
-ST_STARTING_PAUSED = 32  # 32
-
-ST_PAUSING = 50  # 2 + 16 + 32
-ST_PAUSED = 48  # 16 + 32
-
-ST_COMPLETING = 68  # 4 + 64
+ST_PAUSED = 32
 ST_COMPLETED = 64
-
-ST_ABORTING = 132  # 4 + 128
 ST_ABORTED = 128
+
+ST_STARTING_PAUSED = ST_STARTING + ST_PAUSED
+ST_STARTING_PAUSING = ST_STARTING_PAUSED + 2
+ST_RUNNING_PAUSED = ST_RUNNING + ST_PAUSED
+ST_RUNNING_PAUSING = ST_RUNNING_PAUSED + 2
+
+ST_STARTING_RESUMING = ST_STARTING + 2
+ST_RUNNING_RESUMING = ST_RUNNING + 2
+
+ST_COMPLETING = ST_COMPLETED + 2
 
 
 STATUS_MSG = {
     ST_STARTING: "STARTING",
     ST_RUNNING: "RUNNING",
-    ST_PAUSING: "PAUSING",
-
-    ST_STARTING_PAUSED: "PAUSED",
-    ST_PAUSED: "PAUSED",
-    ST_RESUMING: "RESUMING",
-
-    ST_ABORTING: "ABORTING",
+    ST_COMPLETED: "COMPLETED",
     ST_ABORTED: "ABORTED",
 
-    ST_COMPLETING: "COMPLETING",
-    ST_COMPLETED: "COMPLETED",
+    ST_STARTING_PAUSING: "PAUSING",
+    ST_RUNNING_PAUSING: "PAUSING",
+
+    ST_STARTING_PAUSED: "PAUSED",
+    ST_RUNNING_PAUSED: "PAUSED",
+
+    ST_STARTING_RESUMING: "RESUMING",
+    ST_RUNNING_RESUMING: "RESUMING"
 }
 
 
@@ -59,67 +47,83 @@ class BaseExecutor(object):
     status_id = None
     _err_symbol = None
     time_used = 0
+    macro = None
 
     def __init__(self, mainboard_io, headboard_io):
         self.__mbio = mainboard_io
         self.__hbio = headboard_io
-        self.status_id = ST_STARTING
+        self.status_id = ST_INIT
 
     def start(self):
+        self.status_id = ST_STARTING
         self.__begin_at = self.__start_at = datetime.now().utcnow()
 
     def pause(self, main_info, minor_info=None):
-        nst = -1
-        if self.status_id == ST_STARTING:
-            nst = ST_STARTING_PAUSED
-        elif self.status_id == ST_RESUMING or self.status_id == ST_RUNNING:
-            nst = ST_PAUSING
+        if self.status_id & 224:
+            # Completed/Aborted/Paused or goting to be
+            L.debug("Pause rejected: %s" % main_info)
 
-        if nst > 0:
-            L.debug("ST %3i -> %3i:%s %s", self.status_id, nst, main_info,
-                    minor_info)
-            self.status_id = nst
-            self._err_symbol = (main_info, minor_info)
-            return True
-        else:
-            L.debug("Pause Rejected: %s" % main_info)
+            if self._err_symbol[0] == "USER_OPERATION":
+                # Update error label only
+                self._err_symbol = (main_info, minor_info)
             return False
 
+        nst = self.status_id | ST_PAUSED | 2
+        L.debug("ST %3i -> %3i: %s %s", self.status_id, nst, main_info,
+                minor_info)
+        self.status_id = nst
+        self._err_symbol = (main_info, minor_info)
+        return True
+
     def paused(self):
-            L.debug("Paused")
-            t = datetime.now().utcnow()
+        if self.status_id & 192:
+            L.error("PAUSED invoke at complete/abort")
+            return
+
+        t = datetime.now().utcnow()
+        if self.__start_at:
             self.time_used += (t - self.__start_at).total_seconds()
-            self.__start_at = None
-            self.status_id = ST_PAUSED
+        self.__start_at = None
+        nst = (self.status_id | ST_PAUSED) & ~2
+        L.debug("ST %3i -> %3i: PAUSED", self.status_id, nst)
+        self.status_id = nst
 
     def resume(self):
-        nst = -1
-        if self.status_id == ST_PAUSED:
-            nst = ST_RESUMING
-        elif self.status_id == ST_STARTING_PAUSED:
-            nst = ST_STARTING
-
-        if nst > 0:
-            L.debug("ST %3i -> %3i:%s", self.status_id, nst, "RESUME")
+        if self.status_id & 192:
+            # Completed/Aborted or goting to be
+            L.debug("Resume rejected")
+            return False
+        elif self.status_id & 34 == 32:
+            # Paused
+            nst = (self.status_id & ~ST_PAUSED) | 2
+            L.debug("ST %3i -> %3i: RESUMING", self.status_id, nst)
             self.status_id = nst
+            self._err_symbol = None
             return True
         else:
+            L.debug("Resume rejected at status: %i", self.status_id)
             return False
 
     def resumed(self):
-        L.debug("Resumed")
+        if self.status_id & 192:
+            L.error("RESUMED invoke at complete/abort")
+            return
+
+        nst = (self.status_id & ~ST_PAUSED) & ~2
+        L.debug("ST %3i -> %3i: RESUMED", self.status_id, nst)
+        self.status_id = nst
         self.__start_at = datetime.now().utcnow()
-        self.status_id = ST_RUNNING
 
     def abort(self, main_err, minor_info=None):
-        if (self.status_id & 192) == 0:
-            L.debug("Abort: %s %s" % (main_err, minor_info))
-            # TODO
-            self.status_id = ST_ABORTED
-            self._err_symbol = (main_err, minor_info)
-            return True
-        else:
+        if self.status_id & 192:
+            # Completed/Aborted or goting to be
+            L.debug("Abort rejected")
             return False
+
+        L.debug("Abort: %s %s" % (main_err, minor_info))
+        self.status_id = ST_ABORTED
+        self._err_symbol = (main_err, minor_info)
+        return True
 
     @property
     def error_symbol(self):
@@ -134,9 +138,10 @@ class BaseExecutor(object):
     def get_status(self):
         st = {
             "st_id": self.status_id,
-            "st_label": STATUS_MSG.get(self.status_id, "UNKNOW_STATUS"),
+            "st_label": self.macro.name if self.macro else STATUS_MSG.get(
+                self.status_id, "UNKNOW_STATUS")
         }
-        if (self.status_id & 160) > 0:
+        if self.status_id & 160:
             st["error"] = self._err_symbol
         return st
 

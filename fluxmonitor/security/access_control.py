@@ -1,6 +1,7 @@
 
 from fluxmonitor.security._security import RSAObject
 from hashlib import sha1
+import os
 import re
 
 from fluxmonitor.storage import Storage
@@ -11,18 +12,19 @@ _safe_value = lambda val: re.match("^[a-zA-Z0-9]+$", val) is not None
 
 
 def get_keyobj(pem=None, der=None, access_id=None):
-    if access_id and _safe_value(access_id):
-        if _storage.exists(access_id):
-            with _storage.open(access_id, "r") as f:
-                buf = f.read()
-                try:
-                    if buf.startswith("-----BEGIN "):
-                        return RSAObject(pem=buf)
-                    else:
-                        return RSAObject(der=buf)
-                except RuntimeError:
-                    _storage.unlink(access_id)
-                    raise
+    if access_id:
+        if _safe_value(access_id) and _storage.exists(access_id):
+            buf = _storage.readall(access_id)
+            try:
+                if buf.startswith("-----BEGIN "):
+                    return RSAObject(pem=buf)
+                else:
+                    return RSAObject(der=buf)
+            except (RuntimeError, TypeError):
+                _storage.unlink(access_id)
+                return None
+        else:
+            return None
 
     try:
         return RSAObject(pem=pem, der=der)
@@ -53,6 +55,7 @@ def add_trusted_keyobj(keyobj):
 
     with _storage.open(access_id, "w") as f:
         f.write(keyobj.export_pubkey_pem())
+        os.fsync(f.fileno())
     return access_id
 
 

@@ -1,4 +1,4 @@
-
+# from ._head_controller import HeadController
 from shlex import split as shlex_split
 from time import time
 import logging
@@ -6,7 +6,6 @@ import logging
 from fluxmonitor.err_codes import EXEC_HEAD_OFFLINE, EXEC_OPERATION_ERROR, \
     EXEC_WRONG_HEAD, EXEC_HEAD_ERROR, EXEC_NEED_REMOVE_HEAD, \
     EXEC_UNKNOW_REQUIRED_HEAD_TYPE
-from fluxmonitor.config import HEADBOARD_RETRY_TTL
 
 
 L = logging.getLogger(__name__)
@@ -25,7 +24,7 @@ class HeadController(object):
     _module = "N/A"
 
     # On-the-fly status
-    _ready = False
+    _ready = 0
     _ready_callback = None
 
     _cmd_sent_at = 0
@@ -59,7 +58,7 @@ class HeadController(object):
         self.bootstrap(executor)
 
     def bootstrap(self, executor):
-        self._ready = False
+        self._ready = 1
         self._cmd_sent_at = 0
         self._cmd_retry = 0
         self._padding_cmd = None
@@ -77,7 +76,7 @@ class HeadController(object):
 
     @property
     def ready(self):
-        return self._ready
+        return self._ready == 2
 
     @property
     def is_busy(self):
@@ -88,7 +87,7 @@ class HeadController(object):
         return self._module
 
     def status(self):
-        if self._ready:
+        if self._ready == 2:
             return self._ext.status()
         else:
             return {"module": "N/A"}
@@ -102,17 +101,18 @@ class HeadController(object):
                     module_info[sparam[0]] = sparam[1]
             self._ext.hello(**module_info)
         except Exception:
-            self._ready = False
+            self._ready = 0
             raise
 
     def _on_head_offline(self, minor=None):
+        self._ready = 0
         if minor:
             self._raise_error(EXEC_HEAD_OFFLINE, minor)
         else:
             self._raise_error(EXEC_HEAD_OFFLINE)
 
     def _on_ready(self):
-        self._ready = True
+        self._ready = 2
         if self._ready_callback:
             self._ready_callback(self)
 
@@ -139,7 +139,7 @@ class HeadController(object):
             self.handle_message(raw_message[2:l], executor)
 
     def handle_message(self, msg, executor):
-        if self._ready:
+        if self._ready == 2:
             if msg.startswith("OK PONG "):
                 self._handle_pong(msg, executor)
                 if self._padding_cmd:
@@ -150,7 +150,7 @@ class HeadController(object):
                 pass
             else:
                 L.info("RECV_UH: '%s'", msg)
-        else:
+        elif self._ready == 1:
             if self._padding_cmd == "1 HELLO *115\n":
                 if msg.startswith("OK HELLO "):
                     self._on_head_hello(msg[9:])
@@ -237,7 +237,7 @@ class HeadController(object):
                 if er == 0:
                     pass
                 elif er & 4:
-                    self._raise_error(EXEC_HEAD_OFFLINE, "HEAD_RESET")
+                    self._on_head_offline("HEAD_RESET")
                 elif er & self._error_level:
                     if er & 8:
                         self._raise_error("HEAD_ERROR", "CALIBRATIING")
@@ -259,7 +259,7 @@ class HeadController(object):
                     finally:
                         self._allset_callback = None
 
-    def patrol(self, executor, strict=True):
+    def patrol(self, executor):
         # if self._required_module is None:
         #     if self._ready:
         #         if self._wait_update and
@@ -269,27 +269,26 @@ class HeadController(object):
         #     return
 
         if self._wait_update:
-            if self._update_retry > 2 and strict:
+            if self._update_retry > 2 and self._ready:
                 self._on_head_offline()
             if time() - self._lastupdate > 1.5:
                 self._handle_ping(executor)
-                self._update_retry += 1 if strict else 0
+                self._update_retry += 1 if self._ready else 0
                 L.debug("Header ping timeout, retry (%i)", self._update_retry)
 
-        if self._padding_cmd:
-            if self._cmd_retry > 2 and strict:
+        if self._ready and self._padding_cmd:
+            if self._cmd_retry > 2 and self._ready:
                 self._on_head_offline()
             elif time() - self._cmd_sent_at > 1.0:
                 self._send_cmd(executor)
-                self._cmd_retry += 1
-                L.debug("Header cmd timeout, retry (%i)", self._update_retry)
+                self._cmd_retry += 1 if self._ready else 0
+                L.debug("Header cmd timeout, retry (%i)", self._cmd_retry)
 
         elif time() - self._lastupdate > 1.0:
             if not self._padding_cmd:
                 self._handle_ping(executor)
 
     def _raise_error(self, *args):
-        self._ready = False
         raise RuntimeError(*args)
 
 

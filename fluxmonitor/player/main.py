@@ -173,14 +173,11 @@ class Player(ServiceBase):
             else:
                 err = ""
 
-            self.meta.update_device_status(self.executor.status_id, 0,
-                                           "UNKNOW_HEAD", err_label=err)
-
             if self.executor.is_closed():
                 watcher.stop()
 
             self.meta.update_device_status(self.executor.status_id,
                                            0, self.executor.head_ctrl.module,
-                                           self.executor.error_symbol)
+                                           err)
         except Exception:
             logger.exception("Unhandler Error")
