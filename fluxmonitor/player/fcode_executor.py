@@ -4,19 +4,18 @@ import logging
 
 from fluxmonitor.config import MAINBOARD_RETRY_TTL
 from fluxmonitor.err_codes import UNKNOW_ERROR, EXEC_BAD_COMMAND
-from .base import BaseExecutor, ST_STARTING, ST_WAITTING_HEADER  # NOQA
-from .base import ST_RUNNING, ST_PAUSING, ST_PAUSED, ST_RESUMING  # NOQA
-from .base import ST_ABORTING, ST_ABORTED, ST_COMPLETING, ST_COMPLETED  # NOQA
-from .base import ST_STARTING_PAUSED
+from .base import BaseExecutor
+from .base import ST_STARTING, ST_RUNNING, ST_COMPLETED, ST_ABORTED
+from .base import ST_COMPLETING
 from ._device_fsm import PyDeviceFSM
-from .macro import StartupMacro, CorrectionMacro, ZprobeMacro
+from .macro import StartupMacro, CorrectionMacro, ZprobeMacro, WaitHeadMacro
 
 from .main_controller import MainController
 from .head_controller import HeadController
 
 logger = logging.getLogger(__name__)
 
-FLAG_WAITTING_HEADER = 1
+FLAG_WAITTING_HEAD = 256
 
 
 class FcodeExecutor(BaseExecutor):
@@ -32,12 +31,12 @@ class FcodeExecutor(BaseExecutor):
     _mb_stashed = False
 
     _cmd_queue = None
-    macro = None
 
     def __init__(self, mainboard_io, headboard_io, task_loader, options):
         super(FcodeExecutor, self).__init__(mainboard_io, headboard_io)
 
         self._task_loader = task_loader
+
         self.options = options
 
         self._padding_bufsize = max(options.play_bufsize * 2, 64)
@@ -50,7 +49,7 @@ class FcodeExecutor(BaseExecutor):
 
         self.head_ctrl = HeadController(
             executor=self, ready_callback=self.on_controller_ready,
-            required_module=options.head, 
+            required_module=options.head,
             error_level=self.options.head_error_level
         )
 
@@ -70,88 +69,109 @@ class FcodeExecutor(BaseExecutor):
     def on_controller_ready(self, controller):
         logging.debug("Controller %s ready", controller.__class__.__name__)
         if self.main_ctrl.ready and self.head_ctrl.ready:
-            if self.status_id == ST_STARTING:
-                self.macro = StartupMacro(self.on_macro_complete,
-                                          self.on_macro_error, self.options)
-                self.macro.start(self)
-            elif self.status_id == ST_RESUMING:
-                if self._ctrl_flag & FLAG_WAITTING_HEADER:
-                    self._ctrl_flag &= ~FLAG_WAITTING_HEADER
-                self.main_ctrl.send_cmd("C2F", self)
-                self._mb_stashed = False
+            if self.status_id & 32:
+                return
+
+            if self.status_id == 6:
+                self.resumed()
+
+            if self.status_id == 4:  # if status_id == ST_STARTING
+                self._process_go()
+            else:
+                self._process_resume()
 
     def on_macro_complete(self):
         if isinstance(self.macro, StartupMacro):
             self.macro = None
             assert not self._cmd_queue
 
-            self.status_id = ST_RUNNING
             self._cmd_queue = deque()
-            self._ctrl_flag = 0
 
-            self._fsm = PyDeviceFSM(max_x=self.options.max_x, 
+            self._fsm = PyDeviceFSM(max_x=self.options.max_x,
                                     max_y=self.options.max_y,
                                     max_z=self.options.max_z)
+            self._fsm.set_max_exec_time(0.1)
 
             if self.options.correction == "A":
                 logging.debug("Run macro: CorrectionMacro")
-                self.macro = CorrectionMacro(self.on_macro_complete,
-                                             self.on_macro_error)
+                self.macro = CorrectionMacro(self.on_macro_complete)
                 self.macro.start(self)
             elif self.options.correction == "H":
                 logging.debug("Run macro: ZprobeMacro")
-                self.macro = ZprobeMacro(self.on_macro_complete,
-                                         self.on_macro_error)
+                self.macro = ZprobeMacro(self.on_macro_complete)
                 self.macro.start(self)
             else:
                 self.fire()
 
         elif isinstance(self.macro, CorrectionMacro):
             self.macro = None
-            self.macro = ZprobeMacro(self.on_macro_complete,
-                                     self.on_macro_error)
+            self.macro = ZprobeMacro(self.on_macro_complete)
             self.macro.start(self)
         elif isinstance(self.macro, ZprobeMacro):
             self.macro = None
             self.fire()
 
         else:
-            logging.error("Unknow macro: %s", self.macro)
+            logging.debug("Macro complete: %s", self.macro)
             self.macro = None
             self.fire()
 
-    def on_macro_error(self, err_code):
-        raise SystemError(err_code)
+    def _process_go(self):
+        if self.status_id != 4:
+            raise Exception("BAD_LOGIC")
+        self.status_id = 16  # status_id = ST_RUNNING
+        logger.debug("GO!")
+        self.macro = StartupMacro(self.on_macro_complete, self.options)
+        self.macro.start(self)
+
+    def _process_pause(self):
+        if self.status_id & 4:
+            self.paused()
+
+        elif self.main_ctrl.buffered_cmd_size == 0:
+            if self.macro:
+                self.paused()
+                self.macro.giveup()
+            elif self._mb_stashed:
+                self.paused()
+            else:
+                self.main_ctrl.send_cmd("C2O", self)
+                self._mb_stashed = True
+
+    def _process_resume(self):
+        if self.main_ctrl.buffered_cmd_size == 0:
+            if self._mb_stashed:
+                self.main_ctrl.send_cmd("C2F", self)
+                self._mb_stashed = False
+            else:
+                self.resumed()
+                if self.status_id & 4:
+                    self._process_go()
+                else:
+                    if self.macro:
+                        self.macro.start(self)
+                    else:
+                        self.fire()
 
     def pause(self, *args):
         if BaseExecutor.pause(self, *args):
-            if self.status_id == ST_STARTING_PAUSED:
-                pass
-            elif self.status_id == ST_PAUSING:
-                if self._mb_stashed:
-                    self.status_id = ST_PAUSED
-                else:
-                    if self.main_ctrl.buffered_cmd_size == 0:
-                        self.main_ctrl.send_cmd("C2O", self)
-                        self._mb_stashed = True
+            self._process_pause()
             return True
         else:
             return False
 
     def resume(self):
         if BaseExecutor.resume(self):
-            if self.status_id == ST_STARTING:
-                self.head_ctrl.bootstrap(self)
-                self.on_controller_ready(None)
-            elif self.status_id == ST_RESUMING:
-                self.head_ctrl.bootstrap(self)
+            if self.main_ctrl.ready and self.head_ctrl.ready:
+                self._process_resume()
+            else:
+                if not self.main_ctrl.ready:
+                    self.main_ctrl.bootstrap(self)
+                if not self.head_ctrl.ready:
+                    self.head_ctrl.bootstrap(self)
             return True
         else:
             return False
-
-    def resumed(self):
-        BaseExecutor.resumed(self)
-        self.fire()
 
     def abort(self, *args):
         if BaseExecutor.abort(self, *args):
@@ -172,71 +192,56 @@ class FcodeExecutor(BaseExecutor):
                 elif ret == -3:
                     self.abort(EXEC_BAD_COMMAND, "MULTI_E")
 
-            if (self._ctrl_flag & FLAG_WAITTING_HEADER) == 0:
-                while self._cmd_queue:
-                    target = self._cmd_queue[0][1]
-                    if target == 1:
-                        if self.main_ctrl.queue_full:
-                            return
-                        else:
-                            cmd = self._cmd_queue.popleft()[0]
-                            self.main_ctrl.send_cmd(cmd, self)
-                    elif target == 2:
-                        if self.main_ctrl.buffered_cmd_size == 0:
-                            cmd = self._cmd_queue.popleft()[0]
-                            if self.head_ctrl.is_busy:
-                                return
-                            else:
-                                self.head_ctrl.send_cmd(cmd, self)
-                        else:
-                            return
-
-                    elif target == 4:
-                        if self.main_ctrl.buffered_cmd_size == 0:
-                            if not self.head_ctrl.is_busy:
-                                self._ctrl_flag |= FLAG_WAITTING_HEADER
-                                cmd = self._cmd_queue.popleft()[0]
-                                self.head_ctrl.send_cmd(
-                                    cmd, self,
-                                    allset_callback=self._cb_head_ready)
+            while self._cmd_queue:
+                target = self._cmd_queue[0][1]
+                if target == 1:
+                    if self.main_ctrl.queue_full:
                         return
-                    elif target == 128:
-                        self.abort(self._cmd_queue[0][0])
-
                     else:
-                        raise SystemError("UNKNOW_ERROR", "target=%i" % target)
+                        cmd = self._cmd_queue.popleft()[0]
+                        self.main_ctrl.send_cmd(cmd, self)
+                elif target == 2:
+                    if self.main_ctrl.buffered_cmd_size == 0:
+                        cmd = self._cmd_queue.popleft()[0]
+                        if self.head_ctrl.is_busy:
+                            return
+                        else:
+                            self.head_ctrl.send_cmd(cmd, self)
+                    else:
+                        return
+
+                elif target == 4:
+                    if self.main_ctrl.buffered_cmd_size == 0:
+                        if not self.head_ctrl.is_busy:
+                            cmd = self._cmd_queue.popleft()[0]
+                            self.macro = WaitHeadMacro(self.on_macro_complete,
+                                                       cmd)
+                            self.macro.start(self)
+                    return
+                elif target == 128:
+                    self.abort(self._cmd_queue[0][0])
+
+                else:
+                    raise SystemError("UNKNOW_ERROR", "target=%i" % target)
 
     def _cb_feed_command(self, *args):
         self._cmd_queue.append(args)
 
-    def _cb_head_ready(self, sender):
-        self._ctrl_flag &= ~FLAG_WAITTING_HEADER
-        self.fire()
-
     def _on_mainboard_empty(self, sender):
-        if self.macro:
+        if self.status_id & 34 == 34:  # PAUSING
+            self._process_pause()
+        elif self.status_id & 2 and self.status_id & 32 == 0:  # RESUMING
+            self._process_resume()
+        elif self.macro:
             self.macro.on_command_empty(self)
+        elif self.status_id == ST_RUNNING and self._eof:
+            self.status_id = ST_COMPLETING
+            self.main_ctrl.send_cmd("G28", self)
+        elif self.status_id == ST_COMPLETING:
+            self.main_ctrl.close(self)
+            self.status_id = ST_COMPLETED
         else:
-            if self.status_id == ST_RUNNING and self._eof:
-                self.status_id = ST_COMPLETING
-                self.main_ctrl.send_cmd("G28", self)
-            elif self.status_id == ST_COMPLETING:
-                self.main_ctrl.close(self)
-                self.status_id = ST_COMPLETED
-            elif self.status_id == ST_PAUSING:
-                if self._mb_stashed:
-                    self.status_id = ST_PAUSED
-                else:
-                    self.main_ctrl.send_cmd("C2O", self)
-                    self._mb_stashed = True
-            elif self.status_id == ST_RESUMING:
-                if self._mb_stashed:
-                    self.main_ctrl.send_cmd("C2F", self)
-                    self._mb_stashed = False
-                else:
-                    self.resumed()
-            else:
-                self.fire()
+            self.fire()
 
     def _on_mainboard_sendable(self, sender):
         if self.macro:
@@ -253,7 +258,7 @@ class FcodeExecutor(BaseExecutor):
             self.fire()
         except RuntimeError as err:
             if not self.pause(*err.args):
-                raise SystemError("BAD_LOGIC")
+                self.abort("BAD_LOGIC", err.args[0])
         except SystemError as err:
             self.abort(*err.args)
         except Exception as err:
@@ -291,13 +296,12 @@ class FcodeExecutor(BaseExecutor):
     def on_loop(self):
         try:
             self.main_ctrl.patrol(self)
-            self.head_ctrl.patrol(self, (self.status_id == ST_STARTING or
-                                         self.status_id == ST_RUNNING or
-                                         self.status_id == ST_RESUMING))
+            self.head_ctrl.patrol(self)
+
         except RuntimeError as err:
             if not self.pause(err.args[0]):
                 if self.status_id == ST_RUNNING:
-                    raise SystemError("BAD_LOGIC")
+                    raise SystemError("BAD_LOGIC", None, err)
         except SystemError as err:
             self.abort(*err.args)
         except Exception as err:

@@ -11,7 +11,8 @@ from fluxmonitor.err_codes import EXEC_OPERATION_ERROR, EXEC_INTERNAL_ERROR,\
 L = logging.getLogger(__name__)
 
 FLAG_READY = 1
-FLAG_CLOSED = 2
+FLAG_ERROR = 2
+FLAG_CLOSED = 4
 
 
 class MainController(object):
@@ -29,7 +30,7 @@ class MainController(object):
     _retry_ttl = 3
 
     # Callable object
-    _callback_ready = None
+    _callback_flags = None
     # Tuple: (ttl(int), time(float), ln(int))
     _inhibit_resend = None
 
@@ -42,7 +43,7 @@ class MainController(object):
 
         self._cmd_sent = deque()
         self._cmd_padding = deque()
-        self.callback_ready = ready_callback
+        self.callback_flags = ready_callback
         self.callback_msg_empty = msg_empty_callback
         self.callback_msg_sendable = msg_sendable_callback
 
@@ -53,7 +54,7 @@ class MainController(object):
 
     @property
     def ready(self):
-        return (self._flags & FLAG_READY) > 0
+        return self._flags == FLAG_READY
 
     @property
     def closed(self):
@@ -85,9 +86,7 @@ class MainController(object):
             self._ln = 0
             self._ln_ack = 0
             self._flags |= FLAG_READY
-            if self.callback_ready:
-                self.callback_ready(self)
-                self.callback_ready = None
+            self.callback_flags(self)
 
         elif msg.startswith("ER MISSING_LINENUMBER "):
             L.error("Mainboard linecheck already enabled")
@@ -98,6 +97,16 @@ class MainController(object):
             executor.send_mainboard("C1O\n")
         else:
             L.debug("Recv unknow msg: '%s'", msg)
+
+    def bootstrap(self, executor):
+        L.error("MAIN BOOTSTRAP")
+        if self._flags == FLAG_READY:
+            self.callback_flags(self)
+        elif self._flags == (FLAG_READY + FLAG_ERROR):
+            self._flags = FLAG_READY
+            self.callback_flags(self)
+        else:
+            raise SystemError("BAD_LOGIC", "MBF_%i" % self._flags)
 
     def remove_complete_command(self, cmd=None):
         self._cmd_padding.popleft()
@@ -111,7 +120,7 @@ class MainController(object):
     def on_message(self, msg, executor):
         if self._resend_counter > 0:
             L.error("@ %s" % msg)
-        if self.ready:
+        if self._flags & FLAG_READY:
             if msg.startswith("LN "):
                 recv_ln, cmd_in_queue = (int(x) for x in msg.split(" ", 2)[1:])
                 self._last_recv_ts = time()
@@ -143,7 +152,9 @@ class MainController(object):
                                       "IMPOSSIBLE_SYNC_LN")
 
             elif msg.startswith("CTRL FILAMENTRUNOUT "):
-                raise RuntimeError(EXEC_FILAMENT_RUNOUT, msg.split(" ")[2])
+                if self._flags & FLAG_ERROR == 0:
+                    self._flags |= FLAG_ERROR
+                    raise RuntimeError(EXEC_FILAMENT_RUNOUT, msg.split(" ")[2])
 
             elif msg == "CTRL LINECHECK_DISABLED":
                 executor.send_mainboard(b"C1O\n")
@@ -207,7 +218,7 @@ class MainController(object):
         return False
 
     def send_cmd(self, cmd, executor, force=False):
-        if self.ready:
+        if self._flags & FLAG_READY:
             if self.buffered_cmd_size < self._bufsize or force:
                 self._ln += 1
                 self._send_cmd(executor, self._ln, cmd)
@@ -228,14 +239,14 @@ class MainController(object):
         raise SystemError(EXEC_MAINBOARD_OFFLINE)
 
     def close(self, executor):
-        if self.ready:
+        if self._flags & FLAG_READY:
             executor.send_mainboard("@DISABLE_LINECHECK\n")
             executor.send_mainboard("G28\n")
             self._flags &= ~FLAG_READY
             self._flags |= FLAG_CLOSED
 
     def patrol(self, executor):
-        if not self.ready and not self.closed:
+        if not self._flags & FLAG_READY and not self.closed:
             if time() - self._last_recv_ts > 1.0:
                 self._resend_counter += 1
                 if self._resend_counter > self._retry_ttl:
