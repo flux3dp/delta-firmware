@@ -52,6 +52,7 @@ class LocalControl(object):
             self.clients.append(handler)
         except Exception:
             logger.exception("Unhandle Error")
+            sock.close()
 
     def on_timer(self, watcher, revent):
         zombie = []
@@ -184,8 +185,12 @@ class LocalConnectionHandler(object):
                 self.logger.debug("Access ID: %s" % access_id)
                 self.keyobj = security.get_keyobj(access_id=access_id)
 
-                if self._buffered >= (20 + self.keyobj.size()):
-                    self._on_handshake_validate(length)
+                if self.keyobj:
+                    if self._buffered >= (20 + self.keyobj.size()):
+                        self._on_handshake_validate(length)
+                else:
+                    self._reply_handshake(b"AUTH_FAILED", success=False,
+                                          log_message="Unknow Access ID")
 
     def _on_handshake_validate(self, length):
         """
@@ -205,11 +210,7 @@ class LocalConnectionHandler(object):
         elif self._buffered == req_hanshake_len:
             signature = self._buf[20:req_hanshake_len]
 
-            if not self.keyobj:
-                self._reply_handshake(b"AUTH_FAILED", success=False,
-                                      log_message="Unknow Access ID")
-
-            elif not self.keyobj.verify(self.randbytes, signature):
+            if not self.keyobj.verify(self.randbytes, signature):
                 self._reply_handshake(b"AUTH_FAILED", success=False,
                                       log_message="Bad signature")
 
