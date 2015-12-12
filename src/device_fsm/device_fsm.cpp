@@ -227,6 +227,10 @@ inline int DeviceController::G1(command_cb_t callback, void* data,
 
     tcost = length / f * 100;
     section = (int)(tcost / max_exec_time);
+    if(section > 4096) {
+      printf("G1 split section over limit: %i, strict to 4096\n", section);
+      section = 4096;
+    }
 
     for(int i=1;i<section;i++) {
       char* buf_offset = _proc_buf + 3;

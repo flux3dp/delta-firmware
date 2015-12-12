@@ -92,8 +92,8 @@ class ExtruderHeadControlTest(ControlTestBase):
             self.assertRaises(RuntimeError, self.ec.patrol, executor)
 
     def test_update_timeout(self):
-        with self.assertSendHeadboard(*((b"1 PING *33\n", ) * 4)) as executor:
-            for i in range(4):
+        for i in range(4):
+            with self.assertSendHeadboard(b"1 PING *33\n") as executor:
                 # 1(first) + 3(retry) = call 4 times
                 self.ec._lastupdate = -1
                 self.ec.patrol(executor)

@@ -20,6 +20,13 @@ from .misc import TaskLoader
 logger = logging.getLogger("")
 
 
+def parse_float(str_val):
+    try:
+        return float(str_val)
+    except (ValueError, TypeError):
+        return float("NAN")
+
+
 class Player(ServiceBase):
     _mb_swap = _hb_swap = None
 
@@ -50,12 +57,16 @@ class Player(ServiceBase):
                                          self.on_headboard_message, head_sock)
         self.head_watcher.start()
 
+        self.timer_watcher = self.loop.timer(0.8, 0.8, self.on_timer)
+        self.timer_watcher.start()
+
         options = Options(taskloader)
         self.executor = FcodeExecutor(main_sock, head_sock, taskloader,
                                       options)
 
-        self.timer_watcher = self.loop.timer(0.8, 0.8, self.on_timer)
-        self.timer_watcher.start()
+        self.travel_dist = parse_float(taskloader.metadata.get("TRAVEL_DIST"))
+        self.time_cose = parse_float(taskloader.metadata.get("TIME_COST"))
+        self.avg_speed = self.travel_dist / self.time_cose
 
     def prepare_control_socket(self, endpoint):
         try:
@@ -129,8 +140,10 @@ class Player(ServiceBase):
                 else:
                     self.send_cmd_response(S, R, "ERROR RESOURCE_BUSY")
             elif cmd == "REPORT":  # Report
-                st = json.dumps(self.executor.get_status())
-                self.send_cmd_response(S, R, st)
+                st = self.executor.get_status()
+                st["prog"] = self.executor.traveled / self.travel_dist
+                pl = json.dumps(st)
+                self.send_cmd_response(S, R, pl)
             elif cmd == "RESUME":  # Continue
                 if self.executor.resume():
                     self.send_cmd_response(S, R, "ok")
@@ -173,14 +186,11 @@ class Player(ServiceBase):
             else:
                 err = ""
 
-            self.meta.update_device_status(self.executor.status_id, 0,
-                                           "UNKNOW_HEAD", err_label=err)
-
             if self.executor.is_closed():
                 watcher.stop()
 
-            self.meta.update_device_status(self.executor.status_id,
-                                           0, self.executor.head_ctrl.module,
-                                           self.executor.error_symbol)
+            prog = self.executor.traveled / self.travel_dist
+            self.meta.update_device_status(self.executor.status_id, prog,
+                                           self.executor.head_ctrl.module, err)
         except Exception:
             logger.exception("Unhandler Error")

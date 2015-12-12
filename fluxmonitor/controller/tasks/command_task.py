@@ -2,11 +2,12 @@
 from __future__ import absolute_import
 
 from tempfile import NamedTemporaryFile
+from io import StringIO, BytesIO
 from errno import errorcode
-from io import StringIO
 from md5 import md5
 import logging
 import shutil
+import json
 import os
 
 from fluxmonitor.player.fcode_parser import fast_read_meta
@@ -230,6 +231,24 @@ class PlayManagerMixIn(object):
         else:
             raise RuntimeError(RESOURCE_BUSY)
 
+    @validate_status
+    def play_info(self, manager, handler):
+        metadata, imgbuf = manager.playinfo
+
+        def end_img(h):
+            h.send_text("ok")
+
+        def end_meta__send_img(h):
+            if imgbuf:
+                h.async_send_binary("image/png", len(imgbuf), BytesIO(imgbuf),
+                                    end_img)
+            else:
+                h.send_text("ok")
+
+        metabuf = json.dumps(metadata)
+        handler.async_send_binary("text/json", len(metabuf), BytesIO(metabuf),
+                                  end_meta__send_img)
+
     def play_report(self, handler):
         component = self.stack.kernel.exclusive_component
         if isinstance(component, PlayerManager):
@@ -252,6 +271,9 @@ class PlayManagerMixIn(object):
             return True
         elif cmd == "report":
             self.play_report(handler)
+            return True
+        elif cmd == "play_info":
+            self.play_info(handler)
             return True
         elif cmd == "load_filament":
             return False

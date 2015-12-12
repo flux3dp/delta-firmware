@@ -20,9 +20,10 @@ def do_correction(meta, x, y, z):
 
 
 class ZprobeMacro(object):
-    def __init__(self, on_success_cb, on_error_cb, clean=False, ttl=20):
+    name = "CORRECTING"
+
+    def __init__(self, on_success_cb, clean=False, ttl=20):
         self._on_success_cb = on_success_cb
-        self._on_error_cb = on_error_cb
         self._clean = clean
         self.meta = Metadata()
         self.history = []
@@ -51,8 +52,7 @@ class ZprobeMacro(object):
             else:
                 if self.round >= self.ttl:
                     executor.main_ctrl.send_cmd("G28", executor)
-                    self._on_error_cb(EXEC_CONVERGENCE_FAILED)
-                    return
+                    raise RuntimeError(EXEC_CONVERGENCE_FAILED)
 
                 elif new_h > 245 or new_h < 239:
                     logger.error("Correction input failed: %s", data)
@@ -75,10 +75,16 @@ class ZprobeMacro(object):
         else:
             self.on_command_empty(executor)
 
+    def giveup(self):
+        pass
+
     def on_mainboard_message(self, msg, executor):
         if msg.startswith("Bed Z-Height at"):
             str_prope = msg.rsplit(" ", 1)[-1]
-            self.data = float(str_prope)
+            val = float(str_prope)
+            if val <= -100:
+                raise RuntimeError(EXEC_CONVERGENCE_FAILED)
+            self.data = val
 
     def on_headboard_message(self, msg, executor):
         pass

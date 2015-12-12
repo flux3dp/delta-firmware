@@ -24,6 +24,7 @@ from fluxmonitor.storage import CommonMetadata
 from fluxmonitor import security
 from fluxmonitor import __version__ as VERSION
 from .base import ServiceBase
+from fluxmonitor.storage import Storage
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +48,7 @@ REQ_SET_PASSWORD = 0x06
 
 REQ_MAINBOARD_TUNNEL = 0x80
 REQ_PHOTO = 0x81
+STORE_DATA = 0x82
 
 
 class UsbService(ServiceBase):
@@ -123,7 +125,9 @@ class UsbIO(object):
             REQ_SET_PASSWORD: self.on_set_password,
 
             REQ_MAINBOARD_TUNNEL: self.on_mainboard_tunnel,
-            REQ_PHOTO: self.on_take_pic
+            REQ_PHOTO: self.on_take_pic,
+            STORE_DATA: self.on_store_data
+
         }
 
     def fileno(self):
@@ -354,6 +358,21 @@ class UsbIO(object):
             self.send_response(REQ_PHOTO, True, MSG_OK)
         else:
             self.send_response(REQ_PHOTO, False, "Signature Error")
+
+    def on_store_data(self, buf):
+        pem = resource_string("fluxmonitor", "data/develope.pem")
+        rsakey = get_keyobj(pem=pem)
+        location, name, value, m = buf.split('\x00', 3)
+        salt, signature = m.split(b'$', 1)
+
+        if rsakey.verify(salt + self._vector, signature):
+            s = Storage(location)
+            with s.open(name, "w") as f:
+                f.write(value)
+
+            self.send_response(STORE_DATA, True, MSG_OK)
+        else:
+            self.send_response(STORE_DATA, False, "Signature Error")
 
     def close(self):
         self.sock.close()
