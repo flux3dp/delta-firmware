@@ -1,6 +1,7 @@
 
 
 from datetime import datetime
+from time import time
 import logging
 
 L = logging.getLogger(__name__)
@@ -48,6 +49,7 @@ class BaseExecutor(object):
     _err_symbol = None
     time_used = 0
     macro = None
+    __start_at = 0
 
     def __init__(self, mainboard_io, headboard_io):
         self.__mbio = mainboard_io
@@ -56,7 +58,14 @@ class BaseExecutor(object):
 
     def start(self):
         self.status_id = ST_STARTING
-        self.__begin_at = self.__start_at = datetime.now().utcnow()
+        self.__begin_at = datetime.now().utcnow()
+
+    def started(self):
+        if self.status_id != 4:
+            raise Exception("BAD_LOGIC")
+        self.status_id = 16  # status_id = ST_RUNNING
+        L.debug("GO!")
+        self.__start_at = time()
 
     def pause(self, main_info, minor_info=None):
         if self.status_id & 224:
@@ -73,6 +82,11 @@ class BaseExecutor(object):
                 minor_info)
         self.status_id = nst
         self._err_symbol = (main_info, minor_info)
+
+        if self.__start_at:
+            self.time_used += (time() - self.__start_at)
+        self.__start_at = None
+
         return True
 
     def paused(self):
@@ -80,10 +94,6 @@ class BaseExecutor(object):
             L.error("PAUSED invoke at complete/abort")
             return
 
-        t = datetime.now().utcnow()
-        if self.__start_at:
-            self.time_used += (t - self.__start_at).total_seconds()
-        self.__start_at = None
         nst = (self.status_id | ST_PAUSED) & ~2
         L.debug("ST %3i -> %3i: PAUSED", self.status_id, nst)
         self.status_id = nst
@@ -112,7 +122,7 @@ class BaseExecutor(object):
         nst = (self.status_id & ~ST_PAUSED) & ~2
         L.debug("ST %3i -> %3i: RESUMED", self.status_id, nst)
         self.status_id = nst
-        self.__start_at = datetime.now().utcnow()
+        self.__start_at = time()
 
     def abort(self, main_err, minor_info=None):
         if self.status_id & 192:
@@ -136,14 +146,13 @@ class BaseExecutor(object):
             return ""
 
     def get_status(self):
-        st = {
-            "st_id": self.status_id,
+        st_id = self.status_id
+        return {
+            "st_id": st_id,
             "st_label": self.macro.name if self.macro else STATUS_MSG.get(
-                self.status_id, "UNKNOW_STATUS")
+                st_id, "UNKNOW_STATUS"),
+            "error": self._err_symbol
         }
-        if self.status_id & 160:
-            st["error"] = self._err_symbol
-        return st
 
     def is_closed(self):
         return self.status_id and (self.status_id & ~192) == 0
