@@ -16,7 +16,8 @@
 
 DeviceController::DeviceController() {
   fsm.traveled = 0;
-  fsm.x = fsm.y = fsm.z = fsm.e[0] = fsm.e[1] = fsm.e[2] = NAN;
+  fsm.x = fsm.y = fsm.z = NAN;
+  fsm.e[0] = fsm.e[1] = fsm.e[2] = 0;
   fsm.f = 3000;
   fsm.t = 0;
 }
