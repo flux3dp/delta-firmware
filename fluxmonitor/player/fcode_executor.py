@@ -58,6 +58,14 @@ class FcodeExecutor(BaseExecutor):
 
         self.start()
 
+        self._fsm = PyDeviceFSM(max_x=self.options.max_x,
+                                max_y=self.options.max_y,
+                                max_z=self.options.max_z)
+
+    @property
+    def traveled(self):
+        return self._fsm.get_traveled()
+
     def close(self):
         self._task_loader.close()
 
@@ -76,7 +84,7 @@ class FcodeExecutor(BaseExecutor):
                 self.resumed()
 
             if self.status_id == 4:  # if status_id == ST_STARTING
-                self._process_go()
+                self.started()
             else:
                 self._process_resume()
 
@@ -86,10 +94,6 @@ class FcodeExecutor(BaseExecutor):
             assert not self._cmd_queue
 
             self._cmd_queue = deque()
-
-            self._fsm = PyDeviceFSM(max_x=self.options.max_x,
-                                    max_y=self.options.max_y,
-                                    max_z=self.options.max_z)
             self._fsm.set_max_exec_time(0.1)
 
             if self.options.correction == "A":
@@ -116,11 +120,8 @@ class FcodeExecutor(BaseExecutor):
             self.macro = None
             self.fire()
 
-    def _process_go(self):
-        if self.status_id != 4:
-            raise Exception("BAD_LOGIC")
-        self.status_id = 16  # status_id = ST_RUNNING
-        logger.debug("GO!")
+    def started(self):
+        super(FcodeExecutor, self).started()
         self.macro = StartupMacro(self.on_macro_complete, self.options)
         self.macro.start(self)
 
@@ -146,7 +147,7 @@ class FcodeExecutor(BaseExecutor):
             else:
                 self.resumed()
                 if self.status_id & 4:
-                    self._process_go()
+                    self.started()
                 else:
                     if self.macro:
                         self.macro.start(self)
