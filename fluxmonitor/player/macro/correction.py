@@ -90,8 +90,8 @@ class CorrectionMacro(object):
 
     def on_mainboard_message(self, msg, executor):
         if msg.startswith("Bed Z-Height at"):
-            str_prop = msg.rsplit(" ", 1)[-1]
-            val = float(str_prope)
+            str_probe = msg.rsplit(" ", 1)[-1]
+            val = float(str_probe)
             if val <= -100:
                 raise RuntimeError(EXEC_CONVERGENCE_FAILED)
             self.data.append(val)
