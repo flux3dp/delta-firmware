@@ -144,7 +144,7 @@ elif is_linux():
 
 
 def get_install_requires():
-    packages = ['setuptools', 'psutil', 'setproctitle', 'sysv_ipc', ]
+    packages = ['setuptools', 'psutil', 'setproctitle', 'sysv_ipc', 'pyserial']
 
     if is_linux():
         packages += ['pyroute2']

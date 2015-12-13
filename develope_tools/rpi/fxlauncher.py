@@ -1,11 +1,14 @@
 #!/usr/bin/env python
-import os
+
+import shutil
 import sys
+import os
 
 filename = ''
 factory_egg = '/home/pi/monitor_dist' + '/' + 'fluxmonitor-0.8a2-py2.7-linux-armv6l.egg'
 
-
+USB_AUTOUPDATE_LOCATION = "/media/usb/autoupdate.fxfw"
+AUTOUPDATE_LOCATION = "/var/autoupdate.fxfw"
 SERVICE_LIST = (
     # Syntax: (service entry name", ("service", "startup", "params"))
     ("fluxnetworkd", ('--pid', '/var/run/fluxnetworkd.pid',
@@ -22,10 +25,29 @@ SERVICE_LIST = (
                      '--log', '/var/log/fluxcamerad.log', '--daemon')),
 )
 
-def main():
-    pid = start_service()
-    if pid != 0:  # parent run update routine
-        update()
+
+def find_fxfw_from_usb():
+    if os.path.exists(USB_AUTOUPDATE_LOCATION):
+        if os.path.getsize(USB_AUTOUPDATE_LOCATION) < (100 * 2 ** 20):
+            shutil.copyfile(USB_AUTOUPDATE_LOCATION,
+                            AUTOUPDATE_LOCATION)
+
+
+def bootstrap_autoupdate():
+    try:
+        find_fxfw_from_usb()
+        if not os.path.exists(AUTOUPDATE_LOCATION):
+            return
+
+        ret = os.system("fxupdate.py %s" % AUTOUPDATE_LOCATION)
+        if ret in (8, 9):
+            os.unlink(AUTOUPDATE_LOCATION)
+        else:
+            raise UpdateError("Return %i" % ret)
+    except UpdateError:
+        raise
+    except Exception:
+        return
 
 
 def start_service(force=True):
@@ -184,6 +206,19 @@ def restore_factory():
 
 def reboot():
     os.system('sudo reboot')
+
+
+def main():
+    bootstrap_autoupdate()
+    start_service()
+    # TODO:
+    # pid = start_service()
+    # if pid != 0:  # parent run update routine
+    #     update()
+
+
+class UpdateError(Exception):
+    pass
 
 
 if __name__ == '__main__':
