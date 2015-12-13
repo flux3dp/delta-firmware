@@ -74,6 +74,8 @@ def main():
     parser = argparse.ArgumentParser(description='fluxmonitor update packer')
     parser.add_argument('-k', '--key', dest='key', type=str, required=True,
                         help='Signature Key')
+    parser.add_argument('--mbfw', dest='mainboard_fireware', type=str,
+                        help="Mainboard fireware")
     parser.add_argument('--egg', type=str, default=None,
                         help='fluxmonitor egg file')
     parser.add_argument('--extra', dest='extra_eggs', type=str, default=None,
@@ -95,6 +97,7 @@ def main():
     try:
         manifest = {"package": "fluxmointor", "version": version,
                     "egg": place_file(options.egg, workdir),
+                    "mbfw": place_file(options.mainboard_fireware, workdir),
                     "extra_eggs": [place_file(fn, workdir) \
                                     for fn in options.extra_eggs],
                     "extra_deb": [place_file(fn, workdir) \

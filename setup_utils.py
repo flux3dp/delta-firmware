@@ -111,8 +111,8 @@ ENTRY_POINTS = {
         "fluxusbd=fluxmonitor.bin.fluxusbd:main",
         "fluxplayer=fluxmonitor.bin.fluxplayer:main",
         "fluxcamerad=fluxmonitor.bin.fluxcamera:main",
-
         "fluxrobotd=fluxmonitor.bin.fluxrobot:main",
+        "fluxlauncher=fluxmonitor.bin.fluxlauncher:main",
 
         "fluxinit=fluxmonitor.bin.fluxinit:main"
     ]
@@ -144,7 +144,7 @@ elif is_linux():
 
 
 def get_install_requires():
-    packages = ['setuptools', 'psutil', 'setproctitle', 'sysv_ipc', ]
+    packages = ['setuptools', 'psutil', 'setproctitle', 'sysv_ipc', 'pyserial']
 
     if is_linux():
         packages += ['pyroute2']
