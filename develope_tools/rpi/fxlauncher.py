@@ -16,7 +16,7 @@ SERVICE_LIST = (
     ("fluxhald", ('--pid', '/var/run/fluxhald.pid',
                   '--log', '/var/log/fluxhald1.log', '--daemon')),
     ("fluxusbd", ('--pid', '/var/run/fluxusbd.pid',
-                  '--log', '/var/log/fluxusbd.log', '--daemon'))
+                  '--log', '/var/log/fluxusbd.log', '--daemon')),
     ("fluxupnpd", ('--pid', '/var/run/fluxupnpd.pid',
                    '--log', '/var/log/fluxupnpd.log', '--daemon')),
     ("fluxrobotd", ('--pid', '/var/run/fluxrobotd.pid',

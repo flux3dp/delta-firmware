@@ -79,9 +79,10 @@ def update_and_install_system_package():
 
 @action_wrapper
 def turn_off_useless_services():
-    services = ["avahi-daemon", "dbus", "triggerhappy", "dhcpcd", "ssh"]
+    services = ["avahi-daemon", "dbus", "triggerhappy", "dhcpcd", "ssh",
+                "isc-dhcp-server", "networking"]
     for s in services:
-        system("sudo update-rc.d %s remove" % s)
+        system("sudo update-rc.d -f %s remove" % s)
 
 
 @action_wrapper
@@ -159,4 +160,10 @@ if __name__ == "__main__":
     install_python_package()
     install_fluxmonitor()
     remove_current_network_setting()
+
+    print("Bootstrap completed.")
+    sys.stdout.write("Reboot? (Y/n)")
+    resp = sys.stdin.readline()
+    if resp.strip().lower() != "n":
+        system("sudo reboot")
 

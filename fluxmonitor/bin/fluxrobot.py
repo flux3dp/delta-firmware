@@ -8,7 +8,7 @@ from fluxmonitor.misc.flux_argparse import add_daemon_arguments, \
 from fluxmonitor.launcher import deamon_entry
 
 
-def main():
+def main(params=None):
     parser = argparse.ArgumentParser(description='flux robot')
     add_daemon_arguments("fluxrobot", parser)
     parser.add_argument('--autoplay', dest='autoplay', action='store_const',
