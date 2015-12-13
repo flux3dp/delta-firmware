@@ -1,16 +1,18 @@
 #!/usr/bin/env python
 
+# This script can build a fluxmonitor from a clean raspbian
+#
 # RELEASE NOTIFY
 # This script is write base on raspberry pi image: "RASPBIAN JESSIE LITE"
 # release at 2015-11-21
 #
 # write by Cerberus
-
+#
 # REQUIRE FILES:
-#  "bossac" - Atmel fireware tool
-#  "factory.fxfw" - fluxmonitor fireware package
-#  "hostapd-rtl8188cus" - Wifi driver
-#  "wpa_supplicant-rtl8188cus" - Wifi driver
+#  "bossac" - Atmel fireware tool, ask somebody to get it
+#  "factory.fxfw" - fluxmonitor fireware package, ask someone to get it
+#  "hostapd-rtl8188cus" - Wifi driver, find it in NAS
+#  "wpa_supplicant-rtl8188cus" - Wifi driver, find it in NAS
 #  "fxupdate.py" - Can be found at up directory
 #  "fxconfig_network.py" - Can be found at up directory
 #  "fxpasswd.py" - Can be found at up directory
@@ -83,6 +85,9 @@ def turn_off_useless_services():
                 "isc-dhcp-server", "networking"]
     for s in services:
         system("sudo update-rc.d -f %s remove" % s)
+        system("sudo systemctl disable %s.service")
+
+    system("sudo systemctl disable dbus.socket")
 
 
 @action_wrapper
@@ -137,6 +142,12 @@ def copy_standlone_py_script():
 
 
 @action_wrapper
+def set_system_console():
+    logger.info("Disable AMA0 system console")
+    system("sudo systemctl stop serial-getty@ttyAMA0.service")
+    system("sudo systemctl disable serial-getty@ttyAMA0.service")
+
+@action_wrapper
 def install_fluxmonitor():
     if not os.path.exists("/etc/flux"):
         os.mkdir("/etc/flux")
@@ -159,6 +170,7 @@ if __name__ == "__main__":
     copy_standlone_py_script()
     install_python_package()
     install_fluxmonitor()
+    set_system_console()
     remove_current_network_setting()
 
     print("Bootstrap completed.")
