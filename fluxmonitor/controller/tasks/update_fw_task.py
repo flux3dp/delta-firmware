@@ -3,7 +3,8 @@ from tempfile import TemporaryFile
 import logging
 import socket
 
-from fluxmonitor.err_codes import PROTOCOL_ERROR, SUBSYSTEM_ERROR, UNKNOW_ERROR
+from fluxmonitor.err_codes import PROTOCOL_ERROR, SUBSYSTEM_ERROR, \
+    UNKNOWN_ERROR
 from fluxmonitor.config import uart_config
 from fluxmonitor.storage import Storage
 
@@ -53,7 +54,7 @@ class UpdateFwTask(object):
             handler.send_text(("error %s" % e.args[0]).encode())
         except Exception:
             logger.exception("Unhandle Error")
-            handler.send_text("error %s" % UNKNOW_ERROR)
+            handler.send_text("error %s" % UNKNOWN_ERROR)
 
     def send_upload_request(self):
         try:

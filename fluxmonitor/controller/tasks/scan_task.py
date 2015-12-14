@@ -6,7 +6,7 @@ import logging
 import struct
 import socket
 
-from fluxmonitor.err_codes import DEVICE_ERROR, NOT_SUPPORT, UNKNOW_COMMAND
+from fluxmonitor.err_codes import DEVICE_ERROR, NOT_SUPPORT, UNKNOWN_COMMAND
 from fluxmonitor.config import hal_config, CAMERA_ENDPOINT
 from fluxmonitor.storage import Storage
 
@@ -137,7 +137,7 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
                 handler.send_text("ok")
             else:
                 print(args)
-                raise RuntimeError(UNKNOW_COMMAND, args[1])
+                raise RuntimeError(UNKNOWN_COMMAND, args[1])
 
         elif cmd == "scan_backward":
             ret = self.make_gcode_cmd("G1 F500 E-%.5f" % self.step_length)
@@ -160,7 +160,7 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
 
         else:
             logger.debug("Can not handle: '%s'" % cmd)
-            raise RuntimeError(UNKNOW_COMMAND)
+            raise RuntimeError(UNKNOWN_COMMAND)
 
     def change_laser(self, left, right):
         self.make_gcode_cmd("X1O1" if left else "X1F1")
