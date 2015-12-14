@@ -16,15 +16,15 @@ from fluxmonitor.misc import network_config_encoder as NCE
 from fluxmonitor.security.passwd import set_password
 from fluxmonitor.security.access_control import is_rsakey, get_keyobj, \
     add_trusted_keyobj, untrust_all
+from fluxmonitor.storage import Storage, Metadata
 from fluxmonitor.security.misc import randstr
 from fluxmonitor.halprofile import get_model_id
 from fluxmonitor.config import network_config
 from fluxmonitor.config import uart_config
-from fluxmonitor.storage import CommonMetadata
+from fluxmonitor.err_codes import UNKNOWN_ERROR
 from fluxmonitor import security
 from fluxmonitor import __version__ as VERSION
 from .base import ServiceBase
-from fluxmonitor.storage import Storage
 
 logger = logging.getLogger(__name__)
 
@@ -106,7 +106,7 @@ class UsbIO(object):
         self.sock = sock
 
         self.nw_monitor = NetworkMonitor(None)
-        self.meta = CommonMetadata()
+        self.meta = Metadata()
 
         self._recv_buf = bytearray(4096)
         self._recv_view = memoryview(self._recv_buf)
@@ -298,7 +298,7 @@ class UsbIO(object):
             self.send_response(REQ_GET_SSID, True, ssid.encode())
         except Exception:
             logger.exception("Error while getting ssid %s" % "wlan0")
-            self.send_response(REQ_GET_SSID, False, "UNKNOW_ERROR")
+            self.send_response(REQ_GET_SSID, False, UNKNOWN_ERROR)
 
     def on_list_ssid(self, buf):
         try:
@@ -306,7 +306,7 @@ class UsbIO(object):
             self.send_response(REQ_LIST_SSID, True, json.dumps(result))
         except Exception:
             logger.exception("Error while list ssid %s" % "wlan0")
-            self.send_response(REQ_LIST_SSID, False, "UNKNOW_ERROR")
+            self.send_response(REQ_LIST_SSID, False, UNKNOWN_ERROR)
 
     def on_query_ipaddr(self, buf):
         status = self.nw_monitor.full_status()

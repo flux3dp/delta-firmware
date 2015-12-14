@@ -11,7 +11,7 @@ import json
 import os
 
 from fluxmonitor.player.fcode_parser import fast_read_meta
-from fluxmonitor.err_codes import (UNKNOW_COMMAND, NOT_EXIST, TOO_LARGE,
+from fluxmonitor.err_codes import (UNKNOWN_COMMAND, NOT_EXIST, TOO_LARGE,
                                    NO_TASK, BAD_PARAMS, BAD_FILE_FORMAT,
                                    RESOURCE_BUSY)
 from fluxmonitor.storage import CommonMetadata, UserSpace
@@ -321,7 +321,7 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn):
             handler.send_text("ok")
         else:
             logger.debug("Can not handle: %s" % repr(cmd))
-            raise RuntimeError(UNKNOW_COMMAND)
+            raise RuntimeError(UNKNOWN_COMMAND)
 
     def update_fw(self, handler, filesize):
         if filesize > 2 ** 20:

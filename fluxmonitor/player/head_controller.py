@@ -5,7 +5,7 @@ import logging
 
 from fluxmonitor.err_codes import EXEC_HEAD_OFFLINE, EXEC_OPERATION_ERROR, \
     EXEC_WRONG_HEAD, EXEC_HEAD_ERROR, EXEC_NEED_REMOVE_HEAD, \
-    EXEC_UNKNOW_REQUIRED_HEAD_TYPE
+    EXEC_UNKNOWN_REQUIRED_HEAD_TYPE, UNKNOWN_COMMAND
 
 
 L = logging.getLogger(__name__)
@@ -53,7 +53,7 @@ class HeadController(object):
         elif required_module == "N/A":
             self._ext = NAExt()
         else:
-            raise SystemError(EXEC_UNKNOW_REQUIRED_HEAD_TYPE, required_module)
+            raise SystemError(EXEC_UNKNOWN_REQUIRED_HEAD_TYPE, required_module)
 
         self.bootstrap(executor)
 
@@ -184,7 +184,7 @@ class HeadController(object):
             self.wait_allset(allset_callback)
         else:
             logger.error("Got unknow command: %s", cmd)
-            raise SystemError("UNKNOW_COMMAND", "HEAD_MESSAGE")
+            raise SystemError(UNKNOWN_COMMAND, "HEAD_MESSAGE")
 
     def _send_cmd(self, executor):
         if not self._wait_update:
@@ -240,7 +240,7 @@ class HeadController(object):
                     self._on_head_offline("HEAD_RESET")
                 elif er & self._error_level:
                     if er & 8:
-                        self._raise_error("HEAD_ERROR", "CALIBRATIING")
+                        self._raise_error("HEAD_ERROR", "CALIBRATING")
                     if er & 16:
                         self._raise_error(EXEC_HEAD_ERROR, "SHAKE")
                     if er & 32:

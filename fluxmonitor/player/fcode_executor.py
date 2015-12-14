@@ -3,7 +3,7 @@ from collections import deque
 import logging
 
 from fluxmonitor.config import MAINBOARD_RETRY_TTL
-from fluxmonitor.err_codes import UNKNOW_ERROR, EXEC_BAD_COMMAND
+from fluxmonitor.err_codes import UNKNOWN_ERROR, EXEC_BAD_COMMAND
 from .base import BaseExecutor
 from .base import ST_STARTING, ST_RUNNING, ST_COMPLETED, ST_ABORTED
 from .base import ST_COMPLETING
@@ -223,7 +223,7 @@ class FcodeExecutor(BaseExecutor):
                     self.abort(self._cmd_queue[0][0])
 
                 else:
-                    raise SystemError("UNKNOW_ERROR", "target=%i" % target)
+                    raise SystemError("UNKNOWN_ERROR", "target=%i" % target)
 
     def _cb_feed_command(self, *args):
         self._cmd_queue.append(args)
@@ -266,7 +266,7 @@ class FcodeExecutor(BaseExecutor):
             if self.debug:
                 raise
             logger.exception("Unhandle error")
-            self.abort(UNKNOW_ERROR, "MAINBOARD_MESSAGE")
+            self.abort(UNKNOWN_ERROR, "MAINBOARD_MESSAGE")
 
     def on_headboard_message(self, msg):
         try:
@@ -285,7 +285,7 @@ class FcodeExecutor(BaseExecutor):
             if self.debug:
                 raise
             logger.exception("Unhandle error")
-            self.abort(UNKNOW_ERROR, "HEADBOARD_MESSAGE")
+            self.abort(UNKNOWN_ERROR, "HEADBOARD_MESSAGE")
 
     # def load_filament(self, extruder_id):
     #     self.send_mainboard("@\n")
@@ -309,4 +309,4 @@ class FcodeExecutor(BaseExecutor):
             if self.debug:
                 raise
             logger.exception("Unhandle error")
-            self.abort(UNKNOW_ERROR, "LOOPBACK")
+            self.abort(UNKNOWN_ERROR, "LOOPBACK")

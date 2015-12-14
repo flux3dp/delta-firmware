@@ -10,7 +10,7 @@ import pyev
 logger = logging.getLogger(__name__)
 
 from fluxmonitor.config import uart_config, DEBUG
-from fluxmonitor.err_codes import NO_RESPONSE, UNKNOW_ERROR
+from fluxmonitor.err_codes import NO_RESPONSE, UNKNOWN_ERROR
 
 
 class CommandMixIn(object):
@@ -31,11 +31,11 @@ class CommandMixIn(object):
             handler.send_text(("error " + " ".join(e.args)).encode())
         except Exception as e:
             if DEBUG:
-                handler.send_text("error %s %s" % (UNKNOW_ERROR, e))
+                handler.send_text("error %s %s" % (UNKNOWN_ERROR, e))
             else:
-                handler.send_text("error %s" % UNKNOW_ERROR)
+                handler.send_text("error %s" % UNKNOWN_ERROR)
 
-            logger.exception(UNKNOW_ERROR)
+            logger.exception(UNKNOWN_ERROR)
 
 
 class DeviceOperationMixIn(object):

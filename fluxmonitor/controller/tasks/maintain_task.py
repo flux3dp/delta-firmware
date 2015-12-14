@@ -8,7 +8,7 @@ from fluxmonitor.storage import CommonMetadata
 from fluxmonitor.misc import correction
 from fluxmonitor.config import uart_config
 
-from fluxmonitor.err_codes import RESOURCE_BUSY, UNKNOW_COMMAND
+from fluxmonitor.err_codes import RESOURCE_BUSY, UNKNOWN_COMMAND
 
 from .base import CommandMixIn, DeviceOperationMixIn, \
     DeviceMessageReceiverMixIn
@@ -159,7 +159,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             handler.send_text("ok")
         else:
             logger.debug("Can not handle: '%s'" % cmd)
-            raise RuntimeError(UNKNOW_COMMAND)
+            raise RuntimeError(UNKNOWN_COMMAND)
 
     @check_mainboard
     def do_home(self, sender):
@@ -187,7 +187,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
 
             except Exception:
                 logger.exception("Unhandle Error")
-                handler.send_text("error UNKNOW_ERROR")
+                handler.send_text("error UNKNOWN_ERROR")
                 self.stack.exit_task(self)
 
         def stage2_test_y(msg):
@@ -201,7 +201,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
 
             except Exception:
                 logger.exception("Unhandle Error")
-                handler.send_text("error UNKNOW_ERROR")
+                handler.send_text("error UNKNOWN_ERROR")
                 self.stack.exit_task(self)
 
         def stage3_test_z(msg):
@@ -228,7 +228,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
 
             except Exception:
                 logger.exception("Unhandle Error")
-                handler.send_text("error UNKNOW_ERROR")
+                handler.send_text("error UNKNOWN_ERROR")
                 self.stack.exit_task(self)
 
         self._busy = True
@@ -272,7 +272,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
 
             except Exception:
                 logger.exception("Unhandle Error")
-                handler.send_text("error UNKNOW_ERROR")
+                handler.send_text("error UNKNOWN_ERROR")
                 self.stack.exit_task(self)
 
         self._busy = True

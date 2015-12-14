@@ -1,7 +1,7 @@
 
 
 class WaitHeadMacro(object):
-    name = "WAITTING_HEAD"
+    name = "WAITING_HEAD"
 
     def __init__(self, on_success_cb, head_cmd):
         self._on_success_cb = on_success_cb

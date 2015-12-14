@@ -10,6 +10,7 @@ import pyev
 
 from fluxmonitor.controller.tasks.command_task import CommandTask
 from fluxmonitor.storage import CommonMetadata
+from fluxmonitor.err_codes import AUTH_ERROR
 from fluxmonitor.misc import timer as T
 from fluxmonitor import security
 
@@ -189,7 +190,7 @@ class LocalConnectionHandler(object):
                     if self._buffered >= (20 + self.keyobj.size()):
                         self._on_handshake_validate(length)
                 else:
-                    self._reply_handshake(b"AUTH_FAILED", success=False,
+                    self._reply_handshake(AUTH_ERROR, success=False,
                                           log_message="Unknow Access ID")
 
     def _on_handshake_validate(self, length):
@@ -211,7 +212,7 @@ class LocalConnectionHandler(object):
             signature = self._buf[20:req_hanshake_len]
 
             if not self.keyobj.verify(self.randbytes, signature):
-                self._reply_handshake(b"AUTH_FAILED", success=False,
+                self._reply_handshake(AUTH_ERROR, success=False,
                                       log_message="Bad signature")
 
             else:
