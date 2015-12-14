@@ -2,7 +2,7 @@
 from time import time
 
 from fluxmonitor.player.head_controller import HeadController
-from .misc import ControlTestBase, UnittestError
+from tests.player.misc import ControlTestBase, UnittestError
 
 
 HELLO_MSG = ("1 OK HELLO TYPE:EXTRUDER ID:1572870 VENDOR:FLUX\ .inc "

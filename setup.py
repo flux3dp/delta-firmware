@@ -79,6 +79,12 @@ setup(
             language="c++",
             define_macros=setup_utils.DEFAULT_MACROS,
             libraries=[], extra_objects=[], include_dirs=["src"]
+        ),
+        Extension(
+            'fluxmonitor.player._head_controller', sources=[
+                "src/player/head_controller.c"],
+            define_macros=setup_utils.DEFAULT_MACROS,
+            libraries=[], extra_objects=[], include_dirs=["src"]
         )
     ]
 )
