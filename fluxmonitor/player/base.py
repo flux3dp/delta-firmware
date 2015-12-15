@@ -37,7 +37,9 @@ STATUS_MSG = {
     ST_RUNNING_PAUSED: "PAUSED",
 
     ST_STARTING_RESUMING: "RESUMING",
-    ST_RUNNING_RESUMING: "RESUMING"
+    ST_RUNNING_RESUMING: "RESUMING",
+
+    ST_COMPLETING: "COMPLETING"
 }
 
 
@@ -158,7 +160,6 @@ class BaseExecutor(object):
         return self.status_id and (self.status_id & ~192) == 0
 
     def send_mainboard(self, msg):
-        print(">>", msg)
         if self.__mbio.send(msg) != len(msg):
             raise Exception("DIE")
 

@@ -2,11 +2,14 @@
 #include<math.h>
 #include<Python.h>
 
-#define BLOCK_HEAD_MESSAGE 4
-#define HEAD_MESSAGE 2
 #define MAIN_MESSAGE 1
+#define HEAD_MESSAGE 2
+#define BLOCK_HEAD_MESSAGE 4
+#define PAUSE_MESSAGE 8
+
 
 typedef void (*command_cb_t)(const char* command, int target, void* data);
+
 
 struct DeviceFSM {
   double traveled;

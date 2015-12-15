@@ -219,6 +219,10 @@ class FcodeExecutor(BaseExecutor):
                                                        cmd)
                             self.macro.start(self)
                     return
+                elif target == 8:
+                    self.pause("USER_OPERATION", "FROM_CODE")
+                    self._cmd_queue.popleft()[0]
+                    return
                 elif target == 128:
                     self.abort(self._cmd_queue[0][0])
 
@@ -231,7 +235,7 @@ class FcodeExecutor(BaseExecutor):
     def _on_mainboard_empty(self, sender):
         if self.status_id & 34 == 34:  # PAUSING
             self._process_pause()
-        elif self.status_id & 2 and self.status_id & 32 == 0:  # RESUMING
+        elif self.status_id & 2 and self.status_id < 32:  # RESUMING
             self._process_resume()
         elif self.macro:
             self.macro.on_command_empty(self)
@@ -239,8 +243,8 @@ class FcodeExecutor(BaseExecutor):
             self.status_id = ST_COMPLETING
             self.main_ctrl.send_cmd("G28", self)
         elif self.status_id == ST_COMPLETING:
-            self.main_ctrl.close(self)
             self.status_id = ST_COMPLETED
+            self.main_ctrl.close(self)
         else:
             self.fire()
 
