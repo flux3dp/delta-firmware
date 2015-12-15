@@ -174,14 +174,15 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
         table = {8: 60, 7: 51, 6: 40, 5: 32, 4: 26, 3: 19, 2: 11, 1: 6, 0: 1}  # this is measure by data set
         flag = 0
         while True:
+            if flag > 10:
+                break
             flag += 1
             m = self.camera.get_bias()
             w = float(m.split()[1])
             logger.info('w = {}'.format(w))
             thres = 0.2
             if w == w:  # w is not nan
-
-                if abs(w) < thres:
+                if abs(w) < thres:  # good enough to calibrate
                     calibrate_parameter = []
                     for step, l, r in [("O", False, False), ("L", True, False), ("R", False, True)]:
                         self.change_laser(left=l, right=r)
@@ -190,18 +191,18 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
                         calibrate_parameter.append(m.split()[1])
 
                     calibrate_parameter.pop(0)
+
                     output = ' '.join(calibrate_parameter)
                     logger.info(output)
 
-                    s = Storage('camera')
-                    with s.open('calibration', "w") as f:
-                        f.write(' '.join(map(lambda x: str(round(float(x))), calibrate_parameter)))
-
                     # s.write(' '.join(calibrate_parameter))
-                    if all(float(r) < 72 for r in calibrate_parameter):  # so naive check
-                        break
+                    if all(abs(float(r)) < 72 for r in calibrate_parameter):  # so naive check
+                        # store data
+                        s = Storage('camera')
+                        with s.open('calibration', "w") as f:
+                            f.write(' '.join(map(lambda x: str(round(float(x))), calibrate_parameter)))
                     else:
-                        flag = 0
+                        flag = 12
                 elif w < 0:
                     self.make_gcode_cmd("G1 F500 E{}".format(table.get(round(abs(w)), 60)))
                 elif w > 0:
@@ -210,13 +211,13 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
                 thres += 0.05
             else:  # TODO: what about nan
                 pass
-            if flag >= 10:
-                break
         self.change_laser(left=False, right=False)
         if flag < 10:
             handler.send_text('ok ' + output)
-        else:
-            handler.send_text('ok fail')
+        elif flag == 11:
+            handler.send_text('ok fail chess')
+        elif flag == 12:
+            handler.send_text('ok fail laser')
 
     def get_cab(self, handler):
         s = Storage('camera')

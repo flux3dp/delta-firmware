@@ -116,11 +116,10 @@ class CameraService(ServiceBase):
             self.img_o = np.copy(camera.img_buf)
             _, points = ScanChecking.find_board(self.img_o)
             self.s = 0
-
             for i in xrange(16):
                 self.s += points[i][0][0]
             self.s /= 16
-            self.s -= 2  # chess board printing is broken!
+
             logger.info('find calibrat board center ' + str(self.s))
             cv2.imwrite('tmp_O.jpg', self.img_o)
             handler.send_text('ok done')
@@ -135,12 +134,17 @@ class CameraService(ServiceBase):
                 img_r[h][result][2] = 255
             cv2.imwrite('tmp_R{}.jpg'.format(cmd), img_r)
             ################################
+            w = img_r.shape[1] / 2  # 640 / 2 = 320
             result -= self.s
+            result += (self.s - w)
             if cmd == 5:
                 del self.img_o
                 del self.s
 
-            handler.send_text('ok {}'.format(result))
+            if result:
+                handler.send_text('ok {}'.format(result))
+            else:
+                handler.send_text('ok fail')
 
     def handle_command(self, watcher, cmd_id, camera_id):
         camera = self.cameras[camera_id]
