@@ -1,5 +1,8 @@
 
+
 from cpython cimport bool
+from libc.stdio cimport sscanf
+
 
 from shlex import split as shlex_split
 from time import time
@@ -125,26 +128,25 @@ cdef class HeadController:
     def wait_allset(self, callback):
         self._allset_callback = callback
 
-    def on_message(self, raw_message, executor):
-        if raw_message.startswith("1 "):
-            s = l = 0
-            for c in raw_message:
-                if c == "*":
-                    break
-                else:
-                    s ^= ord(c)
-                    l += 1
-
-            try:
-                val = int(raw_message[l + 1:], 10)
-                if val != s:
+    def on_message(self, const unsigned char *raw_message, executor):
+        cdef int val
+        cdef unsigned char s = 0;
+        cdef unsigned char *ptr = raw_message
+        if raw_message[0] == '1' and raw_message[1] == ' ':
+            while True:
+                if ptr[0] == '*':
+                    sscanf(<const char *>(ptr + 1), "%d", &val)
+                    if val == s:
+                        self.handle_message(raw_message[2:ptr - raw_message],
+                                            executor)
                     return
-            except ValueError:
-                return
+                elif ptr[0] == 0:
+                    return
+                else:
+                    s ^= ptr[0]
+                    ptr += 1
 
-            self.handle_message(raw_message[2:l], executor)
-
-    def handle_message(self, msg, executor):
+    cdef inline handle_message(self, msg, executor):
         if self._ready == 2:
             if msg.startswith("OK PONG "):
                 self._handle_pong(msg, executor)

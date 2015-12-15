@@ -452,7 +452,7 @@ static const char *__pyx_f[] = {
 /*--- Type declarations ---*/
 struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController;
 
-/* "src/player/head_controller.pyx":25
+/* "src/player/head_controller.pyx":28
  * 
  * 
  * cdef class HeadController:             # <<<<<<<<<<<<<<
@@ -461,6 +461,7 @@ struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController;
  */
 struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController {
   PyObject_HEAD
+  struct __pyx_vtabstruct_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_vtab;
   PyObject *_module;
   PyObject *_required_module;
   PyObject *_padding_cmd;
@@ -478,6 +479,13 @@ struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController {
   unsigned int _error_level;
 };
 
+
+
+struct __pyx_vtabstruct_11fluxmonitor_6player_16_head_controller_HeadController {
+  PyObject *(*handle_message)(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *, PyObject *, PyObject *);
+};
+static struct __pyx_vtabstruct_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_vtabptr_11fluxmonitor_6player_16_head_controller_HeadController;
+static CYTHON_INLINE PyObject *__pyx_f_11fluxmonitor_6player_16_head_controller_14HeadController_handle_message(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *, PyObject *, PyObject *);
 
 /* --- Runtime support code (head) --- */
 #ifndef CYTHON_REFNANNY
@@ -709,6 +717,8 @@ static CYTHON_INLINE int __Pyx_SetItemInt_Generic(PyObject *o, PyObject *j, PyOb
 static CYTHON_INLINE int __Pyx_SetItemInt_Fast(PyObject *o, Py_ssize_t i, PyObject *v,
                                                int is_list, int wraparound, int boundscheck);
 
+static int __Pyx_SetVtable(PyObject *dict, void *vtable);
+
 static PyObject* __Pyx_ImportFrom(PyObject* module, PyObject* name);
 
 static PyObject *__Pyx_GetNameInClass(PyObject *nmspace, PyObject *name);
@@ -822,6 +832,7 @@ static PyTypeObject *__Pyx_ImportType(const char *module_name, const char *class
 
 static int __Pyx_InitStrings(__Pyx_StringTabEntry *t);
 
+static CYTHON_INLINE PyObject *__pyx_f_11fluxmonitor_6player_16_head_controller_14HeadController_handle_message(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_msg, PyObject *__pyx_v_executor); /* proto*/
 
 /* Module declarations from 'cpython.version' */
 
@@ -918,8 +929,8 @@ static PyObject *__pyx_builtin_object;
 static PyObject *__pyx_builtin_ord;
 static PyObject *__pyx_builtin_SystemError;
 static PyObject *__pyx_builtin_Exception;
-static PyObject *__pyx_builtin_ValueError;
 static PyObject *__pyx_builtin_RuntimeError;
+static PyObject *__pyx_builtin_ValueError;
 static PyObject *__pyx_builtin_super;
 static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_create_chksum_cmd(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_fmt, PyObject *__pyx_v_args); /* proto */
 static int __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController___init__(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_executor, PyObject *__pyx_v_ready_callback, PyObject *__pyx_v_required_module, PyObject *__pyx_v_error_level); /* proto */
@@ -932,15 +943,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
 static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_14_on_head_offline(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_minor); /* proto */
 static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_16_on_ready(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_18wait_allset(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_callback); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_20on_message(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_raw_message, PyObject *__pyx_v_executor); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_22handle_message(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_msg, PyObject *__pyx_v_executor); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_24send_cmd(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_cmd, PyObject *__pyx_v_executor, PyObject *__pyx_v_complete_callback, PyObject *__pyx_v_allset_callback); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_26_send_cmd(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_executor); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_28_parse_cmd_response(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_msg, PyObject *__pyx_v_executor); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_30_handle_ping(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_executor); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_32_handle_pong(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_msg, CYTHON_UNUSED PyObject *__pyx_v_executor); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_34patrol(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_executor); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_36_raise_error(CYTHON_UNUSED struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_args); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_20on_message(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, unsigned char const *__pyx_v_raw_message, PyObject *__pyx_v_executor); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_22send_cmd(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_cmd, PyObject *__pyx_v_executor, PyObject *__pyx_v_complete_callback, PyObject *__pyx_v_allset_callback); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_24_send_cmd(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_executor); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_26_parse_cmd_response(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_msg, PyObject *__pyx_v_executor); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_28_handle_ping(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_executor); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_30_handle_pong(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_msg, CYTHON_UNUSED PyObject *__pyx_v_executor); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_32patrol(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_executor); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_34_raise_error(CYTHON_UNUSED struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_args); /* proto */
 static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_12_cmd_sent_at___get__(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self); /* proto */
 static int __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_12_cmd_sent_at_2__set__(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
 static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_10_cmd_retry___get__(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self); /* proto */
@@ -972,10 +982,10 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_5NAExt_hello(
 static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_5NAExt_2status(CYTHON_UNUSED PyObject *__pyx_self, CYTHON_UNUSED PyObject *__pyx_v_self); /* proto */
 static PyObject *__pyx_tp_new_11fluxmonitor_6player_16_head_controller_HeadController(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static char __pyx_k_[] = ":";
-static char __pyx_k_1[] = "1 ";
 static char __pyx_k_F[] = "F";
 static char __pyx_k_H[] = "H";
 static char __pyx_k_c[] = "c";
+static char __pyx_k_d[] = "%d";
 static char __pyx_k_f[] = "f";
 static char __pyx_k_m[] = "m";
 static char __pyx_k_s[] = "s";
@@ -983,7 +993,6 @@ static char __pyx_k_ER[] = "ER ";
 static char __pyx_k_ID[] = "ID";
 static char __pyx_k_OK[] = "OK ";
 static char __pyx_k_RT[] = "RT";
-static char __pyx_k__4[] = "*";
 static char __pyx_k_id[] = "id";
 static char __pyx_k_kw[] = "kw";
 static char __pyx_k_rt[] = "rt";
@@ -1070,6 +1079,7 @@ static char __pyx_k_HEAD_ERROR[] = "HEAD_ERROR";
 static char __pyx_k_HEAD_RESET[] = "HEAD_RESET";
 static char __pyx_k_ValueError[] = "ValueError";
 static char __pyx_k_on_message[] = "on_message";
+static char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
 static char __pyx_k_set_heater[] = "set_heater";
 static char __pyx_k_startswith[] = "startswith";
 static char __pyx_k_1_HELLO_115[] = "1 HELLO *115\n";
@@ -1099,7 +1109,6 @@ static char __pyx_k_on_head_hello[] = "_on_head_hello";
 static char __pyx_k_update_status[] = "update_status";
 static char __pyx_k_BaseExt___init[] = "BaseExt.__init__";
 static char __pyx_k_LaserExt_hello[] = "LaserExt.hello";
-static char __pyx_k_handle_message[] = "handle_message";
 static char __pyx_k_ready_callback[] = "ready_callback";
 static char __pyx_k_send_headboard[] = "send_headboard";
 static char __pyx_k_BaseExt_all_set[] = "BaseExt.all_set";
@@ -1143,7 +1152,6 @@ static char __pyx_k_Users_Cerberus_Projects_python[] = "/Users/Cerberus/Projects
 static char __pyx_k_EXEC_UNKNOWN_REQUIRED_HEAD_TYPE[] = "EXEC_UNKNOWN_REQUIRED_HEAD_TYPE";
 static char __pyx_k_fluxmonitor_player__head_control[] = "fluxmonitor.player._head_controller";
 static PyObject *__pyx_kp_s_;
-static PyObject *__pyx_kp_s_1;
 static PyObject *__pyx_kp_s_1_F_i_S_i;
 static PyObject *__pyx_kp_s_1_HELLO_115;
 static PyObject *__pyx_kp_s_1_H_i_T_1f;
@@ -1220,7 +1228,6 @@ static PyObject *__pyx_kp_s_Users_Cerberus_Projects_python;
 static PyObject *__pyx_n_s_VENDOR;
 static PyObject *__pyx_n_s_VERSION;
 static PyObject *__pyx_n_s_ValueError;
-static PyObject *__pyx_kp_s__4;
 static PyObject *__pyx_n_s_all_set;
 static PyObject *__pyx_n_s_allset_callback;
 static PyObject *__pyx_n_s_args;
@@ -1247,7 +1254,6 @@ static PyObject *__pyx_n_s_fmt;
 static PyObject *__pyx_n_s_generate_command;
 static PyObject *__pyx_n_s_get;
 static PyObject *__pyx_n_s_getLogger;
-static PyObject *__pyx_n_s_handle_message;
 static PyObject *__pyx_n_s_handle_ping;
 static PyObject *__pyx_n_s_handle_pong;
 static PyObject *__pyx_n_s_heater_id;
@@ -1279,6 +1285,7 @@ static PyObject *__pyx_n_s_parse_cmd_response;
 static PyObject *__pyx_n_s_pop;
 static PyObject *__pyx_n_s_prepare;
 static PyObject *__pyx_n_s_property;
+static PyObject *__pyx_n_s_pyx_vtable;
 static PyObject *__pyx_n_s_qualname;
 static PyObject *__pyx_n_s_raise_error;
 static PyObject *__pyx_n_s_raw_message;
@@ -1321,29 +1328,28 @@ static PyObject *__pyx_int_3;
 static PyObject *__pyx_int_4;
 static PyObject *__pyx_int_8;
 static PyObject *__pyx_int_9;
-static PyObject *__pyx_int_10;
 static PyObject *__pyx_int_16;
 static PyObject *__pyx_int_32;
 static PyObject *__pyx_int_64;
 static PyObject *__pyx_int_128;
 static PyObject *__pyx_int_255;
 static PyObject *__pyx_int_256;
-static PyObject *__pyx_slice__7;
+static PyObject *__pyx_slice__5;
+static PyObject *__pyx_slice__8;
 static PyObject *__pyx_tuple__2;
 static PyObject *__pyx_tuple__3;
-static PyObject *__pyx_tuple__5;
+static PyObject *__pyx_tuple__4;
 static PyObject *__pyx_tuple__6;
-static PyObject *__pyx_tuple__8;
+static PyObject *__pyx_tuple__7;
 static PyObject *__pyx_tuple__9;
 static PyObject *__pyx_slice__10;
-static PyObject *__pyx_slice__12;
+static PyObject *__pyx_slice__16;
 static PyObject *__pyx_slice__18;
-static PyObject *__pyx_slice__20;
 static PyObject *__pyx_tuple__11;
+static PyObject *__pyx_tuple__12;
 static PyObject *__pyx_tuple__13;
 static PyObject *__pyx_tuple__14;
 static PyObject *__pyx_tuple__15;
-static PyObject *__pyx_tuple__16;
 static PyObject *__pyx_tuple__17;
 static PyObject *__pyx_tuple__19;
 static PyObject *__pyx_tuple__21;
@@ -1367,7 +1373,7 @@ static PyObject *__pyx_tuple__55;
 static PyObject *__pyx_tuple__57;
 static PyObject *__pyx_tuple__59;
 static PyObject *__pyx_tuple__61;
-static PyObject *__pyx_tuple__63;
+static PyObject *__pyx_codeobj__20;
 static PyObject *__pyx_codeobj__22;
 static PyObject *__pyx_codeobj__24;
 static PyObject *__pyx_codeobj__26;
@@ -1389,9 +1395,8 @@ static PyObject *__pyx_codeobj__56;
 static PyObject *__pyx_codeobj__58;
 static PyObject *__pyx_codeobj__60;
 static PyObject *__pyx_codeobj__62;
-static PyObject *__pyx_codeobj__64;
 
-/* "src/player/head_controller.pyx":16
+/* "src/player/head_controller.pyx":19
  * 
  * 
  * def create_chksum_cmd(fmt, *args):             # <<<<<<<<<<<<<<
@@ -1440,7 +1445,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_1create_chksu
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t used_pos_args = (pos_args < 1) ? pos_args : 1;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, used_pos_args, "create_chksum_cmd") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, used_pos_args, "create_chksum_cmd") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 19; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) < 1) {
       goto __pyx_L5_argtuple_error;
@@ -1451,7 +1456,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_1create_chksu
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("create_chksum_cmd", 0, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("create_chksum_cmd", 0, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 19; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_args); __pyx_v_args = 0;
   __Pyx_AddTraceback("fluxmonitor.player._head_controller.create_chksum_cmd", __pyx_clineno, __pyx_lineno, __pyx_filename);
@@ -1484,7 +1489,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_create_chksum
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("create_chksum_cmd", 0);
 
-  /* "src/player/head_controller.pyx":17
+  /* "src/player/head_controller.pyx":20
  * 
  * def create_chksum_cmd(fmt, *args):
  *     cdef int s = 0             # <<<<<<<<<<<<<<
@@ -1493,19 +1498,19 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_create_chksum
  */
   __pyx_v_s = 0;
 
-  /* "src/player/head_controller.pyx":18
+  /* "src/player/head_controller.pyx":21
  * def create_chksum_cmd(fmt, *args):
  *     cdef int s = 0
  *     cmd = fmt % args             # <<<<<<<<<<<<<<
  *     for c in cmd:
  *         s ^= ord(c)
  */
-  __pyx_t_1 = PyNumber_Remainder(__pyx_v_fmt, __pyx_v_args); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 18; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyNumber_Remainder(__pyx_v_fmt, __pyx_v_args); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 21; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_cmd = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":19
+  /* "src/player/head_controller.pyx":22
  *     cdef int s = 0
  *     cmd = fmt % args
  *     for c in cmd:             # <<<<<<<<<<<<<<
@@ -1516,26 +1521,26 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_create_chksum
     __pyx_t_1 = __pyx_v_cmd; __Pyx_INCREF(__pyx_t_1); __pyx_t_2 = 0;
     __pyx_t_3 = NULL;
   } else {
-    __pyx_t_2 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_v_cmd); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 19; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_v_cmd); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_3 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 19; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   for (;;) {
     if (likely(!__pyx_t_3)) {
       if (likely(PyList_CheckExact(__pyx_t_1))) {
         if (__pyx_t_2 >= PyList_GET_SIZE(__pyx_t_1)) break;
         #if CYTHON_COMPILING_IN_CPYTHON
-        __pyx_t_4 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 19; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_4 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #else
-        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 19; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_4);
         #endif
       } else {
         if (__pyx_t_2 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
         #if CYTHON_COMPILING_IN_CPYTHON
-        __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 19; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #else
-        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 19; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_4);
         #endif
       }
@@ -1545,7 +1550,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_create_chksum
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 19; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         }
         break;
       }
@@ -1554,32 +1559,32 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_create_chksum
     __Pyx_XDECREF_SET(__pyx_v_c, __pyx_t_4);
     __pyx_t_4 = 0;
 
-    /* "src/player/head_controller.pyx":20
+    /* "src/player/head_controller.pyx":23
  *     cmd = fmt % args
  *     for c in cmd:
  *         s ^= ord(c)             # <<<<<<<<<<<<<<
  *     s ^= 32
  *     return "%s *%i\n" % (cmd, s)
  */
-    __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_s); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 20; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_s); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 23; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 20; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 23; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_INCREF(__pyx_v_c);
     __Pyx_GIVEREF(__pyx_v_c);
     PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_v_c);
-    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_ord, __pyx_t_5, NULL); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 20; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_ord, __pyx_t_5, NULL); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 23; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_5 = PyNumber_InPlaceXor(__pyx_t_4, __pyx_t_6); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 20; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = PyNumber_InPlaceXor(__pyx_t_4, __pyx_t_6); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 23; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_7 = __Pyx_PyInt_As_int(__pyx_t_5); if (unlikely((__pyx_t_7 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 20; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = __Pyx_PyInt_As_int(__pyx_t_5); if (unlikely((__pyx_t_7 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 23; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __pyx_v_s = __pyx_t_7;
 
-    /* "src/player/head_controller.pyx":19
+    /* "src/player/head_controller.pyx":22
  *     cdef int s = 0
  *     cmd = fmt % args
  *     for c in cmd:             # <<<<<<<<<<<<<<
@@ -1589,7 +1594,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_create_chksum
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":21
+  /* "src/player/head_controller.pyx":24
  *     for c in cmd:
  *         s ^= ord(c)
  *     s ^= 32             # <<<<<<<<<<<<<<
@@ -1598,7 +1603,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_create_chksum
  */
   __pyx_v_s = (__pyx_v_s ^ 32);
 
-  /* "src/player/head_controller.pyx":22
+  /* "src/player/head_controller.pyx":25
  *         s ^= ord(c)
  *     s ^= 32
  *     return "%s *%i\n" % (cmd, s)             # <<<<<<<<<<<<<<
@@ -1606,9 +1611,9 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_create_chksum
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_s); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_s); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 25; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 25; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_INCREF(__pyx_v_cmd);
   __Pyx_GIVEREF(__pyx_v_cmd);
@@ -1616,14 +1621,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_create_chksum
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_s_i, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_s_i, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 25; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "src/player/head_controller.pyx":16
+  /* "src/player/head_controller.pyx":19
  * 
  * 
  * def create_chksum_cmd(fmt, *args):             # <<<<<<<<<<<<<<
@@ -1647,7 +1652,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_create_chksum
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":47
+/* "src/player/head_controller.pyx":50
  *     cdef unsigned int _error_level
  * 
  *     def __init__(self, executor, ready_callback, required_module=None,             # <<<<<<<<<<<<<<
@@ -1692,7 +1697,7 @@ static int __pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_1_
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_ready_callback)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 0, 2, 4, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 47; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("__init__", 0, 2, 4, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 50; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
         case  2:
         if (kw_args > 0) {
@@ -1706,7 +1711,7 @@ static int __pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_1_
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 47; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 50; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -1725,7 +1730,7 @@ static int __pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_1_
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 0, 2, 4, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 47; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("__init__", 0, 2, 4, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 50; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("fluxmonitor.player._head_controller.HeadController.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -1752,17 +1757,17 @@ static int __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController___
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "src/player/head_controller.pyx":49
+  /* "src/player/head_controller.pyx":52
  *     def __init__(self, executor, ready_callback, required_module=None,
  *                  error_level=256):
  *         self._error_level = error_level             # <<<<<<<<<<<<<<
  *         self._required_module = required_module
  *         self._ready_callback = ready_callback
  */
-  __pyx_t_1 = __Pyx_PyInt_As_unsigned_int(__pyx_v_error_level); if (unlikely((__pyx_t_1 == (unsigned int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 49; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyInt_As_unsigned_int(__pyx_v_error_level); if (unlikely((__pyx_t_1 == (unsigned int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 52; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_v_self->_error_level = __pyx_t_1;
 
-  /* "src/player/head_controller.pyx":50
+  /* "src/player/head_controller.pyx":53
  *                  error_level=256):
  *         self._error_level = error_level
  *         self._required_module = required_module             # <<<<<<<<<<<<<<
@@ -1775,7 +1780,7 @@ static int __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController___
   __Pyx_DECREF(__pyx_v_self->_required_module);
   __pyx_v_self->_required_module = __pyx_v_required_module;
 
-  /* "src/player/head_controller.pyx":51
+  /* "src/player/head_controller.pyx":54
  *         self._error_level = error_level
  *         self._required_module = required_module
  *         self._ready_callback = ready_callback             # <<<<<<<<<<<<<<
@@ -1788,24 +1793,24 @@ static int __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController___
   __Pyx_DECREF(__pyx_v_self->_ready_callback);
   __pyx_v_self->_ready_callback = __pyx_v_ready_callback;
 
-  /* "src/player/head_controller.pyx":53
+  /* "src/player/head_controller.pyx":56
  *         self._ready_callback = ready_callback
  * 
  *         if required_module == "EXTRUDER":             # <<<<<<<<<<<<<<
  *             self._ext = ExtruderExt()
  *         elif required_module == "LASER":
  */
-  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_required_module, __pyx_n_s_EXTRUDER, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 53; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_required_module, __pyx_n_s_EXTRUDER, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 56; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (__pyx_t_2) {
 
-    /* "src/player/head_controller.pyx":54
+    /* "src/player/head_controller.pyx":57
  * 
  *         if required_module == "EXTRUDER":
  *             self._ext = ExtruderExt()             # <<<<<<<<<<<<<<
  *         elif required_module == "LASER":
  *             self._ext = LaserExt()
  */
-    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_ExtruderExt); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 54; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_ExtruderExt); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 57; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_t_5 = NULL;
     if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_4))) {
@@ -1818,10 +1823,10 @@ static int __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController___
       }
     }
     if (__pyx_t_5) {
-      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 54; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 57; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     } else {
-      __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 54; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 57; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
@@ -1833,24 +1838,24 @@ static int __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController___
     goto __pyx_L3;
   }
 
-  /* "src/player/head_controller.pyx":55
+  /* "src/player/head_controller.pyx":58
  *         if required_module == "EXTRUDER":
  *             self._ext = ExtruderExt()
  *         elif required_module == "LASER":             # <<<<<<<<<<<<<<
  *             self._ext = LaserExt()
  *         elif required_module == "N/A":
  */
-  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_required_module, __pyx_n_s_LASER, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 55; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_required_module, __pyx_n_s_LASER, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (__pyx_t_2) {
 
-    /* "src/player/head_controller.pyx":56
+    /* "src/player/head_controller.pyx":59
  *             self._ext = ExtruderExt()
  *         elif required_module == "LASER":
  *             self._ext = LaserExt()             # <<<<<<<<<<<<<<
  *         elif required_module == "N/A":
  *             self._ext = NAExt()
  */
-    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_LaserExt); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 56; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_LaserExt); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 59; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_t_5 = NULL;
     if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_4))) {
@@ -1863,10 +1868,10 @@ static int __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController___
       }
     }
     if (__pyx_t_5) {
-      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 56; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 59; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     } else {
-      __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 56; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 59; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
@@ -1878,24 +1883,24 @@ static int __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController___
     goto __pyx_L3;
   }
 
-  /* "src/player/head_controller.pyx":57
+  /* "src/player/head_controller.pyx":60
  *         elif required_module == "LASER":
  *             self._ext = LaserExt()
  *         elif required_module == "N/A":             # <<<<<<<<<<<<<<
  *             self._ext = NAExt()
  *         else:
  */
-  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_required_module, __pyx_kp_s_N_A, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 57; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_required_module, __pyx_kp_s_N_A, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (__pyx_t_2) {
 
-    /* "src/player/head_controller.pyx":58
+    /* "src/player/head_controller.pyx":61
  *             self._ext = LaserExt()
  *         elif required_module == "N/A":
  *             self._ext = NAExt()             # <<<<<<<<<<<<<<
  *         else:
  *             raise SystemError(EXEC_UNKNOWN_REQUIRED_HEAD_TYPE, required_module)
  */
-    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_NAExt); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_NAExt); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 61; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_t_5 = NULL;
     if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_4))) {
@@ -1908,10 +1913,10 @@ static int __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController___
       }
     }
     if (__pyx_t_5) {
-      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 61; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     } else {
-      __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 61; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
@@ -1924,16 +1929,16 @@ static int __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController___
   }
   /*else*/ {
 
-    /* "src/player/head_controller.pyx":60
+    /* "src/player/head_controller.pyx":63
  *             self._ext = NAExt()
  *         else:
  *             raise SystemError(EXEC_UNKNOWN_REQUIRED_HEAD_TYPE, required_module)             # <<<<<<<<<<<<<<
  * 
  *         self.bootstrap(executor)
  */
-    __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_UNKNOWN_REQUIRED_HEAD_TYPE); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_UNKNOWN_REQUIRED_HEAD_TYPE); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_GIVEREF(__pyx_t_3);
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3);
@@ -1941,23 +1946,23 @@ static int __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController___
     __Pyx_GIVEREF(__pyx_v_required_module);
     PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_v_required_module);
     __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_SystemError, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_SystemError, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __pyx_L3:;
 
-  /* "src/player/head_controller.pyx":62
+  /* "src/player/head_controller.pyx":65
  *             raise SystemError(EXEC_UNKNOWN_REQUIRED_HEAD_TYPE, required_module)
  * 
  *         self.bootstrap(executor)             # <<<<<<<<<<<<<<
  * 
  *     def bootstrap(self, executor):
  */
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_bootstrap); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 62; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_bootstrap); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_t_5 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_4))) {
@@ -1970,23 +1975,23 @@ static int __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController___
     }
   }
   if (!__pyx_t_5) {
-    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_executor); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 62; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_executor); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
   } else {
-    __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 62; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_5); __pyx_t_5 = NULL;
     __Pyx_INCREF(__pyx_v_executor);
     __Pyx_GIVEREF(__pyx_v_executor);
     PyTuple_SET_ITEM(__pyx_t_6, 0+1, __pyx_v_executor);
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_6, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 62; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_6, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "src/player/head_controller.pyx":47
+  /* "src/player/head_controller.pyx":50
  *     cdef unsigned int _error_level
  * 
  *     def __init__(self, executor, ready_callback, required_module=None,             # <<<<<<<<<<<<<<
@@ -2009,7 +2014,7 @@ static int __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController___
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":64
+/* "src/player/head_controller.pyx":67
  *         self.bootstrap(executor)
  * 
  *     def bootstrap(self, executor):             # <<<<<<<<<<<<<<
@@ -2043,7 +2048,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("bootstrap", 0);
 
-  /* "src/player/head_controller.pyx":65
+  /* "src/player/head_controller.pyx":68
  * 
  *     def bootstrap(self, executor):
  *         self._ready = 1             # <<<<<<<<<<<<<<
@@ -2052,7 +2057,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  */
   __pyx_v_self->_ready = 1;
 
-  /* "src/player/head_controller.pyx":66
+  /* "src/player/head_controller.pyx":69
  *     def bootstrap(self, executor):
  *         self._ready = 1
  *         self._cmd_sent_at = 0             # <<<<<<<<<<<<<<
@@ -2061,7 +2066,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  */
   __pyx_v_self->_cmd_sent_at = 0.0;
 
-  /* "src/player/head_controller.pyx":67
+  /* "src/player/head_controller.pyx":70
  *         self._ready = 1
  *         self._cmd_sent_at = 0
  *         self._cmd_retry = 0             # <<<<<<<<<<<<<<
@@ -2070,7 +2075,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  */
   __pyx_v_self->_cmd_retry = 0;
 
-  /* "src/player/head_controller.pyx":68
+  /* "src/player/head_controller.pyx":71
  *         self._cmd_sent_at = 0
  *         self._cmd_retry = 0
  *         self._padding_cmd = None             # <<<<<<<<<<<<<<
@@ -2083,7 +2088,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   __Pyx_DECREF(__pyx_v_self->_padding_cmd);
   __pyx_v_self->_padding_cmd = Py_None;
 
-  /* "src/player/head_controller.pyx":69
+  /* "src/player/head_controller.pyx":72
  *         self._cmd_retry = 0
  *         self._padding_cmd = None
  *         self._cmd_callback = None             # <<<<<<<<<<<<<<
@@ -2096,7 +2101,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   __Pyx_DECREF(__pyx_v_self->_cmd_callback);
   __pyx_v_self->_cmd_callback = Py_None;
 
-  /* "src/player/head_controller.pyx":70
+  /* "src/player/head_controller.pyx":73
  *         self._padding_cmd = None
  *         self._cmd_callback = None
  *         self._allset_callback = None             # <<<<<<<<<<<<<<
@@ -2109,7 +2114,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   __Pyx_DECREF(__pyx_v_self->_allset_callback);
   __pyx_v_self->_allset_callback = Py_None;
 
-  /* "src/player/head_controller.pyx":72
+  /* "src/player/head_controller.pyx":75
  *         self._allset_callback = None
  * 
  *         self._lastupdate = 0             # <<<<<<<<<<<<<<
@@ -2118,7 +2123,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  */
   __pyx_v_self->_lastupdate = 0.0;
 
-  /* "src/player/head_controller.pyx":73
+  /* "src/player/head_controller.pyx":76
  * 
  *         self._lastupdate = 0
  *         self._update_retry = 0             # <<<<<<<<<<<<<<
@@ -2127,7 +2132,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  */
   __pyx_v_self->_update_retry = 0;
 
-  /* "src/player/head_controller.pyx":74
+  /* "src/player/head_controller.pyx":77
  *         self._lastupdate = 0
  *         self._update_retry = 0
  *         self._wait_update = False             # <<<<<<<<<<<<<<
@@ -2140,19 +2145,19 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   __Pyx_DECREF(((PyObject *)__pyx_v_self->_wait_update));
   __pyx_v_self->_wait_update = ((PyBoolObject *)Py_False);
 
-  /* "src/player/head_controller.pyx":76
+  /* "src/player/head_controller.pyx":79
  *         self._wait_update = False
  * 
  *         queue = ["1 HELLO *115\n"] + self._ext.bootstrap_commands()             # <<<<<<<<<<<<<<
  *         self._recover_queue = queue
  *         self._padding_cmd = queue.pop(0)
  */
-  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 76; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_kp_s_1_HELLO_115);
   __Pyx_GIVEREF(__pyx_kp_s_1_HELLO_115);
   PyList_SET_ITEM(__pyx_t_1, 0, __pyx_kp_s_1_HELLO_115);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->_ext, __pyx_n_s_bootstrap_commands); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 76; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->_ext, __pyx_n_s_bootstrap_commands); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_4 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_3))) {
@@ -2165,21 +2170,21 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     }
   }
   if (__pyx_t_4) {
-    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 76; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   } else {
-    __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 76; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyNumber_Add(__pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 76; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyNumber_Add(__pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_queue = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "src/player/head_controller.pyx":77
+  /* "src/player/head_controller.pyx":80
  * 
  *         queue = ["1 HELLO *115\n"] + self._ext.bootstrap_commands()
  *         self._recover_queue = queue             # <<<<<<<<<<<<<<
@@ -2192,14 +2197,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   __Pyx_DECREF(__pyx_v_self->_recover_queue);
   __pyx_v_self->_recover_queue = __pyx_v_queue;
 
-  /* "src/player/head_controller.pyx":78
+  /* "src/player/head_controller.pyx":81
  *         queue = ["1 HELLO *115\n"] + self._ext.bootstrap_commands()
  *         self._recover_queue = queue
  *         self._padding_cmd = queue.pop(0)             # <<<<<<<<<<<<<<
  *         self._send_cmd(executor)
  * 
  */
-  __pyx_t_3 = __Pyx_PyObject_PopIndex(__pyx_v_queue, 0, 1, Py_ssize_t, PyInt_FromSsize_t); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 78; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_PopIndex(__pyx_v_queue, 0, 1, Py_ssize_t, PyInt_FromSsize_t); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 81; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_3);
   __Pyx_GOTREF(__pyx_v_self->_padding_cmd);
@@ -2207,14 +2212,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   __pyx_v_self->_padding_cmd = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "src/player/head_controller.pyx":79
+  /* "src/player/head_controller.pyx":82
  *         self._recover_queue = queue
  *         self._padding_cmd = queue.pop(0)
  *         self._send_cmd(executor)             # <<<<<<<<<<<<<<
  * 
  *     @property
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_send_cmd); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_send_cmd); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 82; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_1 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
@@ -2227,23 +2232,23 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     }
   }
   if (!__pyx_t_1) {
-    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_executor); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_executor); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 82; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
   } else {
-    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 82; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_GIVEREF(__pyx_t_1); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1); __pyx_t_1 = NULL;
     __Pyx_INCREF(__pyx_v_executor);
     __Pyx_GIVEREF(__pyx_v_executor);
     PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v_executor);
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 82; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "src/player/head_controller.pyx":64
+  /* "src/player/head_controller.pyx":67
  *         self.bootstrap(executor)
  * 
  *     def bootstrap(self, executor):             # <<<<<<<<<<<<<<
@@ -2268,7 +2273,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":82
+/* "src/player/head_controller.pyx":85
  * 
  *     @property
  *     def ready(self):             # <<<<<<<<<<<<<<
@@ -2298,7 +2303,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("ready", 0);
 
-  /* "src/player/head_controller.pyx":83
+  /* "src/player/head_controller.pyx":86
  *     @property
  *     def ready(self):
  *         return self._ready == 2             # <<<<<<<<<<<<<<
@@ -2306,13 +2311,13 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->_ready == 2)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 83; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->_ready == 2)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 86; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "src/player/head_controller.pyx":82
+  /* "src/player/head_controller.pyx":85
  * 
  *     @property
  *     def ready(self):             # <<<<<<<<<<<<<<
@@ -2331,7 +2336,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":86
+/* "src/player/head_controller.pyx":89
  * 
  *     @property
  *     def is_busy(self):             # <<<<<<<<<<<<<<
@@ -2362,7 +2367,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("is_busy", 0);
 
-  /* "src/player/head_controller.pyx":87
+  /* "src/player/head_controller.pyx":90
  *     @property
  *     def is_busy(self):
  *         return self._padding_cmd is not None             # <<<<<<<<<<<<<<
@@ -2371,13 +2376,13 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  */
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_1 = (__pyx_v_self->_padding_cmd != Py_None);
-  __pyx_t_2 = __Pyx_PyBool_FromLong(__pyx_t_1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyBool_FromLong(__pyx_t_1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 90; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_r = __pyx_t_2;
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "src/player/head_controller.pyx":86
+  /* "src/player/head_controller.pyx":89
  * 
  *     @property
  *     def is_busy(self):             # <<<<<<<<<<<<<<
@@ -2396,7 +2401,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":90
+/* "src/player/head_controller.pyx":93
  * 
  *     @property
  *     def module(self):             # <<<<<<<<<<<<<<
@@ -2422,7 +2427,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("module", 0);
 
-  /* "src/player/head_controller.pyx":91
+  /* "src/player/head_controller.pyx":94
  *     @property
  *     def module(self):
  *         return self._module             # <<<<<<<<<<<<<<
@@ -2434,7 +2439,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   __pyx_r = __pyx_v_self->_module;
   goto __pyx_L0;
 
-  /* "src/player/head_controller.pyx":90
+  /* "src/player/head_controller.pyx":93
  * 
  *     @property
  *     def module(self):             # <<<<<<<<<<<<<<
@@ -2449,7 +2454,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":93
+/* "src/player/head_controller.pyx":96
  *         return self._module
  * 
  *     def status(self):             # <<<<<<<<<<<<<<
@@ -2482,7 +2487,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("status", 0);
 
-  /* "src/player/head_controller.pyx":94
+  /* "src/player/head_controller.pyx":97
  * 
  *     def status(self):
  *         if self._ready == 2:             # <<<<<<<<<<<<<<
@@ -2492,7 +2497,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   __pyx_t_1 = ((__pyx_v_self->_ready == 2) != 0);
   if (__pyx_t_1) {
 
-    /* "src/player/head_controller.pyx":95
+    /* "src/player/head_controller.pyx":98
  *     def status(self):
  *         if self._ready == 2:
  *             return self._ext.status()             # <<<<<<<<<<<<<<
@@ -2500,7 +2505,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  *             return {"module": "N/A"}
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->_ext, __pyx_n_s_status); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->_ext, __pyx_n_s_status); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 98; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_t_4 = NULL;
     if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_3))) {
@@ -2513,10 +2518,10 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       }
     }
     if (__pyx_t_4) {
-      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 98; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     } else {
-      __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 98; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -2526,7 +2531,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   }
   /*else*/ {
 
-    /* "src/player/head_controller.pyx":97
+    /* "src/player/head_controller.pyx":100
  *             return self._ext.status()
  *         else:
  *             return {"module": "N/A"}             # <<<<<<<<<<<<<<
@@ -2534,15 +2539,15 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  *     def _on_head_hello(self, msg):
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 97; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 100; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
-    if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_module, __pyx_kp_s_N_A) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 97; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_module, __pyx_kp_s_N_A) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 100; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __pyx_r = __pyx_t_2;
     __pyx_t_2 = 0;
     goto __pyx_L0;
   }
 
-  /* "src/player/head_controller.pyx":93
+  /* "src/player/head_controller.pyx":96
  *         return self._module
  * 
  *     def status(self):             # <<<<<<<<<<<<<<
@@ -2563,7 +2568,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":99
+/* "src/player/head_controller.pyx":102
  *             return {"module": "N/A"}
  * 
  *     def _on_head_hello(self, msg):             # <<<<<<<<<<<<<<
@@ -2607,7 +2612,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("_on_head_hello", 0);
 
-  /* "src/player/head_controller.pyx":100
+  /* "src/player/head_controller.pyx":103
  * 
  *     def _on_head_hello(self, msg):
  *         try:             # <<<<<<<<<<<<<<
@@ -2621,26 +2626,26 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     __Pyx_XGOTREF(__pyx_t_3);
     /*try:*/ {
 
-      /* "src/player/head_controller.pyx":101
+      /* "src/player/head_controller.pyx":104
  *     def _on_head_hello(self, msg):
  *         try:
  *             module_info = {}             # <<<<<<<<<<<<<<
  *             for param in shlex_split(msg):
  *                 sparam = param.split(":", 1)
  */
-      __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 101; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 104; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       __Pyx_GOTREF(__pyx_t_4);
       __pyx_v_module_info = ((PyObject*)__pyx_t_4);
       __pyx_t_4 = 0;
 
-      /* "src/player/head_controller.pyx":102
+      /* "src/player/head_controller.pyx":105
  *         try:
  *             module_info = {}
  *             for param in shlex_split(msg):             # <<<<<<<<<<<<<<
  *                 sparam = param.split(":", 1)
  *                 if len(sparam) == 2:
  */
-      __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_shlex_split); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 102; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_shlex_split); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       __Pyx_GOTREF(__pyx_t_5);
       __pyx_t_6 = NULL;
       if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_5))) {
@@ -2653,16 +2658,16 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
         }
       }
       if (!__pyx_t_6) {
-        __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_v_msg); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 102; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_v_msg); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         __Pyx_GOTREF(__pyx_t_4);
       } else {
-        __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 102; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         __Pyx_GOTREF(__pyx_t_7);
         __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_6); __pyx_t_6 = NULL;
         __Pyx_INCREF(__pyx_v_msg);
         __Pyx_GIVEREF(__pyx_v_msg);
         PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_v_msg);
-        __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_7, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 102; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_7, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       }
@@ -2671,9 +2676,9 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
         __pyx_t_5 = __pyx_t_4; __Pyx_INCREF(__pyx_t_5); __pyx_t_8 = 0;
         __pyx_t_9 = NULL;
       } else {
-        __pyx_t_8 = -1; __pyx_t_5 = PyObject_GetIter(__pyx_t_4); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 102; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        __pyx_t_8 = -1; __pyx_t_5 = PyObject_GetIter(__pyx_t_4); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         __Pyx_GOTREF(__pyx_t_5);
-        __pyx_t_9 = Py_TYPE(__pyx_t_5)->tp_iternext; if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 102; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        __pyx_t_9 = Py_TYPE(__pyx_t_5)->tp_iternext; if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       for (;;) {
@@ -2681,17 +2686,17 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
           if (likely(PyList_CheckExact(__pyx_t_5))) {
             if (__pyx_t_8 >= PyList_GET_SIZE(__pyx_t_5)) break;
             #if CYTHON_COMPILING_IN_CPYTHON
-            __pyx_t_4 = PyList_GET_ITEM(__pyx_t_5, __pyx_t_8); __Pyx_INCREF(__pyx_t_4); __pyx_t_8++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 102; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+            __pyx_t_4 = PyList_GET_ITEM(__pyx_t_5, __pyx_t_8); __Pyx_INCREF(__pyx_t_4); __pyx_t_8++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
             #else
-            __pyx_t_4 = PySequence_ITEM(__pyx_t_5, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 102; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+            __pyx_t_4 = PySequence_ITEM(__pyx_t_5, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
             __Pyx_GOTREF(__pyx_t_4);
             #endif
           } else {
             if (__pyx_t_8 >= PyTuple_GET_SIZE(__pyx_t_5)) break;
             #if CYTHON_COMPILING_IN_CPYTHON
-            __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_5, __pyx_t_8); __Pyx_INCREF(__pyx_t_4); __pyx_t_8++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 102; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+            __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_5, __pyx_t_8); __Pyx_INCREF(__pyx_t_4); __pyx_t_8++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
             #else
-            __pyx_t_4 = PySequence_ITEM(__pyx_t_5, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 102; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+            __pyx_t_4 = PySequence_ITEM(__pyx_t_5, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
             __Pyx_GOTREF(__pyx_t_4);
             #endif
           }
@@ -2701,7 +2706,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
             PyObject* exc_type = PyErr_Occurred();
             if (exc_type) {
               if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-              else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 102; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+              else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
             }
             break;
           }
@@ -2710,51 +2715,51 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
         __Pyx_XDECREF_SET(__pyx_v_param, __pyx_t_4);
         __pyx_t_4 = 0;
 
-        /* "src/player/head_controller.pyx":103
+        /* "src/player/head_controller.pyx":106
  *             module_info = {}
  *             for param in shlex_split(msg):
  *                 sparam = param.split(":", 1)             # <<<<<<<<<<<<<<
  *                 if len(sparam) == 2:
  *                     module_info[sparam[0]] = sparam[1]
  */
-        __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_param, __pyx_n_s_split); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 103; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_param, __pyx_n_s_split); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 106; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         __Pyx_GOTREF(__pyx_t_4);
-        __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 103; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 106; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         __Pyx_GOTREF(__pyx_t_7);
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
         __Pyx_XDECREF_SET(__pyx_v_sparam, __pyx_t_7);
         __pyx_t_7 = 0;
 
-        /* "src/player/head_controller.pyx":104
+        /* "src/player/head_controller.pyx":107
  *             for param in shlex_split(msg):
  *                 sparam = param.split(":", 1)
  *                 if len(sparam) == 2:             # <<<<<<<<<<<<<<
  *                     module_info[sparam[0]] = sparam[1]
  *             self._ext.hello(**module_info)
  */
-        __pyx_t_10 = PyObject_Length(__pyx_v_sparam); if (unlikely(__pyx_t_10 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 104; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        __pyx_t_10 = PyObject_Length(__pyx_v_sparam); if (unlikely(__pyx_t_10 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 107; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         __pyx_t_11 = ((__pyx_t_10 == 2) != 0);
         if (__pyx_t_11) {
 
-          /* "src/player/head_controller.pyx":105
+          /* "src/player/head_controller.pyx":108
  *                 sparam = param.split(":", 1)
  *                 if len(sparam) == 2:
  *                     module_info[sparam[0]] = sparam[1]             # <<<<<<<<<<<<<<
  *             self._ext.hello(**module_info)
  *             self._module = module_info.get("TYPE")
  */
-          __pyx_t_7 = __Pyx_GetItemInt(__pyx_v_sparam, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_7 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L3_error;};
+          __pyx_t_7 = __Pyx_GetItemInt(__pyx_v_sparam, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_7 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 108; __pyx_clineno = __LINE__; goto __pyx_L3_error;};
           __Pyx_GOTREF(__pyx_t_7);
-          __pyx_t_4 = __Pyx_GetItemInt(__pyx_v_sparam, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_4 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L3_error;};
+          __pyx_t_4 = __Pyx_GetItemInt(__pyx_v_sparam, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_4 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 108; __pyx_clineno = __LINE__; goto __pyx_L3_error;};
           __Pyx_GOTREF(__pyx_t_4);
-          if (unlikely(PyDict_SetItem(__pyx_v_module_info, __pyx_t_4, __pyx_t_7) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          if (unlikely(PyDict_SetItem(__pyx_v_module_info, __pyx_t_4, __pyx_t_7) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 108; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
           __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
           __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
           goto __pyx_L13;
         }
         __pyx_L13:;
 
-        /* "src/player/head_controller.pyx":102
+        /* "src/player/head_controller.pyx":105
  *         try:
  *             module_info = {}
  *             for param in shlex_split(msg):             # <<<<<<<<<<<<<<
@@ -2764,31 +2769,31 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       }
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-      /* "src/player/head_controller.pyx":106
+      /* "src/player/head_controller.pyx":109
  *                 if len(sparam) == 2:
  *                     module_info[sparam[0]] = sparam[1]
  *             self._ext.hello(**module_info)             # <<<<<<<<<<<<<<
  *             self._module = module_info.get("TYPE")
  *         except Exception:
  */
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->_ext, __pyx_n_s_hello); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 106; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->_ext, __pyx_n_s_hello); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       __Pyx_GOTREF(__pyx_t_5);
       __pyx_t_7 = __pyx_v_module_info;
       __Pyx_INCREF(__pyx_t_7);
-      __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_empty_tuple, __pyx_t_7); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 106; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_empty_tuple, __pyx_t_7); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-      /* "src/player/head_controller.pyx":107
+      /* "src/player/head_controller.pyx":110
  *                     module_info[sparam[0]] = sparam[1]
  *             self._ext.hello(**module_info)
  *             self._module = module_info.get("TYPE")             # <<<<<<<<<<<<<<
  *         except Exception:
  *             self._ready = 0
  */
-      __pyx_t_4 = __Pyx_PyDict_GetItemDefault(__pyx_v_module_info, __pyx_n_s_TYPE, Py_None); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 107; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      __pyx_t_4 = __Pyx_PyDict_GetItemDefault(__pyx_v_module_info, __pyx_n_s_TYPE, Py_None); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_GIVEREF(__pyx_t_4);
       __Pyx_GOTREF(__pyx_v_self->_module);
@@ -2806,7 +2811,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-    /* "src/player/head_controller.pyx":108
+    /* "src/player/head_controller.pyx":111
  *             self._ext.hello(**module_info)
  *             self._module = module_info.get("TYPE")
  *         except Exception:             # <<<<<<<<<<<<<<
@@ -2816,12 +2821,12 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     __pyx_t_12 = PyErr_ExceptionMatches(__pyx_builtin_Exception);
     if (__pyx_t_12) {
       __Pyx_AddTraceback("fluxmonitor.player._head_controller.HeadController._on_head_hello", __pyx_clineno, __pyx_lineno, __pyx_filename);
-      if (__Pyx_GetException(&__pyx_t_4, &__pyx_t_7, &__pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 108; __pyx_clineno = __LINE__; goto __pyx_L5_except_error;}
+      if (__Pyx_GetException(&__pyx_t_4, &__pyx_t_7, &__pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L5_except_error;}
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_GOTREF(__pyx_t_5);
 
-      /* "src/player/head_controller.pyx":109
+      /* "src/player/head_controller.pyx":112
  *             self._module = module_info.get("TYPE")
  *         except Exception:
  *             self._ready = 0             # <<<<<<<<<<<<<<
@@ -2830,7 +2835,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  */
       __pyx_v_self->_ready = 0;
 
-      /* "src/player/head_controller.pyx":110
+      /* "src/player/head_controller.pyx":113
  *         except Exception:
  *             self._ready = 0
  *             raise             # <<<<<<<<<<<<<<
@@ -2842,7 +2847,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       __Pyx_XGIVEREF(__pyx_t_5);
       __Pyx_ErrRestore(__pyx_t_4, __pyx_t_7, __pyx_t_5);
       __pyx_t_4 = 0; __pyx_t_7 = 0; __pyx_t_5 = 0; 
-      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L5_except_error;}
+      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 113; __pyx_clineno = __LINE__; goto __pyx_L5_except_error;}
     }
     goto __pyx_L5_except_error;
     __pyx_L5_except_error:;
@@ -2854,7 +2859,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     __pyx_L10_try_end:;
   }
 
-  /* "src/player/head_controller.pyx":99
+  /* "src/player/head_controller.pyx":102
  *             return {"module": "N/A"}
  * 
  *     def _on_head_hello(self, msg):             # <<<<<<<<<<<<<<
@@ -2881,7 +2886,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":112
+/* "src/player/head_controller.pyx":115
  *             raise
  * 
  *     def _on_head_offline(self, minor=None):             # <<<<<<<<<<<<<<
@@ -2920,7 +2925,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadControl
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_on_head_offline") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 112; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_on_head_offline") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 115; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -2933,7 +2938,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadControl
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_on_head_offline", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 112; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("_on_head_offline", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 115; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("fluxmonitor.player._head_controller.HeadController._on_head_offline", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2961,7 +2966,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("_on_head_offline", 0);
 
-  /* "src/player/head_controller.pyx":113
+  /* "src/player/head_controller.pyx":116
  * 
  *     def _on_head_offline(self, minor=None):
  *         self._module = "N/A"             # <<<<<<<<<<<<<<
@@ -2974,7 +2979,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   __Pyx_DECREF(__pyx_v_self->_module);
   __pyx_v_self->_module = __pyx_kp_s_N_A;
 
-  /* "src/player/head_controller.pyx":114
+  /* "src/player/head_controller.pyx":117
  *     def _on_head_offline(self, minor=None):
  *         self._module = "N/A"
  *         self._ready = 0             # <<<<<<<<<<<<<<
@@ -2983,26 +2988,26 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  */
   __pyx_v_self->_ready = 0;
 
-  /* "src/player/head_controller.pyx":115
+  /* "src/player/head_controller.pyx":118
  *         self._module = "N/A"
  *         self._ready = 0
  *         if minor:             # <<<<<<<<<<<<<<
  *             self._raise_error(EXEC_HEAD_OFFLINE, minor)
  *         else:
  */
-  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_minor); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 115; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_minor); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 118; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (__pyx_t_1) {
 
-    /* "src/player/head_controller.pyx":116
+    /* "src/player/head_controller.pyx":119
  *         self._ready = 0
  *         if minor:
  *             self._raise_error(EXEC_HEAD_OFFLINE, minor)             # <<<<<<<<<<<<<<
  *         else:
  *             self._raise_error(EXEC_HEAD_OFFLINE)
  */
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_raise_error); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 116; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_raise_error); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_HEAD_OFFLINE); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 116; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_HEAD_OFFLINE); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_t_5 = NULL;
     __pyx_t_6 = 0;
@@ -3016,7 +3021,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
         __pyx_t_6 = 1;
       }
     }
-    __pyx_t_7 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 116; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
     if (__pyx_t_5) {
       __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_5); __pyx_t_5 = NULL;
@@ -3027,7 +3032,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     __Pyx_GIVEREF(__pyx_v_minor);
     PyTuple_SET_ITEM(__pyx_t_7, 1+__pyx_t_6, __pyx_v_minor);
     __pyx_t_4 = 0;
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_7, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 116; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_7, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -3036,16 +3041,16 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   }
   /*else*/ {
 
-    /* "src/player/head_controller.pyx":118
+    /* "src/player/head_controller.pyx":121
  *             self._raise_error(EXEC_HEAD_OFFLINE, minor)
  *         else:
  *             self._raise_error(EXEC_HEAD_OFFLINE)             # <<<<<<<<<<<<<<
  * 
  *     def _on_ready(self):
  */
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_raise_error); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 118; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_raise_error); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 121; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_7 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_HEAD_OFFLINE); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 118; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_HEAD_OFFLINE); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 121; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
     __pyx_t_4 = NULL;
     if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_3))) {
@@ -3058,17 +3063,17 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       }
     }
     if (!__pyx_t_4) {
-      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_7); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 118; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_7); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 121; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       __Pyx_GOTREF(__pyx_t_2);
     } else {
-      __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 118; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 121; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4); __pyx_t_4 = NULL;
       __Pyx_GIVEREF(__pyx_t_7);
       PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_t_7);
       __pyx_t_7 = 0;
-      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 118; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 121; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     }
@@ -3077,7 +3082,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   }
   __pyx_L3:;
 
-  /* "src/player/head_controller.pyx":112
+  /* "src/player/head_controller.pyx":115
  *             raise
  * 
  *     def _on_head_offline(self, minor=None):             # <<<<<<<<<<<<<<
@@ -3102,7 +3107,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":120
+/* "src/player/head_controller.pyx":123
  *             self._raise_error(EXEC_HEAD_OFFLINE)
  * 
  *     def _on_ready(self):             # <<<<<<<<<<<<<<
@@ -3136,7 +3141,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("_on_ready", 0);
 
-  /* "src/player/head_controller.pyx":121
+  /* "src/player/head_controller.pyx":124
  * 
  *     def _on_ready(self):
  *         self._ready = 2             # <<<<<<<<<<<<<<
@@ -3145,17 +3150,17 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  */
   __pyx_v_self->_ready = 2;
 
-  /* "src/player/head_controller.pyx":122
+  /* "src/player/head_controller.pyx":125
  *     def _on_ready(self):
  *         self._ready = 2
  *         if self._ready_callback:             # <<<<<<<<<<<<<<
  *             self._ready_callback(self)
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_self->_ready_callback); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_self->_ready_callback); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 125; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (__pyx_t_1) {
 
-    /* "src/player/head_controller.pyx":123
+    /* "src/player/head_controller.pyx":126
  *         self._ready = 2
  *         if self._ready_callback:
  *             self._ready_callback(self)             # <<<<<<<<<<<<<<
@@ -3174,16 +3179,16 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       }
     }
     if (!__pyx_t_4) {
-      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, ((PyObject *)__pyx_v_self)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, ((PyObject *)__pyx_v_self)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 126; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_2);
     } else {
-      __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 126; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4); __pyx_t_4 = NULL;
       __Pyx_INCREF(((PyObject *)__pyx_v_self));
       __Pyx_GIVEREF(((PyObject *)__pyx_v_self));
       PyTuple_SET_ITEM(__pyx_t_5, 0+1, ((PyObject *)__pyx_v_self));
-      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 126; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     }
@@ -3193,7 +3198,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   }
   __pyx_L3:;
 
-  /* "src/player/head_controller.pyx":120
+  /* "src/player/head_controller.pyx":123
  *             self._raise_error(EXEC_HEAD_OFFLINE)
  * 
  *     def _on_ready(self):             # <<<<<<<<<<<<<<
@@ -3217,7 +3222,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":125
+/* "src/player/head_controller.pyx":128
  *             self._ready_callback(self)
  * 
  *     def wait_allset(self, callback):             # <<<<<<<<<<<<<<
@@ -3243,12 +3248,12 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("wait_allset", 0);
 
-  /* "src/player/head_controller.pyx":126
+  /* "src/player/head_controller.pyx":129
  * 
  *     def wait_allset(self, callback):
  *         self._allset_callback = callback             # <<<<<<<<<<<<<<
  * 
- *     def on_message(self, raw_message, executor):
+ *     def on_message(self, const unsigned char *raw_message, executor):
  */
   __Pyx_INCREF(__pyx_v_callback);
   __Pyx_GIVEREF(__pyx_v_callback);
@@ -3256,7 +3261,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   __Pyx_DECREF(__pyx_v_self->_allset_callback);
   __pyx_v_self->_allset_callback = __pyx_v_callback;
 
-  /* "src/player/head_controller.pyx":125
+  /* "src/player/head_controller.pyx":128
  *             self._ready_callback(self)
  * 
  *     def wait_allset(self, callback):             # <<<<<<<<<<<<<<
@@ -3271,18 +3276,18 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":128
+/* "src/player/head_controller.pyx":131
  *         self._allset_callback = callback
  * 
- *     def on_message(self, raw_message, executor):             # <<<<<<<<<<<<<<
- *         if raw_message.startswith("1 "):
- *             s = l = 0
+ *     def on_message(self, const unsigned char *raw_message, executor):             # <<<<<<<<<<<<<<
+ *         cdef int val
+ *         cdef unsigned char s = 0;
  */
 
 /* Python wrapper */
 static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_21on_message(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_21on_message(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  PyObject *__pyx_v_raw_message = 0;
+  unsigned char const *__pyx_v_raw_message;
   PyObject *__pyx_v_executor = 0;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
@@ -3310,11 +3315,11 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadControl
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_executor)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("on_message", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 128; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("on_message", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 131; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "on_message") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 128; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "on_message") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 131; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -3322,12 +3327,12 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadControl
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
-    __pyx_v_raw_message = values[0];
+    __pyx_v_raw_message = __Pyx_PyObject_AsUString(values[0]); if (unlikely((!__pyx_v_raw_message) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 131; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     __pyx_v_executor = values[1];
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("on_message", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 128; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("on_message", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 131; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("fluxmonitor.player._head_controller.HeadController.on_message", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3340,439 +3345,209 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadControl
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_20on_message(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_raw_message, PyObject *__pyx_v_executor) {
-  PyObject *__pyx_v_s = NULL;
-  PyObject *__pyx_v_l = NULL;
-  PyObject *__pyx_v_c = NULL;
-  PyObject *__pyx_v_val = NULL;
+static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_20on_message(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, unsigned char const *__pyx_v_raw_message, PyObject *__pyx_v_executor) {
+  int __pyx_v_val;
+  unsigned char __pyx_v_s;
+  unsigned char *__pyx_v_ptr;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
-  PyObject *__pyx_t_2 = NULL;
-  int __pyx_t_3;
-  Py_ssize_t __pyx_t_4;
-  PyObject *(*__pyx_t_5)(PyObject *);
-  PyObject *__pyx_t_6 = NULL;
-  PyObject *__pyx_t_7 = NULL;
-  PyObject *__pyx_t_8 = NULL;
-  PyObject *__pyx_t_9 = NULL;
-  int __pyx_t_10;
-  PyObject *__pyx_t_11 = NULL;
-  PyObject *__pyx_t_12 = NULL;
+  int __pyx_t_1;
+  int __pyx_t_2;
+  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("on_message", 0);
 
-  /* "src/player/head_controller.pyx":129
- * 
- *     def on_message(self, raw_message, executor):
- *         if raw_message.startswith("1 "):             # <<<<<<<<<<<<<<
- *             s = l = 0
- *             for c in raw_message:
+  /* "src/player/head_controller.pyx":133
+ *     def on_message(self, const unsigned char *raw_message, executor):
+ *         cdef int val
+ *         cdef unsigned char s = 0;             # <<<<<<<<<<<<<<
+ *         cdef unsigned char *ptr = raw_message
+ *         if raw_message[0] == '1' and raw_message[1] == ' ':
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_raw_message, __pyx_n_s_startswith); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 129; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 129; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 129; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (__pyx_t_3) {
+  __pyx_v_s = 0;
 
-    /* "src/player/head_controller.pyx":130
- *     def on_message(self, raw_message, executor):
- *         if raw_message.startswith("1 "):
- *             s = l = 0             # <<<<<<<<<<<<<<
- *             for c in raw_message:
- *                 if c == "*":
+  /* "src/player/head_controller.pyx":134
+ *         cdef int val
+ *         cdef unsigned char s = 0;
+ *         cdef unsigned char *ptr = raw_message             # <<<<<<<<<<<<<<
+ *         if raw_message[0] == '1' and raw_message[1] == ' ':
+ *             while True:
  */
-    __Pyx_INCREF(__pyx_int_0);
-    __pyx_v_s = __pyx_int_0;
-    __Pyx_INCREF(__pyx_int_0);
-    __pyx_v_l = __pyx_int_0;
+  __pyx_v_ptr = __pyx_v_raw_message;
 
-    /* "src/player/head_controller.pyx":131
- *         if raw_message.startswith("1 "):
- *             s = l = 0
- *             for c in raw_message:             # <<<<<<<<<<<<<<
- *                 if c == "*":
- *                     break
+  /* "src/player/head_controller.pyx":135
+ *         cdef unsigned char s = 0;
+ *         cdef unsigned char *ptr = raw_message
+ *         if raw_message[0] == '1' and raw_message[1] == ' ':             # <<<<<<<<<<<<<<
+ *             while True:
+ *                 if ptr[0] == '*':
  */
-    if (likely(PyList_CheckExact(__pyx_v_raw_message)) || PyTuple_CheckExact(__pyx_v_raw_message)) {
-      __pyx_t_2 = __pyx_v_raw_message; __Pyx_INCREF(__pyx_t_2); __pyx_t_4 = 0;
-      __pyx_t_5 = NULL;
-    } else {
-      __pyx_t_4 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_v_raw_message); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 131; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_5 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 131; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    }
-    for (;;) {
-      if (likely(!__pyx_t_5)) {
-        if (likely(PyList_CheckExact(__pyx_t_2))) {
-          if (__pyx_t_4 >= PyList_GET_SIZE(__pyx_t_2)) break;
-          #if CYTHON_COMPILING_IN_CPYTHON
-          __pyx_t_1 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_4); __Pyx_INCREF(__pyx_t_1); __pyx_t_4++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 131; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-          #else
-          __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_4); __pyx_t_4++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 131; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-          __Pyx_GOTREF(__pyx_t_1);
-          #endif
-        } else {
-          if (__pyx_t_4 >= PyTuple_GET_SIZE(__pyx_t_2)) break;
-          #if CYTHON_COMPILING_IN_CPYTHON
-          __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_4); __Pyx_INCREF(__pyx_t_1); __pyx_t_4++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 131; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-          #else
-          __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_4); __pyx_t_4++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 131; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-          __Pyx_GOTREF(__pyx_t_1);
-          #endif
-        }
-      } else {
-        __pyx_t_1 = __pyx_t_5(__pyx_t_2);
-        if (unlikely(!__pyx_t_1)) {
-          PyObject* exc_type = PyErr_Occurred();
-          if (exc_type) {
-            if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-            else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 131; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-          }
-          break;
-        }
-        __Pyx_GOTREF(__pyx_t_1);
-      }
-      __Pyx_XDECREF_SET(__pyx_v_c, __pyx_t_1);
-      __pyx_t_1 = 0;
+  __pyx_t_2 = (((__pyx_v_raw_message[0]) == '1') != 0);
+  if (__pyx_t_2) {
+  } else {
+    __pyx_t_1 = __pyx_t_2;
+    goto __pyx_L4_bool_binop_done;
+  }
+  __pyx_t_2 = (((__pyx_v_raw_message[1]) == ' ') != 0);
+  __pyx_t_1 = __pyx_t_2;
+  __pyx_L4_bool_binop_done:;
+  if (__pyx_t_1) {
 
-      /* "src/player/head_controller.pyx":132
- *             s = l = 0
- *             for c in raw_message:
- *                 if c == "*":             # <<<<<<<<<<<<<<
- *                     break
- *                 else:
+    /* "src/player/head_controller.pyx":136
+ *         cdef unsigned char *ptr = raw_message
+ *         if raw_message[0] == '1' and raw_message[1] == ' ':
+ *             while True:             # <<<<<<<<<<<<<<
+ *                 if ptr[0] == '*':
+ *                     sscanf(<const char *>(ptr + 1), "%d", &val)
  */
-      __pyx_t_3 = (__Pyx_PyString_Equals(__pyx_v_c, __pyx_kp_s__4, Py_EQ)); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 132; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      if (__pyx_t_3) {
+    while (1) {
 
-        /* "src/player/head_controller.pyx":133
- *             for c in raw_message:
- *                 if c == "*":
- *                     break             # <<<<<<<<<<<<<<
- *                 else:
- *                     s ^= ord(c)
+      /* "src/player/head_controller.pyx":137
+ *         if raw_message[0] == '1' and raw_message[1] == ' ':
+ *             while True:
+ *                 if ptr[0] == '*':             # <<<<<<<<<<<<<<
+ *                     sscanf(<const char *>(ptr + 1), "%d", &val)
+ *                     if val == s:
  */
-        goto __pyx_L5_break;
-      }
-      /*else*/ {
+      __pyx_t_1 = (((__pyx_v_ptr[0]) == '*') != 0);
+      if (__pyx_t_1) {
 
-        /* "src/player/head_controller.pyx":135
- *                     break
- *                 else:
- *                     s ^= ord(c)             # <<<<<<<<<<<<<<
- *                     l += 1
- * 
+        /* "src/player/head_controller.pyx":138
+ *             while True:
+ *                 if ptr[0] == '*':
+ *                     sscanf(<const char *>(ptr + 1), "%d", &val)             # <<<<<<<<<<<<<<
+ *                     if val == s:
+ *                         self.handle_message(raw_message[2:ptr - raw_message],
  */
-        __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 135; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-        __Pyx_GOTREF(__pyx_t_1);
-        __Pyx_INCREF(__pyx_v_c);
-        __Pyx_GIVEREF(__pyx_v_c);
-        PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_c);
-        __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_ord, __pyx_t_1, NULL); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 135; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-        __Pyx_GOTREF(__pyx_t_6);
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        __pyx_t_1 = PyNumber_InPlaceXor(__pyx_v_s, __pyx_t_6); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 135; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-        __Pyx_GOTREF(__pyx_t_1);
-        __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-        __Pyx_DECREF_SET(__pyx_v_s, __pyx_t_1);
-        __pyx_t_1 = 0;
-
-        /* "src/player/head_controller.pyx":136
- *                 else:
- *                     s ^= ord(c)
- *                     l += 1             # <<<<<<<<<<<<<<
- * 
- *             try:
- */
-        __pyx_t_1 = PyNumber_InPlaceAdd(__pyx_v_l, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 136; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-        __Pyx_GOTREF(__pyx_t_1);
-        __Pyx_DECREF_SET(__pyx_v_l, __pyx_t_1);
-        __pyx_t_1 = 0;
-      }
-
-      /* "src/player/head_controller.pyx":131
- *         if raw_message.startswith("1 "):
- *             s = l = 0
- *             for c in raw_message:             # <<<<<<<<<<<<<<
- *                 if c == "*":
- *                     break
- */
-    }
-    __pyx_L5_break:;
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-
-    /* "src/player/head_controller.pyx":138
- *                     l += 1
- * 
- *             try:             # <<<<<<<<<<<<<<
- *                 val = int(raw_message[l + 1:], 10)
- *                 if val != s:
- */
-    {
-      __Pyx_ExceptionSave(&__pyx_t_7, &__pyx_t_8, &__pyx_t_9);
-      __Pyx_XGOTREF(__pyx_t_7);
-      __Pyx_XGOTREF(__pyx_t_8);
-      __Pyx_XGOTREF(__pyx_t_9);
-      /*try:*/ {
+        sscanf(((char const *)(__pyx_v_ptr + 1)), __pyx_k_d, (&__pyx_v_val));
 
         /* "src/player/head_controller.pyx":139
- * 
- *             try:
- *                 val = int(raw_message[l + 1:], 10)             # <<<<<<<<<<<<<<
- *                 if val != s:
- *                     return
+ *                 if ptr[0] == '*':
+ *                     sscanf(<const char *>(ptr + 1), "%d", &val)
+ *                     if val == s:             # <<<<<<<<<<<<<<
+ *                         self.handle_message(raw_message[2:ptr - raw_message],
+ *                                             executor)
  */
-        __pyx_t_2 = PyNumber_Add(__pyx_v_l, __pyx_int_1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 139; __pyx_clineno = __LINE__; goto __pyx_L7_error;}
-        __Pyx_GOTREF(__pyx_t_2);
-        __pyx_t_1 = __Pyx_PyObject_GetSlice(__pyx_v_raw_message, 0, 0, &__pyx_t_2, NULL, NULL, 0, 0, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 139; __pyx_clineno = __LINE__; goto __pyx_L7_error;}
-        __Pyx_GOTREF(__pyx_t_1);
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-        __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 139; __pyx_clineno = __LINE__; goto __pyx_L7_error;}
-        __Pyx_GOTREF(__pyx_t_2);
-        __Pyx_GIVEREF(__pyx_t_1);
-        PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
-        __Pyx_INCREF(__pyx_int_10);
-        __Pyx_GIVEREF(__pyx_int_10);
-        PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_int_10);
-        __pyx_t_1 = 0;
-        __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)((PyObject*)(&PyInt_Type))), __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 139; __pyx_clineno = __LINE__; goto __pyx_L7_error;}
-        __Pyx_GOTREF(__pyx_t_1);
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-        __pyx_v_val = __pyx_t_1;
-        __pyx_t_1 = 0;
+        __pyx_t_1 = ((__pyx_v_val == __pyx_v_s) != 0);
+        if (__pyx_t_1) {
 
-        /* "src/player/head_controller.pyx":140
- *             try:
- *                 val = int(raw_message[l + 1:], 10)
- *                 if val != s:             # <<<<<<<<<<<<<<
+          /* "src/player/head_controller.pyx":140
+ *                     sscanf(<const char *>(ptr + 1), "%d", &val)
+ *                     if val == s:
+ *                         self.handle_message(raw_message[2:ptr - raw_message],             # <<<<<<<<<<<<<<
+ *                                             executor)
  *                     return
- *             except ValueError:
  */
-        __pyx_t_1 = PyObject_RichCompare(__pyx_v_val, __pyx_v_s, Py_NE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 140; __pyx_clineno = __LINE__; goto __pyx_L7_error;}
-        __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 140; __pyx_clineno = __LINE__; goto __pyx_L7_error;}
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        if (__pyx_t_3) {
+          __pyx_t_3 = __Pyx_PyBytes_FromStringAndSize(((const char*)__pyx_v_raw_message) + 2, (__pyx_v_ptr - __pyx_v_raw_message) - 2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 140; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __Pyx_GOTREF(__pyx_t_3);
 
           /* "src/player/head_controller.pyx":141
- *                 val = int(raw_message[l + 1:], 10)
- *                 if val != s:
- *                     return             # <<<<<<<<<<<<<<
- *             except ValueError:
- *                 return
+ *                     if val == s:
+ *                         self.handle_message(raw_message[2:ptr - raw_message],
+ *                                             executor)             # <<<<<<<<<<<<<<
+ *                     return
+ *                 elif ptr[0] == 0:
  */
-          __Pyx_XDECREF(__pyx_r);
-          __pyx_r = Py_None; __Pyx_INCREF(Py_None);
-          goto __pyx_L11_try_return;
+          __pyx_t_4 = __pyx_f_11fluxmonitor_6player_16_head_controller_14HeadController_handle_message(__pyx_v_self, __pyx_t_3, __pyx_v_executor); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 140; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __Pyx_GOTREF(__pyx_t_4);
+          __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+          goto __pyx_L9;
         }
-      }
-      __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
-      __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
-      goto __pyx_L14_try_end;
-      __pyx_L7_error:;
-      __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
-      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
+        __pyx_L9:;
 
-      /* "src/player/head_controller.pyx":142
- *                 if val != s:
+        /* "src/player/head_controller.pyx":142
+ *                         self.handle_message(raw_message[2:ptr - raw_message],
+ *                                             executor)
+ *                     return             # <<<<<<<<<<<<<<
+ *                 elif ptr[0] == 0:
  *                     return
- *             except ValueError:             # <<<<<<<<<<<<<<
- *                 return
- * 
- */
-      __pyx_t_10 = PyErr_ExceptionMatches(__pyx_builtin_ValueError);
-      if (__pyx_t_10) {
-        __Pyx_AddTraceback("fluxmonitor.player._head_controller.HeadController.on_message", __pyx_clineno, __pyx_lineno, __pyx_filename);
-        if (__Pyx_GetException(&__pyx_t_1, &__pyx_t_2, &__pyx_t_6) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 142; __pyx_clineno = __LINE__; goto __pyx_L9_except_error;}
-        __Pyx_GOTREF(__pyx_t_1);
-        __Pyx_GOTREF(__pyx_t_2);
-        __Pyx_GOTREF(__pyx_t_6);
-
-        /* "src/player/head_controller.pyx":143
- *                     return
- *             except ValueError:
- *                 return             # <<<<<<<<<<<<<<
- * 
- *             self.handle_message(raw_message[2:l], executor)
  */
         __Pyx_XDECREF(__pyx_r);
         __pyx_r = Py_None; __Pyx_INCREF(Py_None);
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-        __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-        goto __pyx_L10_except_return;
+        goto __pyx_L0;
       }
-      goto __pyx_L9_except_error;
-      __pyx_L9_except_error:;
-      __Pyx_XGIVEREF(__pyx_t_7);
-      __Pyx_XGIVEREF(__pyx_t_8);
-      __Pyx_XGIVEREF(__pyx_t_9);
-      __Pyx_ExceptionReset(__pyx_t_7, __pyx_t_8, __pyx_t_9);
-      goto __pyx_L1_error;
-      __pyx_L11_try_return:;
-      __Pyx_XGIVEREF(__pyx_t_7);
-      __Pyx_XGIVEREF(__pyx_t_8);
-      __Pyx_XGIVEREF(__pyx_t_9);
-      __Pyx_ExceptionReset(__pyx_t_7, __pyx_t_8, __pyx_t_9);
-      goto __pyx_L0;
-      __pyx_L10_except_return:;
-      __Pyx_XGIVEREF(__pyx_t_7);
-      __Pyx_XGIVEREF(__pyx_t_8);
-      __Pyx_XGIVEREF(__pyx_t_9);
-      __Pyx_ExceptionReset(__pyx_t_7, __pyx_t_8, __pyx_t_9);
-      goto __pyx_L0;
-      __pyx_L14_try_end:;
-    }
 
-    /* "src/player/head_controller.pyx":145
- *                 return
- * 
- *             self.handle_message(raw_message[2:l], executor)             # <<<<<<<<<<<<<<
- * 
- *     def handle_message(self, msg, executor):
+      /* "src/player/head_controller.pyx":143
+ *                                             executor)
+ *                     return
+ *                 elif ptr[0] == 0:             # <<<<<<<<<<<<<<
+ *                     return
+ *                 else:
  */
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_message); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 145; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_1 = __Pyx_PyObject_GetSlice(__pyx_v_raw_message, 2, 0, NULL, &__pyx_v_l, NULL, 1, 0, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 145; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_11 = NULL;
-    __pyx_t_4 = 0;
-    if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
-      __pyx_t_11 = PyMethod_GET_SELF(__pyx_t_2);
-      if (likely(__pyx_t_11)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-        __Pyx_INCREF(__pyx_t_11);
-        __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_2, function);
-        __pyx_t_4 = 1;
+      __pyx_t_1 = (((__pyx_v_ptr[0]) == 0) != 0);
+      if (__pyx_t_1) {
+
+        /* "src/player/head_controller.pyx":144
+ *                     return
+ *                 elif ptr[0] == 0:
+ *                     return             # <<<<<<<<<<<<<<
+ *                 else:
+ *                     s ^= ptr[0]
+ */
+        __Pyx_XDECREF(__pyx_r);
+        __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+        goto __pyx_L0;
+      }
+      /*else*/ {
+
+        /* "src/player/head_controller.pyx":146
+ *                     return
+ *                 else:
+ *                     s ^= ptr[0]             # <<<<<<<<<<<<<<
+ *                     ptr += 1
+ * 
+ */
+        __pyx_v_s = (__pyx_v_s ^ (__pyx_v_ptr[0]));
+
+        /* "src/player/head_controller.pyx":147
+ *                 else:
+ *                     s ^= ptr[0]
+ *                     ptr += 1             # <<<<<<<<<<<<<<
+ * 
+ *     cdef inline handle_message(self, msg, executor):
+ */
+        __pyx_v_ptr = (__pyx_v_ptr + 1);
       }
     }
-    __pyx_t_12 = PyTuple_New(2+__pyx_t_4); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 145; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_12);
-    if (__pyx_t_11) {
-      __Pyx_GIVEREF(__pyx_t_11); PyTuple_SET_ITEM(__pyx_t_12, 0, __pyx_t_11); __pyx_t_11 = NULL;
-    }
-    __Pyx_GIVEREF(__pyx_t_1);
-    PyTuple_SET_ITEM(__pyx_t_12, 0+__pyx_t_4, __pyx_t_1);
-    __Pyx_INCREF(__pyx_v_executor);
-    __Pyx_GIVEREF(__pyx_v_executor);
-    PyTuple_SET_ITEM(__pyx_t_12, 1+__pyx_t_4, __pyx_v_executor);
-    __pyx_t_1 = 0;
-    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_12, NULL); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 145; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_6);
-    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     goto __pyx_L3;
   }
   __pyx_L3:;
 
-  /* "src/player/head_controller.pyx":128
+  /* "src/player/head_controller.pyx":131
  *         self._allset_callback = callback
  * 
- *     def on_message(self, raw_message, executor):             # <<<<<<<<<<<<<<
- *         if raw_message.startswith("1 "):
- *             s = l = 0
+ *     def on_message(self, const unsigned char *raw_message, executor):             # <<<<<<<<<<<<<<
+ *         cdef int val
+ *         cdef unsigned char s = 0;
  */
 
   /* function exit code */
   __pyx_r = Py_None; __Pyx_INCREF(Py_None);
   goto __pyx_L0;
   __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_XDECREF(__pyx_t_6);
-  __Pyx_XDECREF(__pyx_t_11);
-  __Pyx_XDECREF(__pyx_t_12);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
   __Pyx_AddTraceback("fluxmonitor.player._head_controller.HeadController.on_message", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
-  __Pyx_XDECREF(__pyx_v_s);
-  __Pyx_XDECREF(__pyx_v_l);
-  __Pyx_XDECREF(__pyx_v_c);
-  __Pyx_XDECREF(__pyx_v_val);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":147
- *             self.handle_message(raw_message[2:l], executor)
+/* "src/player/head_controller.pyx":149
+ *                     ptr += 1
  * 
- *     def handle_message(self, msg, executor):             # <<<<<<<<<<<<<<
+ *     cdef inline handle_message(self, msg, executor):             # <<<<<<<<<<<<<<
  *         if self._ready == 2:
  *             if msg.startswith("OK PONG "):
  */
 
-/* Python wrapper */
-static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_23handle_message(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_23handle_message(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  PyObject *__pyx_v_msg = 0;
-  PyObject *__pyx_v_executor = 0;
-  int __pyx_lineno = 0;
-  const char *__pyx_filename = NULL;
-  int __pyx_clineno = 0;
-  PyObject *__pyx_r = 0;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("handle_message (wrapper)", 0);
-  {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_msg,&__pyx_n_s_executor,0};
-    PyObject* values[2] = {0,0};
-    if (unlikely(__pyx_kwds)) {
-      Py_ssize_t kw_args;
-      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
-      switch (pos_args) {
-        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
-        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
-        case  0: break;
-        default: goto __pyx_L5_argtuple_error;
-      }
-      kw_args = PyDict_Size(__pyx_kwds);
-      switch (pos_args) {
-        case  0:
-        if (likely((values[0] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_msg)) != 0)) kw_args--;
-        else goto __pyx_L5_argtuple_error;
-        case  1:
-        if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_executor)) != 0)) kw_args--;
-        else {
-          __Pyx_RaiseArgtupleInvalid("handle_message", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 147; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
-        }
-      }
-      if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "handle_message") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 147; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
-      }
-    } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
-      goto __pyx_L5_argtuple_error;
-    } else {
-      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
-      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
-    }
-    __pyx_v_msg = values[0];
-    __pyx_v_executor = values[1];
-  }
-  goto __pyx_L4_argument_unpacking_done;
-  __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("handle_message", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 147; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
-  __pyx_L3_error:;
-  __Pyx_AddTraceback("fluxmonitor.player._head_controller.HeadController.handle_message", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __Pyx_RefNannyFinishContext();
-  return NULL;
-  __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_22handle_message(((struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *)__pyx_v_self), __pyx_v_msg, __pyx_v_executor);
-
-  /* function exit code */
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_22handle_message(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_msg, PyObject *__pyx_v_executor) {
+static CYTHON_INLINE PyObject *__pyx_f_11fluxmonitor_6player_16_head_controller_14HeadController_handle_message(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_msg, PyObject *__pyx_v_executor) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -3788,7 +3563,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("handle_message", 0);
 
-  /* "src/player/head_controller.pyx":159
+  /* "src/player/head_controller.pyx":161
  *             else:
  *                 L.info("RECV_UH: '%s'", msg)
  *         elif self._ready == 1:             # <<<<<<<<<<<<<<
@@ -3797,39 +3572,39 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  */
   switch (__pyx_v_self->_ready) {
 
-    /* "src/player/head_controller.pyx":148
+    /* "src/player/head_controller.pyx":150
  * 
- *     def handle_message(self, msg, executor):
+ *     cdef inline handle_message(self, msg, executor):
  *         if self._ready == 2:             # <<<<<<<<<<<<<<
  *             if msg.startswith("OK PONG "):
  *                 self._handle_pong(msg, executor)
  */
     case 2:
 
-    /* "src/player/head_controller.pyx":149
- *     def handle_message(self, msg, executor):
+    /* "src/player/head_controller.pyx":151
+ *     cdef inline handle_message(self, msg, executor):
  *         if self._ready == 2:
  *             if msg.startswith("OK PONG "):             # <<<<<<<<<<<<<<
  *                 self._handle_pong(msg, executor)
  *                 if self._padding_cmd:
  */
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_msg, __pyx_n_s_startswith); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 149; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_msg, __pyx_n_s_startswith); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 151; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__5, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 149; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 151; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 149; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 151; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     if (__pyx_t_3) {
 
-      /* "src/player/head_controller.pyx":150
+      /* "src/player/head_controller.pyx":152
  *         if self._ready == 2:
  *             if msg.startswith("OK PONG "):
  *                 self._handle_pong(msg, executor)             # <<<<<<<<<<<<<<
  *                 if self._padding_cmd:
  *                     self._send_cmd(executor)
  */
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_pong); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 150; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_pong); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 152; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
       __pyx_t_4 = NULL;
       __pyx_t_5 = 0;
@@ -3843,7 +3618,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
           __pyx_t_5 = 1;
         }
       }
-      __pyx_t_6 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 150; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_6 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 152; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_6);
       if (__pyx_t_4) {
         __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_4); __pyx_t_4 = NULL;
@@ -3854,30 +3629,30 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       __Pyx_INCREF(__pyx_v_executor);
       __Pyx_GIVEREF(__pyx_v_executor);
       PyTuple_SET_ITEM(__pyx_t_6, 1+__pyx_t_5, __pyx_v_executor);
-      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 150; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 152; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-      /* "src/player/head_controller.pyx":151
+      /* "src/player/head_controller.pyx":153
  *             if msg.startswith("OK PONG "):
  *                 self._handle_pong(msg, executor)
  *                 if self._padding_cmd:             # <<<<<<<<<<<<<<
  *                     self._send_cmd(executor)
  *             elif self._parse_cmd_response(msg, executor):
  */
-      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_v_self->_padding_cmd); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 151; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_v_self->_padding_cmd); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 153; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       if (__pyx_t_3) {
 
-        /* "src/player/head_controller.pyx":152
+        /* "src/player/head_controller.pyx":154
  *                 self._handle_pong(msg, executor)
  *                 if self._padding_cmd:
  *                     self._send_cmd(executor)             # <<<<<<<<<<<<<<
  *             elif self._parse_cmd_response(msg, executor):
  *                 pass
  */
-        __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_send_cmd); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 152; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_send_cmd); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 154; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_1);
         __pyx_t_6 = NULL;
         if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_1))) {
@@ -3890,16 +3665,16 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
           }
         }
         if (!__pyx_t_6) {
-          __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_v_executor); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 152; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_v_executor); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 154; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_2);
         } else {
-          __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 152; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 154; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_4);
           __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_6); __pyx_t_6 = NULL;
           __Pyx_INCREF(__pyx_v_executor);
           __Pyx_GIVEREF(__pyx_v_executor);
           PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v_executor);
-          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_4, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 152; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_4, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 154; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
         }
@@ -3911,14 +3686,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       goto __pyx_L3;
     }
 
-    /* "src/player/head_controller.pyx":153
+    /* "src/player/head_controller.pyx":155
  *                 if self._padding_cmd:
  *                     self._send_cmd(executor)
  *             elif self._parse_cmd_response(msg, executor):             # <<<<<<<<<<<<<<
  *                 pass
  *             elif self._ext.on_message(msg):
  */
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_parse_cmd_response); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 153; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_parse_cmd_response); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 155; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __pyx_t_4 = NULL;
     __pyx_t_5 = 0;
@@ -3932,7 +3707,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
         __pyx_t_5 = 1;
       }
     }
-    __pyx_t_6 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 153; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_6 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 155; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_6);
     if (__pyx_t_4) {
       __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_4); __pyx_t_4 = NULL;
@@ -3943,24 +3718,24 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     __Pyx_INCREF(__pyx_v_executor);
     __Pyx_GIVEREF(__pyx_v_executor);
     PyTuple_SET_ITEM(__pyx_t_6, 1+__pyx_t_5, __pyx_v_executor);
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 153; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 155; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 153; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 155; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     if (__pyx_t_3) {
       goto __pyx_L3;
     }
 
-    /* "src/player/head_controller.pyx":155
+    /* "src/player/head_controller.pyx":157
  *             elif self._parse_cmd_response(msg, executor):
  *                 pass
  *             elif self._ext.on_message(msg):             # <<<<<<<<<<<<<<
  *                 pass
  *             else:
  */
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->_ext, __pyx_n_s_on_message); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 155; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->_ext, __pyx_n_s_on_message); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __pyx_t_6 = NULL;
     if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_1))) {
@@ -3973,35 +3748,35 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       }
     }
     if (!__pyx_t_6) {
-      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_v_msg); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 155; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_v_msg); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_2);
     } else {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 155; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_6); __pyx_t_6 = NULL;
       __Pyx_INCREF(__pyx_v_msg);
       __Pyx_GIVEREF(__pyx_v_msg);
       PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v_msg);
-      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_4, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 155; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_4, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     }
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 155; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     if (__pyx_t_3) {
       goto __pyx_L3;
     }
     /*else*/ {
 
-      /* "src/player/head_controller.pyx":158
+      /* "src/player/head_controller.pyx":160
  *                 pass
  *             else:
  *                 L.info("RECV_UH: '%s'", msg)             # <<<<<<<<<<<<<<
  *         elif self._ready == 1:
  *             if self._padding_cmd == "1 HELLO *115\n":
  */
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_11fluxmonitor_6player_16_head_controller_L, __pyx_n_s_info); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 158; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_11fluxmonitor_6player_16_head_controller_L, __pyx_n_s_info); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 160; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
       __pyx_t_4 = NULL;
       __pyx_t_5 = 0;
@@ -4015,7 +3790,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
           __pyx_t_5 = 1;
         }
       }
-      __pyx_t_6 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 158; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_6 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 160; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_6);
       if (__pyx_t_4) {
         __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_4); __pyx_t_4 = NULL;
@@ -4026,7 +3801,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       __Pyx_INCREF(__pyx_v_msg);
       __Pyx_GIVEREF(__pyx_v_msg);
       PyTuple_SET_ITEM(__pyx_t_6, 1+__pyx_t_5, __pyx_v_msg);
-      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 158; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 160; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -4035,7 +3810,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     __pyx_L3:;
     break;
 
-    /* "src/player/head_controller.pyx":159
+    /* "src/player/head_controller.pyx":161
  *             else:
  *                 L.info("RECV_UH: '%s'", msg)
  *         elif self._ready == 1:             # <<<<<<<<<<<<<<
@@ -4044,42 +3819,42 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  */
     case 1:
 
-    /* "src/player/head_controller.pyx":160
+    /* "src/player/head_controller.pyx":162
  *                 L.info("RECV_UH: '%s'", msg)
  *         elif self._ready == 1:
  *             if self._padding_cmd == "1 HELLO *115\n":             # <<<<<<<<<<<<<<
  *                 if msg.startswith("OK HELLO "):
  *                     self._on_head_hello(msg[9:])
  */
-    __pyx_t_3 = (__Pyx_PyString_Equals(__pyx_v_self->_padding_cmd, __pyx_kp_s_1_HELLO_115, Py_EQ)); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 160; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = (__Pyx_PyString_Equals(__pyx_v_self->_padding_cmd, __pyx_kp_s_1_HELLO_115, Py_EQ)); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     if (__pyx_t_3) {
 
-      /* "src/player/head_controller.pyx":161
+      /* "src/player/head_controller.pyx":163
  *         elif self._ready == 1:
  *             if self._padding_cmd == "1 HELLO *115\n":
  *                 if msg.startswith("OK HELLO "):             # <<<<<<<<<<<<<<
  *                     self._on_head_hello(msg[9:])
  * 
  */
-      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_msg, __pyx_n_s_startswith); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 161; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_msg, __pyx_n_s_startswith); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 163; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__6, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 161; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 163; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 161; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 163; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       if (__pyx_t_3) {
 
-        /* "src/player/head_controller.pyx":162
+        /* "src/player/head_controller.pyx":164
  *             if self._padding_cmd == "1 HELLO *115\n":
  *                 if msg.startswith("OK HELLO "):
  *                     self._on_head_hello(msg[9:])             # <<<<<<<<<<<<<<
  * 
  *                     self._cmd_sent_at = 0
  */
-        __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_on_head_hello); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_on_head_hello); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 164; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_2);
-        __pyx_t_6 = __Pyx_PyObject_GetSlice(__pyx_v_msg, 9, 0, NULL, NULL, &__pyx_slice__7, 1, 0, 1); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_6 = __Pyx_PyObject_GetSlice(__pyx_v_msg, 9, 0, NULL, NULL, &__pyx_slice__5, 1, 0, 1); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 164; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_6);
         __pyx_t_4 = NULL;
         if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
@@ -4092,24 +3867,24 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
           }
         }
         if (!__pyx_t_4) {
-          __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_6); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_6); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 164; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
           __Pyx_GOTREF(__pyx_t_1);
         } else {
-          __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 164; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_7);
           __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_4); __pyx_t_4 = NULL;
           __Pyx_GIVEREF(__pyx_t_6);
           PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_t_6);
           __pyx_t_6 = 0;
-          __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 164; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_1);
           __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
         }
         __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-        /* "src/player/head_controller.pyx":164
+        /* "src/player/head_controller.pyx":166
  *                     self._on_head_hello(msg[9:])
  * 
  *                     self._cmd_sent_at = 0             # <<<<<<<<<<<<<<
@@ -4118,7 +3893,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  */
         __pyx_v_self->_cmd_sent_at = 0.0;
 
-        /* "src/player/head_controller.pyx":165
+        /* "src/player/head_controller.pyx":167
  * 
  *                     self._cmd_sent_at = 0
  *                     self._cmd_retry = 0             # <<<<<<<<<<<<<<
@@ -4127,7 +3902,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  */
         __pyx_v_self->_cmd_retry = 0;
 
-        /* "src/player/head_controller.pyx":166
+        /* "src/player/head_controller.pyx":168
  *                     self._cmd_sent_at = 0
  *                     self._cmd_retry = 0
  *                     self._padding_cmd = None             # <<<<<<<<<<<<<<
@@ -4145,14 +3920,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       goto __pyx_L5;
     }
 
-    /* "src/player/head_controller.pyx":167
+    /* "src/player/head_controller.pyx":169
  *                     self._cmd_retry = 0
  *                     self._padding_cmd = None
  *             elif self._parse_cmd_response(msg, executor):             # <<<<<<<<<<<<<<
  *                 pass
  *             else:
  */
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_parse_cmd_response); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 167; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_parse_cmd_response); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 169; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_t_7 = NULL;
     __pyx_t_5 = 0;
@@ -4166,7 +3941,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
         __pyx_t_5 = 1;
       }
     }
-    __pyx_t_6 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 167; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_6 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 169; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_6);
     if (__pyx_t_7) {
       __Pyx_GIVEREF(__pyx_t_7); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_7); __pyx_t_7 = NULL;
@@ -4177,25 +3952,25 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     __Pyx_INCREF(__pyx_v_executor);
     __Pyx_GIVEREF(__pyx_v_executor);
     PyTuple_SET_ITEM(__pyx_t_6, 1+__pyx_t_5, __pyx_v_executor);
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 167; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 169; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 167; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 169; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     if (__pyx_t_3) {
       goto __pyx_L5;
     }
     /*else*/ {
 
-      /* "src/player/head_controller.pyx":170
+      /* "src/player/head_controller.pyx":172
  *                 pass
  *             else:
  *                 L.info("RECV_UH: '%s'", msg)             # <<<<<<<<<<<<<<
  * 
  *             if self._padding_cmd is None:
  */
-      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_11fluxmonitor_6player_16_head_controller_L, __pyx_n_s_info); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 170; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_11fluxmonitor_6player_16_head_controller_L, __pyx_n_s_info); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_2);
       __pyx_t_6 = NULL;
       __pyx_t_5 = 0;
@@ -4209,7 +3984,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
           __pyx_t_5 = 1;
         }
       }
-      __pyx_t_7 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 170; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_7 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_7);
       if (__pyx_t_6) {
         __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_6); __pyx_t_6 = NULL;
@@ -4220,7 +3995,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       __Pyx_INCREF(__pyx_v_msg);
       __Pyx_GIVEREF(__pyx_v_msg);
       PyTuple_SET_ITEM(__pyx_t_7, 1+__pyx_t_5, __pyx_v_msg);
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 170; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -4228,7 +4003,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     }
     __pyx_L5:;
 
-    /* "src/player/head_controller.pyx":172
+    /* "src/player/head_controller.pyx":174
  *                 L.info("RECV_UH: '%s'", msg)
  * 
  *             if self._padding_cmd is None:             # <<<<<<<<<<<<<<
@@ -4239,24 +4014,24 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     __pyx_t_8 = (__pyx_t_3 != 0);
     if (__pyx_t_8) {
 
-      /* "src/player/head_controller.pyx":173
+      /* "src/player/head_controller.pyx":175
  * 
  *             if self._padding_cmd is None:
  *                 if self._recover_queue:             # <<<<<<<<<<<<<<
  *                     self._padding_cmd = self._recover_queue.pop(0)
  *                     self._send_cmd(executor)
  */
-      __pyx_t_8 = __Pyx_PyObject_IsTrue(__pyx_v_self->_recover_queue); if (unlikely(__pyx_t_8 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 173; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_8 = __Pyx_PyObject_IsTrue(__pyx_v_self->_recover_queue); if (unlikely(__pyx_t_8 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       if (__pyx_t_8) {
 
-        /* "src/player/head_controller.pyx":174
+        /* "src/player/head_controller.pyx":176
  *             if self._padding_cmd is None:
  *                 if self._recover_queue:
  *                     self._padding_cmd = self._recover_queue.pop(0)             # <<<<<<<<<<<<<<
  *                     self._send_cmd(executor)
  *                 else:
  */
-        __pyx_t_1 = __Pyx_PyObject_PopIndex(__pyx_v_self->_recover_queue, 0, 1, Py_ssize_t, PyInt_FromSsize_t); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 174; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = __Pyx_PyObject_PopIndex(__pyx_v_self->_recover_queue, 0, 1, Py_ssize_t, PyInt_FromSsize_t); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 176; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_GIVEREF(__pyx_t_1);
         __Pyx_GOTREF(__pyx_v_self->_padding_cmd);
@@ -4264,14 +4039,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
         __pyx_v_self->_padding_cmd = __pyx_t_1;
         __pyx_t_1 = 0;
 
-        /* "src/player/head_controller.pyx":175
+        /* "src/player/head_controller.pyx":177
  *                 if self._recover_queue:
  *                     self._padding_cmd = self._recover_queue.pop(0)
  *                     self._send_cmd(executor)             # <<<<<<<<<<<<<<
  *                 else:
  *                     self._on_ready()
  */
-        __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_send_cmd); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_send_cmd); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 177; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_2);
         __pyx_t_7 = NULL;
         if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
@@ -4284,16 +4059,16 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
           }
         }
         if (!__pyx_t_7) {
-          __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_executor); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_executor); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 177; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_1);
         } else {
-          __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 177; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_6);
           __Pyx_GIVEREF(__pyx_t_7); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_7); __pyx_t_7 = NULL;
           __Pyx_INCREF(__pyx_v_executor);
           __Pyx_GIVEREF(__pyx_v_executor);
           PyTuple_SET_ITEM(__pyx_t_6, 0+1, __pyx_v_executor);
-          __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 177; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_1);
           __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
         }
@@ -4303,14 +4078,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       }
       /*else*/ {
 
-        /* "src/player/head_controller.pyx":177
+        /* "src/player/head_controller.pyx":179
  *                     self._send_cmd(executor)
  *                 else:
  *                     self._on_ready()             # <<<<<<<<<<<<<<
  * 
  *     def send_cmd(self, cmd, executor, complete_callback=None,
  */
-        __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_on_ready); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 177; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_on_ready); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 179; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_2);
         __pyx_t_6 = NULL;
         if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
@@ -4323,10 +4098,10 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
           }
         }
         if (__pyx_t_6) {
-          __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_6); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 177; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_6); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 179; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
         } else {
-          __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 177; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 179; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         }
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -4340,10 +4115,10 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     default: break;
   }
 
-  /* "src/player/head_controller.pyx":147
- *             self.handle_message(raw_message[2:l], executor)
+  /* "src/player/head_controller.pyx":149
+ *                     ptr += 1
  * 
- *     def handle_message(self, msg, executor):             # <<<<<<<<<<<<<<
+ *     cdef inline handle_message(self, msg, executor):             # <<<<<<<<<<<<<<
  *         if self._ready == 2:
  *             if msg.startswith("OK PONG "):
  */
@@ -4358,14 +4133,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   __Pyx_XDECREF(__pyx_t_6);
   __Pyx_XDECREF(__pyx_t_7);
   __Pyx_AddTraceback("fluxmonitor.player._head_controller.HeadController.handle_message", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = NULL;
+  __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":179
+/* "src/player/head_controller.pyx":181
  *                     self._on_ready()
  * 
  *     def send_cmd(self, cmd, executor, complete_callback=None,             # <<<<<<<<<<<<<<
@@ -4374,8 +4149,8 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_25send_cmd(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_25send_cmd(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_23send_cmd(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_23send_cmd(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_cmd = 0;
   PyObject *__pyx_v_executor = 0;
   PyObject *__pyx_v_complete_callback = 0;
@@ -4391,7 +4166,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadControl
     PyObject* values[4] = {0,0,0,0};
     values[2] = ((PyObject *)Py_None);
 
-    /* "src/player/head_controller.pyx":180
+    /* "src/player/head_controller.pyx":182
  * 
  *     def send_cmd(self, cmd, executor, complete_callback=None,
  *                  allset_callback=None):             # <<<<<<<<<<<<<<
@@ -4418,7 +4193,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadControl
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_executor)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("send_cmd", 0, 2, 4, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 179; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("send_cmd", 0, 2, 4, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 181; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
         case  2:
         if (kw_args > 0) {
@@ -4432,7 +4207,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadControl
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "send_cmd") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 179; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "send_cmd") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 181; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -4451,15 +4226,15 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadControl
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("send_cmd", 0, 2, 4, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 179; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("send_cmd", 0, 2, 4, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 181; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("fluxmonitor.player._head_controller.HeadController.send_cmd", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_24send_cmd(((struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *)__pyx_v_self), __pyx_v_cmd, __pyx_v_executor, __pyx_v_complete_callback, __pyx_v_allset_callback);
+  __pyx_r = __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_22send_cmd(((struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *)__pyx_v_self), __pyx_v_cmd, __pyx_v_executor, __pyx_v_complete_callback, __pyx_v_allset_callback);
 
-  /* "src/player/head_controller.pyx":179
+  /* "src/player/head_controller.pyx":181
  *                     self._on_ready()
  * 
  *     def send_cmd(self, cmd, executor, complete_callback=None,             # <<<<<<<<<<<<<<
@@ -4472,7 +4247,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadControl
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_24send_cmd(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_cmd, PyObject *__pyx_v_executor, PyObject *__pyx_v_complete_callback, PyObject *__pyx_v_allset_callback) {
+static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_22send_cmd(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_cmd, PyObject *__pyx_v_executor, PyObject *__pyx_v_complete_callback, PyObject *__pyx_v_allset_callback) {
   PyObject *__pyx_v_padding_cmd = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -4489,39 +4264,39 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("send_cmd", 0);
 
-  /* "src/player/head_controller.pyx":181
+  /* "src/player/head_controller.pyx":183
  *     def send_cmd(self, cmd, executor, complete_callback=None,
  *                  allset_callback=None):
  *         if self.is_busy:             # <<<<<<<<<<<<<<
  *             self._raise_error(EXEC_OPERATION_ERROR,
  *                               "BUSY: %s" % self._padding_cmd)
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_is_busy); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 181; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_is_busy); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 183; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 181; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 183; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_2) {
 
-    /* "src/player/head_controller.pyx":182
+    /* "src/player/head_controller.pyx":184
  *                  allset_callback=None):
  *         if self.is_busy:
  *             self._raise_error(EXEC_OPERATION_ERROR,             # <<<<<<<<<<<<<<
  *                               "BUSY: %s" % self._padding_cmd)
  * 
  */
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_raise_error); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 182; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_raise_error); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 184; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_OPERATION_ERROR); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 182; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_OPERATION_ERROR); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 184; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
 
-    /* "src/player/head_controller.pyx":183
+    /* "src/player/head_controller.pyx":185
  *         if self.is_busy:
  *             self._raise_error(EXEC_OPERATION_ERROR,
  *                               "BUSY: %s" % self._padding_cmd)             # <<<<<<<<<<<<<<
  * 
  *         padding_cmd = self._ext.generate_command(cmd)
  */
-    __pyx_t_5 = __Pyx_PyString_Format(__pyx_kp_s_BUSY_s, __pyx_v_self->_padding_cmd); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 183; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = __Pyx_PyString_Format(__pyx_kp_s_BUSY_s, __pyx_v_self->_padding_cmd); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 185; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     __pyx_t_6 = NULL;
     __pyx_t_7 = 0;
@@ -4535,7 +4310,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
         __pyx_t_7 = 1;
       }
     }
-    __pyx_t_8 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 182; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 184; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
     if (__pyx_t_6) {
       __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_6); __pyx_t_6 = NULL;
@@ -4546,7 +4321,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     PyTuple_SET_ITEM(__pyx_t_8, 1+__pyx_t_7, __pyx_t_5);
     __pyx_t_4 = 0;
     __pyx_t_5 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_8, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 182; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_8, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 184; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -4555,14 +4330,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   }
   __pyx_L3:;
 
-  /* "src/player/head_controller.pyx":185
+  /* "src/player/head_controller.pyx":187
  *                               "BUSY: %s" % self._padding_cmd)
  * 
  *         padding_cmd = self._ext.generate_command(cmd)             # <<<<<<<<<<<<<<
  *         if padding_cmd:
  *             self._padding_cmd = padding_cmd
  */
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->_ext, __pyx_n_s_generate_command); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 185; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->_ext, __pyx_n_s_generate_command); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_8 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_3))) {
@@ -4575,16 +4350,16 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     }
   }
   if (!__pyx_t_8) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_cmd); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 185; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_cmd); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 185; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_GIVEREF(__pyx_t_8); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_8); __pyx_t_8 = NULL;
     __Pyx_INCREF(__pyx_v_cmd);
     __Pyx_GIVEREF(__pyx_v_cmd);
     PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_v_cmd);
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 185; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   }
@@ -4592,17 +4367,17 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   __pyx_v_padding_cmd = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":186
+  /* "src/player/head_controller.pyx":188
  * 
  *         padding_cmd = self._ext.generate_command(cmd)
  *         if padding_cmd:             # <<<<<<<<<<<<<<
  *             self._padding_cmd = padding_cmd
  *             self._send_cmd(executor)
  */
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_padding_cmd); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_padding_cmd); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (__pyx_t_2) {
 
-    /* "src/player/head_controller.pyx":187
+    /* "src/player/head_controller.pyx":189
  *         padding_cmd = self._ext.generate_command(cmd)
  *         if padding_cmd:
  *             self._padding_cmd = padding_cmd             # <<<<<<<<<<<<<<
@@ -4615,14 +4390,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     __Pyx_DECREF(__pyx_v_self->_padding_cmd);
     __pyx_v_self->_padding_cmd = __pyx_v_padding_cmd;
 
-    /* "src/player/head_controller.pyx":188
+    /* "src/player/head_controller.pyx":190
  *         if padding_cmd:
  *             self._padding_cmd = padding_cmd
  *             self._send_cmd(executor)             # <<<<<<<<<<<<<<
  *             self._cmd_callback = complete_callback
  *             self.wait_allset(allset_callback)
  */
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_send_cmd); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_send_cmd); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_t_5 = NULL;
     if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_3))) {
@@ -4635,23 +4410,23 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       }
     }
     if (!__pyx_t_5) {
-      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_executor); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_executor); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
     } else {
-      __pyx_t_8 = PyTuple_New(1+1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_8 = PyTuple_New(1+1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_5); __pyx_t_5 = NULL;
       __Pyx_INCREF(__pyx_v_executor);
       __Pyx_GIVEREF(__pyx_v_executor);
       PyTuple_SET_ITEM(__pyx_t_8, 0+1, __pyx_v_executor);
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_8, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_8, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     }
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "src/player/head_controller.pyx":189
+    /* "src/player/head_controller.pyx":191
  *             self._padding_cmd = padding_cmd
  *             self._send_cmd(executor)
  *             self._cmd_callback = complete_callback             # <<<<<<<<<<<<<<
@@ -4664,14 +4439,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     __Pyx_DECREF(__pyx_v_self->_cmd_callback);
     __pyx_v_self->_cmd_callback = __pyx_v_complete_callback;
 
-    /* "src/player/head_controller.pyx":190
+    /* "src/player/head_controller.pyx":192
  *             self._send_cmd(executor)
  *             self._cmd_callback = complete_callback
  *             self.wait_allset(allset_callback)             # <<<<<<<<<<<<<<
  *         else:
  *             L.error("Got unknow command: %s", cmd)
  */
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_wait_allset); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_wait_allset); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 192; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_t_8 = NULL;
     if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_3))) {
@@ -4684,16 +4459,16 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       }
     }
     if (!__pyx_t_8) {
-      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_allset_callback); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_allset_callback); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 192; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
     } else {
-      __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 192; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_GIVEREF(__pyx_t_8); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_8); __pyx_t_8 = NULL;
       __Pyx_INCREF(__pyx_v_allset_callback);
       __Pyx_GIVEREF(__pyx_v_allset_callback);
       PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_v_allset_callback);
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 192; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     }
@@ -4703,14 +4478,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   }
   /*else*/ {
 
-    /* "src/player/head_controller.pyx":192
+    /* "src/player/head_controller.pyx":194
  *             self.wait_allset(allset_callback)
  *         else:
  *             L.error("Got unknow command: %s", cmd)             # <<<<<<<<<<<<<<
  *             raise SystemError(UNKNOWN_COMMAND, "HEAD_MESSAGE")
  * 
  */
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_11fluxmonitor_6player_16_head_controller_L, __pyx_n_s_error); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 192; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_11fluxmonitor_6player_16_head_controller_L, __pyx_n_s_error); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 194; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_t_5 = NULL;
     __pyx_t_7 = 0;
@@ -4724,7 +4499,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
         __pyx_t_7 = 1;
       }
     }
-    __pyx_t_8 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 192; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 194; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
     if (__pyx_t_5) {
       __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_5); __pyx_t_5 = NULL;
@@ -4735,22 +4510,22 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     __Pyx_INCREF(__pyx_v_cmd);
     __Pyx_GIVEREF(__pyx_v_cmd);
     PyTuple_SET_ITEM(__pyx_t_8, 1+__pyx_t_7, __pyx_v_cmd);
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_8, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 192; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_8, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 194; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "src/player/head_controller.pyx":193
+    /* "src/player/head_controller.pyx":195
  *         else:
  *             L.error("Got unknow command: %s", cmd)
  *             raise SystemError(UNKNOWN_COMMAND, "HEAD_MESSAGE")             # <<<<<<<<<<<<<<
  * 
  *     def _send_cmd(self, executor):
  */
-    __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_UNKNOWN_COMMAND); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 193; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_UNKNOWN_COMMAND); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 193; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_GIVEREF(__pyx_t_1);
     PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
@@ -4758,16 +4533,16 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     __Pyx_GIVEREF(__pyx_n_s_HEAD_MESSAGE);
     PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_n_s_HEAD_MESSAGE);
     __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_SystemError, __pyx_t_3, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 193; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_SystemError, __pyx_t_3, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 193; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __pyx_L4:;
 
-  /* "src/player/head_controller.pyx":179
+  /* "src/player/head_controller.pyx":181
  *                     self._on_ready()
  * 
  *     def send_cmd(self, cmd, executor, complete_callback=None,             # <<<<<<<<<<<<<<
@@ -4794,7 +4569,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":195
+/* "src/player/head_controller.pyx":197
  *             raise SystemError(UNKNOWN_COMMAND, "HEAD_MESSAGE")
  * 
  *     def _send_cmd(self, executor):             # <<<<<<<<<<<<<<
@@ -4803,19 +4578,19 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_27_send_cmd(PyObject *__pyx_v_self, PyObject *__pyx_v_executor); /*proto*/
-static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_27_send_cmd(PyObject *__pyx_v_self, PyObject *__pyx_v_executor) {
+static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_25_send_cmd(PyObject *__pyx_v_self, PyObject *__pyx_v_executor); /*proto*/
+static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_25_send_cmd(PyObject *__pyx_v_self, PyObject *__pyx_v_executor) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("_send_cmd (wrapper)", 0);
-  __pyx_r = __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_26_send_cmd(((struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *)__pyx_v_self), ((PyObject *)__pyx_v_executor));
+  __pyx_r = __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_24_send_cmd(((struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *)__pyx_v_self), ((PyObject *)__pyx_v_executor));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_26_send_cmd(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_executor) {
+static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_24_send_cmd(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_executor) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
@@ -4830,25 +4605,25 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("_send_cmd", 0);
 
-  /* "src/player/head_controller.pyx":196
+  /* "src/player/head_controller.pyx":198
  * 
  *     def _send_cmd(self, executor):
  *         if not self._wait_update:             # <<<<<<<<<<<<<<
  *             executor.send_headboard(self._padding_cmd)
  *             self._cmd_sent_at = time()
  */
-  __pyx_t_1 = __Pyx_PyObject_IsTrue(((PyObject *)__pyx_v_self->_wait_update)); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 196; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(((PyObject *)__pyx_v_self->_wait_update)); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 198; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_t_2 = ((!__pyx_t_1) != 0);
   if (__pyx_t_2) {
 
-    /* "src/player/head_controller.pyx":197
+    /* "src/player/head_controller.pyx":199
  *     def _send_cmd(self, executor):
  *         if not self._wait_update:
  *             executor.send_headboard(self._padding_cmd)             # <<<<<<<<<<<<<<
  *             self._cmd_sent_at = time()
  * 
  */
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_executor, __pyx_n_s_send_headboard); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 197; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_executor, __pyx_n_s_send_headboard); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 199; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_t_5 = NULL;
     if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_4))) {
@@ -4861,30 +4636,30 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       }
     }
     if (!__pyx_t_5) {
-      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_self->_padding_cmd); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 197; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_self->_padding_cmd); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 199; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_3);
     } else {
-      __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 197; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 199; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_5); __pyx_t_5 = NULL;
       __Pyx_INCREF(__pyx_v_self->_padding_cmd);
       __Pyx_GIVEREF(__pyx_v_self->_padding_cmd);
       PyTuple_SET_ITEM(__pyx_t_6, 0+1, __pyx_v_self->_padding_cmd);
-      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_6, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 197; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_6, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 199; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     }
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-    /* "src/player/head_controller.pyx":198
+    /* "src/player/head_controller.pyx":200
  *         if not self._wait_update:
  *             executor.send_headboard(self._padding_cmd)
  *             self._cmd_sent_at = time()             # <<<<<<<<<<<<<<
  * 
  *     def _parse_cmd_response(self, msg, executor):
  */
-    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_time); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 198; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_time); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 200; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_t_6 = NULL;
     if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_4))) {
@@ -4897,21 +4672,21 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       }
     }
     if (__pyx_t_6) {
-      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_6); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 198; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_6); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 200; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     } else {
-      __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 198; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 200; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_7 = __pyx_PyFloat_AsFloat(__pyx_t_3); if (unlikely((__pyx_t_7 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 198; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = __pyx_PyFloat_AsFloat(__pyx_t_3); if (unlikely((__pyx_t_7 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 200; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __pyx_v_self->_cmd_sent_at = __pyx_t_7;
     goto __pyx_L3;
   }
   __pyx_L3:;
 
-  /* "src/player/head_controller.pyx":195
+  /* "src/player/head_controller.pyx":197
  *             raise SystemError(UNKNOWN_COMMAND, "HEAD_MESSAGE")
  * 
  *     def _send_cmd(self, executor):             # <<<<<<<<<<<<<<
@@ -4935,7 +4710,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":200
+/* "src/player/head_controller.pyx":202
  *             self._cmd_sent_at = time()
  * 
  *     def _parse_cmd_response(self, msg, executor):             # <<<<<<<<<<<<<<
@@ -4944,8 +4719,8 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_29_parse_cmd_response(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_29_parse_cmd_response(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_27_parse_cmd_response(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_27_parse_cmd_response(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_msg = 0;
   PyObject *__pyx_v_executor = 0;
   int __pyx_lineno = 0;
@@ -4974,11 +4749,11 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadControl
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_executor)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_parse_cmd_response", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 200; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("_parse_cmd_response", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 202; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_parse_cmd_response") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 200; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_parse_cmd_response") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 202; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -4991,20 +4766,20 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadControl
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_parse_cmd_response", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 200; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("_parse_cmd_response", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 202; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("fluxmonitor.player._head_controller.HeadController._parse_cmd_response", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_28_parse_cmd_response(((struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *)__pyx_v_self), __pyx_v_msg, __pyx_v_executor);
+  __pyx_r = __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_26_parse_cmd_response(((struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *)__pyx_v_self), __pyx_v_msg, __pyx_v_executor);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_28_parse_cmd_response(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_msg, PyObject *__pyx_v_executor) {
+static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_26_parse_cmd_response(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_msg, PyObject *__pyx_v_executor) {
   PyObject *__pyx_v_err = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -5028,23 +4803,23 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("_parse_cmd_response", 0);
 
-  /* "src/player/head_controller.pyx":201
+  /* "src/player/head_controller.pyx":203
  * 
  *     def _parse_cmd_response(self, msg, executor):
  *         if msg.startswith("OK "):             # <<<<<<<<<<<<<<
  *             # Clear padding cmd
  *             try:
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_msg, __pyx_n_s_startswith); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 201; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_msg, __pyx_n_s_startswith); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 203; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__8, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 201; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__6, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 203; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 201; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 203; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   if (__pyx_t_3) {
 
-    /* "src/player/head_controller.pyx":203
+    /* "src/player/head_controller.pyx":205
  *         if msg.startswith("OK "):
  *             # Clear padding cmd
  *             try:             # <<<<<<<<<<<<<<
@@ -5053,17 +4828,17 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  */
     /*try:*/ {
 
-      /* "src/player/head_controller.pyx":204
+      /* "src/player/head_controller.pyx":206
  *             # Clear padding cmd
  *             try:
  *                 if self._cmd_callback:             # <<<<<<<<<<<<<<
  *                     self._cmd_callback(executor)
  *             finally:
  */
-      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_v_self->_cmd_callback); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 204; __pyx_clineno = __LINE__; goto __pyx_L5_error;}
+      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_v_self->_cmd_callback); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 206; __pyx_clineno = __LINE__; goto __pyx_L5_error;}
       if (__pyx_t_3) {
 
-        /* "src/player/head_controller.pyx":205
+        /* "src/player/head_controller.pyx":207
  *             try:
  *                 if self._cmd_callback:
  *                     self._cmd_callback(executor)             # <<<<<<<<<<<<<<
@@ -5082,16 +4857,16 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
           }
         }
         if (!__pyx_t_4) {
-          __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_v_executor); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 205; __pyx_clineno = __LINE__; goto __pyx_L5_error;}
+          __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_v_executor); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 207; __pyx_clineno = __LINE__; goto __pyx_L5_error;}
           __Pyx_GOTREF(__pyx_t_2);
         } else {
-          __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 205; __pyx_clineno = __LINE__; goto __pyx_L5_error;}
+          __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 207; __pyx_clineno = __LINE__; goto __pyx_L5_error;}
           __Pyx_GOTREF(__pyx_t_5);
           __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4); __pyx_t_4 = NULL;
           __Pyx_INCREF(__pyx_v_executor);
           __Pyx_GIVEREF(__pyx_v_executor);
           PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_v_executor);
-          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_5, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 205; __pyx_clineno = __LINE__; goto __pyx_L5_error;}
+          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_5, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 207; __pyx_clineno = __LINE__; goto __pyx_L5_error;}
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
         }
@@ -5102,7 +4877,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       __pyx_L7:;
     }
 
-    /* "src/player/head_controller.pyx":207
+    /* "src/player/head_controller.pyx":209
  *                     self._cmd_callback(executor)
  *             finally:
  *                 self._cmd_sent_at = 0             # <<<<<<<<<<<<<<
@@ -5113,7 +4888,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       /*normal exit:*/{
         __pyx_v_self->_cmd_sent_at = 0.0;
 
-        /* "src/player/head_controller.pyx":208
+        /* "src/player/head_controller.pyx":210
  *             finally:
  *                 self._cmd_sent_at = 0
  *                 self._cmd_retry = 0             # <<<<<<<<<<<<<<
@@ -5122,7 +4897,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  */
         __pyx_v_self->_cmd_retry = 0;
 
-        /* "src/player/head_controller.pyx":209
+        /* "src/player/head_controller.pyx":211
  *                 self._cmd_sent_at = 0
  *                 self._cmd_retry = 0
  *                 self._padding_cmd = None             # <<<<<<<<<<<<<<
@@ -5135,7 +4910,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
         __Pyx_DECREF(__pyx_v_self->_padding_cmd);
         __pyx_v_self->_padding_cmd = Py_None;
 
-        /* "src/player/head_controller.pyx":210
+        /* "src/player/head_controller.pyx":212
  *                 self._cmd_retry = 0
  *                 self._padding_cmd = None
  *                 self._cmd_callback = None             # <<<<<<<<<<<<<<
@@ -5167,7 +4942,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
         __pyx_t_6 = __pyx_lineno; __pyx_t_7 = __pyx_clineno; __pyx_t_8 = __pyx_filename;
         {
 
-          /* "src/player/head_controller.pyx":207
+          /* "src/player/head_controller.pyx":209
  *                     self._cmd_callback(executor)
  *             finally:
  *                 self._cmd_sent_at = 0             # <<<<<<<<<<<<<<
@@ -5176,7 +4951,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  */
           __pyx_v_self->_cmd_sent_at = 0.0;
 
-          /* "src/player/head_controller.pyx":208
+          /* "src/player/head_controller.pyx":210
  *             finally:
  *                 self._cmd_sent_at = 0
  *                 self._cmd_retry = 0             # <<<<<<<<<<<<<<
@@ -5185,7 +4960,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  */
           __pyx_v_self->_cmd_retry = 0;
 
-          /* "src/player/head_controller.pyx":209
+          /* "src/player/head_controller.pyx":211
  *                 self._cmd_sent_at = 0
  *                 self._cmd_retry = 0
  *                 self._padding_cmd = None             # <<<<<<<<<<<<<<
@@ -5198,7 +4973,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
           __Pyx_DECREF(__pyx_v_self->_padding_cmd);
           __pyx_v_self->_padding_cmd = Py_None;
 
-          /* "src/player/head_controller.pyx":210
+          /* "src/player/head_controller.pyx":212
  *                 self._cmd_retry = 0
  *                 self._padding_cmd = None
  *                 self._cmd_callback = None             # <<<<<<<<<<<<<<
@@ -5228,7 +5003,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       __pyx_L6:;
     }
 
-    /* "src/player/head_controller.pyx":211
+    /* "src/player/head_controller.pyx":213
  *                 self._padding_cmd = None
  *                 self._cmd_callback = None
  *             return True             # <<<<<<<<<<<<<<
@@ -5241,32 +5016,32 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     goto __pyx_L0;
   }
 
-  /* "src/player/head_controller.pyx":212
+  /* "src/player/head_controller.pyx":214
  *                 self._cmd_callback = None
  *             return True
  *         elif msg.startswith("ER "):             # <<<<<<<<<<<<<<
  *             err = shlex_split(msg[3:])
  *             raise RuntimeError(EXEC_HEAD_ERROR, *err)
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_msg, __pyx_n_s_startswith); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 212; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_msg, __pyx_n_s_startswith); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__9, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 212; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 212; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_3) {
 
-    /* "src/player/head_controller.pyx":213
+    /* "src/player/head_controller.pyx":215
  *             return True
  *         elif msg.startswith("ER "):
  *             err = shlex_split(msg[3:])             # <<<<<<<<<<<<<<
  *             raise RuntimeError(EXEC_HEAD_ERROR, *err)
  * 
  */
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_shlex_split); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 213; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_shlex_split); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_5 = __Pyx_PyObject_GetSlice(__pyx_v_msg, 3, 0, NULL, NULL, &__pyx_slice__10, 1, 0, 1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 213; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = __Pyx_PyObject_GetSlice(__pyx_v_msg, 3, 0, NULL, NULL, &__pyx_slice__8, 1, 0, 1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     __pyx_t_4 = NULL;
     if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_2))) {
@@ -5279,17 +5054,17 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       }
     }
     if (!__pyx_t_4) {
-      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 213; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_GOTREF(__pyx_t_1);
     } else {
-      __pyx_t_15 = PyTuple_New(1+1); if (unlikely(!__pyx_t_15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 213; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_15 = PyTuple_New(1+1); if (unlikely(!__pyx_t_15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_15);
       __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_15, 0, __pyx_t_4); __pyx_t_4 = NULL;
       __Pyx_GIVEREF(__pyx_t_5);
       PyTuple_SET_ITEM(__pyx_t_15, 0+1, __pyx_t_5);
       __pyx_t_5 = 0;
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_15, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 213; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_15, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
     }
@@ -5297,36 +5072,36 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     __pyx_v_err = __pyx_t_1;
     __pyx_t_1 = 0;
 
-    /* "src/player/head_controller.pyx":214
+    /* "src/player/head_controller.pyx":216
  *         elif msg.startswith("ER "):
  *             err = shlex_split(msg[3:])
  *             raise RuntimeError(EXEC_HEAD_ERROR, *err)             # <<<<<<<<<<<<<<
  * 
  *         else:
  */
-    __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_HEAD_ERROR); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_HEAD_ERROR); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 216; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 216; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_GIVEREF(__pyx_t_1);
     PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
     __pyx_t_1 = 0;
-    __pyx_t_1 = PySequence_Tuple(__pyx_v_err); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = PySequence_Tuple(__pyx_v_err); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 216; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_15 = PyNumber_Add(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_15 = PyNumber_Add(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 216; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_15);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_t_15, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_t_15, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 216; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 216; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   /*else*/ {
 
-    /* "src/player/head_controller.pyx":217
+    /* "src/player/head_controller.pyx":219
  * 
  *         else:
  *             return False             # <<<<<<<<<<<<<<
@@ -5339,7 +5114,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     goto __pyx_L0;
   }
 
-  /* "src/player/head_controller.pyx":200
+  /* "src/player/head_controller.pyx":202
  *             self._cmd_sent_at = time()
  * 
  *     def _parse_cmd_response(self, msg, executor):             # <<<<<<<<<<<<<<
@@ -5363,7 +5138,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":219
+/* "src/player/head_controller.pyx":221
  *             return False
  * 
  *     def _handle_ping(self, executor):             # <<<<<<<<<<<<<<
@@ -5372,19 +5147,19 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_31_handle_ping(PyObject *__pyx_v_self, PyObject *__pyx_v_executor); /*proto*/
-static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_31_handle_ping(PyObject *__pyx_v_self, PyObject *__pyx_v_executor) {
+static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_29_handle_ping(PyObject *__pyx_v_self, PyObject *__pyx_v_executor); /*proto*/
+static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_29_handle_ping(PyObject *__pyx_v_self, PyObject *__pyx_v_executor) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("_handle_ping (wrapper)", 0);
-  __pyx_r = __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_30_handle_ping(((struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *)__pyx_v_self), ((PyObject *)__pyx_v_executor));
+  __pyx_r = __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_28_handle_ping(((struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *)__pyx_v_self), ((PyObject *)__pyx_v_executor));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_30_handle_ping(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_executor) {
+static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_28_handle_ping(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_executor) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -5396,21 +5171,21 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("_handle_ping", 0);
 
-  /* "src/player/head_controller.pyx":220
+  /* "src/player/head_controller.pyx":222
  * 
  *     def _handle_ping(self, executor):
  *         executor.send_headboard("1 PING *33\n")             # <<<<<<<<<<<<<<
  *         self._wait_update = True
  *         self._lastupdate = time()
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_executor, __pyx_n_s_send_headboard); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 220; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_executor, __pyx_n_s_send_headboard); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 222; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__11, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 220; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__9, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 222; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "src/player/head_controller.pyx":221
+  /* "src/player/head_controller.pyx":223
  *     def _handle_ping(self, executor):
  *         executor.send_headboard("1 PING *33\n")
  *         self._wait_update = True             # <<<<<<<<<<<<<<
@@ -5423,14 +5198,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   __Pyx_DECREF(((PyObject *)__pyx_v_self->_wait_update));
   __pyx_v_self->_wait_update = ((PyBoolObject *)Py_True);
 
-  /* "src/player/head_controller.pyx":222
+  /* "src/player/head_controller.pyx":224
  *         executor.send_headboard("1 PING *33\n")
  *         self._wait_update = True
  *         self._lastupdate = time()             # <<<<<<<<<<<<<<
  * 
  *     def _handle_pong(self, msg, executor):
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_time); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 222; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_time); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 224; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_3 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_1))) {
@@ -5443,18 +5218,18 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     }
   }
   if (__pyx_t_3) {
-    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 222; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 224; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
-    __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 222; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 224; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_4 = __pyx_PyFloat_AsFloat(__pyx_t_2); if (unlikely((__pyx_t_4 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 222; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __pyx_PyFloat_AsFloat(__pyx_t_2); if (unlikely((__pyx_t_4 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 224; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_self->_lastupdate = __pyx_t_4;
 
-  /* "src/player/head_controller.pyx":219
+  /* "src/player/head_controller.pyx":221
  *             return False
  * 
  *     def _handle_ping(self, executor):             # <<<<<<<<<<<<<<
@@ -5477,7 +5252,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":224
+/* "src/player/head_controller.pyx":226
  *         self._lastupdate = time()
  * 
  *     def _handle_pong(self, msg, executor):             # <<<<<<<<<<<<<<
@@ -5486,8 +5261,8 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_33_handle_pong(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_33_handle_pong(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_31_handle_pong(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_31_handle_pong(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_msg = 0;
   CYTHON_UNUSED PyObject *__pyx_v_executor = 0;
   int __pyx_lineno = 0;
@@ -5516,11 +5291,11 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadControl
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_executor)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_handle_pong", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 224; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("_handle_pong", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 226; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_handle_pong") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 224; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_handle_pong") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 226; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -5533,20 +5308,20 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadControl
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_handle_pong", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 224; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("_handle_pong", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 226; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("fluxmonitor.player._head_controller.HeadController._handle_pong", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_32_handle_pong(((struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *)__pyx_v_self), __pyx_v_msg, __pyx_v_executor);
+  __pyx_r = __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_30_handle_pong(((struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *)__pyx_v_self), __pyx_v_msg, __pyx_v_executor);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_32_handle_pong(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_msg, CYTHON_UNUSED PyObject *__pyx_v_executor) {
+static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_30_handle_pong(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_msg, CYTHON_UNUSED PyObject *__pyx_v_executor) {
   PyObject *__pyx_v_param = NULL;
   PyObject *__pyx_v_status = NULL;
   PyObject *__pyx_v_er = NULL;
@@ -5581,7 +5356,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("_handle_pong", 0);
 
-  /* "src/player/head_controller.pyx":225
+  /* "src/player/head_controller.pyx":227
  * 
  *     def _handle_pong(self, msg, executor):
  *         self._update_retry = 0             # <<<<<<<<<<<<<<
@@ -5590,7 +5365,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  */
   __pyx_v_self->_update_retry = 0;
 
-  /* "src/player/head_controller.pyx":226
+  /* "src/player/head_controller.pyx":228
  *     def _handle_pong(self, msg, executor):
  *         self._update_retry = 0
  *         self._wait_update = False             # <<<<<<<<<<<<<<
@@ -5603,14 +5378,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   __Pyx_DECREF(((PyObject *)__pyx_v_self->_wait_update));
   __pyx_v_self->_wait_update = ((PyBoolObject *)Py_False);
 
-  /* "src/player/head_controller.pyx":227
+  /* "src/player/head_controller.pyx":229
  *         self._update_retry = 0
  *         self._wait_update = False
  *         self._lastupdate = time()             # <<<<<<<<<<<<<<
  * 
  *         for param in shlex_split(msg[8:]):
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_time); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 227; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_time); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_2))) {
@@ -5623,27 +5398,27 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     }
   }
   if (__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 227; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 227; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_4 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 227; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_4 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_self->_lastupdate = __pyx_t_4;
 
-  /* "src/player/head_controller.pyx":229
+  /* "src/player/head_controller.pyx":231
  *         self._lastupdate = time()
  * 
  *         for param in shlex_split(msg[8:]):             # <<<<<<<<<<<<<<
  *             status = param.split(":", 1)
  *             if len(status) != 2:
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_shlex_split); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_shlex_split); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 231; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetSlice(__pyx_v_msg, 8, 0, NULL, NULL, &__pyx_slice__12, 1, 0, 1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_GetSlice(__pyx_v_msg, 8, 0, NULL, NULL, &__pyx_slice__10, 1, 0, 1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 231; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_5 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_2))) {
@@ -5656,17 +5431,17 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     }
   }
   if (!__pyx_t_5) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 231; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 231; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_5); __pyx_t_5 = NULL;
     __Pyx_GIVEREF(__pyx_t_3);
     PyTuple_SET_ITEM(__pyx_t_6, 0+1, __pyx_t_3);
     __pyx_t_3 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 231; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   }
@@ -5675,9 +5450,9 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     __pyx_t_2 = __pyx_t_1; __Pyx_INCREF(__pyx_t_2); __pyx_t_7 = 0;
     __pyx_t_8 = NULL;
   } else {
-    __pyx_t_7 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 231; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_8 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 231; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   for (;;) {
@@ -5685,17 +5460,17 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       if (likely(PyList_CheckExact(__pyx_t_2))) {
         if (__pyx_t_7 >= PyList_GET_SIZE(__pyx_t_2)) break;
         #if CYTHON_COMPILING_IN_CPYTHON
-        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_7); __Pyx_INCREF(__pyx_t_1); __pyx_t_7++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_7); __Pyx_INCREF(__pyx_t_1); __pyx_t_7++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 231; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #else
-        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_7); __pyx_t_7++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_7); __pyx_t_7++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 231; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_1);
         #endif
       } else {
         if (__pyx_t_7 >= PyTuple_GET_SIZE(__pyx_t_2)) break;
         #if CYTHON_COMPILING_IN_CPYTHON
-        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_7); __Pyx_INCREF(__pyx_t_1); __pyx_t_7++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_7); __Pyx_INCREF(__pyx_t_1); __pyx_t_7++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 231; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #else
-        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_7); __pyx_t_7++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_7); __pyx_t_7++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 231; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_1);
         #endif
       }
@@ -5705,7 +5480,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 231; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         }
         break;
       }
@@ -5714,40 +5489,40 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     __Pyx_XDECREF_SET(__pyx_v_param, __pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "src/player/head_controller.pyx":230
+    /* "src/player/head_controller.pyx":232
  * 
  *         for param in shlex_split(msg[8:]):
  *             status = param.split(":", 1)             # <<<<<<<<<<<<<<
  *             if len(status) != 2:
  *                 # params should be "KEY:VALUE"
  */
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_param, __pyx_n_s_split); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 230; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_param, __pyx_n_s_split); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 232; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__13, NULL); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 230; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__11, NULL); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 232; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_XDECREF_SET(__pyx_v_status, __pyx_t_6);
     __pyx_t_6 = 0;
 
-    /* "src/player/head_controller.pyx":231
+    /* "src/player/head_controller.pyx":233
  *         for param in shlex_split(msg[8:]):
  *             status = param.split(":", 1)
  *             if len(status) != 2:             # <<<<<<<<<<<<<<
  *                 # params should be "KEY:VALUE"
  *                 L.error("Unknow pong param: %s", param)
  */
-    __pyx_t_9 = PyObject_Length(__pyx_v_status); if (unlikely(__pyx_t_9 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 231; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = PyObject_Length(__pyx_v_status); if (unlikely(__pyx_t_9 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 233; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __pyx_t_10 = ((__pyx_t_9 != 2) != 0);
     if (__pyx_t_10) {
 
-      /* "src/player/head_controller.pyx":233
+      /* "src/player/head_controller.pyx":235
  *             if len(status) != 2:
  *                 # params should be "KEY:VALUE"
  *                 L.error("Unknow pong param: %s", param)             # <<<<<<<<<<<<<<
  * 
  *             elif status[0] == "ER":
  */
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_11fluxmonitor_6player_16_head_controller_L, __pyx_n_s_error); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 233; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_11fluxmonitor_6player_16_head_controller_L, __pyx_n_s_error); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 235; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
       __pyx_t_3 = NULL;
       __pyx_t_9 = 0;
@@ -5761,7 +5536,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
           __pyx_t_9 = 1;
         }
       }
-      __pyx_t_5 = PyTuple_New(2+__pyx_t_9); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 233; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_5 = PyTuple_New(2+__pyx_t_9); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 235; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_5);
       if (__pyx_t_3) {
         __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_3); __pyx_t_3 = NULL;
@@ -5772,7 +5547,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       __Pyx_INCREF(__pyx_v_param);
       __Pyx_GIVEREF(__pyx_v_param);
       PyTuple_SET_ITEM(__pyx_t_5, 1+__pyx_t_9, __pyx_v_param);
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_5, NULL); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 233; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_5, NULL); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 235; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -5780,20 +5555,20 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       goto __pyx_L5;
     }
 
-    /* "src/player/head_controller.pyx":235
+    /* "src/player/head_controller.pyx":237
  *                 L.error("Unknow pong param: %s", param)
  * 
  *             elif status[0] == "ER":             # <<<<<<<<<<<<<<
  *                 try:
  *                     er = int(status[1])
  */
-    __pyx_t_6 = __Pyx_GetItemInt(__pyx_v_status, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_6 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 235; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+    __pyx_t_6 = __Pyx_GetItemInt(__pyx_v_status, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_6 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
     __Pyx_GOTREF(__pyx_t_6);
-    __pyx_t_10 = (__Pyx_PyString_Equals(__pyx_t_6, __pyx_n_s_ER_2, Py_EQ)); if (unlikely(__pyx_t_10 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 235; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_10 = (__Pyx_PyString_Equals(__pyx_t_6, __pyx_n_s_ER_2, Py_EQ)); if (unlikely(__pyx_t_10 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     if (__pyx_t_10) {
 
-      /* "src/player/head_controller.pyx":236
+      /* "src/player/head_controller.pyx":238
  * 
  *             elif status[0] == "ER":
  *                 try:             # <<<<<<<<<<<<<<
@@ -5807,16 +5582,16 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
         __Pyx_XGOTREF(__pyx_t_13);
         /*try:*/ {
 
-          /* "src/player/head_controller.pyx":237
+          /* "src/player/head_controller.pyx":239
  *             elif status[0] == "ER":
  *                 try:
  *                     er = int(status[1])             # <<<<<<<<<<<<<<
  *                 except ValueError:
  *                         L.error("Head er flag failed")
  */
-          __pyx_t_6 = __Pyx_GetItemInt(__pyx_v_status, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_6 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L6_error;};
+          __pyx_t_6 = __Pyx_GetItemInt(__pyx_v_status, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_6 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 239; __pyx_clineno = __LINE__; goto __pyx_L6_error;};
           __Pyx_GOTREF(__pyx_t_6);
-          __pyx_t_1 = PyNumber_Int(__pyx_t_6); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L6_error;}
+          __pyx_t_1 = PyNumber_Int(__pyx_t_6); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 239; __pyx_clineno = __LINE__; goto __pyx_L6_error;}
           __Pyx_GOTREF(__pyx_t_1);
           __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
           __Pyx_XDECREF_SET(__pyx_v_er, __pyx_t_1);
@@ -5832,7 +5607,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
         __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
         __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-        /* "src/player/head_controller.pyx":238
+        /* "src/player/head_controller.pyx":240
  *                 try:
  *                     er = int(status[1])
  *                 except ValueError:             # <<<<<<<<<<<<<<
@@ -5842,35 +5617,35 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
         __pyx_t_14 = PyErr_ExceptionMatches(__pyx_builtin_ValueError);
         if (__pyx_t_14) {
           __Pyx_AddTraceback("fluxmonitor.player._head_controller.HeadController._handle_pong", __pyx_clineno, __pyx_lineno, __pyx_filename);
-          if (__Pyx_GetException(&__pyx_t_1, &__pyx_t_6, &__pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 238; __pyx_clineno = __LINE__; goto __pyx_L8_except_error;}
+          if (__Pyx_GetException(&__pyx_t_1, &__pyx_t_6, &__pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 240; __pyx_clineno = __LINE__; goto __pyx_L8_except_error;}
           __Pyx_GOTREF(__pyx_t_1);
           __Pyx_GOTREF(__pyx_t_6);
           __Pyx_GOTREF(__pyx_t_5);
 
-          /* "src/player/head_controller.pyx":239
+          /* "src/player/head_controller.pyx":241
  *                     er = int(status[1])
  *                 except ValueError:
  *                         L.error("Head er flag failed")             # <<<<<<<<<<<<<<
  *                         self._raise_error(EXEC_HEAD_ERROR,
  *                                           "ER_ERROR")
  */
-          __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_11fluxmonitor_6player_16_head_controller_L, __pyx_n_s_error); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 239; __pyx_clineno = __LINE__; goto __pyx_L8_except_error;}
+          __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_11fluxmonitor_6player_16_head_controller_L, __pyx_n_s_error); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 241; __pyx_clineno = __LINE__; goto __pyx_L8_except_error;}
           __Pyx_GOTREF(__pyx_t_3);
-          __pyx_t_15 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple__14, NULL); if (unlikely(!__pyx_t_15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 239; __pyx_clineno = __LINE__; goto __pyx_L8_except_error;}
+          __pyx_t_15 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple__12, NULL); if (unlikely(!__pyx_t_15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 241; __pyx_clineno = __LINE__; goto __pyx_L8_except_error;}
           __Pyx_GOTREF(__pyx_t_15);
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
           __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
 
-          /* "src/player/head_controller.pyx":240
+          /* "src/player/head_controller.pyx":242
  *                 except ValueError:
  *                         L.error("Head er flag failed")
  *                         self._raise_error(EXEC_HEAD_ERROR,             # <<<<<<<<<<<<<<
  *                                           "ER_ERROR")
  * 
  */
-          __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_raise_error); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 240; __pyx_clineno = __LINE__; goto __pyx_L8_except_error;}
+          __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_raise_error); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 242; __pyx_clineno = __LINE__; goto __pyx_L8_except_error;}
           __Pyx_GOTREF(__pyx_t_3);
-          __pyx_t_16 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_HEAD_ERROR); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 240; __pyx_clineno = __LINE__; goto __pyx_L8_except_error;}
+          __pyx_t_16 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_HEAD_ERROR); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 242; __pyx_clineno = __LINE__; goto __pyx_L8_except_error;}
           __Pyx_GOTREF(__pyx_t_16);
           __pyx_t_17 = NULL;
           __pyx_t_9 = 0;
@@ -5884,7 +5659,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
               __pyx_t_9 = 1;
             }
           }
-          __pyx_t_18 = PyTuple_New(2+__pyx_t_9); if (unlikely(!__pyx_t_18)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 240; __pyx_clineno = __LINE__; goto __pyx_L8_except_error;}
+          __pyx_t_18 = PyTuple_New(2+__pyx_t_9); if (unlikely(!__pyx_t_18)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 242; __pyx_clineno = __LINE__; goto __pyx_L8_except_error;}
           __Pyx_GOTREF(__pyx_t_18);
           if (__pyx_t_17) {
             __Pyx_GIVEREF(__pyx_t_17); PyTuple_SET_ITEM(__pyx_t_18, 0, __pyx_t_17); __pyx_t_17 = NULL;
@@ -5895,7 +5670,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
           __Pyx_GIVEREF(__pyx_n_s_ER_ERROR);
           PyTuple_SET_ITEM(__pyx_t_18, 1+__pyx_t_9, __pyx_n_s_ER_ERROR);
           __pyx_t_16 = 0;
-          __pyx_t_15 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_18, NULL); if (unlikely(!__pyx_t_15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 240; __pyx_clineno = __LINE__; goto __pyx_L8_except_error;}
+          __pyx_t_15 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_18, NULL); if (unlikely(!__pyx_t_15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 242; __pyx_clineno = __LINE__; goto __pyx_L8_except_error;}
           __Pyx_GOTREF(__pyx_t_15);
           __Pyx_DECREF(__pyx_t_18); __pyx_t_18 = 0;
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -5920,92 +5695,92 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
         __pyx_L13_try_end:;
       }
 
-      /* "src/player/head_controller.pyx":243
+      /* "src/player/head_controller.pyx":245
  *                                           "ER_ERROR")
  * 
  *                 if er == 0:             # <<<<<<<<<<<<<<
  *                     pass
  *                 elif er & 4:
  */
-      if (unlikely(!__pyx_v_er)) { __Pyx_RaiseUnboundLocalError("er"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 243; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
-      __pyx_t_5 = PyObject_RichCompare(__pyx_v_er, __pyx_int_0, Py_EQ); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 243; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_10 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 243; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      if (unlikely(!__pyx_v_er)) { __Pyx_RaiseUnboundLocalError("er"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 245; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
+      __pyx_t_5 = PyObject_RichCompare(__pyx_v_er, __pyx_int_0, Py_EQ); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 245; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_10 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 245; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       if (__pyx_t_10) {
         goto __pyx_L16;
       }
 
-      /* "src/player/head_controller.pyx":245
+      /* "src/player/head_controller.pyx":247
  *                 if er == 0:
  *                     pass
  *                 elif er & 4:             # <<<<<<<<<<<<<<
  *                     self._on_head_offline("HEAD_RESET")
  *                 elif er & self._error_level:
  */
-      if (unlikely(!__pyx_v_er)) { __Pyx_RaiseUnboundLocalError("er"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 245; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
-      __pyx_t_5 = PyNumber_And(__pyx_v_er, __pyx_int_4); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 245; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      if (unlikely(!__pyx_v_er)) { __Pyx_RaiseUnboundLocalError("er"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 247; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
+      __pyx_t_5 = PyNumber_And(__pyx_v_er, __pyx_int_4); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 247; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_10 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 245; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_10 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 247; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       if (__pyx_t_10) {
 
-        /* "src/player/head_controller.pyx":246
+        /* "src/player/head_controller.pyx":248
  *                     pass
  *                 elif er & 4:
  *                     self._on_head_offline("HEAD_RESET")             # <<<<<<<<<<<<<<
  *                 elif er & self._error_level:
  *                     if er & 8:
  */
-        __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_on_head_offline); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 246; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_on_head_offline); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 248; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_5);
-        __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_tuple__15, NULL); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 246; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_tuple__13, NULL); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 248; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_6);
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
         goto __pyx_L16;
       }
 
-      /* "src/player/head_controller.pyx":247
+      /* "src/player/head_controller.pyx":249
  *                 elif er & 4:
  *                     self._on_head_offline("HEAD_RESET")
  *                 elif er & self._error_level:             # <<<<<<<<<<<<<<
  *                     if er & 8:
  *                         self._raise_error("HEAD_ERROR", "CALIBRATING")
  */
-      if (unlikely(!__pyx_v_er)) { __Pyx_RaiseUnboundLocalError("er"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 247; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
-      __pyx_t_6 = __Pyx_PyInt_From_unsigned_int(__pyx_v_self->_error_level); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 247; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      if (unlikely(!__pyx_v_er)) { __Pyx_RaiseUnboundLocalError("er"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 249; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
+      __pyx_t_6 = __Pyx_PyInt_From_unsigned_int(__pyx_v_self->_error_level); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 249; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_6);
-      __pyx_t_5 = PyNumber_And(__pyx_v_er, __pyx_t_6); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 247; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_5 = PyNumber_And(__pyx_v_er, __pyx_t_6); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 249; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-      __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_10 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 247; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_10 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 249; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       if (__pyx_t_10) {
 
-        /* "src/player/head_controller.pyx":248
+        /* "src/player/head_controller.pyx":250
  *                     self._on_head_offline("HEAD_RESET")
  *                 elif er & self._error_level:
  *                     if er & 8:             # <<<<<<<<<<<<<<
  *                         self._raise_error("HEAD_ERROR", "CALIBRATING")
  *                     if er & 16:
  */
-        if (unlikely(!__pyx_v_er)) { __Pyx_RaiseUnboundLocalError("er"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 248; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
-        __pyx_t_5 = PyNumber_And(__pyx_v_er, __pyx_int_8); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 248; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_v_er)) { __Pyx_RaiseUnboundLocalError("er"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 250; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
+        __pyx_t_5 = PyNumber_And(__pyx_v_er, __pyx_int_8); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 250; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_5);
-        __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_10 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 248; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_10 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 250; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
         if (__pyx_t_10) {
 
-          /* "src/player/head_controller.pyx":249
+          /* "src/player/head_controller.pyx":251
  *                 elif er & self._error_level:
  *                     if er & 8:
  *                         self._raise_error("HEAD_ERROR", "CALIBRATING")             # <<<<<<<<<<<<<<
  *                     if er & 16:
  *                         self._raise_error(EXEC_HEAD_ERROR, "SHAKE")
  */
-          __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_raise_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 249; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_raise_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 251; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_5);
-          __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_tuple__16, NULL); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 249; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_tuple__14, NULL); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 251; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_6);
           __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
           __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
@@ -6013,30 +5788,30 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
         }
         __pyx_L17:;
 
-        /* "src/player/head_controller.pyx":250
+        /* "src/player/head_controller.pyx":252
  *                     if er & 8:
  *                         self._raise_error("HEAD_ERROR", "CALIBRATING")
  *                     if er & 16:             # <<<<<<<<<<<<<<
  *                         self._raise_error(EXEC_HEAD_ERROR, "SHAKE")
  *                     if er & 32:
  */
-        if (unlikely(!__pyx_v_er)) { __Pyx_RaiseUnboundLocalError("er"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 250; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
-        __pyx_t_6 = PyNumber_And(__pyx_v_er, __pyx_int_16); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 250; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_v_er)) { __Pyx_RaiseUnboundLocalError("er"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 252; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
+        __pyx_t_6 = PyNumber_And(__pyx_v_er, __pyx_int_16); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 252; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_6);
-        __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_6); if (unlikely(__pyx_t_10 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 250; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_6); if (unlikely(__pyx_t_10 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 252; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
         if (__pyx_t_10) {
 
-          /* "src/player/head_controller.pyx":251
+          /* "src/player/head_controller.pyx":253
  *                         self._raise_error("HEAD_ERROR", "CALIBRATING")
  *                     if er & 16:
  *                         self._raise_error(EXEC_HEAD_ERROR, "SHAKE")             # <<<<<<<<<<<<<<
  *                     if er & 32:
  *                         self._raise_error(EXEC_HEAD_ERROR, "TILT")
  */
-          __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_raise_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 251; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_raise_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 253; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_5);
-          __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_HEAD_ERROR); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 251; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_HEAD_ERROR); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 253; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_1);
           __pyx_t_15 = NULL;
           __pyx_t_9 = 0;
@@ -6050,7 +5825,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
               __pyx_t_9 = 1;
             }
           }
-          __pyx_t_3 = PyTuple_New(2+__pyx_t_9); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 251; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_3 = PyTuple_New(2+__pyx_t_9); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 253; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_3);
           if (__pyx_t_15) {
             __Pyx_GIVEREF(__pyx_t_15); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_15); __pyx_t_15 = NULL;
@@ -6061,7 +5836,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
           __Pyx_GIVEREF(__pyx_n_s_SHAKE);
           PyTuple_SET_ITEM(__pyx_t_3, 1+__pyx_t_9, __pyx_n_s_SHAKE);
           __pyx_t_1 = 0;
-          __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_3, NULL); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 251; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_3, NULL); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 253; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_6);
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
           __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -6070,30 +5845,30 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
         }
         __pyx_L18:;
 
-        /* "src/player/head_controller.pyx":252
+        /* "src/player/head_controller.pyx":254
  *                     if er & 16:
  *                         self._raise_error(EXEC_HEAD_ERROR, "SHAKE")
  *                     if er & 32:             # <<<<<<<<<<<<<<
  *                         self._raise_error(EXEC_HEAD_ERROR, "TILT")
  *                     if er & 64:
  */
-        if (unlikely(!__pyx_v_er)) { __Pyx_RaiseUnboundLocalError("er"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 252; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
-        __pyx_t_6 = PyNumber_And(__pyx_v_er, __pyx_int_32); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 252; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_v_er)) { __Pyx_RaiseUnboundLocalError("er"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 254; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
+        __pyx_t_6 = PyNumber_And(__pyx_v_er, __pyx_int_32); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 254; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_6);
-        __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_6); if (unlikely(__pyx_t_10 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 252; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_6); if (unlikely(__pyx_t_10 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 254; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
         if (__pyx_t_10) {
 
-          /* "src/player/head_controller.pyx":253
+          /* "src/player/head_controller.pyx":255
  *                         self._raise_error(EXEC_HEAD_ERROR, "SHAKE")
  *                     if er & 32:
  *                         self._raise_error(EXEC_HEAD_ERROR, "TILT")             # <<<<<<<<<<<<<<
  *                     if er & 64:
  *                         self._raise_error(EXEC_HEAD_ERROR,
  */
-          __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_raise_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 253; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_raise_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 255; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_5);
-          __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_HEAD_ERROR); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 253; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_HEAD_ERROR); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 255; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_3);
           __pyx_t_1 = NULL;
           __pyx_t_9 = 0;
@@ -6107,7 +5882,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
               __pyx_t_9 = 1;
             }
           }
-          __pyx_t_15 = PyTuple_New(2+__pyx_t_9); if (unlikely(!__pyx_t_15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 253; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_15 = PyTuple_New(2+__pyx_t_9); if (unlikely(!__pyx_t_15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 255; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_15);
           if (__pyx_t_1) {
             __Pyx_GIVEREF(__pyx_t_1); PyTuple_SET_ITEM(__pyx_t_15, 0, __pyx_t_1); __pyx_t_1 = NULL;
@@ -6118,7 +5893,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
           __Pyx_GIVEREF(__pyx_n_s_TILT);
           PyTuple_SET_ITEM(__pyx_t_15, 1+__pyx_t_9, __pyx_n_s_TILT);
           __pyx_t_3 = 0;
-          __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_15, NULL); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 253; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_15, NULL); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 255; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_6);
           __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
           __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -6127,30 +5902,30 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
         }
         __pyx_L19:;
 
-        /* "src/player/head_controller.pyx":254
+        /* "src/player/head_controller.pyx":256
  *                     if er & 32:
  *                         self._raise_error(EXEC_HEAD_ERROR, "TILT")
  *                     if er & 64:             # <<<<<<<<<<<<<<
  *                         self._raise_error(EXEC_HEAD_ERROR,
  *                                           "PID_OUT_OF_CONTROL")
  */
-        if (unlikely(!__pyx_v_er)) { __Pyx_RaiseUnboundLocalError("er"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 254; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
-        __pyx_t_6 = PyNumber_And(__pyx_v_er, __pyx_int_64); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 254; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_v_er)) { __Pyx_RaiseUnboundLocalError("er"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 256; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
+        __pyx_t_6 = PyNumber_And(__pyx_v_er, __pyx_int_64); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 256; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_6);
-        __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_6); if (unlikely(__pyx_t_10 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 254; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_6); if (unlikely(__pyx_t_10 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 256; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
         if (__pyx_t_10) {
 
-          /* "src/player/head_controller.pyx":255
+          /* "src/player/head_controller.pyx":257
  *                         self._raise_error(EXEC_HEAD_ERROR, "TILT")
  *                     if er & 64:
  *                         self._raise_error(EXEC_HEAD_ERROR,             # <<<<<<<<<<<<<<
  *                                           "PID_OUT_OF_CONTROL")
  *                     if er & 128:
  */
-          __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_raise_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 255; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_raise_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 257; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_5);
-          __pyx_t_15 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_HEAD_ERROR); if (unlikely(!__pyx_t_15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 255; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_15 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_HEAD_ERROR); if (unlikely(!__pyx_t_15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 257; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_15);
           __pyx_t_3 = NULL;
           __pyx_t_9 = 0;
@@ -6164,7 +5939,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
               __pyx_t_9 = 1;
             }
           }
-          __pyx_t_1 = PyTuple_New(2+__pyx_t_9); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 255; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_1 = PyTuple_New(2+__pyx_t_9); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 257; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_1);
           if (__pyx_t_3) {
             __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_3); __pyx_t_3 = NULL;
@@ -6175,7 +5950,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
           __Pyx_GIVEREF(__pyx_n_s_PID_OUT_OF_CONTROL);
           PyTuple_SET_ITEM(__pyx_t_1, 1+__pyx_t_9, __pyx_n_s_PID_OUT_OF_CONTROL);
           __pyx_t_15 = 0;
-          __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_1, NULL); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 255; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_1, NULL); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 257; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_6);
           __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
           __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -6184,30 +5959,30 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
         }
         __pyx_L20:;
 
-        /* "src/player/head_controller.pyx":257
+        /* "src/player/head_controller.pyx":259
  *                         self._raise_error(EXEC_HEAD_ERROR,
  *                                           "PID_OUT_OF_CONTROL")
  *                     if er & 128:             # <<<<<<<<<<<<<<
  *                         self._raise_error(EXEC_HEAD_ERROR, "FAN_FAILURE")
  * 
  */
-        if (unlikely(!__pyx_v_er)) { __Pyx_RaiseUnboundLocalError("er"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 257; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
-        __pyx_t_6 = PyNumber_And(__pyx_v_er, __pyx_int_128); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 257; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_v_er)) { __Pyx_RaiseUnboundLocalError("er"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 259; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
+        __pyx_t_6 = PyNumber_And(__pyx_v_er, __pyx_int_128); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 259; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_6);
-        __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_6); if (unlikely(__pyx_t_10 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 257; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_6); if (unlikely(__pyx_t_10 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 259; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
         if (__pyx_t_10) {
 
-          /* "src/player/head_controller.pyx":258
+          /* "src/player/head_controller.pyx":260
  *                                           "PID_OUT_OF_CONTROL")
  *                     if er & 128:
  *                         self._raise_error(EXEC_HEAD_ERROR, "FAN_FAILURE")             # <<<<<<<<<<<<<<
  * 
  *             else:
  */
-          __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_raise_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 258; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_raise_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 260; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_5);
-          __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_HEAD_ERROR); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 258; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_HEAD_ERROR); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 260; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_1);
           __pyx_t_15 = NULL;
           __pyx_t_9 = 0;
@@ -6221,7 +5996,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
               __pyx_t_9 = 1;
             }
           }
-          __pyx_t_3 = PyTuple_New(2+__pyx_t_9); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 258; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_3 = PyTuple_New(2+__pyx_t_9); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 260; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_3);
           if (__pyx_t_15) {
             __Pyx_GIVEREF(__pyx_t_15); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_15); __pyx_t_15 = NULL;
@@ -6232,7 +6007,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
           __Pyx_GIVEREF(__pyx_n_s_FAN_FAILURE);
           PyTuple_SET_ITEM(__pyx_t_3, 1+__pyx_t_9, __pyx_n_s_FAN_FAILURE);
           __pyx_t_1 = 0;
-          __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_3, NULL); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 258; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_3, NULL); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 260; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_6);
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
           __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -6247,37 +6022,37 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     }
     /*else*/ {
 
-      /* "src/player/head_controller.pyx":261
+      /* "src/player/head_controller.pyx":263
  * 
  *             else:
  *                 self._ext.update_status(*status)             # <<<<<<<<<<<<<<
  *                 if self._allset_callback and self._ext.all_set():
  *                     try:
  */
-      __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->_ext, __pyx_n_s_update_status); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 261; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->_ext, __pyx_n_s_update_status); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 263; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_6);
-      __pyx_t_5 = PySequence_Tuple(__pyx_v_status); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 261; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_5 = PySequence_Tuple(__pyx_v_status); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 263; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_5, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 261; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_5, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 263; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-      /* "src/player/head_controller.pyx":262
+      /* "src/player/head_controller.pyx":264
  *             else:
  *                 self._ext.update_status(*status)
  *                 if self._allset_callback and self._ext.all_set():             # <<<<<<<<<<<<<<
  *                     try:
  *                         self._allset_callback(self)
  */
-      __pyx_t_19 = __Pyx_PyObject_IsTrue(__pyx_v_self->_allset_callback); if (unlikely(__pyx_t_19 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 262; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_19 = __Pyx_PyObject_IsTrue(__pyx_v_self->_allset_callback); if (unlikely(__pyx_t_19 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 264; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       if (__pyx_t_19) {
       } else {
         __pyx_t_10 = __pyx_t_19;
         goto __pyx_L23_bool_binop_done;
       }
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->_ext, __pyx_n_s_all_set); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 262; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->_ext, __pyx_n_s_all_set); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 264; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_5);
       __pyx_t_6 = NULL;
       if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_5))) {
@@ -6290,20 +6065,20 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
         }
       }
       if (__pyx_t_6) {
-        __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_6); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 262; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_6); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 264; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       } else {
-        __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_5); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 262; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_5); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 264; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       }
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_19 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_19 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 262; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_19 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_19 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 264; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       __pyx_t_10 = __pyx_t_19;
       __pyx_L23_bool_binop_done:;
       if (__pyx_t_10) {
 
-        /* "src/player/head_controller.pyx":263
+        /* "src/player/head_controller.pyx":265
  *                 self._ext.update_status(*status)
  *                 if self._allset_callback and self._ext.all_set():
  *                     try:             # <<<<<<<<<<<<<<
@@ -6312,7 +6087,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  */
         /*try:*/ {
 
-          /* "src/player/head_controller.pyx":264
+          /* "src/player/head_controller.pyx":266
  *                 if self._allset_callback and self._ext.all_set():
  *                     try:
  *                         self._allset_callback(self)             # <<<<<<<<<<<<<<
@@ -6331,16 +6106,16 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
             }
           }
           if (!__pyx_t_6) {
-            __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_5, ((PyObject *)__pyx_v_self)); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 264; __pyx_clineno = __LINE__; goto __pyx_L28_error;}
+            __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_5, ((PyObject *)__pyx_v_self)); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 266; __pyx_clineno = __LINE__; goto __pyx_L28_error;}
             __Pyx_GOTREF(__pyx_t_3);
           } else {
-            __pyx_t_1 = PyTuple_New(1+1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 264; __pyx_clineno = __LINE__; goto __pyx_L28_error;}
+            __pyx_t_1 = PyTuple_New(1+1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 266; __pyx_clineno = __LINE__; goto __pyx_L28_error;}
             __Pyx_GOTREF(__pyx_t_1);
             __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_6); __pyx_t_6 = NULL;
             __Pyx_INCREF(((PyObject *)__pyx_v_self));
             __Pyx_GIVEREF(((PyObject *)__pyx_v_self));
             PyTuple_SET_ITEM(__pyx_t_1, 0+1, ((PyObject *)__pyx_v_self));
-            __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_1, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 264; __pyx_clineno = __LINE__; goto __pyx_L28_error;}
+            __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_1, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 266; __pyx_clineno = __LINE__; goto __pyx_L28_error;}
             __Pyx_GOTREF(__pyx_t_3);
             __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
           }
@@ -6348,7 +6123,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
         }
 
-        /* "src/player/head_controller.pyx":266
+        /* "src/player/head_controller.pyx":268
  *                         self._allset_callback(self)
  *                     finally:
  *                         self._allset_callback = None             # <<<<<<<<<<<<<<
@@ -6413,7 +6188,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     }
     __pyx_L5:;
 
-    /* "src/player/head_controller.pyx":229
+    /* "src/player/head_controller.pyx":231
  *         self._lastupdate = time()
  * 
  *         for param in shlex_split(msg[8:]):             # <<<<<<<<<<<<<<
@@ -6423,7 +6198,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "src/player/head_controller.pyx":224
+  /* "src/player/head_controller.pyx":226
  *         self._lastupdate = time()
  * 
  *     def _handle_pong(self, msg, executor):             # <<<<<<<<<<<<<<
@@ -6455,7 +6230,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":268
+/* "src/player/head_controller.pyx":270
  *                         self._allset_callback = None
  * 
  *     def patrol(self, executor):             # <<<<<<<<<<<<<<
@@ -6464,19 +6239,19 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_35patrol(PyObject *__pyx_v_self, PyObject *__pyx_v_executor); /*proto*/
-static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_35patrol(PyObject *__pyx_v_self, PyObject *__pyx_v_executor) {
+static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_33patrol(PyObject *__pyx_v_self, PyObject *__pyx_v_executor); /*proto*/
+static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_33patrol(PyObject *__pyx_v_self, PyObject *__pyx_v_executor) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("patrol (wrapper)", 0);
-  __pyx_r = __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_34patrol(((struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *)__pyx_v_self), ((PyObject *)__pyx_v_executor));
+  __pyx_r = __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_32patrol(((struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *)__pyx_v_self), ((PyObject *)__pyx_v_executor));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_34patrol(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_executor) {
+static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_32patrol(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_executor) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
@@ -6493,17 +6268,17 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("patrol", 0);
 
-  /* "src/player/head_controller.pyx":277
+  /* "src/player/head_controller.pyx":279
  *         #     return
  * 
  *         if self._wait_update:             # <<<<<<<<<<<<<<
  *             if self._update_retry > 2 and self._ready:
  *                 self._on_head_offline()
  */
-  __pyx_t_1 = __Pyx_PyObject_IsTrue(((PyObject *)__pyx_v_self->_wait_update)); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 277; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(((PyObject *)__pyx_v_self->_wait_update)); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 279; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (__pyx_t_1) {
 
-    /* "src/player/head_controller.pyx":278
+    /* "src/player/head_controller.pyx":280
  * 
  *         if self._wait_update:
  *             if self._update_retry > 2 and self._ready:             # <<<<<<<<<<<<<<
@@ -6521,14 +6296,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     __pyx_L5_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "src/player/head_controller.pyx":279
+      /* "src/player/head_controller.pyx":281
  *         if self._wait_update:
  *             if self._update_retry > 2 and self._ready:
  *                 self._on_head_offline()             # <<<<<<<<<<<<<<
  *             if time() - self._lastupdate > 1.5:
  *                 self._handle_ping(executor)
  */
-      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_on_head_offline); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 279; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_on_head_offline); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 281; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_4);
       __pyx_t_5 = NULL;
       if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_4))) {
@@ -6541,10 +6316,10 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
         }
       }
       if (__pyx_t_5) {
-        __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 279; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 281; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       } else {
-        __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 279; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 281; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       }
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
@@ -6553,14 +6328,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     }
     __pyx_L4:;
 
-    /* "src/player/head_controller.pyx":280
+    /* "src/player/head_controller.pyx":282
  *             if self._update_retry > 2 and self._ready:
  *                 self._on_head_offline()
  *             if time() - self._lastupdate > 1.5:             # <<<<<<<<<<<<<<
  *                 self._handle_ping(executor)
  *                 self._update_retry += 1 if self._ready else 0
  */
-    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_time); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 280; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_time); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 282; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_t_5 = NULL;
     if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_4))) {
@@ -6573,33 +6348,33 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       }
     }
     if (__pyx_t_5) {
-      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 280; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 282; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     } else {
-      __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 280; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 282; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_4 = PyFloat_FromDouble(__pyx_v_self->_lastupdate); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 280; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyFloat_FromDouble(__pyx_v_self->_lastupdate); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 282; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = PyNumber_Subtract(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 280; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = PyNumber_Subtract(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 282; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_4 = PyObject_RichCompare(__pyx_t_5, __pyx_float_1_5, Py_GT); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 280; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyObject_RichCompare(__pyx_t_5, __pyx_float_1_5, Py_GT); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 282; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 280; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 282; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     if (__pyx_t_1) {
 
-      /* "src/player/head_controller.pyx":281
+      /* "src/player/head_controller.pyx":283
  *                 self._on_head_offline()
  *             if time() - self._lastupdate > 1.5:
  *                 self._handle_ping(executor)             # <<<<<<<<<<<<<<
  *                 self._update_retry += 1 if self._ready else 0
  *                 L.debug("Header ping timeout, retry (%i)", self._update_retry)
  */
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_ping); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 281; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_ping); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 283; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_5);
       __pyx_t_3 = NULL;
       if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_5))) {
@@ -6612,23 +6387,23 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
         }
       }
       if (!__pyx_t_3) {
-        __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_v_executor); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 281; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_v_executor); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 283; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_4);
       } else {
-        __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 281; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 283; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_6);
         __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_3); __pyx_t_3 = NULL;
         __Pyx_INCREF(__pyx_v_executor);
         __Pyx_GIVEREF(__pyx_v_executor);
         PyTuple_SET_ITEM(__pyx_t_6, 0+1, __pyx_v_executor);
-        __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_6, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 281; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_6, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 283; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       }
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-      /* "src/player/head_controller.pyx":282
+      /* "src/player/head_controller.pyx":284
  *             if time() - self._lastupdate > 1.5:
  *                 self._handle_ping(executor)
  *                 self._update_retry += 1 if self._ready else 0             # <<<<<<<<<<<<<<
@@ -6642,16 +6417,16 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       }
       __pyx_v_self->_update_retry = (__pyx_v_self->_update_retry + __pyx_t_7);
 
-      /* "src/player/head_controller.pyx":283
+      /* "src/player/head_controller.pyx":285
  *                 self._handle_ping(executor)
  *                 self._update_retry += 1 if self._ready else 0
  *                 L.debug("Header ping timeout, retry (%i)", self._update_retry)             # <<<<<<<<<<<<<<
  * 
  *         if self._ready and self._padding_cmd:
  */
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_11fluxmonitor_6player_16_head_controller_L, __pyx_n_s_debug); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 283; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_11fluxmonitor_6player_16_head_controller_L, __pyx_n_s_debug); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 285; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_self->_update_retry); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 283; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_self->_update_retry); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 285; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_6);
       __pyx_t_3 = NULL;
       __pyx_t_8 = 0;
@@ -6665,7 +6440,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
           __pyx_t_8 = 1;
         }
       }
-      __pyx_t_9 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 283; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_9 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 285; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_9);
       if (__pyx_t_3) {
         __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_3); __pyx_t_3 = NULL;
@@ -6676,7 +6451,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       __Pyx_GIVEREF(__pyx_t_6);
       PyTuple_SET_ITEM(__pyx_t_9, 1+__pyx_t_8, __pyx_t_6);
       __pyx_t_6 = 0;
-      __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_9, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 283; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_9, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 285; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -6688,7 +6463,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   }
   __pyx_L3:;
 
-  /* "src/player/head_controller.pyx":285
+  /* "src/player/head_controller.pyx":287
  *                 L.debug("Header ping timeout, retry (%i)", self._update_retry)
  * 
  *         if self._ready and self._padding_cmd:             # <<<<<<<<<<<<<<
@@ -6701,12 +6476,12 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     __pyx_t_1 = __pyx_t_2;
     goto __pyx_L9_bool_binop_done;
   }
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_self->_padding_cmd); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 285; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_self->_padding_cmd); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 287; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_t_1 = __pyx_t_2;
   __pyx_L9_bool_binop_done:;
   if (__pyx_t_1) {
 
-    /* "src/player/head_controller.pyx":286
+    /* "src/player/head_controller.pyx":288
  * 
  *         if self._ready and self._padding_cmd:
  *             if self._cmd_retry > 2 and self._ready:             # <<<<<<<<<<<<<<
@@ -6724,14 +6499,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     __pyx_L12_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "src/player/head_controller.pyx":287
+      /* "src/player/head_controller.pyx":289
  *         if self._ready and self._padding_cmd:
  *             if self._cmd_retry > 2 and self._ready:
  *                 self._on_head_offline()             # <<<<<<<<<<<<<<
  *             elif time() - self._cmd_sent_at > 1.0:
  *                 self._send_cmd(executor)
  */
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_on_head_offline); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 287; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_on_head_offline); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 289; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_5);
       __pyx_t_9 = NULL;
       if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_5))) {
@@ -6744,10 +6519,10 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
         }
       }
       if (__pyx_t_9) {
-        __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_9); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 287; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_9); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 289; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       } else {
-        __pyx_t_4 = __Pyx_PyObject_CallNoArg(__pyx_t_5); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 287; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_4 = __Pyx_PyObject_CallNoArg(__pyx_t_5); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 289; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       }
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -6755,14 +6530,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       goto __pyx_L11;
     }
 
-    /* "src/player/head_controller.pyx":288
+    /* "src/player/head_controller.pyx":290
  *             if self._cmd_retry > 2 and self._ready:
  *                 self._on_head_offline()
  *             elif time() - self._cmd_sent_at > 1.0:             # <<<<<<<<<<<<<<
  *                 self._send_cmd(executor)
  *                 self._cmd_retry += 1 if self._ready else 0
  */
-    __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_time); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 288; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_time); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 290; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     __pyx_t_9 = NULL;
     if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_5))) {
@@ -6775,33 +6550,33 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       }
     }
     if (__pyx_t_9) {
-      __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_9); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 288; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_9); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 290; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     } else {
-      __pyx_t_4 = __Pyx_PyObject_CallNoArg(__pyx_t_5); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 288; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_4 = __Pyx_PyObject_CallNoArg(__pyx_t_5); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 290; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_5 = PyFloat_FromDouble(__pyx_v_self->_cmd_sent_at); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 288; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = PyFloat_FromDouble(__pyx_v_self->_cmd_sent_at); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 290; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_9 = PyNumber_Subtract(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 288; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = PyNumber_Subtract(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 290; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_9);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_5 = PyObject_RichCompare(__pyx_t_9, __pyx_float_1_0, Py_GT); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 288; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = PyObject_RichCompare(__pyx_t_9, __pyx_float_1_0, Py_GT); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 290; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 288; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 290; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     if (__pyx_t_1) {
 
-      /* "src/player/head_controller.pyx":289
+      /* "src/player/head_controller.pyx":291
  *                 self._on_head_offline()
  *             elif time() - self._cmd_sent_at > 1.0:
  *                 self._send_cmd(executor)             # <<<<<<<<<<<<<<
  *                 self._cmd_retry += 1 if self._ready else 0
  *                 L.debug("Header cmd timeout, retry (%i)", self._cmd_retry)
  */
-      __pyx_t_9 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_send_cmd); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 289; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_9 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_send_cmd); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 291; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_9);
       __pyx_t_4 = NULL;
       if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_9))) {
@@ -6814,23 +6589,23 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
         }
       }
       if (!__pyx_t_4) {
-        __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_t_9, __pyx_v_executor); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 289; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_t_9, __pyx_v_executor); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 291; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_5);
       } else {
-        __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 289; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 291; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_6);
         __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_4); __pyx_t_4 = NULL;
         __Pyx_INCREF(__pyx_v_executor);
         __Pyx_GIVEREF(__pyx_v_executor);
         PyTuple_SET_ITEM(__pyx_t_6, 0+1, __pyx_v_executor);
-        __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_9, __pyx_t_6, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 289; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_9, __pyx_t_6, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 291; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       }
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-      /* "src/player/head_controller.pyx":290
+      /* "src/player/head_controller.pyx":292
  *             elif time() - self._cmd_sent_at > 1.0:
  *                 self._send_cmd(executor)
  *                 self._cmd_retry += 1 if self._ready else 0             # <<<<<<<<<<<<<<
@@ -6844,16 +6619,16 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       }
       __pyx_v_self->_cmd_retry = (__pyx_v_self->_cmd_retry + __pyx_t_7);
 
-      /* "src/player/head_controller.pyx":291
+      /* "src/player/head_controller.pyx":293
  *                 self._send_cmd(executor)
  *                 self._cmd_retry += 1 if self._ready else 0
  *                 L.debug("Header cmd timeout, retry (%i)", self._cmd_retry)             # <<<<<<<<<<<<<<
  * 
  *         elif time() - self._lastupdate > 1.0:
  */
-      __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_11fluxmonitor_6player_16_head_controller_L, __pyx_n_s_debug); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 291; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_11fluxmonitor_6player_16_head_controller_L, __pyx_n_s_debug); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 293; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_9);
-      __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_self->_cmd_retry); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 291; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_self->_cmd_retry); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 293; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_6);
       __pyx_t_4 = NULL;
       __pyx_t_8 = 0;
@@ -6867,7 +6642,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
           __pyx_t_8 = 1;
         }
       }
-      __pyx_t_3 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 291; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_3 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 293; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_3);
       if (__pyx_t_4) {
         __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4); __pyx_t_4 = NULL;
@@ -6878,7 +6653,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       __Pyx_GIVEREF(__pyx_t_6);
       PyTuple_SET_ITEM(__pyx_t_3, 1+__pyx_t_8, __pyx_t_6);
       __pyx_t_6 = 0;
-      __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_9, __pyx_t_3, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 291; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_9, __pyx_t_3, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 293; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
@@ -6889,14 +6664,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     goto __pyx_L8;
   }
 
-  /* "src/player/head_controller.pyx":293
+  /* "src/player/head_controller.pyx":295
  *                 L.debug("Header cmd timeout, retry (%i)", self._cmd_retry)
  * 
  *         elif time() - self._lastupdate > 1.0:             # <<<<<<<<<<<<<<
  *             if not self._padding_cmd:
  *                 self._handle_ping(executor)
  */
-  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_time); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 293; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_time); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 295; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_9);
   __pyx_t_3 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_9))) {
@@ -6909,44 +6684,44 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     }
   }
   if (__pyx_t_3) {
-    __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_t_9, __pyx_t_3); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 293; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_t_9, __pyx_t_3); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 295; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
-    __pyx_t_5 = __Pyx_PyObject_CallNoArg(__pyx_t_9); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 293; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = __Pyx_PyObject_CallNoArg(__pyx_t_9); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 295; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-  __pyx_t_9 = PyFloat_FromDouble(__pyx_v_self->_lastupdate); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 293; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_9 = PyFloat_FromDouble(__pyx_v_self->_lastupdate); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 295; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_9);
-  __pyx_t_3 = PyNumber_Subtract(__pyx_t_5, __pyx_t_9); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 293; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyNumber_Subtract(__pyx_t_5, __pyx_t_9); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 295; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-  __pyx_t_9 = PyObject_RichCompare(__pyx_t_3, __pyx_float_1_0, Py_GT); __Pyx_XGOTREF(__pyx_t_9); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 293; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_9 = PyObject_RichCompare(__pyx_t_3, __pyx_float_1_0, Py_GT); __Pyx_XGOTREF(__pyx_t_9); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 295; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_9); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 293; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_9); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 295; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
   if (__pyx_t_1) {
 
-    /* "src/player/head_controller.pyx":294
+    /* "src/player/head_controller.pyx":296
  * 
  *         elif time() - self._lastupdate > 1.0:
  *             if not self._padding_cmd:             # <<<<<<<<<<<<<<
  *                 self._handle_ping(executor)
  * 
  */
-    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_self->_padding_cmd); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 294; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_self->_padding_cmd); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 296; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __pyx_t_2 = ((!__pyx_t_1) != 0);
     if (__pyx_t_2) {
 
-      /* "src/player/head_controller.pyx":295
+      /* "src/player/head_controller.pyx":297
  *         elif time() - self._lastupdate > 1.0:
  *             if not self._padding_cmd:
  *                 self._handle_ping(executor)             # <<<<<<<<<<<<<<
  * 
  *     def _raise_error(self, *args):
  */
-      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_ping); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 295; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_ping); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 297; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_3);
       __pyx_t_5 = NULL;
       if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_3))) {
@@ -6959,16 +6734,16 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
         }
       }
       if (!__pyx_t_5) {
-        __pyx_t_9 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_executor); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 295; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_9 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_executor); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 297; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_9);
       } else {
-        __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 295; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 297; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_6);
         __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_5); __pyx_t_5 = NULL;
         __Pyx_INCREF(__pyx_v_executor);
         __Pyx_GIVEREF(__pyx_v_executor);
         PyTuple_SET_ITEM(__pyx_t_6, 0+1, __pyx_v_executor);
-        __pyx_t_9 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, NULL); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 295; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_9 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, NULL); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 297; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_9);
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       }
@@ -6981,7 +6756,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   }
   __pyx_L8:;
 
-  /* "src/player/head_controller.pyx":268
+  /* "src/player/head_controller.pyx":270
  *                         self._allset_callback = None
  * 
  *     def patrol(self, executor):             # <<<<<<<<<<<<<<
@@ -7006,7 +6781,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":297
+/* "src/player/head_controller.pyx":299
  *                 self._handle_ping(executor)
  * 
  *     def _raise_error(self, *args):             # <<<<<<<<<<<<<<
@@ -7015,8 +6790,8 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_37_raise_error(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_37_raise_error(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_35_raise_error(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_35_raise_error(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_args = 0;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
@@ -7024,7 +6799,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadControl
   if (unlikely(__pyx_kwds) && unlikely(PyDict_Size(__pyx_kwds) > 0) && unlikely(!__Pyx_CheckKeywordStrings(__pyx_kwds, "_raise_error", 0))) return NULL;
   __Pyx_INCREF(__pyx_args);
   __pyx_v_args = __pyx_args;
-  __pyx_r = __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_36_raise_error(((struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *)__pyx_v_self), __pyx_v_args);
+  __pyx_r = __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_34_raise_error(((struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *)__pyx_v_self), __pyx_v_args);
 
   /* function exit code */
   __Pyx_XDECREF(__pyx_v_args);
@@ -7032,7 +6807,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadControl
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_36_raise_error(CYTHON_UNUSED struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_args) {
+static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_34_raise_error(CYTHON_UNUSED struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_args) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -7042,23 +6817,23 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("_raise_error", 0);
 
-  /* "src/player/head_controller.pyx":298
+  /* "src/player/head_controller.pyx":300
  * 
  *     def _raise_error(self, *args):
  *         raise RuntimeError(*args)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_1 = PySequence_Tuple(__pyx_v_args); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 298; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PySequence_Tuple(__pyx_v_args); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 300; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 298; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 300; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_Raise(__pyx_t_2, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  {__pyx_filename = __pyx_f[0]; __pyx_lineno = 298; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  {__pyx_filename = __pyx_f[0]; __pyx_lineno = 300; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/player/head_controller.pyx":297
+  /* "src/player/head_controller.pyx":299
  *                 self._handle_ping(executor)
  * 
  *     def _raise_error(self, *args):             # <<<<<<<<<<<<<<
@@ -7077,7 +6852,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":39
+/* "src/player/head_controller.pyx":42
  *     cdef bool _wait_update
  * 
  *     cdef public float _cmd_sent_at             # <<<<<<<<<<<<<<
@@ -7107,7 +6882,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__get__", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->_cmd_sent_at); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 39; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->_cmd_sent_at); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 42; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -7145,7 +6920,7 @@ static int __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_12
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__set__", 0);
-  __pyx_t_1 = __pyx_PyFloat_AsFloat(__pyx_v_value); if (unlikely((__pyx_t_1 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 39; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_PyFloat_AsFloat(__pyx_v_value); if (unlikely((__pyx_t_1 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 42; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_v_self->_cmd_sent_at = __pyx_t_1;
 
   /* function exit code */
@@ -7159,7 +6934,7 @@ static int __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_12
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":40
+/* "src/player/head_controller.pyx":43
  * 
  *     cdef public float _cmd_sent_at
  *     cdef public int _cmd_retry             # <<<<<<<<<<<<<<
@@ -7189,7 +6964,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__get__", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_self->_cmd_retry); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 40; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_self->_cmd_retry); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 43; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -7227,7 +7002,7 @@ static int __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_10
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__set__", 0);
-  __pyx_t_1 = __Pyx_PyInt_As_int(__pyx_v_value); if (unlikely((__pyx_t_1 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 40; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyInt_As_int(__pyx_v_value); if (unlikely((__pyx_t_1 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 43; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_v_self->_cmd_retry = __pyx_t_1;
 
   /* function exit code */
@@ -7241,7 +7016,7 @@ static int __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_10
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":42
+/* "src/player/head_controller.pyx":45
  *     cdef public int _cmd_retry
  * 
  *     cdef public float _lastupdate             # <<<<<<<<<<<<<<
@@ -7271,7 +7046,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__get__", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->_lastupdate); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 42; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->_lastupdate); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 45; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -7309,7 +7084,7 @@ static int __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_11
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__set__", 0);
-  __pyx_t_1 = __pyx_PyFloat_AsFloat(__pyx_v_value); if (unlikely((__pyx_t_1 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 42; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_PyFloat_AsFloat(__pyx_v_value); if (unlikely((__pyx_t_1 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 45; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_v_self->_lastupdate = __pyx_t_1;
 
   /* function exit code */
@@ -7323,7 +7098,7 @@ static int __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_11
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":43
+/* "src/player/head_controller.pyx":46
  * 
  *     cdef public float _lastupdate
  *     cdef public int _update_retry             # <<<<<<<<<<<<<<
@@ -7353,7 +7128,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__get__", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_self->_update_retry); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 43; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_self->_update_retry); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 46; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -7391,7 +7166,7 @@ static int __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_13
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__set__", 0);
-  __pyx_t_1 = __Pyx_PyInt_As_int(__pyx_v_value); if (unlikely((__pyx_t_1 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 43; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyInt_As_int(__pyx_v_value); if (unlikely((__pyx_t_1 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 46; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_v_self->_update_retry = __pyx_t_1;
 
   /* function exit code */
@@ -7405,7 +7180,7 @@ static int __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_13
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":302
+/* "src/player/head_controller.pyx":304
  * 
  * class BaseExt(object):
  *     def __init__(self, **spec):             # <<<<<<<<<<<<<<
@@ -7445,7 +7220,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_7BaseExt_1__i
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, __pyx_v_spec, values, pos_args, "__init__") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, __pyx_v_spec, values, pos_args, "__init__") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 304; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 1) {
       goto __pyx_L5_argtuple_error;
@@ -7456,7 +7231,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_7BaseExt_1__i
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 1, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("__init__", 1, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 304; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_spec); __pyx_v_spec = 0;
   __Pyx_AddTraceback("fluxmonitor.player._head_controller.BaseExt.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
@@ -7479,16 +7254,16 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_7BaseExt___in
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "src/player/head_controller.pyx":303
+  /* "src/player/head_controller.pyx":305
  * class BaseExt(object):
  *     def __init__(self, **spec):
  *         self.spec = spec             # <<<<<<<<<<<<<<
  * 
  *     def bootstrap_commands(self):
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_spec, __pyx_v_spec) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 303; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_spec, __pyx_v_spec) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/player/head_controller.pyx":302
+  /* "src/player/head_controller.pyx":304
  * 
  * class BaseExt(object):
  *     def __init__(self, **spec):             # <<<<<<<<<<<<<<
@@ -7508,7 +7283,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_7BaseExt___in
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":305
+/* "src/player/head_controller.pyx":307
  *         self.spec = spec
  * 
  *     def bootstrap_commands(self):             # <<<<<<<<<<<<<<
@@ -7539,7 +7314,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_7BaseExt_2boo
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("bootstrap_commands", 0);
 
-  /* "src/player/head_controller.pyx":306
+  /* "src/player/head_controller.pyx":308
  * 
  *     def bootstrap_commands(self):
  *         return []             # <<<<<<<<<<<<<<
@@ -7547,13 +7322,13 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_7BaseExt_2boo
  *     def hello(self, **kw):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 306; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 308; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "src/player/head_controller.pyx":305
+  /* "src/player/head_controller.pyx":307
  *         self.spec = spec
  * 
  *     def bootstrap_commands(self):             # <<<<<<<<<<<<<<
@@ -7572,7 +7347,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_7BaseExt_2boo
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":308
+/* "src/player/head_controller.pyx":310
  *         return []
  * 
  *     def hello(self, **kw):             # <<<<<<<<<<<<<<
@@ -7612,7 +7387,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_7BaseExt_5hel
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, __pyx_v_kw, values, pos_args, "hello") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 308; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, __pyx_v_kw, values, pos_args, "hello") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 310; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 1) {
       goto __pyx_L5_argtuple_error;
@@ -7623,7 +7398,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_7BaseExt_5hel
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("hello", 1, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 308; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("hello", 1, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 310; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_kw); __pyx_v_kw = 0;
   __Pyx_AddTraceback("fluxmonitor.player._head_controller.BaseExt.hello", __pyx_clineno, __pyx_lineno, __pyx_filename);
@@ -7647,43 +7422,43 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_7BaseExt_4hel
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("hello", 0);
 
-  /* "src/player/head_controller.pyx":309
+  /* "src/player/head_controller.pyx":311
  * 
  *     def hello(self, **kw):
  *         self.id = kw.get("ID")             # <<<<<<<<<<<<<<
  *         self.vendor = kw.get("VENDOR")
  *         self.version = kw.get("VERSION")
  */
-  __pyx_t_1 = __Pyx_PyDict_GetItemDefault(__pyx_v_kw, __pyx_n_s_ID, Py_None); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 309; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyDict_GetItemDefault(__pyx_v_kw, __pyx_n_s_ID, Py_None); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 311; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_id, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 309; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_id, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 311; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":310
+  /* "src/player/head_controller.pyx":312
  *     def hello(self, **kw):
  *         self.id = kw.get("ID")
  *         self.vendor = kw.get("VENDOR")             # <<<<<<<<<<<<<<
  *         self.version = kw.get("VERSION")
  * 
  */
-  __pyx_t_1 = __Pyx_PyDict_GetItemDefault(__pyx_v_kw, __pyx_n_s_VENDOR, Py_None); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 310; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyDict_GetItemDefault(__pyx_v_kw, __pyx_n_s_VENDOR, Py_None); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 312; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_vendor, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 310; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_vendor, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 312; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":311
+  /* "src/player/head_controller.pyx":313
  *         self.id = kw.get("ID")
  *         self.vendor = kw.get("VENDOR")
  *         self.version = kw.get("VERSION")             # <<<<<<<<<<<<<<
  * 
  *     def generate_command(self, cmd):
  */
-  __pyx_t_1 = __Pyx_PyDict_GetItemDefault(__pyx_v_kw, __pyx_n_s_VERSION, Py_None); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 311; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyDict_GetItemDefault(__pyx_v_kw, __pyx_n_s_VERSION, Py_None); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 313; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_version, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 311; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_version, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 313; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":308
+  /* "src/player/head_controller.pyx":310
  *         return []
  * 
  *     def hello(self, **kw):             # <<<<<<<<<<<<<<
@@ -7704,7 +7479,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_7BaseExt_4hel
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":313
+/* "src/player/head_controller.pyx":315
  *         self.version = kw.get("VERSION")
  * 
  *     def generate_command(self, cmd):             # <<<<<<<<<<<<<<
@@ -7744,11 +7519,11 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_7BaseExt_7gen
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_cmd)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("generate_command", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 313; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("generate_command", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "generate_command") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 313; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "generate_command") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -7761,7 +7536,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_7BaseExt_7gen
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("generate_command", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 313; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("generate_command", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("fluxmonitor.player._head_controller.BaseExt.generate_command", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -7786,7 +7561,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_7BaseExt_6gen
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":316
+/* "src/player/head_controller.pyx":318
  *         pass
  * 
  *     def update_status(self, key, value):             # <<<<<<<<<<<<<<
@@ -7828,16 +7603,16 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_7BaseExt_9upd
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_key)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("update_status", 1, 3, 3, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 316; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("update_status", 1, 3, 3, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 318; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_value)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("update_status", 1, 3, 3, 2); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 316; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("update_status", 1, 3, 3, 2); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 318; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "update_status") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 316; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "update_status") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 318; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -7852,7 +7627,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_7BaseExt_9upd
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("update_status", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 316; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("update_status", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 318; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("fluxmonitor.player._head_controller.BaseExt.update_status", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -7877,7 +7652,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_7BaseExt_8upd
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":319
+/* "src/player/head_controller.pyx":321
  *         pass
  * 
  *     def on_message(self, message):             # <<<<<<<<<<<<<<
@@ -7917,11 +7692,11 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_7BaseExt_11on
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_message)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("on_message", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 319; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("on_message", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 321; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "on_message") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 319; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "on_message") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 321; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -7934,7 +7709,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_7BaseExt_11on
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("on_message", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 319; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("on_message", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 321; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("fluxmonitor.player._head_controller.BaseExt.on_message", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -7952,7 +7727,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_7BaseExt_10on
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("on_message", 0);
 
-  /* "src/player/head_controller.pyx":320
+  /* "src/player/head_controller.pyx":322
  * 
  *     def on_message(self, message):
  *         return False             # <<<<<<<<<<<<<<
@@ -7964,7 +7739,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_7BaseExt_10on
   __pyx_r = Py_False;
   goto __pyx_L0;
 
-  /* "src/player/head_controller.pyx":319
+  /* "src/player/head_controller.pyx":321
  *         pass
  * 
  *     def on_message(self, message):             # <<<<<<<<<<<<<<
@@ -7979,7 +7754,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_7BaseExt_10on
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":322
+/* "src/player/head_controller.pyx":324
  *         return False
  * 
  *     def all_set(self):             # <<<<<<<<<<<<<<
@@ -8006,7 +7781,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_7BaseExt_12al
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("all_set", 0);
 
-  /* "src/player/head_controller.pyx":323
+  /* "src/player/head_controller.pyx":325
  * 
  *     def all_set(self):
  *         return True             # <<<<<<<<<<<<<<
@@ -8018,7 +7793,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_7BaseExt_12al
   __pyx_r = Py_True;
   goto __pyx_L0;
 
-  /* "src/player/head_controller.pyx":322
+  /* "src/player/head_controller.pyx":324
  *         return False
  * 
  *     def all_set(self):             # <<<<<<<<<<<<<<
@@ -8033,7 +7808,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_7BaseExt_12al
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":331
+/* "src/player/head_controller.pyx":333
  *     _current_temp = None
  * 
  *     def __init__(self):             # <<<<<<<<<<<<<<
@@ -8066,58 +7841,58 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "src/player/head_controller.pyx":332
+  /* "src/player/head_controller.pyx":334
  * 
  *     def __init__(self):
  *         self._fanspeed = [0]             # <<<<<<<<<<<<<<
  *         self._temperatures = [float("NaN")]
  *         self._current_temp = [float("NaN")]
  */
-  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 332; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 334; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_int_0);
   __Pyx_GIVEREF(__pyx_int_0);
   PyList_SET_ITEM(__pyx_t_1, 0, __pyx_int_0);
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_fanspeed, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 332; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_fanspeed, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 334; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":333
+  /* "src/player/head_controller.pyx":335
  *     def __init__(self):
  *         self._fanspeed = [0]
  *         self._temperatures = [float("NaN")]             # <<<<<<<<<<<<<<
  *         self._current_temp = [float("NaN")]
  * 
  */
-  __pyx_t_2 = __Pyx_PyObject_AsDouble(__pyx_n_s_NaN); if (unlikely(__pyx_t_2 == ((double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 333; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 333; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_AsDouble(__pyx_n_s_NaN); if (unlikely(__pyx_t_2 == ((double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 335; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 335; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyList_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 333; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyList_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 335; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_1);
   PyList_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
   __pyx_t_1 = 0;
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_temperatures, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 333; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_temperatures, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 335; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "src/player/head_controller.pyx":334
+  /* "src/player/head_controller.pyx":336
  *         self._fanspeed = [0]
  *         self._temperatures = [float("NaN")]
  *         self._current_temp = [float("NaN")]             # <<<<<<<<<<<<<<
  * 
  *     def hello(self, **kw):
  */
-  __pyx_t_2 = __Pyx_PyObject_AsDouble(__pyx_n_s_NaN); if (unlikely(__pyx_t_2 == ((double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 334; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_3 = PyFloat_FromDouble(__pyx_t_2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 334; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_AsDouble(__pyx_n_s_NaN); if (unlikely(__pyx_t_2 == ((double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 336; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyFloat_FromDouble(__pyx_t_2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 336; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 334; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 336; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_3);
   PyList_SET_ITEM(__pyx_t_1, 0, __pyx_t_3);
   __pyx_t_3 = 0;
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_current_temp, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 334; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_current_temp, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 336; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":331
+  /* "src/player/head_controller.pyx":333
  *     _current_temp = None
  * 
  *     def __init__(self):             # <<<<<<<<<<<<<<
@@ -8139,7 +7914,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":336
+/* "src/player/head_controller.pyx":338
  *         self._current_temp = [float("NaN")]
  * 
  *     def hello(self, **kw):             # <<<<<<<<<<<<<<
@@ -8179,7 +7954,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_11ExtruderExt
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, __pyx_v_kw, values, pos_args, "hello") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 336; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, __pyx_v_kw, values, pos_args, "hello") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 338; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 1) {
       goto __pyx_L5_argtuple_error;
@@ -8190,7 +7965,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("hello", 1, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 336; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("hello", 1, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 338; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_kw); __pyx_v_kw = 0;
   __Pyx_AddTraceback("fluxmonitor.player._head_controller.ExtruderExt.hello", __pyx_clineno, __pyx_lineno, __pyx_filename);
@@ -8218,40 +7993,40 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("hello", 0);
 
-  /* "src/player/head_controller.pyx":337
+  /* "src/player/head_controller.pyx":339
  * 
  *     def hello(self, **kw):
  *         m = kw.get("TYPE", "UNKNOW")             # <<<<<<<<<<<<<<
  *         if m != "EXTRUDER":
  *             raise RuntimeError(EXEC_WRONG_HEAD, "GOT_%s" % m)
  */
-  __pyx_t_1 = __Pyx_PyDict_GetItemDefault(__pyx_v_kw, __pyx_n_s_TYPE, __pyx_n_s_UNKNOW); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 337; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyDict_GetItemDefault(__pyx_v_kw, __pyx_n_s_TYPE, __pyx_n_s_UNKNOW); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 339; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_m = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":338
+  /* "src/player/head_controller.pyx":340
  *     def hello(self, **kw):
  *         m = kw.get("TYPE", "UNKNOW")
  *         if m != "EXTRUDER":             # <<<<<<<<<<<<<<
  *             raise RuntimeError(EXEC_WRONG_HEAD, "GOT_%s" % m)
  *         super(ExtruderExt, self).hello(**kw)
  */
-  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_m, __pyx_n_s_EXTRUDER, Py_NE)); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 338; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_m, __pyx_n_s_EXTRUDER, Py_NE)); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 340; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (__pyx_t_2) {
 
-    /* "src/player/head_controller.pyx":339
+    /* "src/player/head_controller.pyx":341
  *         m = kw.get("TYPE", "UNKNOW")
  *         if m != "EXTRUDER":
  *             raise RuntimeError(EXEC_WRONG_HEAD, "GOT_%s" % m)             # <<<<<<<<<<<<<<
  *         super(ExtruderExt, self).hello(**kw)
  * 
  */
-    __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_WRONG_HEAD); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 339; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_WRONG_HEAD); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 341; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_3 = __Pyx_PyString_Format(__pyx_kp_s_GOT__s, __pyx_v_m); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 339; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyString_Format(__pyx_kp_s_GOT__s, __pyx_v_m); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 341; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 339; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 341; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_GIVEREF(__pyx_t_1);
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
@@ -8259,24 +8034,24 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
     PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_3);
     __pyx_t_1 = 0;
     __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 339; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 341; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 339; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 341; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "src/player/head_controller.pyx":340
+  /* "src/player/head_controller.pyx":342
  *         if m != "EXTRUDER":
  *             raise RuntimeError(EXEC_WRONG_HEAD, "GOT_%s" % m)
  *         super(ExtruderExt, self).hello(**kw)             # <<<<<<<<<<<<<<
  * 
  *     def bootstrap_commands(self):
  */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_ExtruderExt); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 340; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_ExtruderExt); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 342; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 340; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 342; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3);
@@ -8284,21 +8059,21 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   __Pyx_GIVEREF(__pyx_v_self);
   PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_v_self);
   __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_super, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 340; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_super, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 342; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_hello); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 340; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_hello); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 342; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_3 = __pyx_v_kw;
   __Pyx_INCREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_empty_tuple, __pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 340; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_empty_tuple, __pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 342; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":336
+  /* "src/player/head_controller.pyx":338
  *         self._current_temp = [float("NaN")]
  * 
  *     def hello(self, **kw):             # <<<<<<<<<<<<<<
@@ -8322,7 +8097,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":342
+/* "src/player/head_controller.pyx":344
  *         super(ExtruderExt, self).hello(**kw)
  * 
  *     def bootstrap_commands(self):             # <<<<<<<<<<<<<<
@@ -8361,51 +8136,51 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("bootstrap_commands", 0);
 
-  /* "src/player/head_controller.pyx":343
+  /* "src/player/head_controller.pyx":345
  * 
  *     def bootstrap_commands(self):
  *         cmds = []             # <<<<<<<<<<<<<<
  *         if self._fanspeed[0] >= 0:
  *             cmds.append(
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 343; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 345; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_cmds = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":344
+  /* "src/player/head_controller.pyx":346
  *     def bootstrap_commands(self):
  *         cmds = []
  *         if self._fanspeed[0] >= 0:             # <<<<<<<<<<<<<<
  *             cmds.append(
  *                 create_chksum_cmd("1 F:%i S:%i", 0, self._fanspeed[0] * 255))
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_fanspeed); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 344; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_fanspeed); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 346; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_GetItemInt(__pyx_t_1, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_2 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 344; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+  __pyx_t_2 = __Pyx_GetItemInt(__pyx_t_1, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_2 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 346; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyObject_RichCompare(__pyx_t_2, __pyx_int_0, Py_GE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 344; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyObject_RichCompare(__pyx_t_2, __pyx_int_0, Py_GE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 346; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 344; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 346; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_3) {
 
-    /* "src/player/head_controller.pyx":346
+    /* "src/player/head_controller.pyx":348
  *         if self._fanspeed[0] >= 0:
  *             cmds.append(
  *                 create_chksum_cmd("1 F:%i S:%i", 0, self._fanspeed[0] * 255))             # <<<<<<<<<<<<<<
  *         if self._temperatures[0] > 0:
  *             cmds.append(
  */
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_create_chksum_cmd); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 346; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_create_chksum_cmd); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 348; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_fanspeed); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 346; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_fanspeed); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 348; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = __Pyx_GetItemInt(__pyx_t_4, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_5 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 346; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+    __pyx_t_5 = __Pyx_GetItemInt(__pyx_t_4, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_5 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 348; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_4 = PyNumber_Multiply(__pyx_t_5, __pyx_int_255); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 346; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyNumber_Multiply(__pyx_t_5, __pyx_int_255); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 348; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __pyx_t_5 = NULL;
@@ -8420,7 +8195,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
         __pyx_t_6 = 1;
       }
     }
-    __pyx_t_7 = PyTuple_New(3+__pyx_t_6); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 346; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = PyTuple_New(3+__pyx_t_6); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 348; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
     if (__pyx_t_5) {
       __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_5); __pyx_t_5 = NULL;
@@ -8434,54 +8209,54 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
     __Pyx_GIVEREF(__pyx_t_4);
     PyTuple_SET_ITEM(__pyx_t_7, 2+__pyx_t_6, __pyx_t_4);
     __pyx_t_4 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 346; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 348; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-    /* "src/player/head_controller.pyx":345
+    /* "src/player/head_controller.pyx":347
  *         cmds = []
  *         if self._fanspeed[0] >= 0:
  *             cmds.append(             # <<<<<<<<<<<<<<
  *                 create_chksum_cmd("1 F:%i S:%i", 0, self._fanspeed[0] * 255))
  *         if self._temperatures[0] > 0:
  */
-    __pyx_t_8 = __Pyx_PyList_Append(__pyx_v_cmds, __pyx_t_1); if (unlikely(__pyx_t_8 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 345; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = __Pyx_PyList_Append(__pyx_v_cmds, __pyx_t_1); if (unlikely(__pyx_t_8 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 347; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     goto __pyx_L3;
   }
   __pyx_L3:;
 
-  /* "src/player/head_controller.pyx":347
+  /* "src/player/head_controller.pyx":349
  *             cmds.append(
  *                 create_chksum_cmd("1 F:%i S:%i", 0, self._fanspeed[0] * 255))
  *         if self._temperatures[0] > 0:             # <<<<<<<<<<<<<<
  *             cmds.append(
  *                 create_chksum_cmd("1 H:%i T:%.1f", 0, self._temperatures[0]))
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_temperatures); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 347; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_temperatures); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 349; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_GetItemInt(__pyx_t_1, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_2 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 347; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+  __pyx_t_2 = __Pyx_GetItemInt(__pyx_t_1, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_2 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 349; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyObject_RichCompare(__pyx_t_2, __pyx_int_0, Py_GT); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 347; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyObject_RichCompare(__pyx_t_2, __pyx_int_0, Py_GT); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 349; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 347; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 349; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_3) {
 
-    /* "src/player/head_controller.pyx":349
+    /* "src/player/head_controller.pyx":351
  *         if self._temperatures[0] > 0:
  *             cmds.append(
  *                 create_chksum_cmd("1 H:%i T:%.1f", 0, self._temperatures[0]))             # <<<<<<<<<<<<<<
  *         return cmds
  * 
  */
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_create_chksum_cmd); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 349; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_create_chksum_cmd); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 351; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_temperatures); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 349; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_temperatures); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 351; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_4 = __Pyx_GetItemInt(__pyx_t_7, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_4 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 349; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+    __pyx_t_4 = __Pyx_GetItemInt(__pyx_t_7, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_4 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 351; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     __pyx_t_7 = NULL;
@@ -8496,7 +8271,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
         __pyx_t_6 = 1;
       }
     }
-    __pyx_t_5 = PyTuple_New(3+__pyx_t_6); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 349; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = PyTuple_New(3+__pyx_t_6); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 351; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     if (__pyx_t_7) {
       __Pyx_GIVEREF(__pyx_t_7); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_7); __pyx_t_7 = NULL;
@@ -8510,25 +8285,25 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
     __Pyx_GIVEREF(__pyx_t_4);
     PyTuple_SET_ITEM(__pyx_t_5, 2+__pyx_t_6, __pyx_t_4);
     __pyx_t_4 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 349; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 351; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-    /* "src/player/head_controller.pyx":348
+    /* "src/player/head_controller.pyx":350
  *                 create_chksum_cmd("1 F:%i S:%i", 0, self._fanspeed[0] * 255))
  *         if self._temperatures[0] > 0:
  *             cmds.append(             # <<<<<<<<<<<<<<
  *                 create_chksum_cmd("1 H:%i T:%.1f", 0, self._temperatures[0]))
  *         return cmds
  */
-    __pyx_t_8 = __Pyx_PyList_Append(__pyx_v_cmds, __pyx_t_1); if (unlikely(__pyx_t_8 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 348; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = __Pyx_PyList_Append(__pyx_v_cmds, __pyx_t_1); if (unlikely(__pyx_t_8 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 350; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     goto __pyx_L4;
   }
   __pyx_L4:;
 
-  /* "src/player/head_controller.pyx":350
+  /* "src/player/head_controller.pyx":352
  *             cmds.append(
  *                 create_chksum_cmd("1 H:%i T:%.1f", 0, self._temperatures[0]))
  *         return cmds             # <<<<<<<<<<<<<<
@@ -8540,7 +8315,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   __pyx_r = __pyx_v_cmds;
   goto __pyx_L0;
 
-  /* "src/player/head_controller.pyx":342
+  /* "src/player/head_controller.pyx":344
  *         super(ExtruderExt, self).hello(**kw)
  * 
  *     def bootstrap_commands(self):             # <<<<<<<<<<<<<<
@@ -8564,7 +8339,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":352
+/* "src/player/head_controller.pyx":354
  *         return cmds
  * 
  *     def status(self):             # <<<<<<<<<<<<<<
@@ -8597,7 +8372,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("status", 0);
 
-  /* "src/player/head_controller.pyx":353
+  /* "src/player/head_controller.pyx":355
  * 
  *     def status(self):
  *         return {             # <<<<<<<<<<<<<<
@@ -8605,58 +8380,18 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
  *             "tt": (self._temperatures[0], ),
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 353; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 355; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_module, __pyx_n_s_EXTRUDER) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 353; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_module, __pyx_n_s_EXTRUDER) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 355; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/player/head_controller.pyx":355
+  /* "src/player/head_controller.pyx":357
  *         return {
  *             "module": "EXTRUDER",
  *             "tt": (self._temperatures[0], ),             # <<<<<<<<<<<<<<
  *             "rt": (self._current_temp[0], ),
  *             "tf": (self._fanspeed[0], )
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_temperatures); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 355; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_GetItemInt(__pyx_t_2, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_3 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 355; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 355; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_3);
-  __pyx_t_3 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_tt, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 353; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-
-  /* "src/player/head_controller.pyx":356
- *             "module": "EXTRUDER",
- *             "tt": (self._temperatures[0], ),
- *             "rt": (self._current_temp[0], ),             # <<<<<<<<<<<<<<
- *             "tf": (self._fanspeed[0], )
- *         }
- */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_temp); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 356; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_GetItemInt(__pyx_t_2, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_3 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 356; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 356; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_3);
-  __pyx_t_3 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_rt, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 353; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-
-  /* "src/player/head_controller.pyx":357
- *             "tt": (self._temperatures[0], ),
- *             "rt": (self._current_temp[0], ),
- *             "tf": (self._fanspeed[0], )             # <<<<<<<<<<<<<<
- *         }
- * 
- */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_fanspeed); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 357; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_temperatures); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 357; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = __Pyx_GetItemInt(__pyx_t_2, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_3 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 357; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   __Pyx_GOTREF(__pyx_t_3);
@@ -8666,13 +8401,53 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_3);
   __pyx_t_3 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_tf, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 353; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_tt, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 355; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "src/player/head_controller.pyx":358
+ *             "module": "EXTRUDER",
+ *             "tt": (self._temperatures[0], ),
+ *             "rt": (self._current_temp[0], ),             # <<<<<<<<<<<<<<
+ *             "tf": (self._fanspeed[0], )
+ *         }
+ */
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_temp); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 358; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = __Pyx_GetItemInt(__pyx_t_2, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_3 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 358; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 358; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_GIVEREF(__pyx_t_3);
+  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_3);
+  __pyx_t_3 = 0;
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_rt, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 355; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "src/player/head_controller.pyx":359
+ *             "tt": (self._temperatures[0], ),
+ *             "rt": (self._current_temp[0], ),
+ *             "tf": (self._fanspeed[0], )             # <<<<<<<<<<<<<<
+ *         }
+ * 
+ */
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_fanspeed); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 359; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = __Pyx_GetItemInt(__pyx_t_2, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_3 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 359; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 359; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_GIVEREF(__pyx_t_3);
+  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_3);
+  __pyx_t_3 = 0;
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_tf, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 355; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "src/player/head_controller.pyx":352
+  /* "src/player/head_controller.pyx":354
  *         return cmds
  * 
  *     def status(self):             # <<<<<<<<<<<<<<
@@ -8693,7 +8468,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":360
+/* "src/player/head_controller.pyx":362
  *         }
  * 
  *     def set_heater(self, int heater_id, float temperature):             # <<<<<<<<<<<<<<
@@ -8735,16 +8510,16 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_11ExtruderExt
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_heater_id)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("set_heater", 1, 3, 3, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 360; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("set_heater", 1, 3, 3, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 362; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_temperature)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("set_heater", 1, 3, 3, 2); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 360; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("set_heater", 1, 3, 3, 2); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 362; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "set_heater") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 360; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "set_heater") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 362; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -8754,12 +8529,12 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_11ExtruderExt
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
     }
     __pyx_v_self = values[0];
-    __pyx_v_heater_id = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_heater_id == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 360; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
-    __pyx_v_temperature = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_temperature == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 360; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+    __pyx_v_heater_id = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_heater_id == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 362; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+    __pyx_v_temperature = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_temperature == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 362; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("set_heater", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 360; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("set_heater", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 362; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("fluxmonitor.player._head_controller.ExtruderExt.set_heater", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -8788,7 +8563,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("set_heater", 0);
 
-  /* "src/player/head_controller.pyx":361
+  /* "src/player/head_controller.pyx":363
  * 
  *     def set_heater(self, int heater_id, float temperature):
  *         if temperature < 5:             # <<<<<<<<<<<<<<
@@ -8798,47 +8573,12 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   __pyx_t_1 = ((__pyx_v_temperature < 5.0) != 0);
   if (__pyx_t_1) {
 
-    /* "src/player/head_controller.pyx":362
+    /* "src/player/head_controller.pyx":364
  *     def set_heater(self, int heater_id, float temperature):
  *         if temperature < 5:
  *             raise RuntimeError(EXEC_OPERATION_ERROR, "BAD TEMP")             # <<<<<<<<<<<<<<
  *         elif temperature > 280:
  *             raise SystemError(EXEC_OPERATION_ERROR, "BAD TEMP")
- */
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_OPERATION_ERROR); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 362; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 362; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_GIVEREF(__pyx_t_2);
-    PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2);
-    __Pyx_INCREF(__pyx_kp_s_BAD_TEMP);
-    __Pyx_GIVEREF(__pyx_kp_s_BAD_TEMP);
-    PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_kp_s_BAD_TEMP);
-    __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 362; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __Pyx_Raise(__pyx_t_2, 0, 0, 0);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 362; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  }
-
-  /* "src/player/head_controller.pyx":363
- *         if temperature < 5:
- *             raise RuntimeError(EXEC_OPERATION_ERROR, "BAD TEMP")
- *         elif temperature > 280:             # <<<<<<<<<<<<<<
- *             raise SystemError(EXEC_OPERATION_ERROR, "BAD TEMP")
- * 
- */
-  __pyx_t_1 = ((__pyx_v_temperature > 280.0) != 0);
-  if (__pyx_t_1) {
-
-    /* "src/player/head_controller.pyx":364
- *             raise RuntimeError(EXEC_OPERATION_ERROR, "BAD TEMP")
- *         elif temperature > 280:
- *             raise SystemError(EXEC_OPERATION_ERROR, "BAD TEMP")             # <<<<<<<<<<<<<<
- * 
- *         self._temperatures[0] = temperature
  */
     __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_OPERATION_ERROR); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 364; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
@@ -8850,7 +8590,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
     __Pyx_GIVEREF(__pyx_kp_s_BAD_TEMP);
     PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_kp_s_BAD_TEMP);
     __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_SystemError, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 364; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 364; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
@@ -8858,22 +8598,57 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 364; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "src/player/head_controller.pyx":366
+  /* "src/player/head_controller.pyx":365
+ *         if temperature < 5:
+ *             raise RuntimeError(EXEC_OPERATION_ERROR, "BAD TEMP")
+ *         elif temperature > 280:             # <<<<<<<<<<<<<<
+ *             raise SystemError(EXEC_OPERATION_ERROR, "BAD TEMP")
+ * 
+ */
+  __pyx_t_1 = ((__pyx_v_temperature > 280.0) != 0);
+  if (__pyx_t_1) {
+
+    /* "src/player/head_controller.pyx":366
+ *             raise RuntimeError(EXEC_OPERATION_ERROR, "BAD TEMP")
+ *         elif temperature > 280:
+ *             raise SystemError(EXEC_OPERATION_ERROR, "BAD TEMP")             # <<<<<<<<<<<<<<
+ * 
+ *         self._temperatures[0] = temperature
+ */
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_OPERATION_ERROR); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 366; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 366; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_GIVEREF(__pyx_t_2);
+    PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2);
+    __Pyx_INCREF(__pyx_kp_s_BAD_TEMP);
+    __Pyx_GIVEREF(__pyx_kp_s_BAD_TEMP);
+    PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_kp_s_BAD_TEMP);
+    __pyx_t_2 = 0;
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_SystemError, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 366; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_Raise(__pyx_t_2, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 366; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  }
+
+  /* "src/player/head_controller.pyx":368
  *             raise SystemError(EXEC_OPERATION_ERROR, "BAD TEMP")
  * 
  *         self._temperatures[0] = temperature             # <<<<<<<<<<<<<<
  *         return create_chksum_cmd("1 H:%i T:%.1f", heater_id, temperature)
  * 
  */
-  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_temperature); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 366; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_temperature); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 368; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_temperatures); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 366; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_temperatures); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 368; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  if (unlikely(__Pyx_SetItemInt(__pyx_t_3, 0, __pyx_t_2, long, 1, __Pyx_PyInt_From_long, 0, 0, 1) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 366; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (unlikely(__Pyx_SetItemInt(__pyx_t_3, 0, __pyx_t_2, long, 1, __Pyx_PyInt_From_long, 0, 0, 1) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 368; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "src/player/head_controller.pyx":367
+  /* "src/player/head_controller.pyx":369
  * 
  *         self._temperatures[0] = temperature
  *         return create_chksum_cmd("1 H:%i T:%.1f", heater_id, temperature)             # <<<<<<<<<<<<<<
@@ -8881,11 +8656,11 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
  *     def set_fanspeed(self, int fan_id, float fan_speed):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_create_chksum_cmd); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 367; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_create_chksum_cmd); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 369; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_heater_id); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 367; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_heater_id); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 369; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyFloat_FromDouble(__pyx_v_temperature); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 367; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = PyFloat_FromDouble(__pyx_v_temperature); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 369; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_6 = NULL;
   __pyx_t_7 = 0;
@@ -8899,7 +8674,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
       __pyx_t_7 = 1;
     }
   }
-  __pyx_t_8 = PyTuple_New(3+__pyx_t_7); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 367; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_8 = PyTuple_New(3+__pyx_t_7); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 369; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_8);
   if (__pyx_t_6) {
     __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_6); __pyx_t_6 = NULL;
@@ -8913,7 +8688,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   PyTuple_SET_ITEM(__pyx_t_8, 2+__pyx_t_7, __pyx_t_5);
   __pyx_t_4 = 0;
   __pyx_t_5 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_8, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 367; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_8, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 369; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -8921,7 +8696,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "src/player/head_controller.pyx":360
+  /* "src/player/head_controller.pyx":362
  *         }
  * 
  *     def set_heater(self, int heater_id, float temperature):             # <<<<<<<<<<<<<<
@@ -8945,7 +8720,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":369
+/* "src/player/head_controller.pyx":371
  *         return create_chksum_cmd("1 H:%i T:%.1f", heater_id, temperature)
  * 
  *     def set_fanspeed(self, int fan_id, float fan_speed):             # <<<<<<<<<<<<<<
@@ -8987,16 +8762,16 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_11ExtruderExt
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_fan_id)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("set_fanspeed", 1, 3, 3, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 369; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("set_fanspeed", 1, 3, 3, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 371; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_fan_speed)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("set_fanspeed", 1, 3, 3, 2); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 369; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("set_fanspeed", 1, 3, 3, 2); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 371; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "set_fanspeed") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 369; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "set_fanspeed") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 371; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -9006,12 +8781,12 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_11ExtruderExt
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
     }
     __pyx_v_self = values[0];
-    __pyx_v_fan_id = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_fan_id == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 369; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
-    __pyx_v_fan_speed = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_fan_speed == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 369; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+    __pyx_v_fan_id = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_fan_id == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 371; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+    __pyx_v_fan_speed = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_fan_speed == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 371; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("set_fanspeed", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 369; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("set_fanspeed", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 371; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("fluxmonitor.player._head_controller.ExtruderExt.set_fanspeed", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -9044,7 +8819,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("set_fanspeed", 0);
 
-  /* "src/player/head_controller.pyx":370
+  /* "src/player/head_controller.pyx":372
  * 
  *     def set_fanspeed(self, int fan_id, float fan_speed):
  *         self._fanspeed[fan_id] = f = max(min(1.0, fan_speed), 0)             # <<<<<<<<<<<<<<
@@ -9066,16 +8841,16 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
     __pyx_t_4 = __pyx_t_3;
   }
   __pyx_t_3 = __pyx_t_4;
-  __pyx_t_5 = PyFloat_FromDouble(__pyx_t_3); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 370; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = PyFloat_FromDouble(__pyx_t_3); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 372; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_fanspeed); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 370; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_fanspeed); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 372; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_6);
-  if (unlikely(__Pyx_SetItemInt(__pyx_t_6, __pyx_v_fan_id, __pyx_t_5, int, 1, __Pyx_PyInt_From_int, 0, 1, 1) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 370; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (unlikely(__Pyx_SetItemInt(__pyx_t_6, __pyx_v_fan_id, __pyx_t_5, int, 1, __Pyx_PyInt_From_int, 0, 1, 1) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 372; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __pyx_v_f = __pyx_t_3;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "src/player/head_controller.pyx":371
+  /* "src/player/head_controller.pyx":373
  *     def set_fanspeed(self, int fan_id, float fan_speed):
  *         self._fanspeed[fan_id] = f = max(min(1.0, fan_speed), 0)
  *         return create_chksum_cmd("1 F:%i S:%i", fan_id, f * 255)             # <<<<<<<<<<<<<<
@@ -9083,11 +8858,11 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
  *     def generate_command(self, cmd):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_create_chksum_cmd); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 371; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_create_chksum_cmd); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 373; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_7 = __Pyx_PyInt_From_int(__pyx_v_fan_id); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 371; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_7 = __Pyx_PyInt_From_int(__pyx_v_fan_id); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 373; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_8 = PyFloat_FromDouble((__pyx_v_f * 255.0)); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 371; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_8 = PyFloat_FromDouble((__pyx_v_f * 255.0)); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 373; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_8);
   __pyx_t_9 = NULL;
   __pyx_t_10 = 0;
@@ -9101,7 +8876,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
       __pyx_t_10 = 1;
     }
   }
-  __pyx_t_11 = PyTuple_New(3+__pyx_t_10); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 371; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_11 = PyTuple_New(3+__pyx_t_10); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 373; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_11);
   if (__pyx_t_9) {
     __Pyx_GIVEREF(__pyx_t_9); PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_9); __pyx_t_9 = NULL;
@@ -9115,7 +8890,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   PyTuple_SET_ITEM(__pyx_t_11, 2+__pyx_t_10, __pyx_t_8);
   __pyx_t_7 = 0;
   __pyx_t_8 = 0;
-  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_11, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 371; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_11, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 373; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
@@ -9123,7 +8898,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   __pyx_t_5 = 0;
   goto __pyx_L0;
 
-  /* "src/player/head_controller.pyx":369
+  /* "src/player/head_controller.pyx":371
  *         return create_chksum_cmd("1 H:%i T:%.1f", heater_id, temperature)
  * 
  *     def set_fanspeed(self, int fan_id, float fan_speed):             # <<<<<<<<<<<<<<
@@ -9147,7 +8922,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":373
+/* "src/player/head_controller.pyx":375
  *         return create_chksum_cmd("1 F:%i S:%i", fan_id, f * 255)
  * 
  *     def generate_command(self, cmd):             # <<<<<<<<<<<<<<
@@ -9187,11 +8962,11 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_11ExtruderExt
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_cmd)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("generate_command", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 373; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("generate_command", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 375; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "generate_command") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 373; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "generate_command") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 375; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -9204,7 +8979,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("generate_command", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 373; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("generate_command", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 375; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("fluxmonitor.player._head_controller.ExtruderExt.generate_command", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -9235,36 +9010,36 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("generate_command", 0);
 
-  /* "src/player/head_controller.pyx":374
+  /* "src/player/head_controller.pyx":376
  * 
  *     def generate_command(self, cmd):
  *         if cmd.startswith("H"):             # <<<<<<<<<<<<<<
  *             target_temp = float(cmd[1:])
  *             return self.set_heater(0, target_temp)
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_cmd, __pyx_n_s_startswith); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 374; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_cmd, __pyx_n_s_startswith); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 376; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__17, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 374; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__15, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 376; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 374; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 376; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   if (__pyx_t_3) {
 
-    /* "src/player/head_controller.pyx":375
+    /* "src/player/head_controller.pyx":377
  *     def generate_command(self, cmd):
  *         if cmd.startswith("H"):
  *             target_temp = float(cmd[1:])             # <<<<<<<<<<<<<<
  *             return self.set_heater(0, target_temp)
  *         elif cmd.startswith("F"):
  */
-    __pyx_t_2 = __Pyx_PyObject_GetSlice(__pyx_v_cmd, 1, 0, NULL, NULL, &__pyx_slice__18, 1, 0, 1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 375; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_PyObject_GetSlice(__pyx_v_cmd, 1, 0, NULL, NULL, &__pyx_slice__16, 1, 0, 1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 377; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_4 = __Pyx_PyObject_AsDouble(__pyx_t_2); if (unlikely(__pyx_t_4 == ((double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 375; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_AsDouble(__pyx_t_2); if (unlikely(__pyx_t_4 == ((double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 377; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_v_target_temp = __pyx_t_4;
 
-    /* "src/player/head_controller.pyx":376
+    /* "src/player/head_controller.pyx":378
  *         if cmd.startswith("H"):
  *             target_temp = float(cmd[1:])
  *             return self.set_heater(0, target_temp)             # <<<<<<<<<<<<<<
@@ -9272,9 +9047,9 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
  *             target_speed = float(cmd[1:])
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_set_heater); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 376; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_set_heater); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 378; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_5 = PyFloat_FromDouble(__pyx_v_target_temp); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 376; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = PyFloat_FromDouble(__pyx_v_target_temp); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 378; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     __pyx_t_6 = NULL;
     __pyx_t_7 = 0;
@@ -9288,7 +9063,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
         __pyx_t_7 = 1;
       }
     }
-    __pyx_t_8 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 376; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 378; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
     if (__pyx_t_6) {
       __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_6); __pyx_t_6 = NULL;
@@ -9299,7 +9074,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
     __Pyx_GIVEREF(__pyx_t_5);
     PyTuple_SET_ITEM(__pyx_t_8, 1+__pyx_t_7, __pyx_t_5);
     __pyx_t_5 = 0;
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_8, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 376; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_8, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 378; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -9308,36 +9083,36 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
     goto __pyx_L0;
   }
 
-  /* "src/player/head_controller.pyx":377
+  /* "src/player/head_controller.pyx":379
  *             target_temp = float(cmd[1:])
  *             return self.set_heater(0, target_temp)
  *         elif cmd.startswith("F"):             # <<<<<<<<<<<<<<
  *             target_speed = float(cmd[1:])
  *             return self.set_fanspeed(0, target_speed)
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_cmd, __pyx_n_s_startswith); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 377; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_cmd, __pyx_n_s_startswith); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 379; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__19, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 377; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__17, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 379; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 377; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 379; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_3) {
 
-    /* "src/player/head_controller.pyx":378
+    /* "src/player/head_controller.pyx":380
  *             return self.set_heater(0, target_temp)
  *         elif cmd.startswith("F"):
  *             target_speed = float(cmd[1:])             # <<<<<<<<<<<<<<
  *             return self.set_fanspeed(0, target_speed)
  *         else:
  */
-    __pyx_t_1 = __Pyx_PyObject_GetSlice(__pyx_v_cmd, 1, 0, NULL, NULL, &__pyx_slice__20, 1, 0, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 378; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_GetSlice(__pyx_v_cmd, 1, 0, NULL, NULL, &__pyx_slice__18, 1, 0, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 380; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_4 = __Pyx_PyObject_AsDouble(__pyx_t_1); if (unlikely(__pyx_t_4 == ((double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 378; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_AsDouble(__pyx_t_1); if (unlikely(__pyx_t_4 == ((double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 380; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_v_target_speed = __pyx_t_4;
 
-    /* "src/player/head_controller.pyx":379
+    /* "src/player/head_controller.pyx":381
  *         elif cmd.startswith("F"):
  *             target_speed = float(cmd[1:])
  *             return self.set_fanspeed(0, target_speed)             # <<<<<<<<<<<<<<
@@ -9345,9 +9120,9 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
  *             return
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_set_fanspeed); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 379; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_set_fanspeed); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 381; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_8 = PyFloat_FromDouble(__pyx_v_target_speed); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 379; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = PyFloat_FromDouble(__pyx_v_target_speed); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 381; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
     __pyx_t_5 = NULL;
     __pyx_t_7 = 0;
@@ -9361,7 +9136,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
         __pyx_t_7 = 1;
       }
     }
-    __pyx_t_6 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 379; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_6 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 381; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_6);
     if (__pyx_t_5) {
       __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_5); __pyx_t_5 = NULL;
@@ -9372,7 +9147,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
     __Pyx_GIVEREF(__pyx_t_8);
     PyTuple_SET_ITEM(__pyx_t_6, 1+__pyx_t_7, __pyx_t_8);
     __pyx_t_8 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 379; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 381; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -9382,7 +9157,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   }
   /*else*/ {
 
-    /* "src/player/head_controller.pyx":381
+    /* "src/player/head_controller.pyx":383
  *             return self.set_fanspeed(0, target_speed)
  *         else:
  *             return             # <<<<<<<<<<<<<<
@@ -9394,7 +9169,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
     goto __pyx_L0;
   }
 
-  /* "src/player/head_controller.pyx":373
+  /* "src/player/head_controller.pyx":375
  *         return create_chksum_cmd("1 F:%i S:%i", fan_id, f * 255)
  * 
  *     def generate_command(self, cmd):             # <<<<<<<<<<<<<<
@@ -9417,7 +9192,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":383
+/* "src/player/head_controller.pyx":385
  *             return
  * 
  *     def update_status(self, key, value):             # <<<<<<<<<<<<<<
@@ -9459,16 +9234,16 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_11ExtruderExt
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_key)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("update_status", 1, 3, 3, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 383; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("update_status", 1, 3, 3, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 385; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_value)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("update_status", 1, 3, 3, 2); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 383; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("update_status", 1, 3, 3, 2); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 385; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "update_status") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 383; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "update_status") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 385; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -9483,7 +9258,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("update_status", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 383; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("update_status", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 385; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("fluxmonitor.player._head_controller.ExtruderExt.update_status", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -9508,36 +9283,36 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("update_status", 0);
 
-  /* "src/player/head_controller.pyx":384
+  /* "src/player/head_controller.pyx":386
  * 
  *     def update_status(self, key, value):
  *         if key == "RT":             # <<<<<<<<<<<<<<
  *             self._current_temp[0] = float(value)
  * 
  */
-  __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_key, __pyx_n_s_RT, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 384; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_key, __pyx_n_s_RT, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 386; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (__pyx_t_1) {
 
-    /* "src/player/head_controller.pyx":385
+    /* "src/player/head_controller.pyx":387
  *     def update_status(self, key, value):
  *         if key == "RT":
  *             self._current_temp[0] = float(value)             # <<<<<<<<<<<<<<
  * 
  *     def on_message(self, message):
  */
-    __pyx_t_2 = __Pyx_PyObject_AsDouble(__pyx_v_value); if (unlikely(__pyx_t_2 == ((double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 385; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __pyx_t_3 = PyFloat_FromDouble(__pyx_t_2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 385; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_PyObject_AsDouble(__pyx_v_value); if (unlikely(__pyx_t_2 == ((double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 387; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = PyFloat_FromDouble(__pyx_t_2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 387; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_temp); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 385; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_temp); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 387; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
-    if (unlikely(__Pyx_SetItemInt(__pyx_t_4, 0, __pyx_t_3, long, 1, __Pyx_PyInt_From_long, 0, 0, 1) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 385; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (unlikely(__Pyx_SetItemInt(__pyx_t_4, 0, __pyx_t_3, long, 1, __Pyx_PyInt_From_long, 0, 0, 1) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 387; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     goto __pyx_L3;
   }
   __pyx_L3:;
 
-  /* "src/player/head_controller.pyx":383
+  /* "src/player/head_controller.pyx":385
  *             return
  * 
  *     def update_status(self, key, value):             # <<<<<<<<<<<<<<
@@ -9559,7 +9334,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":387
+/* "src/player/head_controller.pyx":389
  *             self._current_temp[0] = float(value)
  * 
  *     def on_message(self, message):             # <<<<<<<<<<<<<<
@@ -9599,11 +9374,11 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_11ExtruderExt
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_message)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("on_message", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 387; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("on_message", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 389; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "on_message") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 387; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "on_message") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 389; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -9616,7 +9391,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("on_message", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 387; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("on_message", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 389; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("fluxmonitor.player._head_controller.ExtruderExt.on_message", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -9634,7 +9409,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("on_message", 0);
 
-  /* "src/player/head_controller.pyx":388
+  /* "src/player/head_controller.pyx":390
  * 
  *     def on_message(self, message):
  *         return False             # <<<<<<<<<<<<<<
@@ -9646,7 +9421,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   __pyx_r = Py_False;
   goto __pyx_L0;
 
-  /* "src/player/head_controller.pyx":387
+  /* "src/player/head_controller.pyx":389
  *             self._current_temp[0] = float(value)
  * 
  *     def on_message(self, message):             # <<<<<<<<<<<<<<
@@ -9661,7 +9436,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":390
+/* "src/player/head_controller.pyx":392
  *         return False
  * 
  *     def all_set(self):             # <<<<<<<<<<<<<<
@@ -9695,55 +9470,55 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("all_set", 0);
 
-  /* "src/player/head_controller.pyx":391
+  /* "src/player/head_controller.pyx":393
  * 
  *     def all_set(self):
  *         if self._temperatures[0] > 0:             # <<<<<<<<<<<<<<
  *             if abs(self._temperatures[0] - self._current_temp[0]) < 3:
  *                 return True
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_temperatures); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 391; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_temperatures); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 393; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_GetItemInt(__pyx_t_1, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_2 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 391; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+  __pyx_t_2 = __Pyx_GetItemInt(__pyx_t_1, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_2 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 393; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyObject_RichCompare(__pyx_t_2, __pyx_int_0, Py_GT); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 391; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyObject_RichCompare(__pyx_t_2, __pyx_int_0, Py_GT); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 393; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 391; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 393; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_3) {
 
-    /* "src/player/head_controller.pyx":392
+    /* "src/player/head_controller.pyx":394
  *     def all_set(self):
  *         if self._temperatures[0] > 0:
  *             if abs(self._temperatures[0] - self._current_temp[0]) < 3:             # <<<<<<<<<<<<<<
  *                 return True
  *             else:
  */
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_temperatures); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 392; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_temperatures); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 394; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = __Pyx_GetItemInt(__pyx_t_1, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_2 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 392; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+    __pyx_t_2 = __Pyx_GetItemInt(__pyx_t_1, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_2 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 394; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_temp); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 392; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_temp); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 394; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_4 = __Pyx_GetItemInt(__pyx_t_1, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_4 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 392; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+    __pyx_t_4 = __Pyx_GetItemInt(__pyx_t_1, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_4 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 394; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = PyNumber_Subtract(__pyx_t_2, __pyx_t_4); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 392; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = PyNumber_Subtract(__pyx_t_2, __pyx_t_4); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 394; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_4 = PyNumber_Absolute(__pyx_t_1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 392; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyNumber_Absolute(__pyx_t_1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 394; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = PyObject_RichCompare(__pyx_t_4, __pyx_int_3, Py_LT); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 392; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = PyObject_RichCompare(__pyx_t_4, __pyx_int_3, Py_LT); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 394; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 392; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 394; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     if (__pyx_t_3) {
 
-      /* "src/player/head_controller.pyx":393
+      /* "src/player/head_controller.pyx":395
  *         if self._temperatures[0] > 0:
  *             if abs(self._temperatures[0] - self._current_temp[0]) < 3:
  *                 return True             # <<<<<<<<<<<<<<
@@ -9757,7 +9532,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
     }
     /*else*/ {
 
-      /* "src/player/head_controller.pyx":395
+      /* "src/player/head_controller.pyx":397
  *                 return True
  *             else:
  *                 return False             # <<<<<<<<<<<<<<
@@ -9771,7 +9546,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
     }
   }
 
-  /* "src/player/head_controller.pyx":396
+  /* "src/player/head_controller.pyx":398
  *             else:
  *                 return False
  *         return True             # <<<<<<<<<<<<<<
@@ -9783,7 +9558,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   __pyx_r = Py_True;
   goto __pyx_L0;
 
-  /* "src/player/head_controller.pyx":390
+  /* "src/player/head_controller.pyx":392
  *         return False
  * 
  *     def all_set(self):             # <<<<<<<<<<<<<<
@@ -9804,7 +9579,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":400
+/* "src/player/head_controller.pyx":402
  * 
  * class LaserExt(BaseExt):
  *     def hello(self, **kw):             # <<<<<<<<<<<<<<
@@ -9844,7 +9619,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_8LaserExt_1he
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, __pyx_v_kw, values, pos_args, "hello") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 400; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, __pyx_v_kw, values, pos_args, "hello") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 402; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 1) {
       goto __pyx_L5_argtuple_error;
@@ -9855,7 +9630,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_8LaserExt_1he
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("hello", 1, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 400; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("hello", 1, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 402; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_kw); __pyx_v_kw = 0;
   __Pyx_AddTraceback("fluxmonitor.player._head_controller.LaserExt.hello", __pyx_clineno, __pyx_lineno, __pyx_filename);
@@ -9883,40 +9658,40 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_8LaserExt_hel
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("hello", 0);
 
-  /* "src/player/head_controller.pyx":401
+  /* "src/player/head_controller.pyx":403
  * class LaserExt(BaseExt):
  *     def hello(self, **kw):
  *         m = kw.get("TYPE", "UNKNOW")             # <<<<<<<<<<<<<<
  *         if m != "LASER":
  *             raise RuntimeError(EXEC_WRONG_HEAD, "GOT_%s" % m)
  */
-  __pyx_t_1 = __Pyx_PyDict_GetItemDefault(__pyx_v_kw, __pyx_n_s_TYPE, __pyx_n_s_UNKNOW); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 401; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyDict_GetItemDefault(__pyx_v_kw, __pyx_n_s_TYPE, __pyx_n_s_UNKNOW); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 403; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_m = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":402
+  /* "src/player/head_controller.pyx":404
  *     def hello(self, **kw):
  *         m = kw.get("TYPE", "UNKNOW")
  *         if m != "LASER":             # <<<<<<<<<<<<<<
  *             raise RuntimeError(EXEC_WRONG_HEAD, "GOT_%s" % m)
  *         super(LaserExt, self).hello(**kw)
  */
-  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_m, __pyx_n_s_LASER, Py_NE)); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 402; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_m, __pyx_n_s_LASER, Py_NE)); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 404; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (__pyx_t_2) {
 
-    /* "src/player/head_controller.pyx":403
+    /* "src/player/head_controller.pyx":405
  *         m = kw.get("TYPE", "UNKNOW")
  *         if m != "LASER":
  *             raise RuntimeError(EXEC_WRONG_HEAD, "GOT_%s" % m)             # <<<<<<<<<<<<<<
  *         super(LaserExt, self).hello(**kw)
  * 
  */
-    __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_WRONG_HEAD); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 403; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_WRONG_HEAD); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 405; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_3 = __Pyx_PyString_Format(__pyx_kp_s_GOT__s, __pyx_v_m); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 403; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyString_Format(__pyx_kp_s_GOT__s, __pyx_v_m); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 405; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 403; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 405; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_GIVEREF(__pyx_t_1);
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
@@ -9924,24 +9699,24 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_8LaserExt_hel
     PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_3);
     __pyx_t_1 = 0;
     __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 403; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 405; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 403; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 405; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "src/player/head_controller.pyx":404
+  /* "src/player/head_controller.pyx":406
  *         if m != "LASER":
  *             raise RuntimeError(EXEC_WRONG_HEAD, "GOT_%s" % m)
  *         super(LaserExt, self).hello(**kw)             # <<<<<<<<<<<<<<
  * 
  *     def status(self):
  */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_LaserExt); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 404; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_LaserExt); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 406; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 404; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 406; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3);
@@ -9949,21 +9724,21 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_8LaserExt_hel
   __Pyx_GIVEREF(__pyx_v_self);
   PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_v_self);
   __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_super, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 404; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_super, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 406; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_hello); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 404; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_hello); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 406; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_3 = __pyx_v_kw;
   __Pyx_INCREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_empty_tuple, __pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 404; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_empty_tuple, __pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 406; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":400
+  /* "src/player/head_controller.pyx":402
  * 
  * class LaserExt(BaseExt):
  *     def hello(self, **kw):             # <<<<<<<<<<<<<<
@@ -9987,7 +9762,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_8LaserExt_hel
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":406
+/* "src/player/head_controller.pyx":408
  *         super(LaserExt, self).hello(**kw)
  * 
  *     def status(self):             # <<<<<<<<<<<<<<
@@ -10018,7 +9793,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_8LaserExt_2st
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("status", 0);
 
-  /* "src/player/head_controller.pyx":407
+  /* "src/player/head_controller.pyx":409
  * 
  *     def status(self):
  *         return {"module": "LASER",}             # <<<<<<<<<<<<<<
@@ -10026,14 +9801,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_8LaserExt_2st
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 407; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 409; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_module, __pyx_n_s_LASER) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 407; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_module, __pyx_n_s_LASER) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 409; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "src/player/head_controller.pyx":406
+  /* "src/player/head_controller.pyx":408
  *         super(LaserExt, self).hello(**kw)
  * 
  *     def status(self):             # <<<<<<<<<<<<<<
@@ -10052,7 +9827,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_8LaserExt_2st
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":411
+/* "src/player/head_controller.pyx":413
  * 
  * class NAExt(BaseExt):
  *     def hello(self, **kw):             # <<<<<<<<<<<<<<
@@ -10092,7 +9867,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_5NAExt_1hello
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, __pyx_v_kw, values, pos_args, "hello") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 411; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, __pyx_v_kw, values, pos_args, "hello") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 413; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 1) {
       goto __pyx_L5_argtuple_error;
@@ -10103,7 +9878,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_5NAExt_1hello
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("hello", 1, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 411; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("hello", 1, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 413; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_kw); __pyx_v_kw = 0;
   __Pyx_AddTraceback("fluxmonitor.player._head_controller.NAExt.hello", __pyx_clineno, __pyx_lineno, __pyx_filename);
@@ -10130,30 +9905,30 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_5NAExt_hello(
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("hello", 0);
 
-  /* "src/player/head_controller.pyx":412
+  /* "src/player/head_controller.pyx":414
  * class NAExt(BaseExt):
  *     def hello(self, **kw):
  *         m = kw.get("TYPE", "UNKNOW")             # <<<<<<<<<<<<<<
  *         raise RuntimeError(EXEC_NEED_REMOVE_HEAD, "GOT_%s" % m)
  * 
  */
-  __pyx_t_1 = __Pyx_PyDict_GetItemDefault(__pyx_v_kw, __pyx_n_s_TYPE, __pyx_n_s_UNKNOW); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 412; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyDict_GetItemDefault(__pyx_v_kw, __pyx_n_s_TYPE, __pyx_n_s_UNKNOW); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 414; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_m = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":413
+  /* "src/player/head_controller.pyx":415
  *     def hello(self, **kw):
  *         m = kw.get("TYPE", "UNKNOW")
  *         raise RuntimeError(EXEC_NEED_REMOVE_HEAD, "GOT_%s" % m)             # <<<<<<<<<<<<<<
  * 
  *     def status(self):
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_NEED_REMOVE_HEAD); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 413; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_NEED_REMOVE_HEAD); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 415; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyString_Format(__pyx_kp_s_GOT__s, __pyx_v_m); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 413; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyString_Format(__pyx_kp_s_GOT__s, __pyx_v_m); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 415; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 413; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 415; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
@@ -10161,14 +9936,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_5NAExt_hello(
   PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_2);
   __pyx_t_1 = 0;
   __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 413; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 415; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_Raise(__pyx_t_2, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  {__pyx_filename = __pyx_f[0]; __pyx_lineno = 413; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  {__pyx_filename = __pyx_f[0]; __pyx_lineno = 415; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/player/head_controller.pyx":411
+  /* "src/player/head_controller.pyx":413
  * 
  * class NAExt(BaseExt):
  *     def hello(self, **kw):             # <<<<<<<<<<<<<<
@@ -10189,7 +9964,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_5NAExt_hello(
   return __pyx_r;
 }
 
-/* "src/player/head_controller.pyx":415
+/* "src/player/head_controller.pyx":417
  *         raise RuntimeError(EXEC_NEED_REMOVE_HEAD, "GOT_%s" % m)
  * 
  *     def status(self):             # <<<<<<<<<<<<<<
@@ -10219,20 +9994,20 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_5NAExt_2statu
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("status", 0);
 
-  /* "src/player/head_controller.pyx":416
+  /* "src/player/head_controller.pyx":418
  * 
  *     def status(self):
  *         return {"module": "N/A",}             # <<<<<<<<<<<<<<
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 416; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 418; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_module, __pyx_kp_s_N_A) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 416; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_module, __pyx_kp_s_N_A) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 418; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "src/player/head_controller.pyx":415
+  /* "src/player/head_controller.pyx":417
  *         raise RuntimeError(EXEC_NEED_REMOVE_HEAD, "GOT_%s" % m)
  * 
  *     def status(self):             # <<<<<<<<<<<<<<
@@ -10249,6 +10024,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_5NAExt_2statu
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
+static struct __pyx_vtabstruct_11fluxmonitor_6player_16_head_controller_HeadController __pyx_vtable_11fluxmonitor_6player_16_head_controller_HeadController;
 
 static PyObject *__pyx_tp_new_11fluxmonitor_6player_16_head_controller_HeadController(PyTypeObject *t, CYTHON_UNUSED PyObject *a, CYTHON_UNUSED PyObject *k) {
   struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *p;
@@ -10260,6 +10036,7 @@ static PyObject *__pyx_tp_new_11fluxmonitor_6player_16_head_controller_HeadContr
   }
   if (unlikely(!o)) return 0;
   p = ((struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *)o);
+  p->__pyx_vtab = __pyx_vtabptr_11fluxmonitor_6player_16_head_controller_HeadController;
   p->_module = Py_None; Py_INCREF(Py_None);
   p->_required_module = Py_None; Py_INCREF(Py_None);
   p->_padding_cmd = Py_None; Py_INCREF(Py_None);
@@ -10425,14 +10202,13 @@ static PyMethodDef __pyx_methods_11fluxmonitor_6player_16_head_controller_HeadCo
   {"_on_ready", (PyCFunction)__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_17_on_ready, METH_NOARGS, 0},
   {"wait_allset", (PyCFunction)__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_19wait_allset, METH_O, 0},
   {"on_message", (PyCFunction)__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_21on_message, METH_VARARGS|METH_KEYWORDS, 0},
-  {"handle_message", (PyCFunction)__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_23handle_message, METH_VARARGS|METH_KEYWORDS, 0},
-  {"send_cmd", (PyCFunction)__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_25send_cmd, METH_VARARGS|METH_KEYWORDS, 0},
-  {"_send_cmd", (PyCFunction)__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_27_send_cmd, METH_O, 0},
-  {"_parse_cmd_response", (PyCFunction)__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_29_parse_cmd_response, METH_VARARGS|METH_KEYWORDS, 0},
-  {"_handle_ping", (PyCFunction)__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_31_handle_ping, METH_O, 0},
-  {"_handle_pong", (PyCFunction)__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_33_handle_pong, METH_VARARGS|METH_KEYWORDS, 0},
-  {"patrol", (PyCFunction)__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_35patrol, METH_O, 0},
-  {"_raise_error", (PyCFunction)__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_37_raise_error, METH_VARARGS|METH_KEYWORDS, 0},
+  {"send_cmd", (PyCFunction)__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_23send_cmd, METH_VARARGS|METH_KEYWORDS, 0},
+  {"_send_cmd", (PyCFunction)__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_25_send_cmd, METH_O, 0},
+  {"_parse_cmd_response", (PyCFunction)__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_27_parse_cmd_response, METH_VARARGS|METH_KEYWORDS, 0},
+  {"_handle_ping", (PyCFunction)__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_29_handle_ping, METH_O, 0},
+  {"_handle_pong", (PyCFunction)__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_31_handle_pong, METH_VARARGS|METH_KEYWORDS, 0},
+  {"patrol", (PyCFunction)__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_33patrol, METH_O, 0},
+  {"_raise_error", (PyCFunction)__pyx_pw_11fluxmonitor_6player_16_head_controller_14HeadController_35_raise_error, METH_VARARGS|METH_KEYWORDS, 0},
   {0, 0, 0, 0}
 };
 
@@ -10525,7 +10301,6 @@ static struct PyModuleDef __pyx_moduledef = {
 
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_, __pyx_k_, sizeof(__pyx_k_), 0, 0, 1, 0},
-  {&__pyx_kp_s_1, __pyx_k_1, sizeof(__pyx_k_1), 0, 0, 1, 0},
   {&__pyx_kp_s_1_F_i_S_i, __pyx_k_1_F_i_S_i, sizeof(__pyx_k_1_F_i_S_i), 0, 0, 1, 0},
   {&__pyx_kp_s_1_HELLO_115, __pyx_k_1_HELLO_115, sizeof(__pyx_k_1_HELLO_115), 0, 0, 1, 0},
   {&__pyx_kp_s_1_H_i_T_1f, __pyx_k_1_H_i_T_1f, sizeof(__pyx_k_1_H_i_T_1f), 0, 0, 1, 0},
@@ -10602,7 +10377,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_VENDOR, __pyx_k_VENDOR, sizeof(__pyx_k_VENDOR), 0, 0, 1, 1},
   {&__pyx_n_s_VERSION, __pyx_k_VERSION, sizeof(__pyx_k_VERSION), 0, 0, 1, 1},
   {&__pyx_n_s_ValueError, __pyx_k_ValueError, sizeof(__pyx_k_ValueError), 0, 0, 1, 1},
-  {&__pyx_kp_s__4, __pyx_k__4, sizeof(__pyx_k__4), 0, 0, 1, 0},
   {&__pyx_n_s_all_set, __pyx_k_all_set, sizeof(__pyx_k_all_set), 0, 0, 1, 1},
   {&__pyx_n_s_allset_callback, __pyx_k_allset_callback, sizeof(__pyx_k_allset_callback), 0, 0, 1, 1},
   {&__pyx_n_s_args, __pyx_k_args, sizeof(__pyx_k_args), 0, 0, 1, 1},
@@ -10629,7 +10403,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_generate_command, __pyx_k_generate_command, sizeof(__pyx_k_generate_command), 0, 0, 1, 1},
   {&__pyx_n_s_get, __pyx_k_get, sizeof(__pyx_k_get), 0, 0, 1, 1},
   {&__pyx_n_s_getLogger, __pyx_k_getLogger, sizeof(__pyx_k_getLogger), 0, 0, 1, 1},
-  {&__pyx_n_s_handle_message, __pyx_k_handle_message, sizeof(__pyx_k_handle_message), 0, 0, 1, 1},
   {&__pyx_n_s_handle_ping, __pyx_k_handle_ping, sizeof(__pyx_k_handle_ping), 0, 0, 1, 1},
   {&__pyx_n_s_handle_pong, __pyx_k_handle_pong, sizeof(__pyx_k_handle_pong), 0, 0, 1, 1},
   {&__pyx_n_s_heater_id, __pyx_k_heater_id, sizeof(__pyx_k_heater_id), 0, 0, 1, 1},
@@ -10661,6 +10434,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_pop, __pyx_k_pop, sizeof(__pyx_k_pop), 0, 0, 1, 1},
   {&__pyx_n_s_prepare, __pyx_k_prepare, sizeof(__pyx_k_prepare), 0, 0, 1, 1},
   {&__pyx_n_s_property, __pyx_k_property, sizeof(__pyx_k_property), 0, 0, 1, 1},
+  {&__pyx_n_s_pyx_vtable, __pyx_k_pyx_vtable, sizeof(__pyx_k_pyx_vtable), 0, 0, 1, 1},
   {&__pyx_n_s_qualname, __pyx_k_qualname, sizeof(__pyx_k_qualname), 0, 0, 1, 1},
   {&__pyx_n_s_raise_error, __pyx_k_raise_error, sizeof(__pyx_k_raise_error), 0, 0, 1, 1},
   {&__pyx_n_s_raw_message, __pyx_k_raw_message, sizeof(__pyx_k_raw_message), 0, 0, 1, 1},
@@ -10698,14 +10472,14 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_property = __Pyx_GetBuiltinName(__pyx_n_s_property); if (!__pyx_builtin_property) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 81; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_object = __Pyx_GetBuiltinName(__pyx_n_s_object); if (!__pyx_builtin_object) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 301; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_ord = __Pyx_GetBuiltinName(__pyx_n_s_ord); if (!__pyx_builtin_ord) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 20; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_SystemError = __Pyx_GetBuiltinName(__pyx_n_s_SystemError); if (!__pyx_builtin_SystemError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_Exception = __Pyx_GetBuiltinName(__pyx_n_s_Exception); if (!__pyx_builtin_Exception) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 108; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 142; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_super = __Pyx_GetBuiltinName(__pyx_n_s_super); if (!__pyx_builtin_super) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 340; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_property = __Pyx_GetBuiltinName(__pyx_n_s_property); if (!__pyx_builtin_property) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 84; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_object = __Pyx_GetBuiltinName(__pyx_n_s_object); if (!__pyx_builtin_object) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 303; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_ord = __Pyx_GetBuiltinName(__pyx_n_s_ord); if (!__pyx_builtin_ord) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 23; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_SystemError = __Pyx_GetBuiltinName(__pyx_n_s_SystemError); if (!__pyx_builtin_SystemError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_Exception = __Pyx_GetBuiltinName(__pyx_n_s_Exception); if (!__pyx_builtin_Exception) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 216; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 240; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_super = __Pyx_GetBuiltinName(__pyx_n_s_super); if (!__pyx_builtin_super) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 342; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   return 0;
   __pyx_L1_error:;
   return -1;
@@ -10715,466 +10489,455 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "src/player/head_controller.pyx":103
+  /* "src/player/head_controller.pyx":106
  *             module_info = {}
  *             for param in shlex_split(msg):
  *                 sparam = param.split(":", 1)             # <<<<<<<<<<<<<<
  *                 if len(sparam) == 2:
  *                     module_info[sparam[0]] = sparam[1]
  */
-  __pyx_tuple__2 = PyTuple_Pack(2, __pyx_kp_s_, __pyx_int_1); if (unlikely(!__pyx_tuple__2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 103; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__2 = PyTuple_Pack(2, __pyx_kp_s_, __pyx_int_1); if (unlikely(!__pyx_tuple__2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 106; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__2);
   __Pyx_GIVEREF(__pyx_tuple__2);
 
-  /* "src/player/head_controller.pyx":129
- * 
- *     def on_message(self, raw_message, executor):
- *         if raw_message.startswith("1 "):             # <<<<<<<<<<<<<<
- *             s = l = 0
- *             for c in raw_message:
- */
-  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_kp_s_1); if (unlikely(!__pyx_tuple__3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 129; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__3);
-  __Pyx_GIVEREF(__pyx_tuple__3);
-
-  /* "src/player/head_controller.pyx":149
- *     def handle_message(self, msg, executor):
+  /* "src/player/head_controller.pyx":151
+ *     cdef inline handle_message(self, msg, executor):
  *         if self._ready == 2:
  *             if msg.startswith("OK PONG "):             # <<<<<<<<<<<<<<
  *                 self._handle_pong(msg, executor)
  *                 if self._padding_cmd:
  */
-  __pyx_tuple__5 = PyTuple_Pack(1, __pyx_kp_s_OK_PONG); if (unlikely(!__pyx_tuple__5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 149; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__5);
-  __Pyx_GIVEREF(__pyx_tuple__5);
+  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_kp_s_OK_PONG); if (unlikely(!__pyx_tuple__3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 151; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__3);
+  __Pyx_GIVEREF(__pyx_tuple__3);
 
-  /* "src/player/head_controller.pyx":161
+  /* "src/player/head_controller.pyx":163
  *         elif self._ready == 1:
  *             if self._padding_cmd == "1 HELLO *115\n":
  *                 if msg.startswith("OK HELLO "):             # <<<<<<<<<<<<<<
  *                     self._on_head_hello(msg[9:])
  * 
  */
-  __pyx_tuple__6 = PyTuple_Pack(1, __pyx_kp_s_OK_HELLO); if (unlikely(!__pyx_tuple__6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 161; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__6);
-  __Pyx_GIVEREF(__pyx_tuple__6);
+  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_kp_s_OK_HELLO); if (unlikely(!__pyx_tuple__4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 163; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__4);
+  __Pyx_GIVEREF(__pyx_tuple__4);
 
-  /* "src/player/head_controller.pyx":162
+  /* "src/player/head_controller.pyx":164
  *             if self._padding_cmd == "1 HELLO *115\n":
  *                 if msg.startswith("OK HELLO "):
  *                     self._on_head_hello(msg[9:])             # <<<<<<<<<<<<<<
  * 
  *                     self._cmd_sent_at = 0
  */
-  __pyx_slice__7 = PySlice_New(__pyx_int_9, Py_None, Py_None); if (unlikely(!__pyx_slice__7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_slice__7);
-  __Pyx_GIVEREF(__pyx_slice__7);
+  __pyx_slice__5 = PySlice_New(__pyx_int_9, Py_None, Py_None); if (unlikely(!__pyx_slice__5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 164; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_slice__5);
+  __Pyx_GIVEREF(__pyx_slice__5);
 
-  /* "src/player/head_controller.pyx":201
+  /* "src/player/head_controller.pyx":203
  * 
  *     def _parse_cmd_response(self, msg, executor):
  *         if msg.startswith("OK "):             # <<<<<<<<<<<<<<
  *             # Clear padding cmd
  *             try:
  */
-  __pyx_tuple__8 = PyTuple_Pack(1, __pyx_kp_s_OK); if (unlikely(!__pyx_tuple__8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 201; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__8);
-  __Pyx_GIVEREF(__pyx_tuple__8);
+  __pyx_tuple__6 = PyTuple_Pack(1, __pyx_kp_s_OK); if (unlikely(!__pyx_tuple__6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 203; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__6);
+  __Pyx_GIVEREF(__pyx_tuple__6);
 
-  /* "src/player/head_controller.pyx":212
+  /* "src/player/head_controller.pyx":214
  *                 self._cmd_callback = None
  *             return True
  *         elif msg.startswith("ER "):             # <<<<<<<<<<<<<<
  *             err = shlex_split(msg[3:])
  *             raise RuntimeError(EXEC_HEAD_ERROR, *err)
  */
-  __pyx_tuple__9 = PyTuple_Pack(1, __pyx_kp_s_ER); if (unlikely(!__pyx_tuple__9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 212; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__9);
-  __Pyx_GIVEREF(__pyx_tuple__9);
+  __pyx_tuple__7 = PyTuple_Pack(1, __pyx_kp_s_ER); if (unlikely(!__pyx_tuple__7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__7);
+  __Pyx_GIVEREF(__pyx_tuple__7);
 
-  /* "src/player/head_controller.pyx":213
+  /* "src/player/head_controller.pyx":215
  *             return True
  *         elif msg.startswith("ER "):
  *             err = shlex_split(msg[3:])             # <<<<<<<<<<<<<<
  *             raise RuntimeError(EXEC_HEAD_ERROR, *err)
  * 
  */
-  __pyx_slice__10 = PySlice_New(__pyx_int_3, Py_None, Py_None); if (unlikely(!__pyx_slice__10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 213; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_slice__10);
-  __Pyx_GIVEREF(__pyx_slice__10);
+  __pyx_slice__8 = PySlice_New(__pyx_int_3, Py_None, Py_None); if (unlikely(!__pyx_slice__8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_slice__8);
+  __Pyx_GIVEREF(__pyx_slice__8);
 
-  /* "src/player/head_controller.pyx":220
+  /* "src/player/head_controller.pyx":222
  * 
  *     def _handle_ping(self, executor):
  *         executor.send_headboard("1 PING *33\n")             # <<<<<<<<<<<<<<
  *         self._wait_update = True
  *         self._lastupdate = time()
  */
-  __pyx_tuple__11 = PyTuple_Pack(1, __pyx_kp_s_1_PING_33); if (unlikely(!__pyx_tuple__11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 220; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__11);
-  __Pyx_GIVEREF(__pyx_tuple__11);
+  __pyx_tuple__9 = PyTuple_Pack(1, __pyx_kp_s_1_PING_33); if (unlikely(!__pyx_tuple__9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 222; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__9);
+  __Pyx_GIVEREF(__pyx_tuple__9);
 
-  /* "src/player/head_controller.pyx":229
+  /* "src/player/head_controller.pyx":231
  *         self._lastupdate = time()
  * 
  *         for param in shlex_split(msg[8:]):             # <<<<<<<<<<<<<<
  *             status = param.split(":", 1)
  *             if len(status) != 2:
  */
-  __pyx_slice__12 = PySlice_New(__pyx_int_8, Py_None, Py_None); if (unlikely(!__pyx_slice__12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_slice__12);
-  __Pyx_GIVEREF(__pyx_slice__12);
+  __pyx_slice__10 = PySlice_New(__pyx_int_8, Py_None, Py_None); if (unlikely(!__pyx_slice__10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 231; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_slice__10);
+  __Pyx_GIVEREF(__pyx_slice__10);
 
-  /* "src/player/head_controller.pyx":230
+  /* "src/player/head_controller.pyx":232
  * 
  *         for param in shlex_split(msg[8:]):
  *             status = param.split(":", 1)             # <<<<<<<<<<<<<<
  *             if len(status) != 2:
  *                 # params should be "KEY:VALUE"
  */
-  __pyx_tuple__13 = PyTuple_Pack(2, __pyx_kp_s_, __pyx_int_1); if (unlikely(!__pyx_tuple__13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 230; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__13);
-  __Pyx_GIVEREF(__pyx_tuple__13);
+  __pyx_tuple__11 = PyTuple_Pack(2, __pyx_kp_s_, __pyx_int_1); if (unlikely(!__pyx_tuple__11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 232; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__11);
+  __Pyx_GIVEREF(__pyx_tuple__11);
 
-  /* "src/player/head_controller.pyx":239
+  /* "src/player/head_controller.pyx":241
  *                     er = int(status[1])
  *                 except ValueError:
  *                         L.error("Head er flag failed")             # <<<<<<<<<<<<<<
  *                         self._raise_error(EXEC_HEAD_ERROR,
  *                                           "ER_ERROR")
  */
-  __pyx_tuple__14 = PyTuple_Pack(1, __pyx_kp_s_Head_er_flag_failed); if (unlikely(!__pyx_tuple__14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 239; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__14);
-  __Pyx_GIVEREF(__pyx_tuple__14);
+  __pyx_tuple__12 = PyTuple_Pack(1, __pyx_kp_s_Head_er_flag_failed); if (unlikely(!__pyx_tuple__12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 241; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__12);
+  __Pyx_GIVEREF(__pyx_tuple__12);
 
-  /* "src/player/head_controller.pyx":246
+  /* "src/player/head_controller.pyx":248
  *                     pass
  *                 elif er & 4:
  *                     self._on_head_offline("HEAD_RESET")             # <<<<<<<<<<<<<<
  *                 elif er & self._error_level:
  *                     if er & 8:
  */
-  __pyx_tuple__15 = PyTuple_Pack(1, __pyx_n_s_HEAD_RESET); if (unlikely(!__pyx_tuple__15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 246; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__15);
-  __Pyx_GIVEREF(__pyx_tuple__15);
+  __pyx_tuple__13 = PyTuple_Pack(1, __pyx_n_s_HEAD_RESET); if (unlikely(!__pyx_tuple__13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 248; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__13);
+  __Pyx_GIVEREF(__pyx_tuple__13);
 
-  /* "src/player/head_controller.pyx":249
+  /* "src/player/head_controller.pyx":251
  *                 elif er & self._error_level:
  *                     if er & 8:
  *                         self._raise_error("HEAD_ERROR", "CALIBRATING")             # <<<<<<<<<<<<<<
  *                     if er & 16:
  *                         self._raise_error(EXEC_HEAD_ERROR, "SHAKE")
  */
-  __pyx_tuple__16 = PyTuple_Pack(2, __pyx_n_s_HEAD_ERROR, __pyx_n_s_CALIBRATING); if (unlikely(!__pyx_tuple__16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 249; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__16);
-  __Pyx_GIVEREF(__pyx_tuple__16);
+  __pyx_tuple__14 = PyTuple_Pack(2, __pyx_n_s_HEAD_ERROR, __pyx_n_s_CALIBRATING); if (unlikely(!__pyx_tuple__14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 251; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__14);
+  __Pyx_GIVEREF(__pyx_tuple__14);
 
-  /* "src/player/head_controller.pyx":374
+  /* "src/player/head_controller.pyx":376
  * 
  *     def generate_command(self, cmd):
  *         if cmd.startswith("H"):             # <<<<<<<<<<<<<<
  *             target_temp = float(cmd[1:])
  *             return self.set_heater(0, target_temp)
  */
-  __pyx_tuple__17 = PyTuple_Pack(1, __pyx_n_s_H); if (unlikely(!__pyx_tuple__17)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 374; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__17);
-  __Pyx_GIVEREF(__pyx_tuple__17);
+  __pyx_tuple__15 = PyTuple_Pack(1, __pyx_n_s_H); if (unlikely(!__pyx_tuple__15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 376; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__15);
+  __Pyx_GIVEREF(__pyx_tuple__15);
 
-  /* "src/player/head_controller.pyx":375
+  /* "src/player/head_controller.pyx":377
  *     def generate_command(self, cmd):
  *         if cmd.startswith("H"):
  *             target_temp = float(cmd[1:])             # <<<<<<<<<<<<<<
  *             return self.set_heater(0, target_temp)
  *         elif cmd.startswith("F"):
  */
-  __pyx_slice__18 = PySlice_New(__pyx_int_1, Py_None, Py_None); if (unlikely(!__pyx_slice__18)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 375; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_slice__18);
-  __Pyx_GIVEREF(__pyx_slice__18);
+  __pyx_slice__16 = PySlice_New(__pyx_int_1, Py_None, Py_None); if (unlikely(!__pyx_slice__16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 377; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_slice__16);
+  __Pyx_GIVEREF(__pyx_slice__16);
 
-  /* "src/player/head_controller.pyx":377
+  /* "src/player/head_controller.pyx":379
  *             target_temp = float(cmd[1:])
  *             return self.set_heater(0, target_temp)
  *         elif cmd.startswith("F"):             # <<<<<<<<<<<<<<
  *             target_speed = float(cmd[1:])
  *             return self.set_fanspeed(0, target_speed)
  */
-  __pyx_tuple__19 = PyTuple_Pack(1, __pyx_n_s_F); if (unlikely(!__pyx_tuple__19)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 377; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__19);
-  __Pyx_GIVEREF(__pyx_tuple__19);
+  __pyx_tuple__17 = PyTuple_Pack(1, __pyx_n_s_F); if (unlikely(!__pyx_tuple__17)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 379; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__17);
+  __Pyx_GIVEREF(__pyx_tuple__17);
 
-  /* "src/player/head_controller.pyx":378
+  /* "src/player/head_controller.pyx":380
  *             return self.set_heater(0, target_temp)
  *         elif cmd.startswith("F"):
  *             target_speed = float(cmd[1:])             # <<<<<<<<<<<<<<
  *             return self.set_fanspeed(0, target_speed)
  *         else:
  */
-  __pyx_slice__20 = PySlice_New(__pyx_int_1, Py_None, Py_None); if (unlikely(!__pyx_slice__20)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 378; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_slice__20);
-  __Pyx_GIVEREF(__pyx_slice__20);
+  __pyx_slice__18 = PySlice_New(__pyx_int_1, Py_None, Py_None); if (unlikely(!__pyx_slice__18)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 380; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_slice__18);
+  __Pyx_GIVEREF(__pyx_slice__18);
 
-  /* "src/player/head_controller.pyx":16
+  /* "src/player/head_controller.pyx":19
  * 
  * 
  * def create_chksum_cmd(fmt, *args):             # <<<<<<<<<<<<<<
  *     cdef int s = 0
  *     cmd = fmt % args
  */
-  __pyx_tuple__21 = PyTuple_Pack(5, __pyx_n_s_fmt, __pyx_n_s_args, __pyx_n_s_s, __pyx_n_s_cmd, __pyx_n_s_c); if (unlikely(!__pyx_tuple__21)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__21);
-  __Pyx_GIVEREF(__pyx_tuple__21);
-  __pyx_codeobj__22 = (PyObject*)__Pyx_PyCode_New(1, 0, 5, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__21, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_create_chksum_cmd, 16, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__22)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__19 = PyTuple_Pack(5, __pyx_n_s_fmt, __pyx_n_s_args, __pyx_n_s_s, __pyx_n_s_cmd, __pyx_n_s_c); if (unlikely(!__pyx_tuple__19)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 19; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__19);
+  __Pyx_GIVEREF(__pyx_tuple__19);
+  __pyx_codeobj__20 = (PyObject*)__Pyx_PyCode_New(1, 0, 5, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__19, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_create_chksum_cmd, 19, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__20)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 19; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/player/head_controller.pyx":302
+  /* "src/player/head_controller.pyx":304
  * 
  * class BaseExt(object):
  *     def __init__(self, **spec):             # <<<<<<<<<<<<<<
  *         self.spec = spec
  * 
  */
-  __pyx_tuple__23 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_spec); if (unlikely(!__pyx_tuple__23)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__23);
-  __Pyx_GIVEREF(__pyx_tuple__23);
-  __pyx_codeobj__24 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__23, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_init, 302, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__24)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__21 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_spec); if (unlikely(!__pyx_tuple__21)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 304; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__21);
+  __Pyx_GIVEREF(__pyx_tuple__21);
+  __pyx_codeobj__22 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__21, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_init, 304, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__22)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 304; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/player/head_controller.pyx":305
+  /* "src/player/head_controller.pyx":307
  *         self.spec = spec
  * 
  *     def bootstrap_commands(self):             # <<<<<<<<<<<<<<
  *         return []
  * 
  */
-  __pyx_tuple__25 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__25)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__25);
-  __Pyx_GIVEREF(__pyx_tuple__25);
-  __pyx_codeobj__26 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__25, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_bootstrap_commands, 305, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__26)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__23 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__23)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 307; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__23);
+  __Pyx_GIVEREF(__pyx_tuple__23);
+  __pyx_codeobj__24 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__23, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_bootstrap_commands, 307, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__24)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 307; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/player/head_controller.pyx":308
+  /* "src/player/head_controller.pyx":310
  *         return []
  * 
  *     def hello(self, **kw):             # <<<<<<<<<<<<<<
  *         self.id = kw.get("ID")
  *         self.vendor = kw.get("VENDOR")
  */
-  __pyx_tuple__27 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_kw); if (unlikely(!__pyx_tuple__27)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 308; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__27);
-  __Pyx_GIVEREF(__pyx_tuple__27);
-  __pyx_codeobj__28 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__27, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_hello, 308, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__28)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 308; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__25 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_kw); if (unlikely(!__pyx_tuple__25)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 310; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__25);
+  __Pyx_GIVEREF(__pyx_tuple__25);
+  __pyx_codeobj__26 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__25, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_hello, 310, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__26)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 310; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/player/head_controller.pyx":313
+  /* "src/player/head_controller.pyx":315
  *         self.version = kw.get("VERSION")
  * 
  *     def generate_command(self, cmd):             # <<<<<<<<<<<<<<
  *         pass
  * 
  */
-  __pyx_tuple__29 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_cmd); if (unlikely(!__pyx_tuple__29)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 313; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__29);
-  __Pyx_GIVEREF(__pyx_tuple__29);
-  __pyx_codeobj__30 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__29, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_generate_command, 313, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__30)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 313; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__27 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_cmd); if (unlikely(!__pyx_tuple__27)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__27);
+  __Pyx_GIVEREF(__pyx_tuple__27);
+  __pyx_codeobj__28 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__27, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_generate_command, 315, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__28)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/player/head_controller.pyx":316
+  /* "src/player/head_controller.pyx":318
  *         pass
  * 
  *     def update_status(self, key, value):             # <<<<<<<<<<<<<<
  *         pass
  * 
  */
-  __pyx_tuple__31 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_key, __pyx_n_s_value); if (unlikely(!__pyx_tuple__31)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 316; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__31);
-  __Pyx_GIVEREF(__pyx_tuple__31);
-  __pyx_codeobj__32 = (PyObject*)__Pyx_PyCode_New(3, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__31, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_update_status, 316, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__32)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 316; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__29 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_key, __pyx_n_s_value); if (unlikely(!__pyx_tuple__29)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 318; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__29);
+  __Pyx_GIVEREF(__pyx_tuple__29);
+  __pyx_codeobj__30 = (PyObject*)__Pyx_PyCode_New(3, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__29, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_update_status, 318, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__30)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 318; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/player/head_controller.pyx":319
+  /* "src/player/head_controller.pyx":321
  *         pass
  * 
  *     def on_message(self, message):             # <<<<<<<<<<<<<<
  *         return False
  * 
  */
-  __pyx_tuple__33 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_message); if (unlikely(!__pyx_tuple__33)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 319; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__33);
-  __Pyx_GIVEREF(__pyx_tuple__33);
-  __pyx_codeobj__34 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__33, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_on_message, 319, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__34)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 319; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__31 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_message); if (unlikely(!__pyx_tuple__31)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 321; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__31);
+  __Pyx_GIVEREF(__pyx_tuple__31);
+  __pyx_codeobj__32 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__31, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_on_message, 321, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__32)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 321; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/player/head_controller.pyx":322
+  /* "src/player/head_controller.pyx":324
  *         return False
  * 
  *     def all_set(self):             # <<<<<<<<<<<<<<
  *         return True
  * 
  */
-  __pyx_tuple__35 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__35)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 322; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__35);
-  __Pyx_GIVEREF(__pyx_tuple__35);
-  __pyx_codeobj__36 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__35, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_all_set, 322, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__36)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 322; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__33 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__33)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__33);
+  __Pyx_GIVEREF(__pyx_tuple__33);
+  __pyx_codeobj__34 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__33, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_all_set, 324, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__34)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/player/head_controller.pyx":331
+  /* "src/player/head_controller.pyx":333
  *     _current_temp = None
  * 
  *     def __init__(self):             # <<<<<<<<<<<<<<
  *         self._fanspeed = [0]
  *         self._temperatures = [float("NaN")]
  */
-  __pyx_tuple__37 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__37)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 331; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__37);
-  __Pyx_GIVEREF(__pyx_tuple__37);
-  __pyx_codeobj__38 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__37, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_init, 331, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__38)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 331; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__35 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__35)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 333; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__35);
+  __Pyx_GIVEREF(__pyx_tuple__35);
+  __pyx_codeobj__36 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__35, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_init, 333, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__36)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 333; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/player/head_controller.pyx":336
+  /* "src/player/head_controller.pyx":338
  *         self._current_temp = [float("NaN")]
  * 
  *     def hello(self, **kw):             # <<<<<<<<<<<<<<
  *         m = kw.get("TYPE", "UNKNOW")
  *         if m != "EXTRUDER":
  */
-  __pyx_tuple__39 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_kw, __pyx_n_s_m); if (unlikely(!__pyx_tuple__39)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 336; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__39);
-  __Pyx_GIVEREF(__pyx_tuple__39);
-  __pyx_codeobj__40 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__39, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_hello, 336, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__40)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 336; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__37 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_kw, __pyx_n_s_m); if (unlikely(!__pyx_tuple__37)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 338; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__37);
+  __Pyx_GIVEREF(__pyx_tuple__37);
+  __pyx_codeobj__38 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__37, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_hello, 338, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__38)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 338; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/player/head_controller.pyx":342
+  /* "src/player/head_controller.pyx":344
  *         super(ExtruderExt, self).hello(**kw)
  * 
  *     def bootstrap_commands(self):             # <<<<<<<<<<<<<<
  *         cmds = []
  *         if self._fanspeed[0] >= 0:
  */
-  __pyx_tuple__41 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_cmds); if (unlikely(!__pyx_tuple__41)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 342; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__41);
-  __Pyx_GIVEREF(__pyx_tuple__41);
-  __pyx_codeobj__42 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__41, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_bootstrap_commands, 342, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__42)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 342; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__39 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_cmds); if (unlikely(!__pyx_tuple__39)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 344; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__39);
+  __Pyx_GIVEREF(__pyx_tuple__39);
+  __pyx_codeobj__40 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__39, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_bootstrap_commands, 344, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__40)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 344; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/player/head_controller.pyx":352
+  /* "src/player/head_controller.pyx":354
  *         return cmds
  * 
  *     def status(self):             # <<<<<<<<<<<<<<
  *         return {
  *             "module": "EXTRUDER",
  */
-  __pyx_tuple__43 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__43)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__43);
-  __Pyx_GIVEREF(__pyx_tuple__43);
-  __pyx_codeobj__44 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__43, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_status, 352, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__44)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__41 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__41)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 354; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__41);
+  __Pyx_GIVEREF(__pyx_tuple__41);
+  __pyx_codeobj__42 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__41, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_status, 354, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__42)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 354; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/player/head_controller.pyx":360
+  /* "src/player/head_controller.pyx":362
  *         }
  * 
  *     def set_heater(self, int heater_id, float temperature):             # <<<<<<<<<<<<<<
  *         if temperature < 5:
  *             raise RuntimeError(EXEC_OPERATION_ERROR, "BAD TEMP")
  */
-  __pyx_tuple__45 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_heater_id, __pyx_n_s_temperature); if (unlikely(!__pyx_tuple__45)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 360; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__45);
-  __Pyx_GIVEREF(__pyx_tuple__45);
-  __pyx_codeobj__46 = (PyObject*)__Pyx_PyCode_New(3, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__45, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_set_heater, 360, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__46)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 360; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__43 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_heater_id, __pyx_n_s_temperature); if (unlikely(!__pyx_tuple__43)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 362; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__43);
+  __Pyx_GIVEREF(__pyx_tuple__43);
+  __pyx_codeobj__44 = (PyObject*)__Pyx_PyCode_New(3, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__43, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_set_heater, 362, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__44)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 362; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/player/head_controller.pyx":369
+  /* "src/player/head_controller.pyx":371
  *         return create_chksum_cmd("1 H:%i T:%.1f", heater_id, temperature)
  * 
  *     def set_fanspeed(self, int fan_id, float fan_speed):             # <<<<<<<<<<<<<<
  *         self._fanspeed[fan_id] = f = max(min(1.0, fan_speed), 0)
  *         return create_chksum_cmd("1 F:%i S:%i", fan_id, f * 255)
  */
-  __pyx_tuple__47 = PyTuple_Pack(4, __pyx_n_s_self, __pyx_n_s_fan_id, __pyx_n_s_fan_speed, __pyx_n_s_f); if (unlikely(!__pyx_tuple__47)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 369; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__47);
-  __Pyx_GIVEREF(__pyx_tuple__47);
-  __pyx_codeobj__48 = (PyObject*)__Pyx_PyCode_New(3, 0, 4, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__47, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_set_fanspeed, 369, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__48)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 369; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__45 = PyTuple_Pack(4, __pyx_n_s_self, __pyx_n_s_fan_id, __pyx_n_s_fan_speed, __pyx_n_s_f); if (unlikely(!__pyx_tuple__45)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 371; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__45);
+  __Pyx_GIVEREF(__pyx_tuple__45);
+  __pyx_codeobj__46 = (PyObject*)__Pyx_PyCode_New(3, 0, 4, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__45, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_set_fanspeed, 371, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__46)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 371; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/player/head_controller.pyx":373
+  /* "src/player/head_controller.pyx":375
  *         return create_chksum_cmd("1 F:%i S:%i", fan_id, f * 255)
  * 
  *     def generate_command(self, cmd):             # <<<<<<<<<<<<<<
  *         if cmd.startswith("H"):
  *             target_temp = float(cmd[1:])
  */
-  __pyx_tuple__49 = PyTuple_Pack(4, __pyx_n_s_self, __pyx_n_s_cmd, __pyx_n_s_target_temp, __pyx_n_s_target_speed); if (unlikely(!__pyx_tuple__49)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 373; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__49);
-  __Pyx_GIVEREF(__pyx_tuple__49);
-  __pyx_codeobj__50 = (PyObject*)__Pyx_PyCode_New(2, 0, 4, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__49, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_generate_command, 373, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__50)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 373; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__47 = PyTuple_Pack(4, __pyx_n_s_self, __pyx_n_s_cmd, __pyx_n_s_target_temp, __pyx_n_s_target_speed); if (unlikely(!__pyx_tuple__47)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 375; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__47);
+  __Pyx_GIVEREF(__pyx_tuple__47);
+  __pyx_codeobj__48 = (PyObject*)__Pyx_PyCode_New(2, 0, 4, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__47, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_generate_command, 375, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__48)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 375; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/player/head_controller.pyx":383
+  /* "src/player/head_controller.pyx":385
  *             return
  * 
  *     def update_status(self, key, value):             # <<<<<<<<<<<<<<
  *         if key == "RT":
  *             self._current_temp[0] = float(value)
  */
-  __pyx_tuple__51 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_key, __pyx_n_s_value); if (unlikely(!__pyx_tuple__51)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 383; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__51);
-  __Pyx_GIVEREF(__pyx_tuple__51);
-  __pyx_codeobj__52 = (PyObject*)__Pyx_PyCode_New(3, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__51, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_update_status, 383, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__52)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 383; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__49 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_key, __pyx_n_s_value); if (unlikely(!__pyx_tuple__49)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 385; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__49);
+  __Pyx_GIVEREF(__pyx_tuple__49);
+  __pyx_codeobj__50 = (PyObject*)__Pyx_PyCode_New(3, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__49, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_update_status, 385, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__50)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 385; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/player/head_controller.pyx":387
+  /* "src/player/head_controller.pyx":389
  *             self._current_temp[0] = float(value)
  * 
  *     def on_message(self, message):             # <<<<<<<<<<<<<<
  *         return False
  * 
  */
-  __pyx_tuple__53 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_message); if (unlikely(!__pyx_tuple__53)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 387; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__53);
-  __Pyx_GIVEREF(__pyx_tuple__53);
-  __pyx_codeobj__54 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__53, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_on_message, 387, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__54)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 387; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__51 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_message); if (unlikely(!__pyx_tuple__51)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 389; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__51);
+  __Pyx_GIVEREF(__pyx_tuple__51);
+  __pyx_codeobj__52 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__51, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_on_message, 389, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__52)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 389; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/player/head_controller.pyx":390
+  /* "src/player/head_controller.pyx":392
  *         return False
  * 
  *     def all_set(self):             # <<<<<<<<<<<<<<
  *         if self._temperatures[0] > 0:
  *             if abs(self._temperatures[0] - self._current_temp[0]) < 3:
  */
-  __pyx_tuple__55 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__55)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 390; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__55);
-  __Pyx_GIVEREF(__pyx_tuple__55);
-  __pyx_codeobj__56 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__55, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_all_set, 390, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__56)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 390; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__53 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__53)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 392; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__53);
+  __Pyx_GIVEREF(__pyx_tuple__53);
+  __pyx_codeobj__54 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__53, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_all_set, 392, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__54)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 392; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/player/head_controller.pyx":400
+  /* "src/player/head_controller.pyx":402
  * 
  * class LaserExt(BaseExt):
  *     def hello(self, **kw):             # <<<<<<<<<<<<<<
  *         m = kw.get("TYPE", "UNKNOW")
  *         if m != "LASER":
  */
-  __pyx_tuple__57 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_kw, __pyx_n_s_m); if (unlikely(!__pyx_tuple__57)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 400; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__57);
-  __Pyx_GIVEREF(__pyx_tuple__57);
-  __pyx_codeobj__58 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__57, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_hello, 400, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__58)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 400; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__55 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_kw, __pyx_n_s_m); if (unlikely(!__pyx_tuple__55)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 402; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__55);
+  __Pyx_GIVEREF(__pyx_tuple__55);
+  __pyx_codeobj__56 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__55, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_hello, 402, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__56)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 402; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/player/head_controller.pyx":406
+  /* "src/player/head_controller.pyx":408
  *         super(LaserExt, self).hello(**kw)
  * 
  *     def status(self):             # <<<<<<<<<<<<<<
  *         return {"module": "LASER",}
  * 
  */
-  __pyx_tuple__59 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__59)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 406; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__59);
-  __Pyx_GIVEREF(__pyx_tuple__59);
-  __pyx_codeobj__60 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__59, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_status, 406, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__60)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 406; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__57 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__57)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 408; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__57);
+  __Pyx_GIVEREF(__pyx_tuple__57);
+  __pyx_codeobj__58 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__57, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_status, 408, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__58)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 408; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/player/head_controller.pyx":411
+  /* "src/player/head_controller.pyx":413
  * 
  * class NAExt(BaseExt):
  *     def hello(self, **kw):             # <<<<<<<<<<<<<<
  *         m = kw.get("TYPE", "UNKNOW")
  *         raise RuntimeError(EXEC_NEED_REMOVE_HEAD, "GOT_%s" % m)
  */
-  __pyx_tuple__61 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_kw, __pyx_n_s_m); if (unlikely(!__pyx_tuple__61)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 411; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__61);
-  __Pyx_GIVEREF(__pyx_tuple__61);
-  __pyx_codeobj__62 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__61, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_hello, 411, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__62)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 411; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__59 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_kw, __pyx_n_s_m); if (unlikely(!__pyx_tuple__59)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 413; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__59);
+  __Pyx_GIVEREF(__pyx_tuple__59);
+  __pyx_codeobj__60 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__59, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_hello, 413, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__60)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 413; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/player/head_controller.pyx":415
+  /* "src/player/head_controller.pyx":417
  *         raise RuntimeError(EXEC_NEED_REMOVE_HEAD, "GOT_%s" % m)
  * 
  *     def status(self):             # <<<<<<<<<<<<<<
  *         return {"module": "N/A",}
  */
-  __pyx_tuple__63 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__63)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 415; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__63);
-  __Pyx_GIVEREF(__pyx_tuple__63);
-  __pyx_codeobj__64 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__63, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_status, 415, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__64)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 415; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__61 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__61)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 417; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__61);
+  __Pyx_GIVEREF(__pyx_tuple__61);
+  __pyx_codeobj__62 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__61, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_status, 417, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__62)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 417; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -11183,22 +10946,21 @@ static int __Pyx_InitCachedConstants(void) {
 }
 
 static int __Pyx_InitGlobals(void) {
-  if (__Pyx_InitStrings(__pyx_string_tab) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
-  __pyx_float_1_0 = PyFloat_FromDouble(1.0); if (unlikely(!__pyx_float_1_0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_float_1_5 = PyFloat_FromDouble(1.5); if (unlikely(!__pyx_float_1_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_int_0 = PyInt_FromLong(0); if (unlikely(!__pyx_int_0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_int_1 = PyInt_FromLong(1); if (unlikely(!__pyx_int_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_int_3 = PyInt_FromLong(3); if (unlikely(!__pyx_int_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_int_4 = PyInt_FromLong(4); if (unlikely(!__pyx_int_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_int_8 = PyInt_FromLong(8); if (unlikely(!__pyx_int_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_int_9 = PyInt_FromLong(9); if (unlikely(!__pyx_int_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_int_10 = PyInt_FromLong(10); if (unlikely(!__pyx_int_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_int_16 = PyInt_FromLong(16); if (unlikely(!__pyx_int_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_int_32 = PyInt_FromLong(32); if (unlikely(!__pyx_int_32)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_int_64 = PyInt_FromLong(64); if (unlikely(!__pyx_int_64)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_int_128 = PyInt_FromLong(128); if (unlikely(!__pyx_int_128)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_int_255 = PyInt_FromLong(255); if (unlikely(!__pyx_int_255)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_int_256 = PyInt_FromLong(256); if (unlikely(!__pyx_int_256)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_InitStrings(__pyx_string_tab) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+  __pyx_float_1_0 = PyFloat_FromDouble(1.0); if (unlikely(!__pyx_float_1_0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_float_1_5 = PyFloat_FromDouble(1.5); if (unlikely(!__pyx_float_1_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_int_0 = PyInt_FromLong(0); if (unlikely(!__pyx_int_0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_int_1 = PyInt_FromLong(1); if (unlikely(!__pyx_int_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_int_3 = PyInt_FromLong(3); if (unlikely(!__pyx_int_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_int_4 = PyInt_FromLong(4); if (unlikely(!__pyx_int_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_int_8 = PyInt_FromLong(8); if (unlikely(!__pyx_int_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_int_9 = PyInt_FromLong(9); if (unlikely(!__pyx_int_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_int_16 = PyInt_FromLong(16); if (unlikely(!__pyx_int_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_int_32 = PyInt_FromLong(32); if (unlikely(!__pyx_int_32)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_int_64 = PyInt_FromLong(64); if (unlikely(!__pyx_int_64)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_int_128 = PyInt_FromLong(128); if (unlikely(!__pyx_int_128)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_int_255 = PyInt_FromLong(255); if (unlikely(!__pyx_int_255)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_int_256 = PyInt_FromLong(256); if (unlikely(!__pyx_int_256)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   return 0;
   __pyx_L1_error:;
   return -1;
@@ -11231,17 +10993,17 @@ PyMODINIT_FUNC PyInit__head_controller(void)
   }
   #endif
   __Pyx_RefNannySetupContext("PyMODINIT_FUNC PyInit__head_controller(void)", 0);
-  if ( __Pyx_check_binary_version() < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_empty_tuple = PyTuple_New(0); if (unlikely(!__pyx_empty_tuple)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_empty_bytes = PyBytes_FromStringAndSize("", 0); if (unlikely(!__pyx_empty_bytes)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if ( __Pyx_check_binary_version() < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_empty_tuple = PyTuple_New(0); if (unlikely(!__pyx_empty_tuple)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_empty_bytes = PyBytes_FromStringAndSize("", 0); if (unlikely(!__pyx_empty_bytes)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   #ifdef __Pyx_CyFunction_USED
-  if (__Pyx_CyFunction_init() < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_CyFunction_init() < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   #endif
   #ifdef __Pyx_FusedFunction_USED
-  if (__pyx_FusedFunction_init() < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__pyx_FusedFunction_init() < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   #endif
   #ifdef __Pyx_Generator_USED
-  if (__pyx_Generator_init() < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__pyx_Generator_init() < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   #endif
   /*--- Library function declarations ---*/
   /*--- Threads initialization code ---*/
@@ -11256,42 +11018,45 @@ PyMODINIT_FUNC PyInit__head_controller(void)
   #else
   __pyx_m = PyModule_Create(&__pyx_moduledef);
   #endif
-  if (unlikely(!__pyx_m)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_d = PyModule_GetDict(__pyx_m); if (unlikely(!__pyx_d)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (unlikely(!__pyx_m)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_d = PyModule_GetDict(__pyx_m); if (unlikely(!__pyx_d)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   Py_INCREF(__pyx_d);
-  __pyx_b = PyImport_AddModule(__Pyx_BUILTIN_MODULE_NAME); if (unlikely(!__pyx_b)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_b = PyImport_AddModule(__Pyx_BUILTIN_MODULE_NAME); if (unlikely(!__pyx_b)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   #if CYTHON_COMPILING_IN_PYPY
   Py_INCREF(__pyx_b);
   #endif
-  if (PyObject_SetAttrString(__pyx_m, "__builtins__", __pyx_b) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+  if (PyObject_SetAttrString(__pyx_m, "__builtins__", __pyx_b) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   /*--- Initialize various global constants etc. ---*/
-  if (unlikely(__Pyx_InitGlobals() < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (unlikely(__Pyx_InitGlobals() < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   #if PY_MAJOR_VERSION < 3 && (__PYX_DEFAULT_STRING_ENCODING_IS_ASCII || __PYX_DEFAULT_STRING_ENCODING_IS_DEFAULT)
-  if (__Pyx_init_sys_getdefaultencoding_params() < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_init_sys_getdefaultencoding_params() < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   #endif
   if (__pyx_module_is_main_fluxmonitor__player___head_controller) {
-    if (PyObject_SetAttrString(__pyx_m, "__name__", __pyx_n_s_main) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+    if (PyObject_SetAttrString(__pyx_m, "__name__", __pyx_n_s_main) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   }
   #if PY_MAJOR_VERSION >= 3
   {
-    PyObject *modules = PyImport_GetModuleDict(); if (unlikely(!modules)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    PyObject *modules = PyImport_GetModuleDict(); if (unlikely(!modules)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     if (!PyDict_GetItemString(modules, "fluxmonitor.player._head_controller")) {
-      if (unlikely(PyDict_SetItemString(modules, "fluxmonitor.player._head_controller", __pyx_m) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      if (unlikely(PyDict_SetItemString(modules, "fluxmonitor.player._head_controller", __pyx_m) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
   }
   #endif
   /*--- Builtin init code ---*/
-  if (unlikely(__Pyx_InitCachedBuiltins() < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (unlikely(__Pyx_InitCachedBuiltins() < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   /*--- Constants init code ---*/
-  if (unlikely(__Pyx_InitCachedConstants() < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (unlikely(__Pyx_InitCachedConstants() < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   /*--- Global init code ---*/
   __pyx_v_11fluxmonitor_6player_16_head_controller_L = Py_None; Py_INCREF(Py_None);
   /*--- Variable export code ---*/
   /*--- Function export code ---*/
   /*--- Type init code ---*/
-  if (PyType_Ready(&__pyx_type_11fluxmonitor_6player_16_head_controller_HeadController) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 25; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_vtabptr_11fluxmonitor_6player_16_head_controller_HeadController = &__pyx_vtable_11fluxmonitor_6player_16_head_controller_HeadController;
+  __pyx_vtable_11fluxmonitor_6player_16_head_controller_HeadController.handle_message = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *, PyObject *, PyObject *))__pyx_f_11fluxmonitor_6player_16_head_controller_14HeadController_handle_message;
+  if (PyType_Ready(&__pyx_type_11fluxmonitor_6player_16_head_controller_HeadController) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 28; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_type_11fluxmonitor_6player_16_head_controller_HeadController.tp_print = 0;
-  if (PyObject_SetAttrString(__pyx_m, "HeadController", (PyObject *)&__pyx_type_11fluxmonitor_6player_16_head_controller_HeadController) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 25; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_SetVtable(__pyx_type_11fluxmonitor_6player_16_head_controller_HeadController.tp_dict, __pyx_vtabptr_11fluxmonitor_6player_16_head_controller_HeadController) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 28; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetAttrString(__pyx_m, "HeadController", (PyObject *)&__pyx_type_11fluxmonitor_6player_16_head_controller_HeadController) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 28; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_ptype_11fluxmonitor_6player_16_head_controller_HeadController = &__pyx_type_11fluxmonitor_6player_16_head_controller_HeadController;
   /*--- Type import code ---*/
   __pyx_ptype_7cpython_4type_type = __Pyx_ImportType(__Pyx_BUILTIN_MODULE_NAME, "type", 
@@ -11307,68 +11072,68 @@ PyMODINIT_FUNC PyInit__head_controller(void)
   /*--- Function import code ---*/
   /*--- Execution code ---*/
 
-  /* "src/player/head_controller.pyx":4
- * from cpython cimport bool
+  /* "src/player/head_controller.pyx":7
+ * 
  * 
  * from shlex import split as shlex_split             # <<<<<<<<<<<<<<
  * from time import time
  * import logging
  */
-  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 4; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 7; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_n_s_split);
   __Pyx_GIVEREF(__pyx_n_s_split);
   PyList_SET_ITEM(__pyx_t_1, 0, __pyx_n_s_split);
-  __pyx_t_2 = __Pyx_Import(__pyx_n_s_shlex, __pyx_t_1, -1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 4; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_Import(__pyx_n_s_shlex, __pyx_t_1, -1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 7; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_split); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 4; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_split); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 7; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_shlex_split, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 4; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_shlex_split, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 7; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "src/player/head_controller.pyx":5
+  /* "src/player/head_controller.pyx":8
  * 
  * from shlex import split as shlex_split
  * from time import time             # <<<<<<<<<<<<<<
  * import logging
  * 
  */
-  __pyx_t_2 = PyList_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 5; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyList_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 8; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_n_s_time);
   __Pyx_GIVEREF(__pyx_n_s_time);
   PyList_SET_ITEM(__pyx_t_2, 0, __pyx_n_s_time);
-  __pyx_t_1 = __Pyx_Import(__pyx_n_s_time, __pyx_t_2, -1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 5; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_Import(__pyx_n_s_time, __pyx_t_2, -1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 8; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_ImportFrom(__pyx_t_1, __pyx_n_s_time); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 5; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_ImportFrom(__pyx_t_1, __pyx_n_s_time); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 8; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_time, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 5; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_time, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 8; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":6
+  /* "src/player/head_controller.pyx":9
  * from shlex import split as shlex_split
  * from time import time
  * import logging             # <<<<<<<<<<<<<<
  * 
  * from fluxmonitor.err_codes import EXEC_HEAD_OFFLINE, EXEC_OPERATION_ERROR, \
  */
-  __pyx_t_1 = __Pyx_Import(__pyx_n_s_logging, 0, -1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 6; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_Import(__pyx_n_s_logging, 0, -1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 9; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_logging, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 6; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_logging, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 9; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":8
+  /* "src/player/head_controller.pyx":11
  * import logging
  * 
  * from fluxmonitor.err_codes import EXEC_HEAD_OFFLINE, EXEC_OPERATION_ERROR, \             # <<<<<<<<<<<<<<
  *     EXEC_WRONG_HEAD, EXEC_HEAD_ERROR, EXEC_NEED_REMOVE_HEAD, \
  *     EXEC_UNKNOWN_REQUIRED_HEAD_TYPE, UNKNOWN_COMMAND
  */
-  __pyx_t_1 = PyList_New(7); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 8; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyList_New(7); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_n_s_EXEC_HEAD_OFFLINE);
   __Pyx_GIVEREF(__pyx_n_s_EXEC_HEAD_OFFLINE);
@@ -11391,52 +11156,52 @@ PyMODINIT_FUNC PyInit__head_controller(void)
   __Pyx_INCREF(__pyx_n_s_UNKNOWN_COMMAND);
   __Pyx_GIVEREF(__pyx_n_s_UNKNOWN_COMMAND);
   PyList_SET_ITEM(__pyx_t_1, 6, __pyx_n_s_UNKNOWN_COMMAND);
-  __pyx_t_2 = __Pyx_Import(__pyx_n_s_fluxmonitor_err_codes, __pyx_t_1, -1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 8; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_Import(__pyx_n_s_fluxmonitor_err_codes, __pyx_t_1, -1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_EXEC_HEAD_OFFLINE); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 8; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_EXEC_HEAD_OFFLINE); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_EXEC_HEAD_OFFLINE, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 8; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_EXEC_HEAD_OFFLINE, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_EXEC_OPERATION_ERROR); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 8; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_EXEC_OPERATION_ERROR); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_EXEC_OPERATION_ERROR, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 8; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_EXEC_OPERATION_ERROR, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_EXEC_WRONG_HEAD); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 8; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_EXEC_WRONG_HEAD); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_EXEC_WRONG_HEAD, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 9; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_EXEC_WRONG_HEAD, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 12; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_EXEC_HEAD_ERROR); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 8; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_EXEC_HEAD_ERROR); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_EXEC_HEAD_ERROR, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 9; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_EXEC_HEAD_ERROR, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 12; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_EXEC_NEED_REMOVE_HEAD); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 8; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_EXEC_NEED_REMOVE_HEAD); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_EXEC_NEED_REMOVE_HEAD, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 9; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_EXEC_NEED_REMOVE_HEAD, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 12; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_EXEC_UNKNOWN_REQUIRED_HEAD_TYPE); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 8; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_EXEC_UNKNOWN_REQUIRED_HEAD_TYPE); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_EXEC_UNKNOWN_REQUIRED_HEAD_TYPE, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 10; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_EXEC_UNKNOWN_REQUIRED_HEAD_TYPE, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 13; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_UNKNOWN_COMMAND); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 8; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_UNKNOWN_COMMAND); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_UNKNOWN_COMMAND, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 10; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_UNKNOWN_COMMAND, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 13; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "src/player/head_controller.pyx":13
+  /* "src/player/head_controller.pyx":16
  * 
  * 
  * cdef L = logging.getLogger(__name__)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_logging); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 13; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_logging); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_getLogger); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 13; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_getLogger); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_name); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 13; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_name); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_4 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_3))) {
@@ -11449,17 +11214,17 @@ PyMODINIT_FUNC PyInit__head_controller(void)
     }
   }
   if (!__pyx_t_4) {
-    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 13; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_GOTREF(__pyx_t_2);
   } else {
-    __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 13; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4); __pyx_t_4 = NULL;
     __Pyx_GIVEREF(__pyx_t_1);
     PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_t_1);
     __pyx_t_1 = 0;
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 13; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   }
@@ -11469,526 +11234,527 @@ PyMODINIT_FUNC PyInit__head_controller(void)
   __Pyx_GIVEREF(__pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "src/player/head_controller.pyx":16
+  /* "src/player/head_controller.pyx":19
  * 
  * 
  * def create_chksum_cmd(fmt, *args):             # <<<<<<<<<<<<<<
  *     cdef int s = 0
  *     cmd = fmt % args
  */
-  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_1create_chksum_cmd, NULL, __pyx_n_s_fluxmonitor_player__head_control); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_1create_chksum_cmd, NULL, __pyx_n_s_fluxmonitor_player__head_control); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 19; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_create_chksum_cmd, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_create_chksum_cmd, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 19; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "src/player/head_controller.pyx":82
+  /* "src/player/head_controller.pyx":85
  * 
  *     @property
  *     def ready(self):             # <<<<<<<<<<<<<<
  *         return self._ready == 2
  * 
  */
-  __pyx_t_2 = __Pyx_GetNameInClass((PyObject *)__pyx_ptype_11fluxmonitor_6player_16_head_controller_HeadController, __pyx_n_s_ready); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 82; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_GetNameInClass((PyObject *)__pyx_ptype_11fluxmonitor_6player_16_head_controller_HeadController, __pyx_n_s_ready); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 85; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
 
-  /* "src/player/head_controller.pyx":81
+  /* "src/player/head_controller.pyx":84
  *         self._send_cmd(executor)
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def ready(self):
  *         return self._ready == 2
  */
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 81; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 84; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2);
   __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_property, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 81; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_property, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 84; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (PyDict_SetItem((PyObject *)__pyx_ptype_11fluxmonitor_6player_16_head_controller_HeadController->tp_dict, __pyx_n_s_ready, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 82; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem((PyObject *)__pyx_ptype_11fluxmonitor_6player_16_head_controller_HeadController->tp_dict, __pyx_n_s_ready, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 85; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   PyType_Modified(__pyx_ptype_11fluxmonitor_6player_16_head_controller_HeadController);
 
-  /* "src/player/head_controller.pyx":86
+  /* "src/player/head_controller.pyx":89
  * 
  *     @property
  *     def is_busy(self):             # <<<<<<<<<<<<<<
  *         return self._padding_cmd is not None
  * 
  */
-  __pyx_t_2 = __Pyx_GetNameInClass((PyObject *)__pyx_ptype_11fluxmonitor_6player_16_head_controller_HeadController, __pyx_n_s_is_busy); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 86; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_GetNameInClass((PyObject *)__pyx_ptype_11fluxmonitor_6player_16_head_controller_HeadController, __pyx_n_s_is_busy); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 89; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
 
-  /* "src/player/head_controller.pyx":85
+  /* "src/player/head_controller.pyx":88
  *         return self._ready == 2
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def is_busy(self):
  *         return self._padding_cmd is not None
  */
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 85; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 88; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2);
   __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_property, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 85; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_property, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 88; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (PyDict_SetItem((PyObject *)__pyx_ptype_11fluxmonitor_6player_16_head_controller_HeadController->tp_dict, __pyx_n_s_is_busy, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 86; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem((PyObject *)__pyx_ptype_11fluxmonitor_6player_16_head_controller_HeadController->tp_dict, __pyx_n_s_is_busy, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 89; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   PyType_Modified(__pyx_ptype_11fluxmonitor_6player_16_head_controller_HeadController);
 
-  /* "src/player/head_controller.pyx":90
+  /* "src/player/head_controller.pyx":93
  * 
  *     @property
  *     def module(self):             # <<<<<<<<<<<<<<
  *         return self._module
  * 
  */
-  __pyx_t_2 = __Pyx_GetNameInClass((PyObject *)__pyx_ptype_11fluxmonitor_6player_16_head_controller_HeadController, __pyx_n_s_module); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 90; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_GetNameInClass((PyObject *)__pyx_ptype_11fluxmonitor_6player_16_head_controller_HeadController, __pyx_n_s_module); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 93; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
 
-  /* "src/player/head_controller.pyx":89
+  /* "src/player/head_controller.pyx":92
  *         return self._padding_cmd is not None
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def module(self):
  *         return self._module
  */
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 89; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 92; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2);
   __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_property, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 89; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_property, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 92; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (PyDict_SetItem((PyObject *)__pyx_ptype_11fluxmonitor_6player_16_head_controller_HeadController->tp_dict, __pyx_n_s_module, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 90; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem((PyObject *)__pyx_ptype_11fluxmonitor_6player_16_head_controller_HeadController->tp_dict, __pyx_n_s_module, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 93; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   PyType_Modified(__pyx_ptype_11fluxmonitor_6player_16_head_controller_HeadController);
 
-  /* "src/player/head_controller.pyx":301
+  /* "src/player/head_controller.pyx":303
  * 
  * 
  * class BaseExt(object):             # <<<<<<<<<<<<<<
  *     def __init__(self, **spec):
  *         self.spec = spec
  */
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 301; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 303; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_builtin_object);
   __Pyx_GIVEREF(__pyx_builtin_object);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_builtin_object);
-  __pyx_t_3 = __Pyx_CalculateMetaclass(NULL, __pyx_t_2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 301; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_CalculateMetaclass(NULL, __pyx_t_2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 303; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = __Pyx_Py3MetaclassPrepare(__pyx_t_3, __pyx_t_2, __pyx_n_s_BaseExt, __pyx_n_s_BaseExt, (PyObject *) NULL, __pyx_n_s_fluxmonitor_player__head_control, (PyObject *) NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 301; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_Py3MetaclassPrepare(__pyx_t_3, __pyx_t_2, __pyx_n_s_BaseExt, __pyx_n_s_BaseExt, (PyObject *) NULL, __pyx_n_s_fluxmonitor_player__head_control, (PyObject *) NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 303; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "src/player/head_controller.pyx":302
+  /* "src/player/head_controller.pyx":304
  * 
  * class BaseExt(object):
  *     def __init__(self, **spec):             # <<<<<<<<<<<<<<
  *         self.spec = spec
  * 
  */
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_7BaseExt_1__init__, 0, __pyx_n_s_BaseExt___init, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__24)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_7BaseExt_1__init__, 0, __pyx_n_s_BaseExt___init, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__22)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 304; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_init, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_init, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 304; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":305
+  /* "src/player/head_controller.pyx":307
  *         self.spec = spec
  * 
  *     def bootstrap_commands(self):             # <<<<<<<<<<<<<<
  *         return []
  * 
  */
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_7BaseExt_3bootstrap_commands, 0, __pyx_n_s_BaseExt_bootstrap_commands, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__26)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_7BaseExt_3bootstrap_commands, 0, __pyx_n_s_BaseExt_bootstrap_commands, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__24)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 307; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_bootstrap_commands, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_bootstrap_commands, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 307; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":308
+  /* "src/player/head_controller.pyx":310
  *         return []
  * 
  *     def hello(self, **kw):             # <<<<<<<<<<<<<<
  *         self.id = kw.get("ID")
  *         self.vendor = kw.get("VENDOR")
  */
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_7BaseExt_5hello, 0, __pyx_n_s_BaseExt_hello, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__28)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 308; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_7BaseExt_5hello, 0, __pyx_n_s_BaseExt_hello, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__26)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 310; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_hello, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 308; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_hello, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 310; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":313
+  /* "src/player/head_controller.pyx":315
  *         self.version = kw.get("VERSION")
  * 
  *     def generate_command(self, cmd):             # <<<<<<<<<<<<<<
  *         pass
  * 
  */
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_7BaseExt_7generate_command, 0, __pyx_n_s_BaseExt_generate_command, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__30)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 313; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_7BaseExt_7generate_command, 0, __pyx_n_s_BaseExt_generate_command, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__28)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_generate_command, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 313; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_generate_command, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":316
+  /* "src/player/head_controller.pyx":318
  *         pass
  * 
  *     def update_status(self, key, value):             # <<<<<<<<<<<<<<
  *         pass
  * 
  */
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_7BaseExt_9update_status, 0, __pyx_n_s_BaseExt_update_status, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__32)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 316; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_7BaseExt_9update_status, 0, __pyx_n_s_BaseExt_update_status, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__30)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 318; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_update_status, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 316; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_update_status, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 318; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":319
+  /* "src/player/head_controller.pyx":321
  *         pass
  * 
  *     def on_message(self, message):             # <<<<<<<<<<<<<<
  *         return False
  * 
  */
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_7BaseExt_11on_message, 0, __pyx_n_s_BaseExt_on_message, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__34)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 319; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_7BaseExt_11on_message, 0, __pyx_n_s_BaseExt_on_message, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__32)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 321; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_on_message, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 319; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_on_message, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 321; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":322
+  /* "src/player/head_controller.pyx":324
  *         return False
  * 
  *     def all_set(self):             # <<<<<<<<<<<<<<
  *         return True
  * 
  */
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_7BaseExt_13all_set, 0, __pyx_n_s_BaseExt_all_set, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__36)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 322; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_7BaseExt_13all_set, 0, __pyx_n_s_BaseExt_all_set, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__34)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_all_set, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 322; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_all_set, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":301
+  /* "src/player/head_controller.pyx":303
  * 
  * 
  * class BaseExt(object):             # <<<<<<<<<<<<<<
  *     def __init__(self, **spec):
  *         self.spec = spec
  */
-  __pyx_t_1 = __Pyx_Py3ClassCreate(__pyx_t_3, __pyx_n_s_BaseExt, __pyx_t_2, __pyx_t_5, NULL, 0, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 301; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_Py3ClassCreate(__pyx_t_3, __pyx_n_s_BaseExt, __pyx_t_2, __pyx_t_5, NULL, 0, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 303; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_BaseExt, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 301; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_BaseExt, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 303; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "src/player/head_controller.pyx":326
+  /* "src/player/head_controller.pyx":328
  * 
  * 
  * class ExtruderExt(BaseExt):             # <<<<<<<<<<<<<<
  *     _fanspeed = None
  *     _temperatures = None
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_BaseExt); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 326; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_BaseExt); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 328; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 326; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 328; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2);
   __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_CalculateMetaclass(NULL, __pyx_t_3); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 326; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_CalculateMetaclass(NULL, __pyx_t_3); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 328; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_5 = __Pyx_Py3MetaclassPrepare(__pyx_t_2, __pyx_t_3, __pyx_n_s_ExtruderExt, __pyx_n_s_ExtruderExt, (PyObject *) NULL, __pyx_n_s_fluxmonitor_player__head_control, (PyObject *) NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 326; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_Py3MetaclassPrepare(__pyx_t_2, __pyx_t_3, __pyx_n_s_ExtruderExt, __pyx_n_s_ExtruderExt, (PyObject *) NULL, __pyx_n_s_fluxmonitor_player__head_control, (PyObject *) NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 328; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "src/player/head_controller.pyx":327
+  /* "src/player/head_controller.pyx":329
  * 
  * class ExtruderExt(BaseExt):
  *     _fanspeed = None             # <<<<<<<<<<<<<<
  *     _temperatures = None
  *     _current_temp = None
  */
-  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_fanspeed, Py_None) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 327; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_fanspeed, Py_None) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 329; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/player/head_controller.pyx":328
+  /* "src/player/head_controller.pyx":330
  * class ExtruderExt(BaseExt):
  *     _fanspeed = None
  *     _temperatures = None             # <<<<<<<<<<<<<<
  *     _current_temp = None
  * 
  */
-  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_temperatures, Py_None) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 328; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_temperatures, Py_None) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 330; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/player/head_controller.pyx":329
+  /* "src/player/head_controller.pyx":331
  *     _fanspeed = None
  *     _temperatures = None
  *     _current_temp = None             # <<<<<<<<<<<<<<
  * 
  *     def __init__(self):
  */
-  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_current_temp, Py_None) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 329; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_current_temp, Py_None) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 331; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "src/player/head_controller.pyx":331
+  /* "src/player/head_controller.pyx":333
  *     _current_temp = None
  * 
  *     def __init__(self):             # <<<<<<<<<<<<<<
  *         self._fanspeed = [0]
  *         self._temperatures = [float("NaN")]
  */
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_11ExtruderExt_1__init__, 0, __pyx_n_s_ExtruderExt___init, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__38)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 331; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_11ExtruderExt_1__init__, 0, __pyx_n_s_ExtruderExt___init, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__36)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 333; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_init, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 331; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_init, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 333; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":336
+  /* "src/player/head_controller.pyx":338
  *         self._current_temp = [float("NaN")]
  * 
  *     def hello(self, **kw):             # <<<<<<<<<<<<<<
  *         m = kw.get("TYPE", "UNKNOW")
  *         if m != "EXTRUDER":
  */
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_11ExtruderExt_3hello, 0, __pyx_n_s_ExtruderExt_hello, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__40)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 336; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_11ExtruderExt_3hello, 0, __pyx_n_s_ExtruderExt_hello, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__38)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 338; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_hello, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 336; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_hello, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 338; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":342
+  /* "src/player/head_controller.pyx":344
  *         super(ExtruderExt, self).hello(**kw)
  * 
  *     def bootstrap_commands(self):             # <<<<<<<<<<<<<<
  *         cmds = []
  *         if self._fanspeed[0] >= 0:
  */
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_11ExtruderExt_5bootstrap_commands, 0, __pyx_n_s_ExtruderExt_bootstrap_commands, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__42)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 342; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_11ExtruderExt_5bootstrap_commands, 0, __pyx_n_s_ExtruderExt_bootstrap_commands, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__40)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 344; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_bootstrap_commands, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 342; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_bootstrap_commands, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 344; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":352
+  /* "src/player/head_controller.pyx":354
  *         return cmds
  * 
  *     def status(self):             # <<<<<<<<<<<<<<
  *         return {
  *             "module": "EXTRUDER",
  */
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_11ExtruderExt_7status, 0, __pyx_n_s_ExtruderExt_status, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__44)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_11ExtruderExt_7status, 0, __pyx_n_s_ExtruderExt_status, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__42)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 354; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_status, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_status, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 354; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":360
+  /* "src/player/head_controller.pyx":362
  *         }
  * 
  *     def set_heater(self, int heater_id, float temperature):             # <<<<<<<<<<<<<<
  *         if temperature < 5:
  *             raise RuntimeError(EXEC_OPERATION_ERROR, "BAD TEMP")
  */
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_11ExtruderExt_9set_heater, 0, __pyx_n_s_ExtruderExt_set_heater, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 360; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_11ExtruderExt_9set_heater, 0, __pyx_n_s_ExtruderExt_set_heater, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__44)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 362; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_set_heater, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 360; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_set_heater, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 362; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":369
+  /* "src/player/head_controller.pyx":371
  *         return create_chksum_cmd("1 H:%i T:%.1f", heater_id, temperature)
  * 
  *     def set_fanspeed(self, int fan_id, float fan_speed):             # <<<<<<<<<<<<<<
  *         self._fanspeed[fan_id] = f = max(min(1.0, fan_speed), 0)
  *         return create_chksum_cmd("1 F:%i S:%i", fan_id, f * 255)
  */
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_11ExtruderExt_11set_fanspeed, 0, __pyx_n_s_ExtruderExt_set_fanspeed, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 369; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_11ExtruderExt_11set_fanspeed, 0, __pyx_n_s_ExtruderExt_set_fanspeed, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 371; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_set_fanspeed, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 369; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_set_fanspeed, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 371; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":373
+  /* "src/player/head_controller.pyx":375
  *         return create_chksum_cmd("1 F:%i S:%i", fan_id, f * 255)
  * 
  *     def generate_command(self, cmd):             # <<<<<<<<<<<<<<
  *         if cmd.startswith("H"):
  *             target_temp = float(cmd[1:])
  */
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_11ExtruderExt_13generate_command, 0, __pyx_n_s_ExtruderExt_generate_command, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__50)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 373; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_11ExtruderExt_13generate_command, 0, __pyx_n_s_ExtruderExt_generate_command, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 375; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_generate_command, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 373; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_generate_command, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 375; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":383
+  /* "src/player/head_controller.pyx":385
  *             return
  * 
  *     def update_status(self, key, value):             # <<<<<<<<<<<<<<
  *         if key == "RT":
  *             self._current_temp[0] = float(value)
  */
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_11ExtruderExt_15update_status, 0, __pyx_n_s_ExtruderExt_update_status, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__52)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 383; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_11ExtruderExt_15update_status, 0, __pyx_n_s_ExtruderExt_update_status, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__50)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 385; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_update_status, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 383; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_update_status, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 385; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":387
+  /* "src/player/head_controller.pyx":389
  *             self._current_temp[0] = float(value)
  * 
  *     def on_message(self, message):             # <<<<<<<<<<<<<<
  *         return False
  * 
  */
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_11ExtruderExt_17on_message, 0, __pyx_n_s_ExtruderExt_on_message, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__54)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 387; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_11ExtruderExt_17on_message, 0, __pyx_n_s_ExtruderExt_on_message, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__52)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 389; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_on_message, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 387; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_on_message, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 389; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":390
+  /* "src/player/head_controller.pyx":392
  *         return False
  * 
  *     def all_set(self):             # <<<<<<<<<<<<<<
  *         if self._temperatures[0] > 0:
  *             if abs(self._temperatures[0] - self._current_temp[0]) < 3:
  */
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_11ExtruderExt_19all_set, 0, __pyx_n_s_ExtruderExt_all_set, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__56)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 390; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_11ExtruderExt_19all_set, 0, __pyx_n_s_ExtruderExt_all_set, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__54)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 392; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_all_set, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 390; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_all_set, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 392; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":326
+  /* "src/player/head_controller.pyx":328
  * 
  * 
  * class ExtruderExt(BaseExt):             # <<<<<<<<<<<<<<
  *     _fanspeed = None
  *     _temperatures = None
  */
-  __pyx_t_1 = __Pyx_Py3ClassCreate(__pyx_t_2, __pyx_n_s_ExtruderExt, __pyx_t_3, __pyx_t_5, NULL, 0, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 326; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_Py3ClassCreate(__pyx_t_2, __pyx_n_s_ExtruderExt, __pyx_t_3, __pyx_t_5, NULL, 0, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 328; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_ExtruderExt, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 326; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_ExtruderExt, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 328; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "src/player/head_controller.pyx":399
+  /* "src/player/head_controller.pyx":401
  * 
  * 
  * class LaserExt(BaseExt):             # <<<<<<<<<<<<<<
  *     def hello(self, **kw):
  *         m = kw.get("TYPE", "UNKNOW")
  */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_BaseExt); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 399; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_BaseExt); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 401; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 399; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 401; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_3);
   __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_CalculateMetaclass(NULL, __pyx_t_2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 399; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_CalculateMetaclass(NULL, __pyx_t_2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 401; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = __Pyx_Py3MetaclassPrepare(__pyx_t_3, __pyx_t_2, __pyx_n_s_LaserExt, __pyx_n_s_LaserExt, (PyObject *) NULL, __pyx_n_s_fluxmonitor_player__head_control, (PyObject *) NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 399; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_Py3MetaclassPrepare(__pyx_t_3, __pyx_t_2, __pyx_n_s_LaserExt, __pyx_n_s_LaserExt, (PyObject *) NULL, __pyx_n_s_fluxmonitor_player__head_control, (PyObject *) NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 401; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "src/player/head_controller.pyx":400
+  /* "src/player/head_controller.pyx":402
  * 
  * class LaserExt(BaseExt):
  *     def hello(self, **kw):             # <<<<<<<<<<<<<<
  *         m = kw.get("TYPE", "UNKNOW")
  *         if m != "LASER":
  */
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_8LaserExt_1hello, 0, __pyx_n_s_LaserExt_hello, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__58)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 400; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_8LaserExt_1hello, 0, __pyx_n_s_LaserExt_hello, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__56)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 402; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_hello, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 400; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_hello, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 402; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":406
+  /* "src/player/head_controller.pyx":408
  *         super(LaserExt, self).hello(**kw)
  * 
  *     def status(self):             # <<<<<<<<<<<<<<
  *         return {"module": "LASER",}
  * 
  */
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_8LaserExt_3status, 0, __pyx_n_s_LaserExt_status, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__60)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 406; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_8LaserExt_3status, 0, __pyx_n_s_LaserExt_status, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__58)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 408; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_status, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 406; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_status, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 408; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":399
+  /* "src/player/head_controller.pyx":401
  * 
  * 
  * class LaserExt(BaseExt):             # <<<<<<<<<<<<<<
  *     def hello(self, **kw):
  *         m = kw.get("TYPE", "UNKNOW")
  */
-  __pyx_t_1 = __Pyx_Py3ClassCreate(__pyx_t_3, __pyx_n_s_LaserExt, __pyx_t_2, __pyx_t_5, NULL, 0, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 399; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_Py3ClassCreate(__pyx_t_3, __pyx_n_s_LaserExt, __pyx_t_2, __pyx_t_5, NULL, 0, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 401; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_LaserExt, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 399; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_LaserExt, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 401; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "src/player/head_controller.pyx":410
+  /* "src/player/head_controller.pyx":412
  * 
  * 
  * class NAExt(BaseExt):             # <<<<<<<<<<<<<<
  *     def hello(self, **kw):
  *         m = kw.get("TYPE", "UNKNOW")
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_BaseExt); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 410; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_BaseExt); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 412; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 410; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 412; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2);
   __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_CalculateMetaclass(NULL, __pyx_t_3); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 410; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_CalculateMetaclass(NULL, __pyx_t_3); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 412; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_5 = __Pyx_Py3MetaclassPrepare(__pyx_t_2, __pyx_t_3, __pyx_n_s_NAExt, __pyx_n_s_NAExt, (PyObject *) NULL, __pyx_n_s_fluxmonitor_player__head_control, (PyObject *) NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 410; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_Py3MetaclassPrepare(__pyx_t_2, __pyx_t_3, __pyx_n_s_NAExt, __pyx_n_s_NAExt, (PyObject *) NULL, __pyx_n_s_fluxmonitor_player__head_control, (PyObject *) NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 412; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "src/player/head_controller.pyx":411
+  /* "src/player/head_controller.pyx":413
  * 
  * class NAExt(BaseExt):
  *     def hello(self, **kw):             # <<<<<<<<<<<<<<
  *         m = kw.get("TYPE", "UNKNOW")
  *         raise RuntimeError(EXEC_NEED_REMOVE_HEAD, "GOT_%s" % m)
  */
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_5NAExt_1hello, 0, __pyx_n_s_NAExt_hello, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__62)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 411; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_5NAExt_1hello, 0, __pyx_n_s_NAExt_hello, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__60)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 413; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_hello, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 411; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_hello, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 413; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":415
+  /* "src/player/head_controller.pyx":417
  *         raise RuntimeError(EXEC_NEED_REMOVE_HEAD, "GOT_%s" % m)
  * 
  *     def status(self):             # <<<<<<<<<<<<<<
  *         return {"module": "N/A",}
  */
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_5NAExt_3status, 0, __pyx_n_s_NAExt_status, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__64)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 415; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_5NAExt_3status, 0, __pyx_n_s_NAExt_status, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__62)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 417; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_status, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 415; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetItem(__pyx_t_5, __pyx_n_s_status, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 417; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/player/head_controller.pyx":410
+  /* "src/player/head_controller.pyx":412
  * 
  * 
  * class NAExt(BaseExt):             # <<<<<<<<<<<<<<
  *     def hello(self, **kw):
  *         m = kw.get("TYPE", "UNKNOW")
  */
-  __pyx_t_1 = __Pyx_Py3ClassCreate(__pyx_t_2, __pyx_n_s_NAExt, __pyx_t_3, __pyx_t_5, NULL, 0, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 410; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_Py3ClassCreate(__pyx_t_2, __pyx_n_s_NAExt, __pyx_t_3, __pyx_t_5, NULL, 0, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 412; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_NAExt, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 410; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_NAExt, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 412; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "src/player/head_controller.pyx":2
+  /* "src/player/head_controller.pyx":3
+ * 
  * 
  * from cpython cimport bool             # <<<<<<<<<<<<<<
+ * from libc.stdio cimport sscanf
  * 
- * from shlex import split as shlex_split
  */
-  __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_test, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_test, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
   /*--- Wrapped vars code ---*/
@@ -13095,6 +12861,23 @@ static CYTHON_INLINE int __Pyx_SetItemInt_Fast(PyObject *o, Py_ssize_t i, PyObje
     }
 #endif
     return __Pyx_SetItemInt_Generic(o, PyInt_FromSsize_t(i), v);
+}
+
+static int __Pyx_SetVtable(PyObject *dict, void *vtable) {
+#if PY_VERSION_HEX >= 0x02070000
+    PyObject *ob = PyCapsule_New(vtable, 0, 0);
+#else
+    PyObject *ob = PyCObject_FromVoidPtr(vtable, 0);
+#endif
+    if (!ob)
+        goto bad;
+    if (PyDict_SetItem(dict, __pyx_n_s_pyx_vtable, ob) < 0)
+        goto bad;
+    Py_DECREF(ob);
+    return 0;
+bad:
+    Py_XDECREF(ob);
+    return -1;
 }
 
 static PyObject* __Pyx_ImportFrom(PyObject* module, PyObject* name) {

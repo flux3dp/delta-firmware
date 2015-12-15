@@ -9,11 +9,28 @@ class ControlTestBase(unittest.TestCase):
     def raiseException(self, sender):
         raise UnittestError("UNITTEST")
 
+    def get_executor(self):
+        return SendHelper()
+
     def assertSendHeadboard(self, *args):
         return AssertControllerSendHelper(self, headboard_send_sequence=args)
 
     def assertSendMainboard(self, *args):
         return AssertControllerSendHelper(self, mainboard_send_sequence=args)
+
+
+class SendHelper(object):
+    def send_headboard(self, msg):
+        pass
+
+    def send_mainboard(self, msg):
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        pass
 
 
 class AssertControllerSendHelper(object):
