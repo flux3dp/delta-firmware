@@ -201,6 +201,7 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
                         s = Storage('camera')
                         with s.open('calibration', "w") as f:
                             f.write(' '.join(map(lambda x: str(round(float(x))), calibrate_parameter)))
+                        break
                     else:
                         flag = 12
                 elif w < 0:
