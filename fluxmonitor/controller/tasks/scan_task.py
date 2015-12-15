@@ -173,6 +173,7 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
     def calibrate(self, handler):
         table = {8: 60, 7: 51, 6: 40, 5: 32, 4: 26, 3: 19, 2: 11, 1: 6, 0: 1}  # this is measure by data set
         flag = 0
+        self.change_laser(left=False, right=False)
         while True:
             if flag > 10:
                 break
