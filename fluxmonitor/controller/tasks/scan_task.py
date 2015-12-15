@@ -189,15 +189,16 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
                         self.change_laser(left=l, right=r)
                         sleep(0.5)
                         m = self.camera.compute_cab(step)
-                        calibrate_parameter.append(m.split()[1])
-
-                    calibrate_parameter.pop(0)
+                        m = m.split()[1]
+                        calibrate_parameter.append(m)
 
                     output = ' '.join(calibrate_parameter)
                     logger.info(output)
 
                     # s.write(' '.join(calibrate_parameter))
-                    if all(abs(float(r)) < 72 for r in calibrate_parameter):  # so naive check
+                    if 'fail' in calibrate_parameter:
+                        flag = 11
+                    elif all(abs(float(r)) < 72 for r in calibrate_parameter):  # so naive check
                         # store data
                         s = Storage('camera')
                         with s.open('calibration', "w") as f:

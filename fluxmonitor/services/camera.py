@@ -122,11 +122,12 @@ class CameraService(ServiceBase):
 
             logger.info('find calibrat board center ' + str(self.s))
             cv2.imwrite('tmp_O.jpg', self.img_o)
-            handler.send_text('ok done')
+            handler.send_text('ok {}'.format(self.s))
         else:
             img_r = camera.fetch()
 
             result = ScanChecking.find_red(self.img_o, img_r)
+            logger.info('{}:red at {}'.format(cmd, result))
             ################################
             for h in xrange(img_r.shape[0]):
                 img_r[h][result][0] = 255
