@@ -66,7 +66,7 @@ class CorrectionMacro(object):
             elif dd < 0.05:
                 logger.error("Correction completed: %s", data)
                 self.convergence = True
-                executor.main_ctrl.send_cmd("G28", executor)
+                executor.main_ctrl.send_cmd("G1F9000X0Y0Z30", executor)
 
             else:
                 corr_str = do_correction(self.meta, *data)
