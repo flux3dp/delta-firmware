@@ -111,18 +111,15 @@ class PlayerManager(object):
 
     @property
     def is_running(self):
-        st = self.meta.format_device_status().get("st_id")
-        return st == ST_RUNNING
+        return self.meta.device_status_id == ST_RUNNING
 
     @property
     def is_paused(self):
-        st = self.meta.format_device_status().get("st_id")
-        return st == ST_PAUSED
+        return (self.meta.device_status_id & (ST_PAUSED + 2)) == ST_PAUSED
 
     @property
     def is_terminated(self):
-        st = self.meta.format_device_status().get("st_id")
-        return st in (ST_COMPLETED, ST_ABORTED)
+        return self.meta.device_status_id in (ST_COMPLETED, ST_ABORTED)
 
     def pause(self):
         self.sock.send("PAUSE")

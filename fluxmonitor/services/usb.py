@@ -134,13 +134,16 @@ class UsbIO(object):
         return self.sock.fileno()
 
     def on_message(self, watcher, revent):
-        l = self.sock.recv_into(self._recv_view[self._recv_offset:])
-        if l:
-            self._recv_offset += l
-            self.check_recv_buffer()
-        else:
-            self.callbacks = None
-            watcher.data.close_usb_serial()
+        try:
+            l = self.sock.recv_into(self._recv_view[self._recv_offset:])
+            if l:
+                self._recv_offset += l
+                self.check_recv_buffer()
+            else:
+                self.callbacks = None
+                watcher.data.close_usb_serial()
+        except Exception:
+            logger.exception("Unhandle error")
 
     def check_recv_buffer(self):
         if self._request_len is None and self._recv_offset >= 7:

@@ -124,14 +124,15 @@ class ScanChecking(object):
         c = 0
         for i in cnt.most_common():
             if i[1] >= thres:  # compute weighted arithmetic mean
-                c += i[1]
-                p += i[0] * i[1]
+                if abs(i[0] - 320) < 25:
+                    c += i[1]
+                    p += i[0] * i[1]
             else:
                 break
         if p > 0:
             return round(p / c)
         else:
-            return cnt.most_common()[0][0]
+            return 0
 
 
 def get_matrix():

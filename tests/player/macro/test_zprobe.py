@@ -28,8 +28,7 @@ class CorrectionMacroTest(ControlTestBase):
     def setUp(self):
         self.reset_callback()
         self.meta.plate_correction = {"X": 0, "Y":0, "Z": 0, "H": 242}
-        self.cm = ZprobeMacro(self.on_success_callback,
-                              self.on_error_callback)
+        self.cm = ZprobeMacro(self.on_success_callback)
 
     def test_simple_run(self):
         ## ROUND 0

@@ -138,8 +138,8 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             self.do_eadj(handler, clean=clean)
 
         elif cmd == "cor_h":
-            if len(args) > 1:
-                h = float(args[1])
+            if len(args) > 0:
+                h = float(args[0])
                 self.do_h_correction(handler, h=h)
             else:
                 self.do_h_correction(handler)

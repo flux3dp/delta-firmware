@@ -97,12 +97,12 @@ class CameraService(ServiceBase):
         img = camera.fetch()
         # flag, points = ScanChecking.find_board(img, fast=False)
         flag, points = ScanChecking.find_board(img)
-        cv2.imwrite('tmp1.jpg', img)
+        cv2.imwrite('/home/pi/tmp1.jpg', img)
         if flag:
             ################################
             tmp = np.copy(camera.img_buf)
             cv2.drawChessboardCorners(tmp, ScanChecking.corner, points, flag)
-            cv2.imwrite('tmp.jpg', tmp)
+            cv2.imwrite('/home/pi/tmp.jpg', tmp)
             ################################
         if flag:
             m = 'ok {}'.format(ScanChecking.get_bias(points))
@@ -116,31 +116,34 @@ class CameraService(ServiceBase):
             self.img_o = np.copy(camera.img_buf)
             _, points = ScanChecking.find_board(self.img_o)
             self.s = 0
-
             for i in xrange(16):
                 self.s += points[i][0][0]
             self.s /= 16
-            self.s -= 2  # chess board printing is broken!
+
             logger.info('find calibrat board center ' + str(self.s))
-            cv2.imwrite('tmp_O.jpg', self.img_o)
-            handler.send_text('ok done')
+            cv2.imwrite('/home/pi/tmp_O.jpg', self.img_o)
+            handler.send_text('ok {}'.format(self.s))
         else:
             img_r = camera.fetch()
 
             result = ScanChecking.find_red(self.img_o, img_r)
+            logger.info('{}:red at {}'.format(cmd, result))
             ################################
             for h in xrange(img_r.shape[0]):
                 img_r[h][result][0] = 255
                 img_r[h][result][1] = 255
                 img_r[h][result][2] = 255
-            cv2.imwrite('tmp_R{}.jpg'.format(cmd), img_r)
+            cv2.imwrite('/home/pi/tmp_R{}.jpg'.format(cmd), img_r)
             ################################
-            result -= self.s
+            w = img_r.shape[1] / 2  # 640 / 2 = 320
             if cmd == 5:
                 del self.img_o
                 del self.s
 
-            handler.send_text('ok {}'.format(result))
+            if result:
+                handler.send_text('ok {}'.format(result))
+            else:
+                handler.send_text('ok fail')
 
     def handle_command(self, watcher, cmd_id, camera_id):
         camera = self.cameras[camera_id]
