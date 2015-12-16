@@ -22,9 +22,8 @@ def do_correction(meta, x, y, z):
 class ZprobeMacro(object):
     name = "CORRECTING"
 
-    def __init__(self, on_success_cb, clean=False, ttl=20):
+    def __init__(self, on_success_cb, ttl=20):
         self._on_success_cb = on_success_cb
-        self._clean = clean
         self.meta = Metadata()
         self.history = []
         self.ttl = ttl
@@ -46,7 +45,7 @@ class ZprobeMacro(object):
 
             if abs(data) < 0.05:
                 self.convergence = True
-                executor.main_ctrl.send_cmd("G28", executor)
+                executor.main_ctrl.send_cmd("G1F9000Z50", executor)
                 return
 
             else:
@@ -68,12 +67,9 @@ class ZprobeMacro(object):
         pass
 
     def start(self, executor):
-        if self._clean:
-            self.meta.plate_correction = {"H": 242}
-            executor.main_ctrl.send_cmd("M666H242", executor)
-            executor.main_ctrl.send_cmd("G28", executor)
-        else:
-            self.on_command_empty(executor)
+        self.meta.plate_correction = {"H": 242}
+        executor.main_ctrl.send_cmd("M666H242", executor)
+        executor.main_ctrl.send_cmd("G28", executor)
 
     def giveup(self):
         pass
