@@ -17,7 +17,7 @@ def main(params=None):
                         help='A g-code file, if this arg given, robot will'
                              ' enter PlayTask and run g-code automatically')
 
-    options = parser.parse_args()
+    options = parser.parse_args(params)
     apply_daemon_arguments(options)
 
     if options.stop_daemon:
