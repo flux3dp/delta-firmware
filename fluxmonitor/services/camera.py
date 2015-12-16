@@ -97,12 +97,12 @@ class CameraService(ServiceBase):
         img = camera.fetch()
         # flag, points = ScanChecking.find_board(img, fast=False)
         flag, points = ScanChecking.find_board(img)
-        cv2.imwrite('tmp1.jpg', img)
+        cv2.imwrite('/home/pi/tmp1.jpg', img)
         if flag:
             ################################
             tmp = np.copy(camera.img_buf)
             cv2.drawChessboardCorners(tmp, ScanChecking.corner, points, flag)
-            cv2.imwrite('tmp.jpg', tmp)
+            cv2.imwrite('/home/pi/tmp.jpg', tmp)
             ################################
         if flag:
             m = 'ok {}'.format(ScanChecking.get_bias(points))
@@ -121,7 +121,7 @@ class CameraService(ServiceBase):
             self.s /= 16
 
             logger.info('find calibrat board center ' + str(self.s))
-            cv2.imwrite('tmp_O.jpg', self.img_o)
+            cv2.imwrite('/home/pi/tmp_O.jpg', self.img_o)
             handler.send_text('ok {}'.format(self.s))
         else:
             img_r = camera.fetch()
@@ -133,11 +133,9 @@ class CameraService(ServiceBase):
                 img_r[h][result][0] = 255
                 img_r[h][result][1] = 255
                 img_r[h][result][2] = 255
-            cv2.imwrite('tmp_R{}.jpg'.format(cmd), img_r)
+            cv2.imwrite('/home/pi/tmp_R{}.jpg'.format(cmd), img_r)
             ################################
             w = img_r.shape[1] / 2  # 640 / 2 = 320
-            result -= self.s
-            result += (self.s - w)
             if cmd == 5:
                 del self.img_o
                 del self.s

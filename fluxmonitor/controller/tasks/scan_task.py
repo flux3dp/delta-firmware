@@ -198,7 +198,7 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
                     # s.write(' '.join(calibrate_parameter))
                     if 'fail' in calibrate_parameter:
                         flag = 11
-                    elif all(abs(float(r)) < 72 for r in calibrate_parameter[1:]):  # so naive check
+                    elif all(abs(float(r) - float(calibrate_parameter[0])) < 72 for r in calibrate_parameter[1:]):  # so naive check
                         # store data
                         s = Storage('camera')
                         with s.open('calibration', "w") as f:
