@@ -1,21 +1,22 @@
 
-from .base import ExclusiveMixIn, DeviceOperationMixIn
+from fluxmonitor.err_codes import PROTOCOL_ERROR
+from .base import DeviceOperationMixIn
 
 
-class RawTask(ExclusiveMixIn, DeviceOperationMixIn):
-    def __init__(self, server, sender):
-        super(RawTask, self).__init__(server, sender)
-        self.connect()
-        sender.binary_mode = True
+class RawTask(DeviceOperationMixIn):
+    def __init__(self, stack, handler):
+        super(RawTask, self).__init__(stack, handler)
+        handler.binary_mode = True
 
-    def on_exit(self, sender):
-        self.disconnect()
+    def on_exit(self, handler):
+        super(RawTask, self).on_exit(handler)
+        handler.binary_mode = False
 
     def on_mainboard_message(self, watcher, revent):
         try:
             buf = watcher.data.recv(4096)
             if buf:
-                self.owner().send(buf)
+                self.handler.send(buf)
             else:
                 self.on_dead(self, "DISCONNECTED")
         except Exception as e:
@@ -25,26 +26,27 @@ class RawTask(ExclusiveMixIn, DeviceOperationMixIn):
         try:
             buf = watcher.data.recv(4096)
             if buf:
-                self.owner().send(buf)
+                self.handler.send(buf)
             else:
                 self.on_dead(self, "DISCONNECTED")
         except Exception as e:
             self.on_dead(self, repr(e))
 
-    def on_owner_message(self, buf, sender):
+    def on_text(self, buf, handler):
+        raise SystemError(PROTOCOL_ERROR, "RAW_MODE")
+
+    def on_binary(self, buf, handler):
         if buf.startswith(b"+"):
             self._uart_mb.send(buf[1:])
         elif buf.startswith(b"-"):
             self._uart_hb.send(buf[1:])
-        elif buf.startswith(b"H"):
-            self._uart_hb.send(buf[1:])
-        elif buf.startswith(b"L") or buf.startswith(b"H"):
+        elif buf.startswith(b"1 "):
             self._uart_hb.send(buf)
         elif buf == b"quit":
-            sender.binary_mode = False
-            sender.send(b"\x00" * 64)
-            sender.send(b"\x01")
-            sender.send_text(b"ok")
-            self.server.exit_task(self, True)
+            handler.binary_mode = False
+            handler.send(b"\x00" * 64)
+            handler.send(b"\x01")
+            handler.send_text(b"ok")
+            self.stack.exit_task(self, True)
         else:
             self._uart_mb.send(buf)

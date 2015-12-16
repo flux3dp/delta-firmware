@@ -106,12 +106,13 @@ PY_INCLUDES = [distutils.sysconfig.get_python_inc()]
 ENTRY_POINTS = {
     "console_scripts": [
         "fluxupnpd=fluxmonitor.bin.fluxupnpd:main",
-        "fluxhal-uartd=fluxmonitor.bin.fluxhald:main",  # Remove in next ver
         "fluxhald=fluxmonitor.bin.fluxhald:main",
         "fluxnetworkd=fluxmonitor.bin.fluxnetworkd:main",
         "fluxusbd=fluxmonitor.bin.fluxusbd:main",
-
-        "fluxrobot=fluxmonitor.bin.fluxrobot:main",
+        "fluxplayer=fluxmonitor.bin.fluxplayer:main",
+        "fluxcamerad=fluxmonitor.bin.fluxcamera:main",
+        "fluxrobotd=fluxmonitor.bin.fluxrobot:main",
+        "fluxlauncher=fluxmonitor.bin.fluxlauncher:main",
 
         "fluxinit=fluxmonitor.bin.fluxinit:main"
     ]
@@ -143,7 +144,7 @@ elif is_linux():
 
 
 def get_install_requires():
-    packages = ['setuptools', 'psutil', 'setproctitle', 'sysv_ipc', ]
+    packages = ['setuptools', 'psutil', 'setproctitle', 'sysv_ipc', 'pyserial']
 
     if is_linux():
         packages += ['pyroute2']

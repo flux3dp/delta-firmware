@@ -39,6 +39,23 @@ uart_config = {
 }
 
 
+MAX_CORRECTION_ROUND = 10
+
+DEVICE_POSITION_LIMIT = (172, 172, 212)
+
+MAINBOARD_RETRY_TTL = 10
+HEADBOARD_RETRY_TTL = 5
+
+HEAD_POWER_TIMEOUT = 300
+
+HEADBOARD_ENDPOINT = "/tmp/.headboard"
+MAINBOARD_ENDPOINT = "/tmp/.mainboard"
+
+CAMERA_ENDPOINT = "/tmp/.camera"
+PLAY_ENDPOINT = "/tmp/.player"
+
+PLAY_SWAP = "/tmp/autoplay.swap.fc"
+
 robot_config = {
     "filepool": "/media"
 }
@@ -56,7 +73,9 @@ def load_model_profile():
     hal_config["pc_uart"] = profile.get("pc_uart")
     hal_config["scan_camera"] = profile.get("scan_camera")
 
+    # TODO: old style
     robot_config["filepool"] = profile["gcode-pool"]
+    PLAY_SWAP = profile["playswap"]
 
 
 def override_config(alt_config, current):

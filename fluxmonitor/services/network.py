@@ -82,7 +82,8 @@ class NetworkMonitorMixIn(object):
         self._network_notifier = None
 
     def _on_network_changed(self, watcher, revent):
-        self.update_nic_status(self._network_notifier.read())
+        if self._network_notifier.read():
+            self.update_nic_status()
 
     def update_nic_status(self, status=None):
         if not status:
@@ -107,7 +108,7 @@ class NetworkService(ServiceBase, NetworkConfigMixIn, NetworkMonitorMixIn):
         self.nic_status = {}
         self.daemons = {}
 
-        self.timer_watcher = self.loop.timer(0, 5, self.on_timer)
+        self.timer_watcher = self.loop.timer(0, 5, self.on_timer, (5, None))
         self.timer_watcher.start()
 
     def on_start(self):
@@ -135,12 +136,35 @@ class NetworkService(ServiceBase, NetworkConfigMixIn, NetworkMonitorMixIn):
                 instance.kill()
 
     def on_timer(self, watcher, revent):
+        st = self.update_network_led()
+        print(watcher.data)
+        if st == watcher.data[1]:
+            # Network st not change
+            if watcher.data[0] < 30:
+                g = watcher.data[0]
+                watcher.stop()
+                watcher.set(g + 2, g + 2)
+                watcher.reset()
+                watcher.data = (g + 2, st)
+                watcher.start()
+
+        else:
+            watcher.stop()
+            watcher.set(5, 5)
+            watcher.reset()
+            watcher.data = (5, st)
+            watcher.start()
+
+    def update_network_led(self):
+        """Return True if network is read"""
         if is_nic_ready(self.nic_status):
             self.cm.wifi_status &= ~128
             if is_network_ready(self.nic_status):
                 self.cm.wifi_status |= 64
+                return True
             else:
                 self.cm.wifi_status &= ~64
+                return False
         else:
             self.cm.wifi_status |= 128
 
@@ -197,7 +221,7 @@ class NetworkService(ServiceBase, NetworkConfigMixIn, NetworkMonitorMixIn):
         elif self.is_wireless(ifname):
             daemon['hostapd'] = nl80211_config.wlan_ap_daemon(self, ifname)
             net_configure.config_ipaddr(ifname, {'ipaddr': '192.168.1.1',
-                                        'mask': 24})
+                                        'mask': 24, 'route': '192.168.1.254'})
             daemon['dhcpd'] = net_configure.dhcp_server_daemon(self, ifname)
             logger.debug("[%s] Wireless is not configured, "
                          "start with ap mode" % ifname)

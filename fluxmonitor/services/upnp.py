@@ -1,6 +1,6 @@
 
 from itertools import chain
-from time import time, sleep
+from time import time
 import uuid as _uuid
 import binascii
 import logging
@@ -12,16 +12,12 @@ logger = logging.getLogger(__name__)
 
 import pyev
 
-from fluxmonitor.misc._process import Process
 from fluxmonitor.misc import network_config_encoder as NCE
 from fluxmonitor.halprofile import get_model_id
 from fluxmonitor.hal.net.monitor import Monitor as NetworkMonitor
 from fluxmonitor.storage import CommonMetadata
 from fluxmonitor.config import network_config
-from fluxmonitor.misc import control_mutex
-from fluxmonitor.storage import Storage
-from fluxmonitor.err_codes import ALREADY_RUNNING, BAD_PASSWORD, NOT_RUNNING, \
-    RESOURCE_BUSY, AUTH_ERROR, UNKNOW_ERROR
+from fluxmonitor.err_codes import BAD_PASSWORD, AUTH_ERROR
 
 from fluxmonitor import __version__ as VERSION
 from fluxmonitor import security
@@ -39,8 +35,8 @@ MODEL_ID = get_model_id()
 CODE_NOPWD_ACCESS = 0x04
 CODE_PWD_ACCESS = 0x06
 
-CODE_CONTROL_STATUS = 0x80
-CODE_RESET_CONTROL = 0x82
+# CODE_CONTROL_STATUS = 0x80
+# CODE_RESET_CONTROL = 0x82
 CODE_REQUEST_ROBOT = 0x84
 CODE_CHANGE_PWD = 0xa0
 CODE_SET_NETWORK = 0xa2
@@ -100,7 +96,6 @@ def parse_signed_request(payload, secretkey):
     return True, access_id, body[32:]
 
 
-
 class MulticastInterface(object):
     temp_rsakey = None
     timer = 0
@@ -125,7 +120,7 @@ class MulticastInterface(object):
         temp_pkey_sign = self.master_key.sign(
             struct.pack("<f", temp_ts) + temp_pkey_der)
 
-        self.meta.shared_der_rsakey = temp_pkey_der
+        self.meta.shared_der_rsakey = self.server.slave_pkey.export_der()
 
         main_pubder = self.master_key.export_pubkey_der()
         identify = security.get_identify()
@@ -157,7 +152,7 @@ class MulticastInterface(object):
         for key in self.poke_counter.keys():
             val = self.poke_counter[key]
             if val > 1:
-                self.poke_counter[key] = val -1
+                self.poke_counter[key] = val - 1
             else:
                 self.poke_counter.pop(key)
 
@@ -234,9 +229,10 @@ class MulticastInterface(object):
         self.sock.sendto(payload + message + signature, endpoint)
 
     def send_discover(self):
-        if time() - self.timer > 5:
+        if time() - self.timer > 2.5:
             self.reduce_drop_request()
-            self.sock.sendto(self._discover_payload, self.mcst_addr)
+            self.sock.sendto(self._discover_payload + self.meta.device_status,
+                             self.mcst_addr)
             self.timer = time()
 
     def close(self):
@@ -245,7 +241,6 @@ class MulticastInterface(object):
 
 class UpnpServiceMixIn(object):
     padding_request_pubkey = None
-    robot_agent = None
 
     @json_payload_wrapper
     def cmd_nopwd_access(self, payload):
@@ -352,49 +347,9 @@ class UpnpServiceMixIn(object):
         return {"timestemp": time()}
 
     @json_payload_wrapper
-    def cmd_control_status(self, access_id, message):
-        pid = control_mutex.locking_status()
-        if pid:
-            status = "running"
-        else:
-            status = "idel"
-
-        return {"timestemp": time(), "onthefly": status}
-
-    @json_payload_wrapper
     def cmd_require_robot(self, access_id, message):
-        if self.robot_agent:
-            ret = self.robot_agent.poll()
-            if ret is None:
-                return {"status": "launching"}
-            else:
-                self.robot_agent = None
-
-                if ret == 0:
-                    return {"status": "launched"}
-                elif ret == 0x80:
-                    return {"status": "launched", "info": "double launch"}
-                else:
-                    logger.error("Robot daemon return statuscode %i" % ret)
-                    raise RuntimeError(UNKNOW_ERROR, "%i" % ret)
-
-        else:
-            pid = control_mutex.locking_status()
-            if pid:
-                return {"status": "launched", "info": "already running"}
-            else:
-                self.robot_agent = RobotLaunchAgent(self)
-                return {"status": "initial"}
-
-    @json_payload_wrapper
-    def cmd_reset_control(self, access_id, message):
-        do_kill = message == b"\x01"
-        label = control_mutex.terminate(kill=do_kill)
-
-        if label:
-            return {}
-        else:
-            raise RuntimeError(NOT_RUNNING)
+        # TODO: to be delete
+        return {"status": "launched"}
 
 
 class UpnpService(ServiceBase, UpnpServiceMixIn):
@@ -402,16 +357,16 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
     mcst = None
     mcst_watcher = None
     cron_watcher = None
+    # button_control = None
 
     def __init__(self, options):
-        self.debug = options.debug
-
         # Create RSA key if not exist. This will prevent upnp create key during
         # upnp is running (Its takes times and will cause timeout)
         self.master_key = security.get_private_key()
         self.slave_pkey = security.RSAObject(keylength=1024)
 
         self.meta = CommonMetadata()
+        self.meta.update_device_status(0, 0, "OFFLINE", "")
 
         self._callback = {
             CODE_NOPWD_ACCESS: self.cmd_nopwd_access,
@@ -419,8 +374,8 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
             CODE_CHANGE_PWD: self.cmd_change_pwd,
             CODE_SET_NETWORK: self.cmd_set_network,
 
-            CODE_CONTROL_STATUS: self.cmd_control_status,
-            CODE_RESET_CONTROL: self.cmd_reset_control,
+            # CODE_CONTROL_STATUS: self.cmd_control_status,
+            # CODE_RESET_CONTROL: self.cmd_reset_control,
             CODE_REQUEST_ROBOT: self.cmd_require_robot
         }
 
@@ -433,18 +388,19 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
         self.nw_monitor_watcher = self.loop.io(self.nw_monitor, pyev.EV_READ,
                                                self.on_network_changed)
         self.nw_monitor_watcher.start()
-        self.cron_watcher = self.loop.timer(5.0, 5.0, self.on_cron)
+        self.cron_watcher = self.loop.timer(3.0, 3.0, self.on_cron)
         self.cron_watcher.start()
 
     def on_network_changed(self, watcher, revent):
-        status = self.nw_monitor.read()
-        nested = [st.get('ipaddr', [])
-                  for _, st in status.items()]
-        ipaddress = list(chain(*nested))
+        if self.nw_monitor.read():
+            status = self.nw_monitor.full_status()
+            nested = [st.get('ipaddr', [])
+                      for _, st in status.items()]
+            ipaddress = list(chain(*nested))
 
-        if self.ipaddress != ipaddress:
-            self.ipaddress = ipaddress
-            self._replace_upnp_sock()
+            if self.ipaddress != ipaddress:
+                self.ipaddress = ipaddress
+                self._replace_upnp_sock()
 
     def _replace_upnp_sock(self):
         self._try_close_upnp_sock()
@@ -474,10 +430,11 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
 
     def on_shutdown(self):
         self._try_close_upnp_sock()
+        # if self.button_control:
+        #     self.button_control.close()
 
     def on_cron(self, watcher, revent):
-        if self.mcst:
-            self.mcst.send_discover()
+        self.mcst.send_discover()
 
     def on_request(self, remote, request_code, payload, interface):
         callback = self._callback.get(request_code)
@@ -511,38 +468,6 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
         if watcher.data:
             watcher.data.fire()
             watcher.data = None
-
-
-class RobotLaunchAgent(Process):
-    @classmethod
-    def init(cls, service):
-        logfile = Storage("log").get_path("robot.log")
-        pidfile = control_mutex.pidfile()
-
-        return cls(service, ["fluxrobot", "--pid", pidfile, "--log", logfile,
-                             "--daemon"])
-
-    def __init__(self, services):
-        pid = control_mutex.locking_status()
-        if pid:
-            raise RuntimeError(ALREADY_RUNNING)
-
-        logfile = Storage("log").get_path("robot.log")
-        pidfile = control_mutex.pidfile()
-
-        Process.__init__(self, services, ["fluxrobot", "--pid", pidfile,
-                                          "--log", logfile, "--daemon"])
-
-    def on_daemon_closed(self):
-        timestemp = time()
-
-        ret = self.poll()
-        while ret is None and (time() - timestemp) < 3:
-            sleep(0.05)
-            ret = self.poll()
-
-        if ret is None:
-            self.kill()
 
 
 class DelayNetworkConfigure(object):

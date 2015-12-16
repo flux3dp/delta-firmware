@@ -1,6 +1,8 @@
 
 from libc.math cimport NAN, isnan, sqrt
 
+cdef extern from "math.h":
+    float INFINITY
 
 cdef extern from "device_fsm.h":
   ctypedef void (*command_cb_t)(const char*, int, void*)
@@ -8,12 +10,14 @@ cdef extern from "device_fsm.h":
   struct DeviceFSM:
     double traveled
     float x, y, z, e[3]
+    float max_x, max_y, max_z
     int f, t
 
   cdef cppclass DeviceController:
     DeviceController()
     DeviceFSM fsm
     int feed(int, command_cb_t, void*)
+    void set_max_exec_time(double)
 
 
 cdef void pycallback(const char* wow, int target, void* data):
@@ -25,7 +29,9 @@ cdef class PyDeviceFSM:
   cdef DeviceController *ptr
 
   def __init__(self, int t=0, int f=-1, float x=NAN, float y=NAN,
-               float z=NAN, float e1=NAN, float e2=NAN, float e3=NAN):
+               float z=NAN, float e1=0, float e2=0, float e3=0,
+               float max_x=INFINITY, float max_y=INFINITY,
+               float max_z=INFINITY):
     self.ptr.fsm.x = x
     self.ptr.fsm.y = y
     self.ptr.fsm.z = z
@@ -34,12 +40,18 @@ cdef class PyDeviceFSM:
     self.ptr.fsm.e[2] = e3
     self.ptr.fsm.t = t
     self.ptr.fsm.f = f
+    self.ptr.fsm.max_x = max_x
+    self.ptr.fsm.max_y = max_y
+    self.ptr.fsm.max_z = max_z
 
   def __cinit__(self):
     self.ptr = new DeviceController()
 
   def __dealloc__(self):
     del self.ptr
+
+  cpdef set_max_exec_time(self, double t):
+    self.ptr.set_max_exec_time(t)
 
   cpdef int feed(self, int fd, callback):
     return self.ptr.feed(fd, pycallback, <void*>callback)

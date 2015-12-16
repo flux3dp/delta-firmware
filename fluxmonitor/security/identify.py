@@ -4,8 +4,8 @@ import binascii
 import logging
 
 from fluxmonitor.security._security import get_rsakey as _get_rsakey, \
-     get_uuid as _get_uuid, get_identify as _get_identify, \
-     get_serial_number as _get_serial_number
+    get_uuid as _get_uuid, get_identify as _get_identify, \
+    get_serial_number as _get_serial_number
 
 HEXMAP = "123456789ABCDEFGHJKLMNOPQRSTUVWXYZ"
 

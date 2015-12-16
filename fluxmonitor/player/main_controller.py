@@ -5,13 +5,14 @@ import logging
 import socket
 
 from fluxmonitor.err_codes import EXEC_OPERATION_ERROR, EXEC_INTERNAL_ERROR,\
-    EXEC_MAINBOARD_OFFLINE
-from fluxmonitor.config import uart_config
+    EXEC_MAINBOARD_OFFLINE, EXEC_FILAMENT_RUNOUT
+
 
 L = logging.getLogger(__name__)
 
 FLAG_READY = 1
-FLAG_CLOSED = 2
+FLAG_ERROR = 2
+FLAG_CLOSED = 4
 
 
 class MainController(object):
@@ -26,18 +27,23 @@ class MainController(object):
     # Booean
     _flags = 0
 
+    _retry_ttl = 3
+
     # Callable object
-    _callback_ready = None
+    _callback_flags = None
     # Tuple: (ttl(int), time(float), ln(int))
     _inhibit_resend = None
 
     _bufsize = None
 
     def __init__(self, executor, bufsize=16, ready_callback=None,
-                 msg_empty_callback=None, msg_sendable_callback=None):
+                 msg_empty_callback=None, msg_sendable_callback=None,
+                 retry_ttl=3):
+        self._retry_ttl = retry_ttl
+
         self._cmd_sent = deque()
         self._cmd_padding = deque()
-        self.callback_ready = ready_callback
+        self.callback_flags = ready_callback
         self.callback_msg_empty = msg_empty_callback
         self.callback_msg_sendable = msg_sendable_callback
 
@@ -48,7 +54,7 @@ class MainController(object):
 
     @property
     def ready(self):
-        return (self._flags & FLAG_READY) > 0
+        return self._flags == FLAG_READY
 
     @property
     def closed(self):
@@ -80,9 +86,7 @@ class MainController(object):
             self._ln = 0
             self._ln_ack = 0
             self._flags |= FLAG_READY
-            if self.callback_ready:
-                self.callback_ready(self)
-                self.callback_ready = None
+            self.callback_flags(self)
 
         elif msg.startswith("ER MISSING_LINENUMBER "):
             L.error("Mainboard linecheck already enabled")
@@ -94,32 +98,41 @@ class MainController(object):
         else:
             L.debug("Recv unknow msg: '%s'", msg)
 
+    def bootstrap(self, executor):
+        L.error("MAIN BOOTSTRAP")
+        if self._flags == FLAG_READY:
+            self.callback_flags(self)
+        elif self._flags == (FLAG_READY + FLAG_ERROR):
+            self._flags = FLAG_READY
+            self.callback_flags(self)
+        else:
+            raise SystemError("BAD_LOGIC", "MBF_%i" % self._flags)
+
+    def remove_complete_command(self, cmd=None):
+        self._cmd_padding.popleft()
+
+        if self.buffered_cmd_size + 1 == self.bufsize and \
+           self.callback_msg_sendable:
+            self.callback_msg_sendable(self)
+        if self.buffered_cmd_size == 0 and self.callback_msg_empty:
+            self.callback_msg_empty(self)
+
     def on_message(self, msg, executor):
-        if self.ready:
+        if self._resend_counter > 0:
+            L.error("@ %s" % msg)
+        if self._flags & FLAG_READY:
             if msg.startswith("LN "):
                 recv_ln, cmd_in_queue = (int(x) for x in msg.split(" ", 2)[1:])
-                self._ln_ack = recv_ln
                 self._last_recv_ts = time()
                 self._resend_counter = 0
 
-                this_cmd = self._cmd_sent.popleft()
-                while this_cmd[0] < recv_ln:
-                    self._cmd_padding.append(this_cmd)
-                    L.info("Missing LN: %i" % this_cmd[0])
-                    this_cmd = self._cmd_sent.popleft()
+                while self._ln_ack < recv_ln:
+                    cmd = self._cmd_sent.popleft()
+                    self._cmd_padding.append(cmd)
+                    self._ln_ack += 1
 
                 while len(self._cmd_padding) > cmd_in_queue:
-                    self._cmd_padding.popleft()
-                self._cmd_padding.append(this_cmd)
-
-            elif msg == "ok":
-                self._cmd_padding.popleft()
-
-                if self.buffered_cmd_size + 1 == self.bufsize and \
-                   self.callback_msg_sendable:
-                    self.callback_msg_sendable(self)
-                if self.buffered_cmd_size == 0 and self.callback_msg_empty:
-                    self.callback_msg_empty(self)
+                    self.remove_complete_command()
 
             elif msg.startswith("ER LINE_MISMATCH "):
                 correct_ln, trigger_ln = (int(v) for v in msg[17:].split(" "))
@@ -131,14 +144,34 @@ class MainController(object):
                                           "IMPOSSIBLE_SYNC_LN")
 
             elif msg.startswith("ER CHECKSUM_MISMATCH "):
-                err_ln, trigger_ln = (int(v) for v in msg[17:].split(" "))
+                err_ln, trigger_ln = (int(v) for v in msg[21:].split(" "))
                 ttl = err_ln - trigger_ln
                 if not self._resend_cmd_from(err_ln, executor,
                                              ttl_offset=ttl):
                     raise SystemError(EXEC_INTERNAL_ERROR,
                                       "IMPOSSIBLE_SYNC_LN")
 
+            elif msg.startswith("CTRL FILAMENTRUNOUT "):
+                if self._flags & FLAG_ERROR == 0:
+                    self._flags |= FLAG_ERROR
+                    raise RuntimeError(EXEC_FILAMENT_RUNOUT, msg.split(" ")[2])
+
+            elif msg == "CTRL LINECHECK_DISABLED":
+                executor.send_mainboard(b"C1O\n")
+
+            elif msg == "CTRL STASH":
+                pass
+
+            elif msg == "CTRL STASH_POP":
+                pass
+
+            elif msg == "ok":
+                pass
+
             else:
+                if msg.startswith("ER "):
+                    raise SystemError(*(msg.split(" ")[1:]))
+
                 L.debug("Unhandle MB MSG: %s" % msg)
         elif not self.closed:
             self._process_init(msg, executor)
@@ -185,7 +218,7 @@ class MainController(object):
         return False
 
     def send_cmd(self, cmd, executor, force=False):
-        if self.ready:
+        if self._flags & FLAG_READY:
             if self.buffered_cmd_size < self._bufsize or force:
                 self._ln += 1
                 self._send_cmd(executor, self._ln, cmd)
@@ -200,43 +233,35 @@ class MainController(object):
     def _send_cmd(self, executor, lineno, cmd):
         executor.send_mainboard(self.create_cmd(lineno, cmd))
 
-    def reset_mainboard(self):
-        s = socket.socket(socket.AF_UNIX)
+    def on_mainboard_dead(self):
         self._flags &= ~FLAG_READY
         self._flags |= FLAG_CLOSED
-        try:
-            s.connect(uart_config["control"])
-            s.send(b"reset mb")
-        except Exception:
-            L.exception("Error while send resset mb signal")
+        raise SystemError(EXEC_MAINBOARD_OFFLINE)
 
     def close(self, executor):
-        if self.ready:
-            self.send_cmd("G28", executor, force=True)
-            self.send_cmd("M84", executor, force=True)
-            self.send_cmd("C1F", executor, force=True)
+        if self._flags & FLAG_READY:
+            executor.send_mainboard("@DISABLE_LINECHECK\n")
+            executor.send_mainboard("G28\n")
             self._flags &= ~FLAG_READY
             self._flags |= FLAG_CLOSED
 
     def patrol(self, executor):
-        if not self.ready and not self.closed:
-            if self._resend_counter >= 3:
-                L.error("Mainboard no response, restart it")
-                self.reset_mainboard()
-                raise SystemError(EXEC_MAINBOARD_OFFLINE)
-
+        if not self._flags & FLAG_READY and not self.closed:
             if time() - self._last_recv_ts > 1.0:
                 self._resend_counter += 1
+                if self._resend_counter > self._retry_ttl:
+                    L.error("Mainboard no response, restart it")
+                    self.on_mainboard_dead()
+
                 self._last_recv_ts = time()
                 # Resend, let ttl_offset takes no effect
                 executor.send_mainboard("C1O\n")
 
         if self._cmd_sent:
-            if self._resend_counter >= 10:
-                L.error("Mainboard no response, restart it (%i)", 
+            if self._resend_counter >= self._retry_ttl:
+                L.error("Mainboard no response, restart it (%i)",
                         self._resend_counter)
-                self.reset_mainboard()
-                raise SystemError(EXEC_MAINBOARD_OFFLINE)
+                self.on_mainboard_dead()
 
             if time() - self._last_recv_ts > 3.0:
                 self._last_recv_ts = time()

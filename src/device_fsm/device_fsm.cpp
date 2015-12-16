@@ -1,6 +1,10 @@
 
+#include <cmath>
 #include "device_fsm.h"
+
+#define POSITION_ERROR -1
 #define IO_ERROR -2
+#define MULTI_E_ERROR -3
 
 #define MACRO_READ(fd, ptr, size) \
   if(read(fd, ptr, size) != size) { \
@@ -12,7 +16,8 @@
 
 DeviceController::DeviceController() {
   fsm.traveled = 0;
-  fsm.x = fsm.y = fsm.z = fsm.e[0] = fsm.e[1] = fsm.e[2] = NAN;
+  fsm.x = fsm.y = fsm.z = NAN;
+  fsm.e[0] = fsm.e[1] = fsm.e[2] = 0;
   fsm.f = 3000;
   fsm.t = 0;
 }
@@ -23,8 +28,12 @@ DeviceController::DeviceController(float _x, float _y, float _z, float e1,
   fsm.x = _x; fsm.y = _y; fsm.z = _z;
   fsm.e[0] = e1; fsm.e[1] = e2; fsm.e[2] = e3;
   fsm.f = _f; fsm.t = _t;
+  max_exec_time = 1;
 }
 
+void DeviceController::set_max_exec_time(double t) {
+  max_exec_time = t;
+}
 
 int DeviceController::feed(int fd, command_cb_t callback, void* data) {
   char cmd;
@@ -39,11 +48,21 @@ int DeviceController::feed(int fd, command_cb_t callback, void* data) {
     float f = 0, x = NAN, y = NAN, z = NAN, e[3] = {NAN, NAN, NAN};
     int e_counter = 0;
     int t;
+    int illegal = 0;
 
     if(cmd & 64) { MACRO_READ(fd, &f, 4) }  // Find F
-    if(cmd & 32) { MACRO_READ(fd, &x, 4) }  // Find X
-    if(cmd & 16) { MACRO_READ(fd, &y, 4) }  // Find Y
-    if(cmd & 8)  { MACRO_READ(fd, &z, 4) }  // Find Z
+    if(cmd & 32) {
+      MACRO_READ(fd, &x, 4)
+      if(std::abs(x) > fsm.max_x) illegal = 1;
+    }  // Find X
+    if(cmd & 16) {
+      MACRO_READ(fd, &y, 4)
+      if(std::abs(y) > fsm.max_y) illegal = 1;
+    }  // Find Y
+    if(cmd & 8)  {
+      MACRO_READ(fd, &z, 4)
+      if(std::abs(z) > fsm.max_z) illegal = 1;
+    }  // Find Z
 
       // Find E
     if(cmd & 4) {
@@ -62,7 +81,8 @@ int DeviceController::feed(int fd, command_cb_t callback, void* data) {
       e_counter++;
     }
 
-    if(e_counter > 1) return -3;  // ERRROR: Can not handle multi e
+    if(illegal > 0) return POSITION_ERROR;  // ERROR: Move to out of range
+    if(e_counter > 1) return MULTI_E_ERROR;  // ERRROR: Can not handle multi e
     if(e_counter == 1 && fsm.t != t) {
       fsm.t = t;
       snprintf(_proc_buf, 8, "T%i", fsm.t);
@@ -130,8 +150,8 @@ int DeviceController::feed(int fd, command_cb_t callback, void* data) {
     // Laser Control
     float val;
     MACRO_READ(fd, &val, 4)
-    snprintf(_proc_buf, 32, "L%i", (int)(val * 255));
-    callback(_proc_buf, HEAD_MESSAGE, data);
+    snprintf(_proc_buf, 32, "X2O%i", (int)(val * 255));
+    callback(_proc_buf, MAIN_MESSAGE, data);
     return l;
   } else if(cmd & 16) {
     // Heater Control
@@ -143,7 +163,7 @@ int DeviceController::feed(int fd, command_cb_t callback, void* data) {
     int block = cmd & 8;
     callback(_proc_buf, (block ? BLOCK_HEAD_MESSAGE : HEAD_MESSAGE), data);
     return l;
-  } else if((cmd & 6) == 6) {
+  } else if(cmd == 6) {
     // Raw Command
     unsigned char val;
     MACRO_READ(fd, &val, 1)
@@ -154,28 +174,31 @@ int DeviceController::feed(int fd, command_cb_t callback, void* data) {
       callback(_proc_buf, HEAD_MESSAGE, data);
     else
       callback(_proc_buf, MAIN_MESSAGE, data);
-    return l;
+    return 1;
+  } else if(cmd == 5) {
+    callback("", PAUSE_MESSAGE, data);
+    return 1;
   } else if(cmd & 4) {
     // Sleep (G4)
     float val;
     MACRO_READ(fd, &val, 4)
     snprintf(_proc_buf, 32, "G4 P%i", (int)val);
     callback(_proc_buf, MAIN_MESSAGE, data);
-    return l;
+    return 1;
   } else if((cmd & 3) == 3) {
     // Relative Positioning (G91)
     callback("G91", MAIN_MESSAGE, data);
-    return l;
+    return 1;
   } else if(cmd & 2) {
     // Absolute Positioning (G90)
     callback("G90", MAIN_MESSAGE, data);
-    return l;
+    return 1;
   } else if(cmd == 1) {
     // Home (G28)
     callback("G28", MAIN_MESSAGE, data);
-    return l;
+    return 1;
   } else {
-    return l;
+    return 1;
   }
 }
 
@@ -206,7 +229,11 @@ inline int DeviceController::G1(command_cb_t callback, void* data,
     fsm.traveled += length;
 
     tcost = length / f * 100;
-    section = (int)(tcost / 0.5);
+    section = (int)(tcost / max_exec_time);
+    if(section > 4096) {
+      printf("G1 split section over limit: %i, strict to 4096\n", section);
+      section = 4096;
+    }
 
     for(int i=1;i<section;i++) {
       char* buf_offset = _proc_buf + 3;

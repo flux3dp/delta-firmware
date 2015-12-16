@@ -1,8 +1,8 @@
 
 from time import time
 
-from fluxmonitor.code_executor.head_controller import ExtruderController
-from .misc import ControlTestBase
+from fluxmonitor.player.head_controller import HeadController
+from tests.player.misc import ControlTestBase, UnittestError
 
 
 HELLO_MSG = ("1 OK HELLO TYPE:EXTRUDER ID:1572870 VENDOR:FLUX\ .inc "
@@ -15,49 +15,56 @@ class ExtruderHeadControlTest(ControlTestBase):
         super(ExtruderHeadControlTest, self).setUp()
 
         with self.assertSendHeadboard(b"1 HELLO *115\n") as executor:
-            ec = ExtruderController(executor,
-                                    ready_callback=self.raiseException)
+            ec = HeadController(executor, required_module="EXTRUDER",
+                                ready_callback=self.raiseException)
 
         with self.assertSendHeadboard(b"1 F:0 S:0 *4\n") as executor:
             ec.on_message(HELLO_MSG, executor)
 
         with self.assertSendHeadboard() as executor:
-            self.assertRaises(RuntimeWarning, ec.on_message, "1 OK FAN *92",
+            self.assertRaises(UnittestError, ec.on_message, "1 OK FAN *92",
                               executor)
         self.assertTrue(ec.ready)
         self.ec = ec
 
     def test_standard_operation(self):
         with self.assertSendHeadboard(b"1 H:0 T:200.0 *17\n") as executor:
-            self.ec.set_heater(executor, 0, 200, callback=self.raiseException)
+            self.ec.send_cmd("H200", executor,
+                             complete_callback=self.raiseException)
 
         with self.assertSendHeadboard() as executor:
-            self.assertRaises(RuntimeWarning, self.ec.on_message,
+            self.assertRaises(UnittestError, self.ec.on_message,
                               "1 OK HEATER *26", executor)
 
     def test_cmd_complete_callback(self):
         with self.assertSendHeadboard(b"1 H:0 T:201.0 *16\n") as executor:
-            self.ec.set_heater(executor, 0, 201, self.raiseException)
+            self.ec.send_cmd("H201", executor,
+                             complete_callback=self.raiseException)
 
         with self.assertSendHeadboard() as executor:
             self.ec.on_message("DARA", executor)
             self.ec.on_message("DA~RA~", executor)
 
         with self.assertSendHeadboard() as executor:
-            self.assertRaises(RuntimeWarning, self.ec.on_message,
+            self.assertRaises(UnittestError, self.ec.on_message,
                               "1 OK HEATER *26", executor)
 
     def test_wait_heaters(self):
         with self.assertSendHeadboard(b"1 H:0 T:200.0 *17\n") as executor:
-            self.ec.set_heater(executor, 0, 200)
+            self.ec.send_cmd("H200", executor)
+            self.ec.on_message("1 OK HEATER *26", executor)
 
-        self.ec.wait_heaters(self.raiseException)
+        self.ec.wait_allset(self.raiseException)
 
         with self.assertSendHeadboard(b"1 PING *33\n") as executor:
             self.ec.patrol(executor)
 
         with self.assertSendHeadboard() as executor:
-            self.assertRaises(RuntimeWarning, self.ec.on_message,
+            self.ec.on_message("1 OK PONG ER:0 RT:160 TT:200.0 FA:0 *18",
+                               executor)
+
+        with self.assertSendHeadboard() as executor:
+            self.assertRaises(UnittestError, self.ec.on_message,
                               "1 OK PONG ER:0 RT:199.4 TT:200.0 FA:0 *18",
                               executor)
 
@@ -65,12 +72,12 @@ class ExtruderHeadControlTest(ControlTestBase):
         self.ec._lastupdate = time()
 
         with self.assertSendHeadboard(b"1 H:0 T:200.0 *17\n") as executor:
-            self.ec.set_heater(executor, 0, 200)
+            self.ec.send_cmd("H200", executor)
 
         # Error because command not ready
         with self.assertSendHeadboard() as executor:
             self.assertRaises(RuntimeError,
-                              self.ec.set_heater, executor, 0, 200)
+                              self.ec.send_cmd, "H200", executor)
 
         with self.assertSendHeadboard(b"1 H:0 T:200.0 *17\n",
                                       b"1 H:0 T:200.0 *17\n",
@@ -85,8 +92,8 @@ class ExtruderHeadControlTest(ControlTestBase):
             self.assertRaises(RuntimeError, self.ec.patrol, executor)
 
     def test_update_timeout(self):
-        with self.assertSendHeadboard(*((b"1 PING *33\n", ) * 4)) as executor:
-            for i in range(4):
+        for i in range(4):
+            with self.assertSendHeadboard(b"1 PING *33\n") as executor:
                 # 1(first) + 3(retry) = call 4 times
                 self.ec._lastupdate = -1
                 self.ec.patrol(executor)
@@ -111,5 +118,5 @@ class ExtruderHeadControlTest(ControlTestBase):
             self.ec.on_message(HELLO_MSG, executor)
 
         with self.assertSendHeadboard() as executor:
-            self.assertRaises(RuntimeWarning, self.ec.on_message,
+            self.assertRaises(UnittestError, self.ec.on_message,
                               "1 OK FAN *92", executor)

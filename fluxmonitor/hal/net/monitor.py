@@ -1,10 +1,13 @@
 
 import platform
+import logging
 
 if platform.system().lower().startswith("linux"):
     from pyroute2 import IPRoute
 else:
     from ._iproute2 import IPRoute
+
+logger = logging.getLogger(__name__)
 
 
 class Monitor(object):
@@ -37,8 +40,12 @@ class Monitor(object):
                 return
 
     def read(self):
-        self.ipr.get()
-        return self.full_status()
+        for change in self.ipr.get():
+            if change["event"] != "RTM_NEWNEIGH":
+                logger.debug("NW EVENT: %s", change["event"])
+                logger.debug("%s", change)
+                return False
+        return True
 
     # Query full network information and collect it to flux internal pattern.
     def full_status(self):

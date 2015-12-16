@@ -1,9 +1,6 @@
 
 import tempfile
 import logging
-import os
-
-logger = logging.getLogger(__name__)
 
 from pyroute2 import IPRoute
 
@@ -15,6 +12,8 @@ DHCPD = network_config['dhcpd']
 
 __all__ = ["ifup", "ifdown", "config_ipaddr", "config_nameserver",
            "dhcp_client_daemon", "dhcp_server_daemon"]
+
+logger = logging.getLogger(__name__)
 
 
 def ifup(ifname):
@@ -106,6 +105,7 @@ def _clean_ipaddr(ifname, index, ipr):
         except Exception:
             logger.exception("Remove ipaddr error")
 
+
 def _clean_route():
     ipr = IPRoute()
     for g in _get_gateways():
@@ -134,6 +134,8 @@ def _write_dhcpd_config(filepath):
 default-lease-time 600;
 max-lease-time 7200;
 log-facility local7;
+option routers 192.168.1.1;
+option domain-name-servers 192.168.1.1;
 
 subnet 192.168.1.0 netmask 255.255.255.0 {
   range 192.168.1.100 192.168.1.200;

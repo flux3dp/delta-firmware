@@ -18,6 +18,7 @@ setup(
     author_email="cerberus@flux3dp.com",
     description="",
     license="?",
+    include_package_data=True,
     packages=setup_utils.get_packages(),
     test_suite="tests.main.everything",
     entry_points=setup_utils.ENTRY_POINTS,
@@ -63,7 +64,7 @@ setup(
             libraries=["crypto"], extra_objects=[], include_dirs=["src"]
         ),
         Extension(
-            'fluxmonitor.code_executor._device_fsm', sources=[
+            'fluxmonitor.player._device_fsm', sources=[
                 "src/device_fsm/device_fsm.cpp",
                 "src/device_fsm/fsm.cpp", ],
             language="c++",
@@ -76,6 +77,12 @@ setup(
                 "src/correction/main.cpp",
                 "src/correction/correction.cpp"],
             language="c++",
+            define_macros=setup_utils.DEFAULT_MACROS,
+            libraries=[], extra_objects=[], include_dirs=["src"]
+        ),
+        Extension(
+            'fluxmonitor.player._head_controller', sources=[
+                "src/player/head_controller.c"],
             define_macros=setup_utils.DEFAULT_MACROS,
             libraries=[], extra_objects=[], include_dirs=["src"]
         )

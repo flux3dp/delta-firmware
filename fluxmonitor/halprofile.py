@@ -14,16 +14,19 @@ PROFILES = {
     MODEL_DARWIN_DEV: {
         "db": expanduser("~/.fluxmonitor_dev/db"),
         "gcode-pool": expanduser("~/.fluxmonitor_dev/filepool"),
+        "playswap": "/tmp/autoplay.fc",
         "scan_camera": 0,
     },
     MODEL_LINUX_DEV: {
         "db": expanduser("~/.fluxmonitor_dev/db"),
         "gcode-pool": expanduser("~/.fluxmonitor_dev/filepool"),
+        "playswap": "/tmp/autoplay.fc",
         "scan_camera": None,
     },
     MODEL_G1: {
         "db": "/var/db/fluxmonitord",
-        "gcode-pool": "/var/gcode",
+        "gcode-pool": "/var/gcode/userspace",
+        "playswap": "var/gcode/autoplay.fc",
         "mainboard_uart":
             # "/dev/serial/by-path/platform-bcm2708_usb-usb-0:1.4:1.0",
             # TODO: /dev/ttyACM0 is a temp soluction for using USB hub

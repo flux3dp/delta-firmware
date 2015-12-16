@@ -4,9 +4,8 @@ from time import time, sleep
 import unittest
 import socket
 
-from fluxmonitor.code_executor.base import ST_PAUSING, ST_PAUSED, ST_ABORTED, \
-    ST_COMPLETED
-from fluxmonitor.code_executor.fcode_executor import FcodeExecutor
+from fluxmonitor.player.base import ST_ABORTED
+from fluxmonitor.player.fcode_executor import FcodeExecutor
 
 from tests.fixtures import Fixtures
 from tests import TEST_FLAGS
@@ -108,7 +107,6 @@ class CodeExecutorTest(unittest.TestCase):
             elif time() - start_at > 6.0:
                 raise RuntimeError("Headboard timeout not raised")
             sleep(0.05)
-
 
     @unittest.skipUnless("flow" in TEST_FLAGS or "flow_simple" in TEST_FLAGS,
                          "Run with TEST=\"flow\" or \"flow_simple\"")

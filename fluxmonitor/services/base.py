@@ -1,4 +1,6 @@
 
+import weakref
+
 from setproctitle import setproctitle
 import pyev
 
@@ -12,6 +14,8 @@ class ServiceBase(object):
         self.logger = logger
 
         self.loop = loop = pyev.default_loop()
+        loop.data = weakref.proxy(self)
+
         self.shutdown_signal = loop.async(lambda w, r: w.loop.stop())
         self.shutdown_signal.start()
 

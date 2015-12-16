@@ -16,7 +16,7 @@ def find_ssid(chunk):
     if s < 0 or e < 0:
         return None
     else:
-        return chunk[s + 8:e - 1]
+        return chunk[s + 7:e - 1]
 
 
 def find_bssid(chunk):
@@ -29,7 +29,11 @@ def find_rssi(chunk):
     if s < 0 or e < 0:
         return None
     else:
-        return chunk[s + 13:e]
+        try:
+            val = chunk[s + 13:e].split("/")[0]
+            return int(val, 10) * -1
+        except Exception:
+            return None
 
 
 def find_encrypt(chunk):
