@@ -8,11 +8,11 @@ import re
 
 import pyev
 
-from fluxmonitor.config import MAINBOARD_ENDPOINT, HEADBOARD_ENDPOINT
 from fluxmonitor.storage import CommonMetadata as Metadata
 from fluxmonitor.services.base import ServiceBase
 
 from .fcode_executor import FcodeExecutor
+from .connection import create_mainboard_socket, create_headboard_socket
 from .options import Options
 from .misc import TaskLoader
 
@@ -44,11 +44,8 @@ class Player(ServiceBase):
         self.prepare_control_socket(options.control_endpoint)
         self.meta = Metadata()
 
-        main_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        main_sock.connect(MAINBOARD_ENDPOINT)
-
-        head_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        head_sock.connect(HEADBOARD_ENDPOINT)
+        main_sock = create_mainboard_socket()
+        head_sock = create_headboard_socket()
 
         self.main_watcher = self.loop.io(main_sock, pyev.EV_READ,
                                          self.on_mainboard_message, main_sock)
@@ -188,7 +185,6 @@ class Player(ServiceBase):
 
             if self.executor.is_closed():
                 watcher.stop()
-
             prog = self.executor.traveled / self.travel_dist
             self.meta.update_device_status(self.executor.status_id, prog,
                                            self.executor.head_ctrl.module, err)

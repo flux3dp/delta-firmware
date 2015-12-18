@@ -136,7 +136,10 @@ class FcodeExecutor(BaseExecutor):
             elif self._mb_stashed:
                 self.paused()
             else:
-                self.main_ctrl.send_cmd("C2O", self)
+                if self.error_symbol.startswith("USER_"):
+                    self.main_ctrl.send_cmd("C2E1", self)
+                else:
+                    self.main_ctrl.send_cmd("C2E2", self)
                 self._mb_stashed = True
 
     def _process_resume(self):

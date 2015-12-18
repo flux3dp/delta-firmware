@@ -8,12 +8,12 @@ import os
 
 import pyev
 
+from fluxmonitor.player.connection import create_mainboard_socket
 from fluxmonitor.player.base import (ST_COMPLETED, ST_ABORTED,
                                      ST_PAUSED, ST_RUNNING)
 from fluxmonitor.misc.fcode_file import FCodeFile, FCodeError
-from fluxmonitor.err_codes import FILE_BROKEN, NOT_SUPPORT
-
-from fluxmonitor.config import PLAY_ENDPOINT
+from fluxmonitor.err_codes import FILE_BROKEN, NOT_SUPPORT, UNKNOWN_ERROR
+from fluxmonitor.config import PLAY_ENDPOINT, PLAY_SWAP
 from fluxmonitor.storage import Metadata
 
 logger = logging.getLogger(__name__)
@@ -22,12 +22,21 @@ logger = logging.getLogger(__name__)
 class PlayerManager(object):
     _sock = None
 
-    def __init__(self, loop, taskfile, terminated_callback=None):
+    def __init__(self, loop, taskfile, terminated_callback=None,
+                 copyfile=False):
+        s = create_mainboard_socket()
         try:
+            s.send("\n@DISABLE_LINECHECK\nX5S115\n")
+            if copyfile:
+                ret = os.system("cp " + taskfile + " " + PLAY_SWAP)
+                if ret:
+                    logger.error("Copy file failed (return %i)", )
+                    raise RuntimeError(UNKNOWN_ERROR, "IO_ERROR")
+
             if os.path.exists(PLAY_ENDPOINT):
                 os.unlink(PLAY_ENDPOINT)
-
             ff = FCodeFile(taskfile)
+
             self.playinfo = ff.metadata, ff.image_buf
 
             proc = Popen(["fluxplayer", "-c", PLAY_ENDPOINT, "--task",
@@ -58,8 +67,8 @@ class PlayerManager(object):
 
         except FCodeError as e:
             raise RuntimeError(FILE_BROKEN, *e.args)
-        except Exception:
-            raise
+        finally:
+            s.close()
 
     def __del__(self):
         for w in self.watchers:
