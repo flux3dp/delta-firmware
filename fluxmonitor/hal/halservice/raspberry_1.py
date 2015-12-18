@@ -155,7 +155,6 @@ class GPIOControl(object):
     def proc_sig(self):
         _1 = self._last_mainboard_sig = (self._last_mainboard_sig + 1) % 2
         GPIO.output(GPIO_ALIVE_SIG_PIN, GPIO_TOGGLE[_1])
-        L.error("GPIO_ALIVE_SIG_PIN: %s", GPIO_TOGGLE[_1])
 
         wifi_flag = self.sm.wifi_status
 
