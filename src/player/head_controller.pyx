@@ -10,7 +10,9 @@ import logging
 
 from fluxmonitor.err_codes import EXEC_HEAD_OFFLINE, EXEC_OPERATION_ERROR, \
     EXEC_WRONG_HEAD, EXEC_HEAD_ERROR, EXEC_NEED_REMOVE_HEAD, \
-    EXEC_UNKNOWN_REQUIRED_HEAD_TYPE, UNKNOWN_COMMAND
+    EXEC_UNKNOWN_REQUIRED_HEAD_TYPE, EXEC_HEAD_RESET, EXEC_HEAD_CALIBRATING, \
+    EXEC_HEAD_SHAKE, EXEC_HEAD_TILT, HARDWARE_FAILURE, EXEC_HEAD_FAN_FAILURE, \
+    UNKNOWN_COMMAND
 
 
 cdef L = logging.getLogger(__name__)
@@ -62,6 +64,7 @@ cdef class HeadController:
         else:
             raise SystemError(EXEC_UNKNOWN_REQUIRED_HEAD_TYPE, required_module)
 
+        self._module = "N/A"
         self.bootstrap(executor)
 
     def bootstrap(self, executor):
@@ -107,7 +110,7 @@ cdef class HeadController:
                 if len(sparam) == 2:
                     module_info[sparam[0]] = sparam[1]
             self._ext.hello(**module_info)
-            self._module = module_info.get("TYPE")
+            self._module = module_info.get("TYPE", "UNKNOWN")
         except Exception:
             self._ready = 0
             raise
@@ -248,16 +251,18 @@ cdef class HeadController:
                     self._on_head_offline("HEAD_RESET")
                 elif er & self._error_level:
                     if er & 8:
-                        self._raise_error("HEAD_ERROR", "CALIBRATING")
+                        self._raise_error(EXEC_HEAD_ERROR,
+                                          EXEC_HEAD_CALIBRATING)
                     if er & 16:
-                        self._raise_error(EXEC_HEAD_ERROR, "SHAKE")
+                        self._raise_error(EXEC_HEAD_ERROR, EXEC_HEAD_SHAKE)
                     if er & 32:
-                        self._raise_error(EXEC_HEAD_ERROR, "TILT")
+                        self._raise_error(EXEC_HEAD_ERROR, EXEC_HEAD_TILT)
                     if er & 64:
                         self._raise_error(EXEC_HEAD_ERROR,
-                                          "PID_OUT_OF_CONTROL")
+                                          HARDWARE_FAILURE)
                     if er & 128:
-                        self._raise_error(EXEC_HEAD_ERROR, "FAN_FAILURE")
+                        self._raise_error(EXEC_HEAD_ERROR,
+                                          EXEC_HEAD_FAN_FAILURE)
 
             else:
                 self._ext.update_status(*status)
