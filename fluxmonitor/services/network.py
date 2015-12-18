@@ -205,18 +205,21 @@ class NetworkService(ServiceBase, NetworkConfigMixIn, NetworkMonitorMixIn):
 
         if config:
             if self.is_wireless(ifname):
-                daemon['wpa'] = nl80211_config.wlan_managed_daemon(
-                    self, ifname, config)
-                logger.debug("[%s] Set associate with %s" %
-                             (ifname, config['ssid']))
+                mode = config.get('method')
+                if mode == 'client':
+                    daemon['wpa'] = nl80211_config.wlan_managed_daemon(
+                        self, ifname, config)
+                    logger.debug("[%s] Set associate with %s" %
+                                 (ifname, config['ssid']))
+                elif mode == 'host'
 
-            if config["method"] == "dhcp":
-                daemon['dhcpc'] = net_configure.dhcp_client_daemon(self,
-                                                                   ifname)
-                logger.debug("[%s] Using DHCP" % ifname)
-            else:
-                net_configure.config_ipaddr(ifname, config)
-                logger.debug("[%s] IP: %s" % (ifname, config['ipaddr']))
+                if config["method"] == "dhcp":
+                    daemon['dhcpc'] = net_configure.dhcp_client_daemon(self,
+                                                                       ifname)
+                    logger.debug("[%s] Using DHCP" % ifname)
+                else:
+                    net_configure.config_ipaddr(ifname, config)
+                    logger.debug("[%s] IP: %s" % (ifname, config['ipaddr']))
 
         elif self.is_wireless(ifname):
             daemon['hostapd'] = nl80211_config.wlan_ap_daemon(self, ifname)
