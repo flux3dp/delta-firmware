@@ -99,7 +99,7 @@ class MainController(object):
             L.debug("Recv unknow msg: '%s'", msg)
 
     def bootstrap(self, executor):
-        L.error("MAIN BOOTSTRAP")
+        L.info("MAIN BOOTSTRAP")
         if self._flags == FLAG_READY:
             self.callback_flags(self)
         elif self._flags == (FLAG_READY + FLAG_ERROR):

@@ -46,7 +46,7 @@ class Options(object):
         self.max_z = __parse_int__(metadata.get("MAX_Z"), inf)
 
     def __load_form_local__(self):
-        self.play_bufsize = 15
+        self.play_bufsize = 10
 
         storage = Storage("general", "meta")
         if not self.correction:

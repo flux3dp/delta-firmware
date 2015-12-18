@@ -1,7 +1,6 @@
 
 import weakref
 import logging
-import os
 
 from fluxmonitor.controller.interfaces.local import LocalControl
 from fluxmonitor.controller.interfaces.button import ButtonControl
@@ -9,7 +8,6 @@ from fluxmonitor.controller.tasks.play_manager import PlayerManager
 from fluxmonitor.services.base import ServiceBase
 from fluxmonitor.err_codes import RESOURCE_BUSY, DEVICE_ERROR
 from fluxmonitor.storage import UserSpace
-from fluxmonitor.config import PLAY_SWAP
 
 
 STATUS_IDLE = 0x0
@@ -87,13 +85,10 @@ class Robot(ServiceBase):
             try:
                 abspath = us.get_path(*candidate, require_file=True)
                 logger.debug("Autoplay: %s", abspath)
-                if candidate[0] == "USB":
-                    ret = os.system("cp " + abspath + " " + PLAY_SWAP)
-                    if ret:
-                        logger.error("Copy file failed (return %i)", )
-                        return
-                    abspath = PLAY_SWAP
-                pm = PlayerManager(self.loop, abspath, self.release_exclusive)
+
+                copyfile = (candidate[0] == "USB")
+                pm = PlayerManager(self.loop, abspath, self.release_exclusive,
+                                   copyfile=copyfile)
                 self.exclusive(pm)
                 return
             except RuntimeError:
@@ -145,7 +140,3 @@ class Robot(ServiceBase):
         else:
             return False
 
-
-class NullSender(object):
-    def send_text(self, *args):
-        pass

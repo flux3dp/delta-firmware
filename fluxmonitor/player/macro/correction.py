@@ -1,7 +1,8 @@
 
 import logging
 
-from fluxmonitor.err_codes import EXEC_CONVERGENCE_FAILED
+from fluxmonitor.err_codes import EXEC_CONVERGENCE_FAILED, \
+    EXEC_PLATE_MISSING
 from fluxmonitor.storage import Metadata
 from fluxmonitor.misc import correction
 
@@ -37,7 +38,7 @@ class CorrectionMacro(object):
         l = len(self.data)
         if l == 0:
             if self.round >= self.ttl:
-                executor.main_ctrl.send_cmd("G28", executor)
+                executor.main_ctrl.send_cmd("G1F9000Z220", executor)
                 raise RuntimeError(EXEC_CONVERGENCE_FAILED)
 
             elif self.convergence:
@@ -65,7 +66,7 @@ class CorrectionMacro(object):
             elif dd < 0.05:
                 logger.error("Correction completed: %s", data)
                 self.convergence = True
-                executor.main_ctrl.send_cmd("G28", executor)
+                executor.main_ctrl.send_cmd("G1F9000X0Y0Z30", executor)
 
             else:
                 corr_str = do_correction(self.meta, *data)
@@ -83,7 +84,7 @@ class CorrectionMacro(object):
             self.meta.plate_correction = {"X": 0, "Y": 0, "Z": 0, "H": 242}
             executor.main_ctrl.send_cmd("M666X0Y0Z0H242", executor)
         else:
-            self.on_command_empty(executor)
+            executor.main_ctrl.send_cmd("M666H242", executor)
 
     def giveup(self):
         pass
@@ -92,6 +93,10 @@ class CorrectionMacro(object):
         if msg.startswith("Bed Z-Height at"):
             str_probe = msg.rsplit(" ", 1)[-1]
             val = float(str_probe)
+            if val <= -200:
+                executor.main_ctrl.send_cmd("G1F9000Z220", executor)
+                raise SystemError(EXEC_CONVERGENCE_FAILED, EXEC_PLATE_MISSING)
+                
             if val <= -100:
                 raise RuntimeError(EXEC_CONVERGENCE_FAILED)
             self.data.append(val)
