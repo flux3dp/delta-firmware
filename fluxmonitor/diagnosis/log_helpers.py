@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from logging.handlers import DatagramHandler as _DatagramHandler
 import socket
 import json
+import sys
 
 
 class DatagramHandler(_DatagramHandler):
@@ -39,3 +40,18 @@ class DatagramHandler(_DatagramHandler):
             s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         return s
 
+
+def create_raven_logger(dsn):
+    try:
+        from fluxmonitor.storage import Metadata
+        m = Metadata()
+        import raven
+        return {
+            'level': 'ERROR',
+            'class': 'raven.handlers.logging.SentryHandler',
+            'machine': m.nickname,
+            'dsn': dsn
+        }
+    except ImportError:
+        sys.stderr.write("Can not configure raven logger\n")
+        sys.stderr.flush()

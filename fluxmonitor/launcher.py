@@ -38,6 +38,12 @@ def create_logger(options):
             'backupCount': 9
         }
 
+    if os.path.exists("/etc/raven.dsn"):
+        from fluxmonitor.diagnosis.log_helpers import create_raven_logger
+        with open("/etc/raven.dsn", "r") as f:
+            dsn = f.read()
+            handlers['raven'] = create_raven_logger(dsn)
+
     logging.config.dictConfig({
         'version': 1,
         'disable_existing_loggers': True,
