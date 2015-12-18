@@ -266,7 +266,7 @@ class FcodeExecutor(BaseExecutor):
             self.fire()
         except RuntimeError as err:
             if not self.pause(*err.args):
-                self.abort("BAD_LOGIC", err.args[0])
+                logger.error("Error occour: %s" % err.args)
         except SystemError as err:
             self.abort(*err.args)
         except Exception as err:
@@ -284,8 +284,7 @@ class FcodeExecutor(BaseExecutor):
             self.fire()
         except RuntimeError as err:
             if not self.pause(*err.args):
-                if self.status_id == ST_RUNNING:
-                    raise SystemError("BAD_LOGIC")
+                logger.error("Error occour: %s" % err.args)
         except SystemError as err:
             self.abort(*err.args)
         except Exception as err:
