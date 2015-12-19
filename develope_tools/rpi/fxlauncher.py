@@ -5,8 +5,40 @@ import shutil
 import sys
 import os
 
+from serial import Serial, SerialException
+
+
 USB_AUTOUPDATE_LOCATION = "/media/usb/autoupdate.fxfw"
+FACTORY_FW_LOCATION = "/etc/flux/factory.fxfw"
 AUTOUPDATE_LOCATION = "/var/autoupdate.fxfw"
+
+
+def get_mainboard_tty():
+    hwtree_lists = [
+        "/sys/devices/platform/soc/20980000.usb/usb1/1-1/1-1.3/1-1.3:1.0/tty",
+        "/sys/devices/platform/bcm2708_usb/usb1/1-1/1-1.3/1-1.3:1.0/tty"
+    ]
+    for hwtree in hwtree_lists:
+        if os.path.exists(hwtree):
+            ttyname = os.listdir(hwtree)[0]
+            return os.path.join("/dev", ttyname)
+
+    for i in range(10):
+        if os.path.exists("/dev/ttyACM%s" % i):
+            return "/dev/ttyACM%s" % i
+
+    raise RuntimeError("Mainboard not found")
+
+
+def should_reset_to_factory():
+    try:
+        tty = get_mainboard_tty()
+        s = Serial(port=tty, baudrate=115200, timeout=1)
+        s.write("X5\n")
+        answer = s.readall()
+        return "INFO: ST=U" in answer
+    except Exception:
+        return False
 
 
 def anti_garbage_usb_mass_storage():
@@ -57,9 +89,11 @@ def find_fxfw_from_usb():
             print("Update file in USB is too large")
 
 
-def bootstrap_autoupdate():
+def execute_autoupdate(find_usb=True):
     try:
-        find_fxfw_from_usb()
+        if find_usb:
+            find_fxfw_from_usb()
+
         if not os.path.exists(AUTOUPDATE_LOCATION):
             return
 
@@ -74,10 +108,19 @@ def bootstrap_autoupdate():
     except Exception as e:
         print(e)
         return
+    finally:
+        os.system("sync")
 
 
 def main():
-    bootstrap_autoupdate()
+    if should_reset_to_factory():
+        print("Reset to factory")
+        print("Delete settings")
+        shutil.rmtree("/var/db/fluxmonitord", ignore_errors=True)
+        shutil.copyfile(FACTORY_FW_LOCATION, AUTOUPDATE_LOCATION)
+        execute_autoupdate(find_usb=False)
+    else:
+        execute_autoupdate()
 
     print("Invoke fluxlauncher")
     os.system("fluxlauncher")
