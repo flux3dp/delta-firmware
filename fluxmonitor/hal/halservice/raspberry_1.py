@@ -131,7 +131,7 @@ class FrontButtonMonitor(object):
 class GPIOControl(object):
     _last_mainboard_sig = GPIO_TOGGLE[0]
     _usb_serial_stat = USB_SERIAL_OFF
-    _head_power_stat = HEAD_POWER_ON
+    _head_power_stat = HEAD_POWER_OFF
     _head_power_timer = 0
     head_enabled = True
 
@@ -140,12 +140,12 @@ class GPIOControl(object):
         GPIO.setwarnings(False)
         GPIO.setup(GPIO_HEAD_BOOT_MODE_PIN, GPIO.OUT, initial=GPIO.LOW)
         GPIO.setup(GPIO_ALIVE_SIG_PIN, GPIO.OUT, initial=GPIO_TOGGLE[0])
-        GPIO.setup(GPIO_WIFI_ST_PIN, GPIO.OUT, initial=GPIO.HIGH)
+        GPIO.setup(GPIO_WIFI_ST_PIN, GPIO.OUT, initial=GPIO_TOGGLE[0])
 
         for pin in GPIO_NOT_DEFINED:
             GPIO.setup(pin, GPIO.IN)
 
-        GPIO.setup(GPIO_HEAD_POW_PIN, GPIO.OUT, initial=HEAD_POWER_ON)
+        GPIO.setup(GPIO_HEAD_POW_PIN, GPIO.OUT, initial=self._head_power_stat)
         GPIO.setup(GPIO_MAINBOARD_POW_PIN, GPIO.OUT, initial=MAINBOARD_ON)
         GPIO.setup(GPIO_USB_SERIAL_PIN, GPIO.OUT)
         L.debug("GPIO configured")
@@ -272,8 +272,6 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOControl):
 
         self.loop_watcher = kernel.loop.timer(5, 5, self.on_loop)
         self.loop_watcher.start()
-        self.sigusr2_watcher = kernel.loop.signal(signal.SIGUSR2, self.on_loop)
-        self.sigusr2_watcher.start()
 
     def _init_mainboard_status(self):
         corr_str = "M666 X%(X).4f Y%(Y).4f Z%(Z).4f H%(H).4f\n" % \
