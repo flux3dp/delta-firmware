@@ -60,7 +60,7 @@ class DeviceOperationMixIn(object):
     def label(self):
         return "%s@%s" % (self.handler.address, self.__class__.__name__)
 
-    def on_exit(self, handler):
+    def on_exit(self):
         kernel = self.stack.loop.data
         kernel.release_exclusive(self)
         self._disconnect()
@@ -123,15 +123,11 @@ class DeviceOperationMixIn(object):
             self._uart_hb.close()
             self._uart_hb = None
 
-    def go_to_hell(self):
+    def on_dead(self, reason=None):
+        if self.stack.this_task == self:
+            logger.info("%s dead (reason=%s)" % (self.__class__.__name__, reason))
+            self.stack.exit_task(self)
         self.handler.close()
-
-    def on_dead(self, sender_proxy, reason=None):
-        if self.stack.this_task != self:
-            return
-
-        logger.info("%s abort (%s)" % (self.__class__.__name__, reason))
-        self.stack.exit_task(self)
 
 
 class DeviceMessageReceiverMixIn(object):

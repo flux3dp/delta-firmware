@@ -84,11 +84,9 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         self.timer_watcher = stack.loop.timer(1, 1, self.on_timer)
         self.timer_watcher.start()
 
-    def on_exit(self, handler):
-        self.timer_watcher.stop()
-        self.timer_watcher = None
-        self.main_ctrl.close(self)
-        super(MaintainTask, self).on_exit(handler)
+    def on_exit(self):
+        self.close()
+        super(MaintainTask, self).on_exit()
 
     def _on_mainboard_ready(self, ctrl):
         self._ready |= 1
@@ -285,3 +283,11 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             self.main_ctrl.patrol(self)
         except SystemError:
             self.stack.exit_task(self)
+
+    def close(self):
+        if self.timer_watcher:
+            self.timer_watcher.stop()
+            self.timer_watcher = None
+        if self.main_ctrl:
+            self.main_ctrl.close(self)
+            self.main_ctrl = None

@@ -89,9 +89,9 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
         self.step_length = 0.45
         self.init_device()
 
-    def on_exit(self, handler):
+    def on_exit(self):
         self.camera.close()
-        super(ScanTask, self).on_exit(handler)
+        super(ScanTask, self).on_exit()
 
     def init_device(self):
         try:

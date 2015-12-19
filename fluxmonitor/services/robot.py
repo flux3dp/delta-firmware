@@ -134,7 +134,7 @@ class Robot(ServiceBase):
     def destory_exclusive(self):
         """Call this method from others to release exclusive lock"""
         if self.exclusive_component:
-            self.exclusive_component.go_to_hell()
+            self.exclusive_component.on_dead("Kicked")
             self.exclusive_component = None
             return True
         else:

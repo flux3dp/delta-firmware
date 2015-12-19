@@ -8,9 +8,8 @@ class RawTask(DeviceOperationMixIn):
         super(RawTask, self).__init__(stack, handler)
         handler.binary_mode = True
 
-    def on_exit(self, handler):
-        super(RawTask, self).on_exit(handler)
-        handler.binary_mode = False
+    def on_exit(self):
+        super(RawTask, self).on_exit()
 
     def on_mainboard_message(self, watcher, revent):
         try:

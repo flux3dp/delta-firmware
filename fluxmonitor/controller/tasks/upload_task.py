@@ -13,7 +13,7 @@ class UploadTask(object):
         self.padding_length = length
         handler.binary_mode = True
 
-    def on_exit(self, handler):
+    def on_exit(self):
         pass
 
     def on_text(self, message, handler):

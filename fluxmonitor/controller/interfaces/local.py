@@ -351,7 +351,7 @@ class ServiceStack(object):
             raise Exception("Task not match")
 
         try:
-            task.on_exit(self)
+            task.on_exit()
         except Exception:
             logger.exception("Exit %s" % self.this_task.__class__.__name__)
 
@@ -365,4 +365,9 @@ class ServiceStack(object):
             self.this_task = current_task
 
     def terminate(self):
-        pass
+        while len(self.task_callstack) > 1:
+            task, cb = self.task_callstack.pop()
+            try:
+                task.on_exit()
+            except Exception:
+                logger.exception("Unhandle error")
