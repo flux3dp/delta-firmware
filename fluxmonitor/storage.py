@@ -198,6 +198,7 @@ class CommonMetadata(object):
     def device_status_id(self):
         return struct.unpack("i", self.shm.read(4, 3592))[0]
 
+    @property
     def format_device_status(self):
         buf = self.device_status
         timestemp, st_id, progress, head_type, err_label = \

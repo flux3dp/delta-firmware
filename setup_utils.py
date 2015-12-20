@@ -168,8 +168,10 @@ def get_install_requires():
 
     return packages
 
+LD_TIME = []
 
 if is_linux():
+    LD_TIME += ["rt"]
     if "CFLAGS" in os.environ:
         os.environ["CFLAGS"] += " -std=c99"
     else:

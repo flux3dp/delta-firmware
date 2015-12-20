@@ -4,6 +4,7 @@ from setuptools import setup, Extension
 
 from Cython.Distutils import build_ext
 
+from setup_utils import LD_TIME, PY_INCLUDES, DEFAULT_MACROS
 import setup_utils
 
 
@@ -31,15 +32,15 @@ setup(
         ("flux_hal", {
             "sources": ["src/libflux_hal/halprofile.c"],
             "include_dirs": [],
-            "macros": setup_utils.DEFAULT_MACROS
+            "macros": DEFAULT_MACROS
         }),
         ("flux_crypto", {
             "sources": [
                 "src/libflux_crypto/flux_crypto_rsa.c",
                 "src/libflux_crypto/flux_crypto_aes.c",
                 "src/libflux_crypto/pbkdf2.c"],
-            "include_dirs": setup_utils.PY_INCLUDES,
-            "macros": setup_utils.DEFAULT_MACROS
+            "include_dirs": PY_INCLUDES,
+            "macros": DEFAULT_MACROS
         }),
         ("flux_identify", {
             "sources": [
@@ -47,8 +48,8 @@ setup(
                 "src/libflux_identify/model_dev.c",
                 "src/libflux_identify/model_rasp.c",
             ],
-            "include_dirs": ["src"] + setup_utils.PY_INCLUDES,
-            "macros": setup_utils.DEFAULT_MACROS
+            "include_dirs": ["src"] + PY_INCLUDES,
+            "macros": DEFAULT_MACROS
         })
     ],
     ext_modules=[
@@ -56,14 +57,14 @@ setup(
             'fluxmonitor._halprofile', sources=[
                 "src/halprofile/halprofile.pyx"],
             extra_compile_args=["-std=c99"],
-            define_macros=setup_utils.DEFAULT_MACROS,
+            define_macros=DEFAULT_MACROS,
             include_dirs=["src"]
         ),
         Extension(
             'fluxmonitor.security._security', sources=[
                 "src/security/security.pyx", ],
             extra_compile_args=["-std=c99"],
-            define_macros=setup_utils.DEFAULT_MACROS,
+            define_macros=DEFAULT_MACROS,
             libraries=["crypto"], extra_objects=[], include_dirs=["src"]
         ),
         Extension(
@@ -72,7 +73,7 @@ setup(
                 "src/device_fsm/fsm.pyx", ],
             language="c++",
             extra_compile_args=["-std=c++11"],
-            define_macros=setup_utils.DEFAULT_MACROS,
+            define_macros=DEFAULT_MACROS,
             libraries=[], extra_objects=[], include_dirs=["src"]
         ),
         Extension(
@@ -81,14 +82,14 @@ setup(
                 "src/correction/main.cpp",
                 "src/correction/correction.pyx"],
             language="c++",
-            define_macros=setup_utils.DEFAULT_MACROS,
+            define_macros=DEFAULT_MACROS,
             libraries=[], extra_objects=[], include_dirs=["src"]
         ),
         Extension(
             'fluxmonitor.player._head_controller', sources=[
                 "src/player/head_controller.pyx"],
-            define_macros=setup_utils.DEFAULT_MACROS,
-            libraries=[], extra_objects=[], include_dirs=["src"]
+            define_macros=DEFAULT_MACROS,
+            libraries=LD_TIME, extra_objects=[], include_dirs=["src"]
         )
     ]
 )
