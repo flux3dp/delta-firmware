@@ -48,7 +48,7 @@ parser.add_argument('--wepkey', dest='wepkey', type=str, default=None,
 options = parser.parse_args()
 apply_config_arguments(options)
 
-from fluxmonitor.config import network_config
+from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT
 
 # ======== Build config message here ========
 payload = {"ifname": options.ifname}
@@ -102,9 +102,9 @@ print("Payload:")
 pprint(payload)
 
 # ======== Send message to remote ========
-print("\nOpen communicate socket at: %s" % network_config["unixsocket"])
+print("\nOpen communicate socket at: %s" % NETWORK_MANAGE_ENDPOINT)
 s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-s.connect(network_config["unixsocket"])
+s.connect(NETWORK_MANAGE_ENDPOINT)
 
 s.send(b"%s\x00%s" % (b"config_network", NCE.to_bytes(payload)))
 print("Message sent.")

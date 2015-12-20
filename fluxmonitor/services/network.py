@@ -11,14 +11,13 @@ from fluxmonitor.security._security import get_wpa_psk
 from fluxmonitor.hal.nl80211 import config as nl80211_config
 from fluxmonitor.hal.net.monitor import Monitor as NetworkMonitor
 from fluxmonitor.storage import Storage, CommonMetadata
-from fluxmonitor.hal.net import config as net_configure
-from fluxmonitor.config import network_config
+from fluxmonitor.hal.net import config as net_cfg
+from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT
 from fluxmonitor.misc import network_config_encoder as NCE
 
 from .base import ServiceBase
 
 logger = logging.getLogger(__name__)
-FLUX_ST_STARTED = "flux_started"
 
 
 def is_nic_ready(nic_status):
@@ -42,10 +41,11 @@ class NetworkConfigMixIn(object):
     def set_config(self, ifname, config):
         config = NCE.validate_options(config)
 
-        # Encrypt password
+        # Encrypt password in client mode
         if "psk" in config and "ssid" in config:
-            plain_passwd = config["psk"]
-            config["psk"] = get_wpa_psk(config["ssid"], plain_passwd)
+            if config.get("wifi_mode") == "client":
+                plain_passwd = config["psk"]
+                config["psk"] = get_wpa_psk(config["ssid"], plain_passwd)
 
         try:
             with self.storage.open(ifname, "w") as f:
@@ -137,7 +137,6 @@ class NetworkService(ServiceBase, NetworkConfigMixIn, NetworkMonitorMixIn):
 
     def on_timer(self, watcher, revent):
         st = self.update_network_led()
-        print(watcher.data)
         if st == watcher.data[1]:
             # Network st not change
             if watcher.data[0] < 30:
@@ -176,8 +175,9 @@ class NetworkService(ServiceBase, NetworkConfigMixIn, NetworkMonitorMixIn):
 
         self.bootstrap_nic(ifname, forcus_restart=True)
 
-        flux_st = self.config_device(ifname, self.get_config(ifname))
-        self.nic_status[ifname]["flux_st"] = flux_st
+        config = self.get_config(ifname)
+        if config:
+            self.config_device(ifname, config)
 
     def bootstrap_nic(self, ifname, delay=0.5, forcus_restart=False):
         """Startup nic, this method will get device information from
@@ -186,15 +186,15 @@ class NetworkService(ServiceBase, NetworkConfigMixIn, NetworkMonitorMixIn):
         ifstatus = self.nic_status.get(ifname, {}).get('ifstatus')
         if ifstatus == 'UP':
             if forcus_restart:
-                net_configure.ifdown(ifname)
+                net_cfg.ifdown(ifname)
                 sleep(delay)
             else:
                 return
         elif ifstatus != 'DOWN' or forcus_restart:
-            net_configure.ifdown(ifname)
+            net_cfg.ifdown(ifname)
             sleep(delay)
 
-        net_configure.ifup(ifname)
+        net_cfg.ifup(ifname)
 
     def is_wireless(self, ifname):
         return ifname.startswith("wlan")
@@ -203,31 +203,27 @@ class NetworkService(ServiceBase, NetworkConfigMixIn, NetworkMonitorMixIn):
         """config network device (like ip/routing/dhcp/wifi access)"""
         daemon = self.daemons.get(ifname, {})
 
-        if config:
-            if self.is_wireless(ifname):
+        if self.is_wireless(ifname):
+            mode = config.get('wifi_mode')
+            if mode == 'client':
                 daemon['wpa'] = nl80211_config.wlan_managed_daemon(
                     self, ifname, config)
-                logger.debug("[%s] Set associate with %s" %
-                             (ifname, config['ssid']))
 
-            if config["method"] == "dhcp":
-                daemon['dhcpc'] = net_configure.dhcp_client_daemon(self,
-                                                                   ifname)
-                logger.debug("[%s] Using DHCP" % ifname)
-            else:
-                net_configure.config_ipaddr(ifname, config)
-                logger.debug("[%s] IP: %s" % (ifname, config['ipaddr']))
+            elif mode == 'host':
+                daemon['hostapd'] = nl80211_config.wlan_ap_daemon(
+                    self, ifname, config)
+                net_cfg.config_ipaddr(ifname,
+                                      {'ipaddr': '192.168.1.1', 'mask': 24,
+                                       'route': '192.168.1.254'})
 
-        elif self.is_wireless(ifname):
-            daemon['hostapd'] = nl80211_config.wlan_ap_daemon(self, ifname)
-            net_configure.config_ipaddr(ifname, {'ipaddr': '192.168.1.1',
-                                        'mask': 24, 'route': '192.168.1.254'})
-            daemon['dhcpd'] = net_configure.dhcp_server_daemon(self, ifname)
-            logger.debug("[%s] Wireless is not configured, "
-                         "start with ap mode" % ifname)
+        if config["method"] == "dhcp":
+            daemon['dhcpc'] = net_cfg.dhcp_client_daemon(self, ifname)
+        elif config["method"] == "internal":
+            daemon['dhcpd'] = net_cfg.dhcp_server_daemon(self, ifname)
+        elif config["method"] == "static":
+            net_cfg.config_ipaddr(ifname, config)
 
         self.daemons[ifname] = daemon
-        return FLUX_ST_STARTED
 
     def get_daemon_for(self, daemon):
         """return daemon's network interface name and daemon label
@@ -256,15 +252,12 @@ class NetworkService(ServiceBase, NetworkConfigMixIn, NetworkMonitorMixIn):
 
             if name.startswith("*"):
                 return  # A killed process, ignore
-            elif self.nic_status[ifname]["flux_st"] == FLUX_ST_STARTED:
+            else:
                 logger.error("'%s daemon' (%s) is unexpected "
                              "terminated. Restart." % (name, process))
                 self.bootstrap(ifname)
-            else:
-                logger.info("'%s daemon' (%s) is terminated." %
-                            (name, process))
         else:
-            logger.debug("A process %s closed but not "
+            logger.error("A process %s closed but not "
                          "in daemon list" % process)
 
     def kill_daemons(self, ifname):
@@ -293,7 +286,7 @@ class NetworkManageSocket(socket.socket):
     def __init__(self, master):
         self.master = master
 
-        path = network_config['unixsocket']
+        path = NETWORK_MANAGE_ENDPOINT
         try:
             os.unlink(path)
         except Exception:
@@ -307,18 +300,21 @@ class NetworkManageSocket(socket.socket):
             "network manage socket created at: %s" % path)
 
     def on_message(self, watcher, revent):
-        buf = self.recv(4096)
-        payloads = buf.split("\x00", 1)
+        try:
+            buf = self.recv(4096)
+            payloads = buf.split("\x00", 1)
 
-        if len(payloads) == 2:
-            cmd, data = payloads
-            if cmd == "config_network":
-                self.config_network(NCE.parse_bytes(data))
+            if len(payloads) == 2:
+                cmd, data = payloads
+                if cmd == "config_network":
+                    self.config_network(NCE.parse_bytes(data))
+                else:
+                    self.master.logger.error("Unknow cmd: %s" % cmd)
             else:
-                self.master.logger.error("Unknow cmd: %s" % cmd)
-        else:
-            self.master.logger.error("Can not process request: %s" % buf)
-            return
+                self.master.logger.error("Can not process request: %s" % buf)
+                return
+        except Exception:
+            logger.exception("Unhandle error")
 
     def config_network(self, payload):
         ifname = payload.pop("ifname")

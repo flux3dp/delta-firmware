@@ -19,8 +19,7 @@ from fluxmonitor.security.access_control import is_rsakey, get_keyobj, \
 from fluxmonitor.storage import Storage, Metadata
 from fluxmonitor.security.misc import randstr
 from fluxmonitor.halprofile import get_model_id
-from fluxmonitor.config import network_config
-from fluxmonitor.config import uart_config
+from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT, uart_config
 from fluxmonitor.err_codes import UNKNOWN_ERROR
 from fluxmonitor import security
 from fluxmonitor import __version__ as VERSION
@@ -289,7 +288,7 @@ class UsbIO(object):
                       NCE.to_bytes(options)).encode()
 
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-        sock.connect(network_config["unixsocket"])
+        sock.connect(NETWORK_MANAGE_ENDPOINT)
         sock.send(nw_request)
         sock.close()
 

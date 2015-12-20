@@ -16,8 +16,8 @@ from fluxmonitor.misc import network_config_encoder as NCE
 from fluxmonitor.halprofile import get_model_id
 from fluxmonitor.hal.net.monitor import Monitor as NetworkMonitor
 from fluxmonitor.storage import CommonMetadata
-from fluxmonitor.config import network_config
 from fluxmonitor.err_codes import BAD_PASSWORD, AUTH_ERROR
+from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT
 
 from fluxmonitor import __version__ as VERSION
 from fluxmonitor import security
@@ -476,6 +476,6 @@ class DelayNetworkConfigure(object):
 
     def fire(self):
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-        sock.connect(network_config["unixsocket"])
+        sock.connect(NETWORK_MANAGE_ENDPOINT)
         sock.send(self.config)
         sock.close()

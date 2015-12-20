@@ -5,10 +5,10 @@ import logging
 from pyroute2 import IPRoute
 
 from fluxmonitor.misc import Process
-from fluxmonitor.config import network_config
+from fluxmonitor.config import network_services
 
-DHCLIENT = network_config['dhclient']
-DHCPD = network_config['dhcpd']
+DHCLIENT = network_services['dhclient']
+DHCPD = network_services['dhcpd']
 
 __all__ = ["ifup", "ifdown", "config_ipaddr", "config_nameserver",
            "dhcp_client_daemon", "dhcp_server_daemon"]
@@ -35,7 +35,7 @@ def ifdown(ifname):
 
 
 def dhcp_client_daemon(manager, ifname):
-    logger.info("dhcp client for %s" % ifname)
+    logger.debug("[%s] Using DHCP" % ifname)
     return Process(manager, [DHCLIENT, "-w", "-d", ifname])
 
 
@@ -53,7 +53,7 @@ def dhcp_server_daemon(manager, ifname):
 
 
 def config_ipaddr(ifname, config):
-    logger.info("ifconfig %s: %s" % (ifname, config))
+    logger.info("[%s] ifconfig: %s" % (ifname, config))
 
     ipr = IPRoute()
     index = _find_device_index(ifname, ipr)
@@ -63,7 +63,7 @@ def config_ipaddr(ifname, config):
     route = config.get("route")
     ns = config.get("ns")
 
-    logger.info("Add ip %s/%s for %s" % (ipaddr, mask, ifname))
+    logger.info("[%s] Add ip %s/%s" % (ifname, ipaddr, mask))
     ipr.addr('add', index=index, address=ipaddr, mask=mask)
 
     _clean_route()
