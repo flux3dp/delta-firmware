@@ -21,14 +21,12 @@ hal_config = {
     "scan_camera": None,
 }
 
-network_config = {
-    "unixsocket": "/tmp/.fluxmonitord-network",
+network_services = {
     "wpa_supplicant": "/sbin/wpa_supplicant",
     "hostapd": "/usr/sbin/hostapd",
     "dhclient": "/sbin/dhclient",
     "dhcpd": "/usr/sbin/dhcpd"
 }
-
 
 uart_config = {
     "headboard": "/tmp/.headboard",
@@ -53,6 +51,8 @@ MAINBOARD_ENDPOINT = "/tmp/.mainboard"
 
 CAMERA_ENDPOINT = "/tmp/.camera"
 PLAY_ENDPOINT = "/tmp/.player"
+
+NETWORK_MANAGE_ENDPOINT = "/tmp/.fluxmonitord-network"
 
 PLAY_SWAP = "/tmp/autoplay.swap.fc"
 
@@ -88,7 +88,6 @@ def load_config(filename):
     with open(filename, "r") as f:
         doc = json.load(f)
 
-        override_config(doc.get("network_config", {}), network_config)
         override_config(doc.get("general_config", {}), general_config)
         override_config(doc.get("uart_config", {}), uart_config)
         override_config(doc.get("robot_config", {}), robot_config)

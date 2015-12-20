@@ -10,9 +10,8 @@ from Crypto.PublicKey import RSA
 
 from fluxmonitor.halprofile import get_model_id, get_platform
 from fluxmonitor.security import access_control
-from fluxmonitor.config import network_config
 from fluxmonitor.services.usb import UsbIO
-from fluxmonitor.config import uart_config
+from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT, uart_config
 from fluxmonitor import security
 
 from tests._utils.echo_server import EchoServer
@@ -126,12 +125,12 @@ class UsbIoTest(unittest.TestCase):
 
     def test_on_config_network_success(self):
         try:
-            os.unlink(network_config["unixsocket"])
+            os.unlink(NETWORK_MANAGE_ENDPOINT)
         except Exception:
             pass
 
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-        sock.bind(network_config["unixsocket"])
+        sock.bind(NETWORK_MANAGE_ENDPOINT)
 
         try:
             self.usbio.on_config_network(

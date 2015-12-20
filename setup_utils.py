@@ -52,11 +52,11 @@ def setup_test():
     config.general_config["db"] = os.path.join(tempbase, "db")
     config.general_config["keylength"] = 512
     config.general_config["debug"] = True
-    config.network_config["unixsocket"] = os.path.join(tempbase, "network-us")
     config.uart_config["headboard"] = os.path.join(tempbase, "headboard-us")
     config.uart_config["mainboard"] = os.path.join(tempbase, "mainboard-us")
     config.uart_config["pc"] = os.path.join(tempbase, "pc-us")
     config.robot_config["filepool"] = os.path.join(tempbase, "filepool")
+    config.NETWORK_MANAGE_ENDPOINT = os.path.join(tempbase, "network-us")
 
     import logging.config
     logging.config.dictConfig({
