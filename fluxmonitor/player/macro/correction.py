@@ -88,7 +88,7 @@ class CorrectionMacro(object):
             executor.main_ctrl.send_cmd("M666H242", executor)
 
     def giveup(self):
-        pass
+        self.data = []
 
     def on_mainboard_message(self, msg, executor):
         if msg.startswith("Bed Z-Height at"):

@@ -70,7 +70,6 @@ class ZprobeMacro(object):
     def start(self, executor):
         self.meta.plate_correction = {"H": 242}
         executor.main_ctrl.send_cmd("M666H242", executor)
-        executor.main_ctrl.send_cmd("G28", executor)
 
     def giveup(self):
         pass
