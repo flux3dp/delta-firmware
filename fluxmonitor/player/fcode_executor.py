@@ -127,6 +127,10 @@ class FcodeExecutor(BaseExecutor):
 
     def _process_pause(self):
         if self.status_id & 4:
+            if self.error_symbol.startswith("USER_"):
+                self.main_ctrl.send_cmd("X5S80", self)
+            else:
+                self.main_ctrl.send_cmd("X5S69", self)
             self.paused()
 
         elif self.main_ctrl.buffered_cmd_size == 0:
@@ -166,6 +170,8 @@ class FcodeExecutor(BaseExecutor):
 
     def resume(self):
         if BaseExecutor.resume(self):
+            if self.status_id & 4:
+                self.main_ctrl.send_cmd("X5S0", self)
             if self.main_ctrl.ready and self.head_ctrl.ready:
                 self._process_resume()
             else:
