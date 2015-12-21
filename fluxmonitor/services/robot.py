@@ -6,7 +6,7 @@ from fluxmonitor.controller.interfaces.local import LocalControl
 from fluxmonitor.controller.interfaces.button import ButtonControl
 from fluxmonitor.controller.tasks.play_manager import PlayerManager
 from fluxmonitor.services.base import ServiceBase
-from fluxmonitor.err_codes import RESOURCE_BUSY, DEVICE_ERROR
+from fluxmonitor.err_codes import RESOURCE_BUSY, EXEC_OPERATION_ERROR
 from fluxmonitor.storage import UserSpace
 
 
@@ -129,7 +129,7 @@ class Robot(ServiceBase):
         if self.exclusive_component == component:
             self.exclusive_component = None
         else:
-            raise SystemError(DEVICE_ERROR, "COMPONENT_NOT_MATCH")
+            raise SystemError(EXEC_OPERATION_ERROR, "COMPONENT_NOT_MATCH")
 
     def destory_exclusive(self):
         """Call this method from others to release exclusive lock"""

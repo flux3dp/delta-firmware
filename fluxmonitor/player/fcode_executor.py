@@ -75,7 +75,7 @@ class FcodeExecutor(BaseExecutor):
         return st
 
     def on_controller_ready(self, controller):
-        logging.debug("Controller %s ready", controller.__class__.__name__)
+        logging.debug("Controller %s ready", controller)
         if self.main_ctrl.ready and self.head_ctrl.ready:
             if self.status_id & 32:
                 return
@@ -89,35 +89,51 @@ class FcodeExecutor(BaseExecutor):
                 self._process_resume()
 
     def on_macro_complete(self):
-        if isinstance(self.macro, StartupMacro):
-            self.macro = None
+        logging.debug("Macro complete: %s", self.macro)
+        macro = self.macro
+        self.macro = None
+        if isinstance(macro, StartupMacro):
             assert not self._cmd_queue
 
             self._cmd_queue = deque()
             self._fsm.set_max_exec_time(0.1)
 
-            if self.options.correction == "A":
-                logging.debug("Run macro: CorrectionMacro")
-                self.macro = CorrectionMacro(self.on_macro_complete)
-                self.macro.start(self)
-            elif self.options.correction == "H":
-                logging.debug("Run macro: ZprobeMacro")
-                self.macro = ZprobeMacro(self.on_macro_complete)
+            if self.options.correction in ("A", "H"):
+                self.macro = WaitHeadMacro(self.on_preheating_complete,
+                                           "H170")
+                logging.debug("Start macro: WaitHeadMacro(\"H170\")")
                 self.macro.start(self)
             else:
                 self.fire()
 
-        elif isinstance(self.macro, CorrectionMacro):
-            self.macro = None
+        elif isinstance(macro, CorrectionMacro):
             self.macro = ZprobeMacro(self.on_macro_complete)
+            logging.debug("Start macro: %s", self.macro)
             self.macro.start(self)
-        elif isinstance(self.macro, ZprobeMacro):
-            self.macro = None
+
+        elif isinstance(macro, ZprobeMacro):
+            self.fire()
+
+        elif isinstance(macro, WaitHeadMacro):
             self.fire()
 
         else:
-            logging.debug("Macro complete: %s", self.macro)
-            self.macro = None
+            self.fire()
+
+    def on_preheating_complete(self):
+        logging.debug("Macro complete: %s", self.macro)
+        self.macro = None
+        if self.options.correction == "A":
+            logging.debug("Run macro: CorrectionMacro")
+            self.macro = CorrectionMacro(self.on_macro_complete)
+            logging.debug("Start macro: %s", self.macro)
+            self.macro.start(self)
+        elif self.options.correction == "H":
+            logging.debug("Run macro: ZprobeMacro")
+            self.macro = ZprobeMacro(self.on_macro_complete)
+            logging.debug("Start macro: %s", self.macro)
+            self.macro.start(self)
+        else:
             self.fire()
 
     def started(self):
@@ -127,6 +143,10 @@ class FcodeExecutor(BaseExecutor):
 
     def _process_pause(self):
         if self.status_id & 4:
+            if self.error_symbol.startswith("USER_"):
+                self.main_ctrl.send_cmd("X5S80", self)
+            else:
+                self.main_ctrl.send_cmd("X5S69", self)
             self.paused()
 
         elif self.main_ctrl.buffered_cmd_size == 0:
@@ -166,6 +186,8 @@ class FcodeExecutor(BaseExecutor):
 
     def resume(self):
         if BaseExecutor.resume(self):
+            if self.status_id & 4:
+                self.main_ctrl.send_cmd("X5S0", self)
             if self.main_ctrl.ready and self.head_ctrl.ready:
                 self._process_resume()
             else:
@@ -266,7 +288,7 @@ class FcodeExecutor(BaseExecutor):
             self.fire()
         except RuntimeError as err:
             if not self.pause(*err.args):
-                logger.error("Error occour: %s" % err.args)
+                logger.error("Error occour: %s" % repr(err.args))
         except SystemError as err:
             self.abort(*err.args)
         except Exception as err:
@@ -284,7 +306,7 @@ class FcodeExecutor(BaseExecutor):
             self.fire()
         except RuntimeError as err:
             if not self.pause(*err.args):
-                logger.error("Error occour: %s" % err.args)
+                logger.error("Error occour: %s" % repr(err.args))
         except SystemError as err:
             self.abort(*err.args)
         except Exception as err:

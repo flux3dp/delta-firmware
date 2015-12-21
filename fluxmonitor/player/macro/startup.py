@@ -19,7 +19,7 @@ class StartupMacro(object):
         # Set E to 0
         executor.main_ctrl.send_cmd("G92E0", executor)
         # Home
-        executor.main_ctrl.send_cmd("G28", executor)
+        executor.main_ctrl.send_cmd("G28+", executor)
 
         if self.filament_detect:
             executor.main_ctrl.send_cmd("X8O", executor)
