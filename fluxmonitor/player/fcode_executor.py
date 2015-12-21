@@ -288,7 +288,7 @@ class FcodeExecutor(BaseExecutor):
             self.fire()
         except RuntimeError as err:
             if not self.pause(*err.args):
-                logger.error("Error occour: %s" % err.args)
+                logger.error("Error occour: %s" % repr(err.args))
         except SystemError as err:
             self.abort(*err.args)
         except Exception as err:
@@ -306,7 +306,7 @@ class FcodeExecutor(BaseExecutor):
             self.fire()
         except RuntimeError as err:
             if not self.pause(*err.args):
-                logger.error("Error occour: %s" % err.args)
+                logger.error("Error occour: %s" % repr(err.args))
         except SystemError as err:
             self.abort(*err.args)
         except Exception as err:
