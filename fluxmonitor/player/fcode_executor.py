@@ -151,6 +151,7 @@ class FcodeExecutor(BaseExecutor):
 
         elif self.main_ctrl.buffered_cmd_size == 0:
             if self.macro:
+                self.main_ctrl.send_cmd("X5S69", self)
                 self.paused()
                 self.macro.giveup()
             elif self._mb_stashed:
@@ -168,6 +169,7 @@ class FcodeExecutor(BaseExecutor):
                 self.main_ctrl.send_cmd("C2F", self)
                 self._mb_stashed = False
             else:
+                self.main_ctrl.send_cmd("X5S0", self)
                 self.resumed()
                 if self.status_id & 4:
                     self.started()

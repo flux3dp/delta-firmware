@@ -38,7 +38,7 @@ class CorrectionMacro(object):
         l = len(self.data)
         if l == 0:
             if self.round >= self.ttl:
-                executor.main_ctrl.send_cmd("G1F9000Z235", executor)
+                executor.main_ctrl.send_cmd("G1F9000X0Y0Z230", executor)
                 raise RuntimeError(HARDWARE_ERROR, EXEC_CONVERGENCE_FAILED)
 
             elif self.convergence:
@@ -97,7 +97,7 @@ class CorrectionMacro(object):
             if val <= -50:
                 # Clean fsr
                 self.data = []
-                executor.main_ctrl.send_cmd("G1F9000Z235", executor)
+                executor.main_ctrl.send_cmd("G1F9000X0Y0Z230", executor)
                 raise RuntimeError(HARDWARE_ERROR, EXEC_ZPROBE_ERROR)
 
             self.data.append(val)

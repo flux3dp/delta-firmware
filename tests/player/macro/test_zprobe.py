@@ -74,14 +74,14 @@ class CorrectionMacroTest(ControlTestBase):
 
         # Calculate
         self.assertIsNone(self.callback_status)
-        with self.assertSendMainboard("G1F9000Z235") as executor:
+        with self.assertSendMainboard("G1F9000X0Y0Z230") as executor:
             self.cm.on_mainboard_message(
                 "Bed Z-Height at X:-73.6122 Y:-42.5 = 0.3", executor)
             self.assertRaises(RuntimeError, self.cm.on_command_empty, executor)
 
     def test_zprob_failed(self):
         with self.assertSendMainboard("M666H242", "G28", "G30X0Y0",
-                                      "G1F9000Z235") as executor:
+                                      "G1F9000X0Y0Z230") as executor:
             self.cm.start(executor)
             self.cm.on_command_empty(executor)
             self.assertRaises(RuntimeError, self.cm.on_mainboard_message,

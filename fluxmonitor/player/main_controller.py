@@ -242,6 +242,7 @@ class MainController(object):
         if self._flags & FLAG_READY:
             executor.send_mainboard("@DISABLE_LINECHECK\n")
             executor.send_mainboard("G28\n")
+            executor.send_mainboard("X5S0\n")
             self._flags &= ~FLAG_READY
             self._flags |= FLAG_CLOSED
 
