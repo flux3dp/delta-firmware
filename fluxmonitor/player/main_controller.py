@@ -5,7 +5,8 @@ import logging
 import socket
 
 from fluxmonitor.err_codes import EXEC_OPERATION_ERROR, EXEC_INTERNAL_ERROR,\
-    EXEC_MAINBOARD_OFFLINE, EXEC_FILAMENT_RUNOUT
+    EXEC_MAINBOARD_OFFLINE, EXEC_FILAMENT_RUNOUT, HARDWARE_ERROR, \
+    EXEC_HOME_FAILED
 
 
 L = logging.getLogger(__name__)
@@ -168,9 +169,12 @@ class MainController(object):
             elif msg == "ok":
                 pass
 
+            elif msg == "ER G28_FAILED":
+                raise SystemError(HARDWARE_ERROR, EXEC_HOME_FAILED)
+
             else:
                 if msg.startswith("ER "):
-                    raise SystemError(*(msg.split(" ")[1:]))
+                    raise SystemError(HARDWARE_ERROR, *(msg.split(" ")[1:]))
 
                 L.debug("Unhandle MB MSG: %s" % msg)
         elif not self.closed:
