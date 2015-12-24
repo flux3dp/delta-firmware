@@ -18,6 +18,21 @@ class Storage(object):
         if not os.path.isdir(self.path):
             os.makedirs(self.path)
 
+    def __setitem__(self, key, val):
+        with self.open(key, "w") as f:
+            f.write(val)
+
+    def __getitem__(self, key):
+        if self.exists(key):
+            with self.open(key, "r") as f:
+                return f.read()
+        else:
+            return None
+
+    def __delitem__(self, key):
+        if self.exists(key):
+            self.unlink(key)
+
     def get_path(self, filename):
         return os.path.join(self.path, filename)
 

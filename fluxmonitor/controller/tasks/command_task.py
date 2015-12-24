@@ -14,7 +14,7 @@ from fluxmonitor.player.fcode_parser import fast_read_meta
 from fluxmonitor.err_codes import (UNKNOWN_COMMAND, NOT_EXIST, TOO_LARGE,
                                    NO_TASK, BAD_PARAMS, BAD_FILE_FORMAT,
                                    RESOURCE_BUSY)
-from fluxmonitor.storage import CommonMetadata, UserSpace
+from fluxmonitor.storage import Storage, Metadata, UserSpace
 from fluxmonitor.misc import mimetypes
 
 from .base import CommandMixIn
@@ -286,13 +286,78 @@ class PlayManagerMixIn(object):
             return False
 
 
-class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn):
+class ConfigMixIn(object):
+    __VALUES = {
+        "correction": {
+            "type": str, "enum": ("A", "a", "H", "N"),
+            "key": "auto_correction"},
+        "filament_detect": {
+            "type": str, "enum": ("Y", "N"),
+            "key": "filament_detect"},
+        "head_error_level": {
+            "type": int, "key": "head_error_level"},
+    }
+
+    def dispatch_config_cmd(self, handler, cmd, *args):
+        if cmd == "set":
+            self.__config_set(args[0], args[1])
+            handler.send_text("ok")
+        elif cmd == "get":
+            val = self.__config_get(args[0])
+            if val is not None:
+                handler.send_text("ok VAL %s" % val)
+            else:
+                handler.send_text("ok EMPTY")
+        elif cmd == "del":
+            self.__config_del(args[0])
+            handler.send_text("ok")
+        else:
+            raise RuntimeError(UNKNOWN_COMMAND)
+
+    def __config_set(self, key, val):
+        storage = Storage("general", "meta")
+        if key in self.__VALUES:
+            struct = self.__VALUES[key]
+
+            # Check input correct
+            struct["type"](val)
+            # Check enum
+            if "enum" in struct and val not in struct["enum"]:
+                raise RuntimeError(BAD_PARAMS)
+
+            storage[struct["key"]] = val
+        elif key == "nickname":
+            self.settings.nickname = val
+        else:
+            raise RuntimeError(BAD_PARAMS)
+
+    def __config_get(self, key):
+        storage = Storage("general", "meta")
+        if key in self.__VALUES:
+            struct = self.__VALUES[key]
+            return storage[struct["key"]]
+        elif key == "nickname":
+            return self.settings.nickname
+        else:
+            raise RuntimeError(BAD_PARAMS)
+
+    def __config_del(self, key):
+        storage = Storage("general", "meta")
+        if key in self.__VALUES:
+            struct = self.__VALUES[key]
+            del storage[struct["key"]]
+        else:
+            raise RuntimeError(BAD_PARAMS)
+
+
+class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
+                  ConfigMixIn):
     _task_file = None
     _task_mimetype = None
 
     def __init__(self, stack):
         self.stack = stack
-        self.settings = CommonMetadata()
+        self.settings = Metadata()
         self.user_space = UserSpace()
 
     def dispatch_cmd(self, handler, cmd, *args):
@@ -311,10 +376,8 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn):
         elif cmd == "update_fw":
             mimetype, filesize, upload_to = args
             return self.update_fw(handler, int(filesize, 10))
-        elif cmd == "set":
-            if len(args) != 2:
-                raise RuntimeError(BAD_PARAMS)
-            return self.setting_setter(*args)
+        elif cmd == "config":
+            self.dispatch_config_cmd(handler, *args)
         elif cmd == "kick":
             self.stack.kernel.destory_exclusive()
             # TODO: more message?
@@ -361,16 +424,3 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn):
         task = MaintainTask(self.stack, handler)
         self.stack.enter_task(task, empty_callback)
         handler.send_text("ok")
-
-    def setting_setter(self, key, raw_value):
-        try:
-            if key == "playbuf":
-                self.settings.play_bufsize = int(raw_value)
-                return "ok"
-            else:
-                raise RuntimeError(BAD_PARAMS, "NO_KEY %s" % key)
-        except ValueError:
-            raise RuntimeError(BAD_PARAMS)
-
-    def setting_getter(self):
-        pass
