@@ -14,13 +14,6 @@ general_config = {
     "log_timefmt": "%Y-%m-%d %H:%M:%S",
 }
 
-hal_config = {
-    "mainboard_uart": None,
-    "headboard_uart": None,
-    "pc_uart": None,
-    "scan_camera": None,
-}
-
 network_services = {
     "wpa_supplicant": "/sbin/wpa_supplicant",
     "hostapd": "/usr/sbin/hostapd",
@@ -52,44 +45,29 @@ MAINBOARD_ENDPOINT = "/tmp/.mainboard"
 CAMERA_ENDPOINT = "/tmp/.camera"
 PLAY_ENDPOINT = "/tmp/.player"
 
+SCAN_CAMERA_ID = None
+
 NETWORK_MANAGE_ENDPOINT = "/tmp/.fluxmonitord-network"
 
 PLAY_SWAP = "/tmp/autoplay.swap.fc"
 
-robot_config = {
-    "filepool": "/media"
-}
+FIREWARE_UPDATE_PATH = "/var/autoupdate.fxfw"
+USERSPACE = None
 
 
 def load_model_profile():
-    from fluxmonitor.halprofile import get_model_profile
-    profile = get_model_profile()
+    from fluxmonitor.halprofile import PROFILE
+    import sys
+    self = sys.modules[__name__]
+    profile = PROFILE
 
     general_config["db"] = profile["db"]
-    general_config["scan_camera"] = profile["scan_camera"]
 
-    hal_config["mainboard_uart"] = profile.get("mainboard_uart")
-    hal_config["headboard_uart"] = profile.get("headboard_uart")
-    hal_config["pc_uart"] = profile.get("pc_uart")
-    hal_config["scan_camera"] = profile.get("scan_camera")
+    self.SCAN_CAMERA_ID = profile.get("scan_camera_id")
+    self.USERSPACE = profile["userspace"]
+    self.PLAY_SWAP = profile.get("playswap", self.PLAY_SWAP)
+    self.FIREWARE_UPDATE_PATH = profile.get("fireware_update_path",
+                                            self.FIREWARE_UPDATE_PATH)
 
-    # TODO: old style
-    robot_config["filepool"] = profile["gcode-pool"]
-    PLAY_SWAP = profile["playswap"]
-
-
-def override_config(alt_config, current):
-    for key, val in alt_config.items():
-        current[key] = val
-
-
-def load_config(filename):
-    import json
-    with open(filename, "r") as f:
-        doc = json.load(f)
-
-        override_config(doc.get("general_config", {}), general_config)
-        override_config(doc.get("uart_config", {}), uart_config)
-        override_config(doc.get("robot_config", {}), robot_config)
 
 load_model_profile()

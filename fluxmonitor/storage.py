@@ -7,7 +7,7 @@ import os
 
 import sysv_ipc
 
-from fluxmonitor.config import general_config, robot_config
+from fluxmonitor.config import USERSPACE, general_config
 from fluxmonitor.hal.usbmount import get_usbmount_hal
 from fluxmonitor.err_codes import NOT_EXIST, BAD_PARAMS
 
@@ -233,7 +233,7 @@ Metadata = CommonMetadata
 
 class UserSpace(object):
     def __init__(self):
-        self.filepool = os.path.realpath(robot_config["filepool"])
+        self.filepool = os.path.realpath(USERSPACE)
         self.usbmount = get_usbmount_hal()
 
     def get_path(self, _entry, _path, sd_only=False, require_file=False,

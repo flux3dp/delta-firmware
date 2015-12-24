@@ -7,7 +7,7 @@ import struct
 import socket
 
 from fluxmonitor.err_codes import DEVICE_ERROR, NOT_SUPPORT, UNKNOWN_COMMAND
-from fluxmonitor.config import hal_config, CAMERA_ENDPOINT
+from fluxmonitor.config import CAMERA_ENDPOINT
 from fluxmonitor.storage import Storage
 
 import pyev
