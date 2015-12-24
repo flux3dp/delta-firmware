@@ -200,7 +200,8 @@ int calculate_error(float p[][3], float err[], int r_en, int h_en,
 int calculator(float init_endstop_x, float init_endstop_y, float init_endstop_z,
                float init_endstop_h, float input_x, float input_y,
                float input_z, float input_h, float delta_radious,
-               struct CorrectionResult *result) {
+               float t1x, float t1y, float t2x, float t2y, float t3x,
+               float t3y, struct CorrectionResult *result) {
     struct CorrectionData data = {
         {0, 0, 0},
         96.7,
@@ -254,7 +255,7 @@ int main()
     calculator(
         0, 0, 0, 242,  // init endstops
        -0.4374, -0.7375, -0.6312, 0,    // input values
-        96.7, &result);
+        96.7, -73.61, -42.50, 73.61, -42.50, 0, 85.0, &result);
 
     cout << "M666X" << result.X << "Y" << result.Y << "Z" <<  result.Z << "R"
          << result.R << "H" << result.H << endl;
