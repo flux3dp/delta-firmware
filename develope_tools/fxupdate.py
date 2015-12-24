@@ -20,6 +20,14 @@ from serial import Serial, SerialException
 #
 #
 
+class DryrunSerial(object):
+    def write(self, *args):
+        pass
+
+    def close(self):
+        pass
+
+
 def unpack_resource(zf, metadata):
     name, signature = metadata
 
@@ -131,9 +139,13 @@ def main():
         egg_task = None
         mbfw_task = None
 
-        tty = get_mainboard_tty()
-        s = Serial(port=tty, baudrate=115200, timeout=0)
-        s.write("\nX5S85\n")
+        if options.dryrun:
+            s = DryrunSerial()
+            tty = None
+        else:
+            tty = get_mainboard_tty()
+            s = Serial(port=tty, baudrate=115200, timeout=0)
+            s.write("\nX5S85\n")
 
         try:
             with zipfile.ZipFile(options.package_file, "r") as zf:
@@ -159,7 +171,8 @@ def main():
                 egg_task = unpack_resource(zf, manifest["egg"])
                 mbfw_task = unpack_resource(zf, manifest["mbfw"])
 
-        except Exception:
+        except Exception as e:
+            print(e)
             s.write("\nX5S0\n")
             sys.exit(9)
 
