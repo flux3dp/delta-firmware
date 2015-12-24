@@ -51,7 +51,7 @@ NETWORK_MANAGE_ENDPOINT = "/tmp/.fluxmonitord-network"
 
 PLAY_SWAP = "/tmp/autoplay.swap.fc"
 
-FIREWARE_UPDATE_PATH = "/var/autoupdate.fxfw"
+FIRMWARE_UPDATE_PATH = "/var/autoupdate.fxfw"
 USERSPACE = None
 
 
@@ -66,8 +66,8 @@ def load_model_profile():
     self.SCAN_CAMERA_ID = profile.get("scan_camera_id")
     self.USERSPACE = profile["userspace"]
     self.PLAY_SWAP = profile.get("playswap", self.PLAY_SWAP)
-    self.FIREWARE_UPDATE_PATH = profile.get("fireware_update_path",
-                                            self.FIREWARE_UPDATE_PATH)
+    self.FIRMWARE_UPDATE_PATH = profile.get("firmware_update_path",
+                                            self.FIRMWARE_UPDATE_PATH)
 
 
 load_model_profile()

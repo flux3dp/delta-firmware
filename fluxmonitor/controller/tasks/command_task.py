@@ -395,7 +395,7 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
         if filesize > 2 ** 20:
             raise RuntimeError(TOO_LARGE)
 
-        logger.info("Upload fireware file size: %i" % filesize)
+        logger.info("Upload firmware file size: %i" % filesize)
         task = UpdateFwTask(self.stack, handler, filesize)
         self.stack.enter_task(task, empty_callback)
         return "continue"

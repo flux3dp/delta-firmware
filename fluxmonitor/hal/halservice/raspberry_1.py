@@ -207,7 +207,7 @@ class GPIOControl(object):
                 self._head_power_timer = time()
 
     def update_fw(self, watcher):
-        L.debug("Update mainboard fireware")
+        L.debug("Update mainboard firemare")
         self.mainboard_disconnect()
 
         GPIO.output(GPIO_MAINBOARD_POW_PIN, MAINBOARD_OFF)
@@ -247,7 +247,7 @@ class GPIOControl(object):
             self._init_mainboard_status()
 
         except Exception:
-            L.exception("Error while update fireware")
+            L.exception("Error while update firmware")
 
 
 class UartHal(UartHalBase, BaseOnSerial, GPIOControl):

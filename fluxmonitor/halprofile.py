@@ -14,12 +14,14 @@ PROFILES = {
     MODEL_DARWIN_DEV: {
         "db": expanduser("~/.fluxmonitor_dev/db"),
         "userspace": expanduser("~/.fluxmonitor_dev/filepool"),
+        "firmware_update_path": expanduser("~/.fluxmonitor_dev/update.fxfw"),
         "playswap": "/tmp/autoplay.fc",
         "scan_camera_id": 0,
     },
     MODEL_LINUX_DEV: {
         "db": expanduser("~/.fluxmonitor_dev/db"),
         "userspace": expanduser("~/.fluxmonitor_dev/filepool"),
+        "firmware_update_path": expanduser("~/.fluxmonitor_dev/update.fxfw"),
         "playswap": "/tmp/autoplay.fc",
         "scan_camera_id": None,
     },
