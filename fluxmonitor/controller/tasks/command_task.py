@@ -366,7 +366,11 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
         elif cmd == "start":
             self.play(handler)
         elif cmd == "raw":
-            self.raw_access(handler)
+            storage = Storage("general", "meta")
+            if storage["debug"] == "ON":
+                self.raw_access(handler)
+            else:
+                raise RuntimeError("?")
         elif cmd == "maintain":
             return self.maintain(handler)
         elif cmd == "update_fw":
@@ -394,7 +398,6 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
         logger.info("Upload fireware file size: %i" % filesize)
         task = UpdateFwTask(self.stack, handler, filesize)
         self.stack.enter_task(task, empty_callback)
-
         return "continue"
 
     def raw_access(self, handler):
