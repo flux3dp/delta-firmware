@@ -119,7 +119,11 @@ class LocalConnectionHandler(object):
     @property
     def address(self):
         try:
-            return self.sock.getsockname()[0]
+            ipaddr = self.sock.getpeername()[0]
+            try:
+                return socket.gethostbyaddr(ipaddr)[0]
+            except Exception:
+                return ipaddr
         except (OSError, socket.error):
             return "ZOMBIE"
 
@@ -365,7 +369,7 @@ class ServiceStack(object):
             self.this_task = current_task
 
     def terminate(self):
-        while len(self.task_callstack) > 1:
+        while len(self.task_callstack) > 2:
             task, cb = self.task_callstack.pop()
             try:
                 task.on_exit()

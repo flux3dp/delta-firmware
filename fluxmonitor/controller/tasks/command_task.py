@@ -14,7 +14,8 @@ from fluxmonitor.player.fcode_parser import fast_read_meta
 from fluxmonitor.err_codes import (UNKNOWN_COMMAND, NOT_EXIST, TOO_LARGE,
                                    NO_TASK, BAD_PARAMS, BAD_FILE_FORMAT,
                                    RESOURCE_BUSY)
-from fluxmonitor.storage import CommonMetadata, UserSpace
+from fluxmonitor.storage import Storage, Metadata, UserSpace
+from fluxmonitor.diagnosis.god_mode import allow_god_mode
 from fluxmonitor.misc import mimetypes
 
 from .base import CommandMixIn
@@ -24,6 +25,7 @@ from .raw_task import RawTask
 from .maintain_task import MaintainTask
 from .update_fw_task import UpdateFwTask
 from .play_manager import PlayerManager
+from .update_mbfw_task import UpdateMbFwTask
 
 logger = logging.getLogger(__name__)
 
@@ -36,42 +38,26 @@ class FileManagerMixIn(object):
     def dispatch_filemanage_cmd(self, handler, cmd, *args):
         if cmd == "ls":
             self.list_files(handler, *args)
-            return True
-        elif cmd == "select":
-            self.select_file(handler, *args)
-            return True
-        elif cmd == "fileinfo":
+        elif cmd == "info":
             self.fileinfo(handler, *args)
-            return True
         elif cmd == "mkdir":
             self.mkdir(handler, *args)
-            return True
         elif cmd == "rmdir":
             self.rmdir(handler, *args)
-            return True
         elif cmd == "cp":
             self.cpfile(handler, *args)
-            return True
         elif cmd == "rm":
             self.rmfile(handler, *args)
-            return True
         elif cmd == "upload":
             # upload [mimetype] [size] [entry] [path]
             self.upload_file(handler, *args)
-            return True
         elif cmd == "md5":
             self.md5(handler, *args)
-            return True
         else:
-            return False
-
-    def _storage_dispatch(self, entry, path, sd_only=False, require_file=False,
-                          require_dir=False):
-        return self.user_space.get_path(entry, path, sd_only, require_file,
-                                        require_dir)
+            raise RuntimeError(UNKNOWN_COMMAND)
 
     def list_files(self, handler, entry, path=""):
-        abspath = self._storage_dispatch(entry, path, require_dir=True)
+        abspath = self.storage_dispatch(entry, path, require_dir=True)
 
         buf_obj = StringIO()
         for n in os.listdir(abspath):
@@ -93,18 +79,8 @@ class FileManagerMixIn(object):
         handler.send_text(buf.encode("utf8"))
         handler.send_text("ok")
 
-    def select_file(self, handler, entry, path):
-        abspath = self._storage_dispatch(entry, path, require_file=True)
-
-        if not os.path.isfile(abspath):
-            raise RuntimeError(NOT_EXIST, "NOT_FILE")
-
-        self._task_file = open(abspath, "rb")
-        self._task_mimetype, _ = mimetypes.guess_type(abspath)
-        handler.send_text("ok")
-
     def fileinfo(self, handler, entry, path):
-        abspath = self._storage_dispatch(entry, path, require_file=True)
+        abspath = self.storage_dispatch(entry, path, require_file=True)
         if mimetypes.guess_type(abspath)[0] == mimetypes.MIMETYPE_FCODE:
             metadata, image = fast_read_meta(abspath)
             metadata["size"] = os.path.getsize(abspath)
@@ -117,7 +93,7 @@ class FileManagerMixIn(object):
             handler.send_text("ok size=%i" % os.path.getsize(abspath))
 
     def mkdir(self, handler, entry, path):
-        abspath = self._storage_dispatch(entry, path, sd_only=True)
+        abspath = self.storage_dispatch(entry, path, sd_only=True)
         try:
             os.mkdir(abspath)
             handler.send_text("ok")
@@ -125,7 +101,7 @@ class FileManagerMixIn(object):
             raise RuntimeError("OSERR_" + errorcode.get(e.args[0], "UNKNOW"))
 
     def rmdir(self, handler, entry, path):
-        abspath = self._storage_dispatch(entry, path, sd_only=True,
+        abspath = self.storage_dispatch(entry, path, sd_only=True,
                                          require_dir=True)
         try:
             shutil.rmtree(abspath)
@@ -135,9 +111,9 @@ class FileManagerMixIn(object):
 
     def cpfile(self, handler, from_entry, from_path, to_entry, to_path):
         try:
-            abssource = self._storage_dispatch(from_entry, from_path,
+            abssource = self.storage_dispatch(from_entry, from_path,
                                                require_file=True)
-            abstarget = self._storage_dispatch(to_entry, to_path,
+            abstarget = self.storage_dispatch(to_entry, to_path,
                                                sd_only=True)
             shutil.copy(abssource, abstarget)
             handler.send_text("ok")
@@ -148,7 +124,7 @@ class FileManagerMixIn(object):
 
     def rmfile(self, handler, entry, path):
         try:
-            abspath = self._storage_dispatch(entry, path, sd_only=True,
+            abspath = self.storage_dispatch(entry, path, sd_only=True,
                                              require_file=True)
             os.remove(abspath)
             handler.send_text("ok")
@@ -157,7 +133,7 @@ class FileManagerMixIn(object):
 
     def md5(self, handler, entry, path):
         try:
-            with open(self._storage_dispatch(entry, path,
+            with open(self.storage_dispatch(entry, path,
                                              require_file=True), "rb") as f:
                 buf = bytearray(4096)
                 l = f.readinto(buf)
@@ -181,7 +157,7 @@ class FileManagerMixIn(object):
             self._task_file = NamedTemporaryFile()
             self._task_mimetype = mimetype
         else:
-            abspath = self._storage_dispatch(entry, path, sd_only=True)
+            abspath = self.storage_dispatch(entry, path, sd_only=True)
             if mimetypes.validate_ext(abspath, mimetype):
                 self._task_file = open(abspath, "wb")
             else:
@@ -203,7 +179,7 @@ class FileManagerMixIn(object):
 
 
 class PlayManagerMixIn(object):
-    def validate_status(callback):
+    def __validate_status(callback):
         def wrapper(self, *args):
             component = self.stack.kernel.exclusive_component
             if isinstance(component, PlayerManager):
@@ -212,27 +188,51 @@ class PlayManagerMixIn(object):
                 raise RuntimeError(NO_TASK)
         return wrapper
 
-    @validate_status
-    def play_pause(self, manager, handler):
+    def __select_file(self, handler, entry, path):
+        abspath = self.storage_dispatch(entry, path, require_file=True)
+
+        if not os.path.isfile(abspath):
+            raise RuntimeError(NOT_EXIST, "NOT_FILE")
+
+        self._task_file = open(abspath, "rb")
+        self._task_mimetype, _ = mimetypes.guess_type(abspath)
+        handler.send_text("ok")
+
+    def __start(self, handler):
+        if self._task_file:
+            kernel = self.stack.kernel
+            if kernel.is_exclusived():
+                raise RuntimeError(RESOURCE_BUSY)
+            else:
+                pm = PlayerManager(
+                    self.stack.loop, self._task_file.name,
+                    terminated_callback=kernel.release_exclusive)
+                kernel.exclusive(pm)
+            handler.send_text("ok")
+        else:
+            raise RuntimeError(NO_TASK)
+
+    @__validate_status
+    def __play_pause(self, manager, handler):
         handler.send_text(manager.pause())
 
-    @validate_status
-    def play_resume(self, manager, handler):
+    @__validate_status
+    def __play_resume(self, manager, handler):
         handler.send_text(manager.resume())
 
-    @validate_status
-    def play_abort(self, manager, handler):
+    @__validate_status
+    def __play_abort(self, manager, handler):
         handler.send_text(manager.abort())
 
-    @validate_status
-    def play_quit(self, manager, handler):
+    @__validate_status
+    def __play_quit(self, manager, handler):
         if manager.is_terminated:
             handler.send_text(manager.quit())
         else:
             raise RuntimeError(RESOURCE_BUSY)
 
-    @validate_status
-    def play_info(self, manager, handler):
+    @__validate_status
+    def __play_info(self, manager, handler):
         metadata, imgbuf = manager.playinfo
 
         def end_img(h):
@@ -249,108 +249,174 @@ class PlayManagerMixIn(object):
         handler.async_send_binary("text/json", len(metabuf), BytesIO(metabuf),
                                   end_meta__send_img)
 
-    def play_report(self, handler):
+    def __play_report(self, handler):
         component = self.stack.kernel.exclusive_component
         if isinstance(component, PlayerManager):
             handler.send_text(component.report())
         elif component:
-            handler.send_text('{"st_id": -1, "st_label": "OCCUPIED", '
-                              '"info": "%s"}' % component.label)
+            handler.send_text('{"st_id": %i, "st_label": "OCCUPIED", '
+                              '"info": "%s"}' % (component.st_id,
+                                                 component.label))
         else:
             handler.send_text('{"st_id": 0, "st_label": "IDLE"}')
 
     def dispatch_playmanage_cmd(self, handler, cmd, *args):
         if cmd == "pause":
-            self.play_pause(handler)
-            return True
+            self.__play_pause(handler)
         elif cmd == "resume":
-            self.play_resume(handler)
-            return True
+            self.__play_resume(handler)
         elif cmd == "abort":
-            self.play_abort(handler)
-            return True
+            self.__play_abort(handler)
         elif cmd == "report":
-            self.play_report(handler)
-            return True
+            self.__play_report(handler)
+        elif cmd == "select":
+            self.__select_file(handler, *args)
         elif cmd == "play_info":
-            self.play_info(handler)
-            return True
+            self.__play_info(handler)
+        elif cmd == "start":
+            self.__start(handler)
         elif cmd == "load_filament":
-            return False
+            raise RuntimeError(UNKNOWN_COMMAND)
         elif cmd == "eject_filament":
-            return False
-        elif cmd == "quit" or cmd == "quit_play":
-            self.play_quit(handler)
-            return True
+            raise RuntimeError(UNKNOWN_COMMAND)
+        elif cmd == "quit":
+            self.__play_quit(handler)
         else:
-            return False
+            raise RuntimeError(UNKNOWN_COMMAND)
 
 
-class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn):
+class ConfigMixIn(object):
+    __VALUES = {
+        "correction": {
+            "type": str, "enum": ("A", "a", "H", "N"),
+            "key": "auto_correction"},
+        "filament_detect": {
+            "type": str, "enum": ("Y", "N"),
+            "key": "filament_detect"},
+        "head_error_level": {
+            "type": int, "key": "head_error_level"},
+    }
+
+    def dispatch_config_cmd(self, handler, cmd, *args):
+        if cmd == "set":
+            self.__config_set(args[0], args[1])
+            handler.send_text("ok")
+        elif cmd == "get":
+            val = self.__config_get(args[0])
+            if val is not None:
+                handler.send_text("ok VAL %s" % val)
+            else:
+                handler.send_text("ok EMPTY")
+        elif cmd == "del":
+            self.__config_del(args[0])
+            handler.send_text("ok")
+        else:
+            raise RuntimeError(UNKNOWN_COMMAND)
+
+    def __config_set(self, key, val):
+        storage = Storage("general", "meta")
+        if key in self.__VALUES:
+            struct = self.__VALUES[key]
+
+            # Check input correct
+            struct["type"](val)
+            # Check enum
+            if "enum" in struct and val not in struct["enum"]:
+                raise RuntimeError(BAD_PARAMS)
+
+            storage[struct["key"]] = val
+        elif key == "nickname":
+            self.settings.nickname = val
+        else:
+            raise RuntimeError(BAD_PARAMS)
+
+    def __config_get(self, key):
+        storage = Storage("general", "meta")
+        if key in self.__VALUES:
+            struct = self.__VALUES[key]
+            return storage[struct["key"]]
+        elif key == "nickname":
+            return self.settings.nickname
+        else:
+            raise RuntimeError(BAD_PARAMS)
+
+    def __config_del(self, key):
+        storage = Storage("general", "meta")
+        if key in self.__VALUES:
+            struct = self.__VALUES[key]
+            del storage[struct["key"]]
+        else:
+            raise RuntimeError(BAD_PARAMS)
+
+
+class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
+                  ConfigMixIn):
     _task_file = None
     _task_mimetype = None
 
     def __init__(self, stack):
         self.stack = stack
-        self.settings = CommonMetadata()
+        self.settings = Metadata()
         self.user_space = UserSpace()
 
     def dispatch_cmd(self, handler, cmd, *args):
-        if self.dispatch_filemanage_cmd(handler, cmd, *args):
-            pass
-        elif self.dispatch_playmanage_cmd(handler, cmd, *args):
-            pass
+        if cmd == "player":
+            self.dispatch_playmanage_cmd(handler, *args)
+        elif cmd == "file":
+            self.dispatch_filemanage_cmd(handler, *args)
         elif cmd == "scan":
             return self.scan(handler)
         elif cmd == "start":
             self.play(handler)
-        elif cmd == "raw":
-            self.raw_access(handler)
         elif cmd == "maintain":
             return self.maintain(handler)
         elif cmd == "update_fw":
             mimetype, filesize, upload_to = args
-            return self.update_fw(handler, int(filesize, 10))
-        elif cmd == "set":
-            if len(args) != 2:
-                raise RuntimeError(BAD_PARAMS)
-            return self.setting_setter(*args)
+            if mimetype != mimetypes.MIMETYPE_FLUX_FIRMWARE:
+                raise RuntimeError(BAD_FILE_FORMAT)
+            self.update_fw(handler, int(filesize, 10))
+        elif cmd == "config":
+            self.dispatch_config_cmd(handler, *args)
         elif cmd == "kick":
             self.stack.kernel.destory_exclusive()
             # TODO: more message?
             handler.send_text("ok")
+        elif cmd == "raw" and allow_god_mode():
+            self.raw_access(handler)
+        elif cmd == "update_mbfw" and allow_god_mode():
+            mimetype, filesize, upload_to = args
+            return self.update_mbfw(handler, int(filesize, 10))
         else:
             logger.debug("Can not handle: %s" % repr(cmd))
             raise RuntimeError(UNKNOWN_COMMAND)
 
+    def storage_dispatch(self, entry, path, sd_only=False, require_file=False,
+                         require_dir=False):
+        return self.user_space.get_path(entry, path, sd_only, require_file,
+                                        require_dir)
+
     def update_fw(self, handler, filesize):
-        if filesize > 2 ** 20:
+        if filesize > 100 * (2 ** 20):
             raise RuntimeError(TOO_LARGE)
 
-        logger.info("Upload fireware file size: %i" % filesize)
+        logger.info("Upload firmware file size: %i" % filesize)
         task = UpdateFwTask(self.stack, handler, filesize)
         self.stack.enter_task(task, empty_callback)
+        handler.send_text("continue")
 
-        return "continue"
+    def update_mbfw(self, handler, filesize):
+        if filesize > 10 * (2 ** 20):
+            raise RuntimeError(TOO_LARGE)
+
+        logger.info("Upload MB firmware file size: %i" % filesize)
+        task = UpdateMbFwTask(self.stack, handler, filesize)
+        self.stack.enter_task(task, empty_callback)
+        handler.send_text("continue")
 
     def raw_access(self, handler):
         task = RawTask(self.stack, handler)
         self.stack.enter_task(task, empty_callback)
         handler.send_text("continue")
-
-    def play(self, handler):
-        if self._task_file:
-            kernel = self.stack.kernel
-            if kernel.is_exclusived():
-                raise RuntimeError(RESOURCE_BUSY)
-            else:
-                pm = PlayerManager(
-                    self.stack.loop, self._task_file.name,
-                    terminated_callback=kernel.release_exclusive)
-                kernel.exclusive(pm)
-            handler.send_text("ok")
-        else:
-            raise RuntimeError(NO_TASK)
 
     def scan(self, handler):
         task = ScanTask(self.stack, handler)
@@ -361,16 +427,3 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn):
         task = MaintainTask(self.stack, handler)
         self.stack.enter_task(task, empty_callback)
         handler.send_text("ok")
-
-    def setting_setter(self, key, raw_value):
-        try:
-            if key == "playbuf":
-                self.settings.play_bufsize = int(raw_value)
-                return "ok"
-            else:
-                raise RuntimeError(BAD_PARAMS, "NO_KEY %s" % key)
-        except ValueError:
-            raise RuntimeError(BAD_PARAMS)
-
-    def setting_getter(self):
-        pass

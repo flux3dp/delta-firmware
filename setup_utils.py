@@ -55,7 +55,7 @@ def setup_test():
     config.uart_config["headboard"] = os.path.join(tempbase, "headboard-us")
     config.uart_config["mainboard"] = os.path.join(tempbase, "mainboard-us")
     config.uart_config["pc"] = os.path.join(tempbase, "pc-us")
-    config.robot_config["filepool"] = os.path.join(tempbase, "filepool")
+    config.USERSPACE = os.path.join(tempbase, "userspace")
     config.NETWORK_MANAGE_ENDPOINT = os.path.join(tempbase, "network-us")
 
     import logging.config

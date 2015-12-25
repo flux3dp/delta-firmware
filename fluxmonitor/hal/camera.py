@@ -1,5 +1,5 @@
 
-from fluxmonitor.config import hal_config
+from fluxmonitor.config import SCAN_CAMERA_ID
 
 
 def get_scan_camera(camera_id=None):
@@ -7,7 +7,7 @@ def get_scan_camera(camera_id=None):
 
     if camera_id is not None:
         return VideoCapture(int(camera_id))
-    elif hal_config["scan_camera"] is not None:
-        return VideoCapture(camera_id)
+    elif SCAN_CAMERA_ID is not None:
+        return VideoCapture(SCAN_CAMERA_ID)
     else:
         raise RuntimeError("NOT_SUPPORT", "can not find scan camera")
