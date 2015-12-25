@@ -375,6 +375,8 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
             return self.maintain(handler)
         elif cmd == "update_fw":
             mimetype, filesize, upload_to = args
+            if mimetype != mimetypes.MIMETYPE_FLUX_FIRMWARE:
+                raise RuntimeError(BAD_FILE_FORMAT)
             return self.update_fw(handler, int(filesize, 10))
         elif cmd == "config":
             self.dispatch_config_cmd(handler, *args)
@@ -392,7 +394,7 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
                                         require_dir)
 
     def update_fw(self, handler, filesize):
-        if filesize > 2 ** 20:
+        if filesize > 100 * (2 ** 20):
             raise RuntimeError(TOO_LARGE)
 
         logger.info("Upload firmware file size: %i" % filesize)

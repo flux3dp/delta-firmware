@@ -365,7 +365,7 @@ class ServiceStack(object):
             self.this_task = current_task
 
     def terminate(self):
-        while len(self.task_callstack) > 1:
+        while len(self.task_callstack) > 2:
             task, cb = self.task_callstack.pop()
             try:
                 task.on_exit()
