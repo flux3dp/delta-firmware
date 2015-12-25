@@ -15,6 +15,7 @@ from fluxmonitor.err_codes import (UNKNOWN_COMMAND, NOT_EXIST, TOO_LARGE,
                                    NO_TASK, BAD_PARAMS, BAD_FILE_FORMAT,
                                    RESOURCE_BUSY)
 from fluxmonitor.storage import Storage, Metadata, UserSpace
+from fluxmonitor.diagnosis.god_mode import allow_god_mode
 from fluxmonitor.misc import mimetypes
 
 from .base import CommandMixIn
@@ -24,6 +25,7 @@ from .raw_task import RawTask
 from .maintain_task import MaintainTask
 from .update_fw_task import UpdateFwTask
 from .play_manager import PlayerManager
+from .update_mbfw_task import UpdateMbFwTask
 
 logger = logging.getLogger(__name__)
 
@@ -365,25 +367,24 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
             return self.scan(handler)
         elif cmd == "start":
             self.play(handler)
-        elif cmd == "raw":
-            storage = Storage("general", "meta")
-            if storage["debug"] == "ON":
-                self.raw_access(handler)
-            else:
-                raise RuntimeError("?")
         elif cmd == "maintain":
             return self.maintain(handler)
         elif cmd == "update_fw":
             mimetype, filesize, upload_to = args
             if mimetype != mimetypes.MIMETYPE_FLUX_FIRMWARE:
                 raise RuntimeError(BAD_FILE_FORMAT)
-            return self.update_fw(handler, int(filesize, 10))
+            self.update_fw(handler, int(filesize, 10))
         elif cmd == "config":
             self.dispatch_config_cmd(handler, *args)
         elif cmd == "kick":
             self.stack.kernel.destory_exclusive()
             # TODO: more message?
             handler.send_text("ok")
+        elif cmd == "raw" and allow_god_mode():
+            self.raw_access(handler)
+        elif cmd == "update_mbfw" and allow_god_mode():
+            mimetype, filesize, upload_to = args
+            return self.update_mbfw(handler, int(filesize, 10))
         else:
             logger.debug("Can not handle: %s" % repr(cmd))
             raise RuntimeError(UNKNOWN_COMMAND)
@@ -400,7 +401,16 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
         logger.info("Upload firmware file size: %i" % filesize)
         task = UpdateFwTask(self.stack, handler, filesize)
         self.stack.enter_task(task, empty_callback)
-        return "continue"
+        handler.send_text("continue")
+
+    def update_mbfw(self, handler, filesize):
+        if filesize > 10 * (2 ** 20):
+            raise RuntimeError(TOO_LARGE)
+
+        logger.info("Upload MB firmware file size: %i" % filesize)
+        task = UpdateMbFwTask(self.stack, handler, filesize)
+        self.stack.enter_task(task, empty_callback)
+        handler.send_text("continue")
 
     def raw_access(self, handler):
         task = RawTask(self.stack, handler)
