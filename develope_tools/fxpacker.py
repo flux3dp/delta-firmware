@@ -95,7 +95,7 @@ def main():
     workdir = mkdtemp()
 
     try:
-        manifest = {"package": "fluxmointor", "version": version,
+        manifest = {"package": "fluxmonitor", "version": version,
                     "egg": place_file(options.egg, workdir),
                     "mbfw": place_file(options.mainboard_firmware, workdir),
                     "extra_eggs": [place_file(fn, workdir) \
