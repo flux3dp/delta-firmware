@@ -4,7 +4,7 @@ import socket
 import re
 
 from fluxmonitor.player.main_controller import MainController
-from fluxmonitor.storage import CommonMetadata
+from fluxmonitor.storage import Metadata
 from fluxmonitor.misc import correction
 from fluxmonitor.config import uart_config
 
@@ -23,7 +23,7 @@ def do_correction(x, y, z):
     if max(x, y, z) - min(x, y, z) > 3:
         raise ValueError("OVER_TOLERANCE")
 
-    cm = CommonMetadata()
+    cm = Metadata()
     old_corr = cm.plate_correction
 
     old_corr_str = "M666X%(X).4fY%(Y).4fZ%(Z).4f" % old_corr
@@ -44,7 +44,7 @@ def do_correction(x, y, z):
 
 
 def do_h_correction(delta=None, h=None):
-    cm = CommonMetadata()
+    cm = Metadata()
 
     if not h:
         oldh = cm.plate_correction["H"]
@@ -69,8 +69,11 @@ def check_mainboard(method):
 
 class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
                    CommandMixIn):
+    st_id = -1
+
     def __init__(self, stack, handler):
         super(MaintainTask, self).__init__(stack, handler)
+        self.meta = Metadata()
 
         self._ready = 0
         self._busy = False
@@ -232,9 +235,8 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         self._busy = True
 
         if clean:
-            cm = CommonMetadata()
             # TODO
-            cm.plate_correction = {"X": 0, "Y": 0, "Z": 0, "H": 242}
+            self.meta.plate_correction = {"X": 0, "Y": 0, "Z": 0, "H": 242}
             self.main_ctrl.send_cmd("M666X0Y0Z0H242", self)
             self.main_ctrl.send_cmd("G28", self)
 
@@ -279,6 +281,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         handler.send_text("continue")
 
     def on_timer(self, watcher, revent):
+        self.meta.update_device_status(self.st_id, 0, "N/A", "")
         try:
             self.main_ctrl.patrol(self)
         except SystemError:
@@ -291,3 +294,5 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         if self.main_ctrl:
             self.main_ctrl.close(self)
             self.main_ctrl = None
+        self.meta.update_device_status(0, 0, "N/A", "")
+

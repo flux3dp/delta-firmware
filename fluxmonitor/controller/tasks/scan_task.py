@@ -8,7 +8,7 @@ import socket
 
 from fluxmonitor.err_codes import DEVICE_ERROR, NOT_SUPPORT, UNKNOWN_COMMAND
 from fluxmonitor.config import CAMERA_ENDPOINT
-from fluxmonitor.storage import Storage
+from fluxmonitor.storage import Storage, Metadata
 
 import pyev
 
@@ -79,6 +79,7 @@ class CameraInterface(object):
 
 
 class ScanTask(DeviceOperationMixIn, CommandMixIn):
+    st_id = -2
     _device_busy = False
     step_length = 0.45
 
@@ -86,11 +87,21 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
         self.camera = CameraInterface()
         super(ScanTask, self).__init__(stack, handler, enable_watcher=False)
 
+        self.meta = Metadata()
+        self.timer_watcher = stack.loop.timer(1, 1, self.on_timer)
+        self.timer_watcher.start()
+
         self.step_length = 0.45
         self.init_device()
 
     def on_exit(self):
-        self.camera.close()
+        if self.timer_watcher:
+            self.timer_watcher.stop()
+            self.timer_watcher = None
+        if self.camera:
+            self.camera.close()
+            self.camera = None
+        self.meta.update_device_status(0, 0, "N/A", "")
         super(ScanTask, self).on_exit()
 
     def init_device(self):
@@ -254,3 +265,6 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
 
         handler.async_send_binary(mimetype, length, stream, cb_shot2)
         self.change_laser(left=False, right=True)
+
+    def on_timer(self, watcher, revent):
+        self.meta.update_device_status(self.st_id, 0, "N/A", "")

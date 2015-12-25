@@ -119,7 +119,11 @@ class LocalConnectionHandler(object):
     @property
     def address(self):
         try:
-            return self.sock.getsockname()[0]
+            ipaddr = self.sock.getpeername()[0]
+            try:
+                return socket.gethostbyaddr(ipaddr)[0]
+            except Exception:
+                return ipaddr
         except (OSError, socket.error):
             return "ZOMBIE"
 

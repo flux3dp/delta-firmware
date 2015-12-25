@@ -254,8 +254,9 @@ class PlayManagerMixIn(object):
         if isinstance(component, PlayerManager):
             handler.send_text(component.report())
         elif component:
-            handler.send_text('{"st_id": -1, "st_label": "OCCUPIED", '
-                              '"info": "%s"}' % component.label)
+            handler.send_text('{"st_id": %i, "st_label": "OCCUPIED", '
+                              '"info": "%s"}' % (component.st_id,
+                                                 component.label))
         else:
             handler.send_text('{"st_id": 0, "st_label": "IDLE"}')
 
