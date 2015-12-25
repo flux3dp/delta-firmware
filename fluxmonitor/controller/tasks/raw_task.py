@@ -17,9 +17,9 @@ class RawTask(DeviceOperationMixIn):
             if buf:
                 self.handler.send(buf)
             else:
-                self.on_dead(self, "DISCONNECTED")
+                self.on_dead("DISCONNECTED")
         except Exception as e:
-            self.on_dead(self, repr(e))
+            self.on_dead(repr(e))
 
     def on_headboard_message(self, watcher, revent):
         try:
@@ -27,9 +27,9 @@ class RawTask(DeviceOperationMixIn):
             if buf:
                 self.handler.send(buf)
             else:
-                self.on_dead(self, "DISCONNECTED")
+                self.on_dead("DISCONNECTED")
         except Exception as e:
-            self.on_dead(self, repr(e))
+            self.on_dead(repr(e))
 
     def on_text(self, buf, handler):
         raise SystemError(PROTOCOL_ERROR, "RAW_MODE")
