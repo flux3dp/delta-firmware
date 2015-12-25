@@ -34,8 +34,8 @@ GPIO_NOT_DEFINED = (22, 24, )
 
 HEAD_POWER_ON = GPIO.HIGH
 HEAD_POWER_OFF = GPIO.LOW
-USB_SERIAL_ON = GPIO.HIGH
-USB_SERIAL_OFF = GPIO.LOW
+USB_SERIAL_ON = GPIO.LOW
+USB_SERIAL_OFF = GPIO.HIGH
 MAINBOARD_ON = GPIO.HIGH
 MAINBOARD_OFF = GPIO.LOW
 MAIN_BUTTON_DOWN = 0
@@ -109,10 +109,10 @@ class FrontButtonMonitor(object):
 
     def send_click(self, callback):
         logging.debug("Btn event: CLICK")
-        callback('PLAYTOGL')
 
     def send_db_click(self, callback):
         logging.debug("Btn event: DBCLICK")
+        callback('PLAYTOGL')
         callback('RUNTOGL ')
 
     def send_long_press(self, callback):
@@ -131,7 +131,7 @@ class FrontButtonMonitor(object):
 class GPIOControl(object):
     _last_mainboard_sig = GPIO_TOGGLE[0]
     _usb_serial_stat = USB_SERIAL_OFF
-    _head_power_stat = HEAD_POWER_ON
+    _head_power_stat = HEAD_POWER_OFF
     _head_power_timer = 0
     head_enabled = True
 
@@ -140,12 +140,12 @@ class GPIOControl(object):
         GPIO.setwarnings(False)
         GPIO.setup(GPIO_HEAD_BOOT_MODE_PIN, GPIO.OUT, initial=GPIO.LOW)
         GPIO.setup(GPIO_ALIVE_SIG_PIN, GPIO.OUT, initial=GPIO_TOGGLE[0])
-        GPIO.setup(GPIO_WIFI_ST_PIN, GPIO.OUT, initial=GPIO.HIGH)
+        GPIO.setup(GPIO_WIFI_ST_PIN, GPIO.OUT, initial=GPIO_TOGGLE[0])
 
         for pin in GPIO_NOT_DEFINED:
             GPIO.setup(pin, GPIO.IN)
 
-        GPIO.setup(GPIO_HEAD_POW_PIN, GPIO.OUT, initial=HEAD_POWER_ON)
+        GPIO.setup(GPIO_HEAD_POW_PIN, GPIO.OUT, initial=self._head_power_stat)
         GPIO.setup(GPIO_MAINBOARD_POW_PIN, GPIO.OUT, initial=MAINBOARD_ON)
         GPIO.setup(GPIO_USB_SERIAL_PIN, GPIO.OUT)
         L.debug("GPIO configured")
@@ -155,7 +155,6 @@ class GPIOControl(object):
     def proc_sig(self):
         _1 = self._last_mainboard_sig = (self._last_mainboard_sig + 1) % 2
         GPIO.output(GPIO_ALIVE_SIG_PIN, GPIO_TOGGLE[_1])
-        L.error("GPIO_ALIVE_SIG_PIN: %s", GPIO_TOGGLE[_1])
 
         wifi_flag = self.sm.wifi_status
 
@@ -208,7 +207,7 @@ class GPIOControl(object):
                 self._head_power_timer = time()
 
     def update_fw(self, watcher):
-        L.debug("Update mainboard fireware")
+        L.debug("Update mainboard firemare")
         self.mainboard_disconnect()
 
         GPIO.output(GPIO_MAINBOARD_POW_PIN, MAINBOARD_OFF)
@@ -248,7 +247,7 @@ class GPIOControl(object):
             self._init_mainboard_status()
 
         except Exception:
-            L.exception("Error while update fireware")
+            L.exception("Error while update firmware")
 
 
 class UartHal(UartHalBase, BaseOnSerial, GPIOControl):
@@ -273,8 +272,6 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOControl):
 
         self.loop_watcher = kernel.loop.timer(5, 5, self.on_loop)
         self.loop_watcher.start()
-        self.sigusr2_watcher = kernel.loop.signal(signal.SIGUSR2, self.on_loop)
-        self.sigusr2_watcher.start()
 
     def _init_mainboard_status(self):
         corr_str = "M666 X%(X).4f Y%(Y).4f Z%(Z).4f H%(H).4f\n" % \

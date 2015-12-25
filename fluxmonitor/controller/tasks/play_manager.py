@@ -1,6 +1,7 @@
 
 from subprocess import Popen, PIPE
 from tempfile import mktemp
+from time import time
 import logging
 import socket
 import fcntl
@@ -8,26 +9,38 @@ import os
 
 import pyev
 
+from fluxmonitor.player.connection import create_mainboard_socket
 from fluxmonitor.player.base import (ST_COMPLETED, ST_ABORTED,
                                      ST_PAUSED, ST_RUNNING)
 from fluxmonitor.misc.fcode_file import FCodeFile, FCodeError
-from fluxmonitor.err_codes import FILE_BROKEN, NOT_SUPPORT
-
-from fluxmonitor.config import PLAY_ENDPOINT
+from fluxmonitor.err_codes import FILE_BROKEN, NOT_SUPPORT, UNKNOWN_ERROR, \
+    RESOURCE_BUSY
+from fluxmonitor.config import PLAY_ENDPOINT, PLAY_SWAP
 from fluxmonitor.storage import Metadata
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("Player")
 
 
 class PlayerManager(object):
     _sock = None
 
-    def __init__(self, loop, taskfile, terminated_callback=None):
+    def __init__(self, loop, taskfile, terminated_callback=None,
+                 copyfile=False):
+        self.meta = Metadata()
+        s = create_mainboard_socket()
+
         try:
+            s.send("\n@DISABLE_LINECHECK\nX5S115\n")
+            if copyfile:
+                ret = os.system("cp " + taskfile + " " + PLAY_SWAP)
+                if ret:
+                    logger.error("Copy file failed (return %i)", )
+                    raise RuntimeError(UNKNOWN_ERROR, "IO_ERROR")
+
             if os.path.exists(PLAY_ENDPOINT):
                 os.unlink(PLAY_ENDPOINT)
-
             ff = FCodeFile(taskfile)
+
             self.playinfo = ff.metadata, ff.image_buf
 
             proc = Popen(["fluxplayer", "-c", PLAY_ENDPOINT, "--task",
@@ -36,8 +49,7 @@ class PlayerManager(object):
             child_watcher = loop.child(proc.pid, False, self.on_process_dead,
                                        terminated_callback)
             child_watcher.start()
-
-            self.meta = Metadata()
+            self.meta.update_device_status(1, 0, "N/A", err_label="")
 
             for io in (proc.stdout, proc.stderr):
                 fd = io.fileno()
@@ -54,12 +66,11 @@ class PlayerManager(object):
             self.watchers = (std_watcher, err_watcher, child_watcher)
             self.proc = proc
             self._terminated_callback = terminated_callback
-            self.logger = logging.getLogger("Player")
 
         except FCodeError as e:
             raise RuntimeError(FILE_BROKEN, *e.args)
-        except Exception:
-            raise
+        finally:
+            s.close()
 
     def __del__(self):
         for w in self.watchers:
@@ -75,17 +86,27 @@ class PlayerManager(object):
 
     @property
     def sock(self):
-        try:
-            if not self._sock:
-                if not os.path.exists(PLAY_ENDPOINT):
-                    raise RuntimeError("RESOURCE_BUSY")
+        if not self._sock:
+            if not os.path.exists(PLAY_ENDPOINT):
+                st = self.meta.format_device_status
+                if st["st_id"] == 1 and time() - st["timestemp"] < 30:
+                    raise RuntimeError(RESOURCE_BUSY)
+                else:
+                    self.on_fatal_error(log="Player control socket missing")
+                    raise SystemError()
+            try:
                 self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
                 self._sock.bind(mktemp())
                 self._sock.connect(PLAY_ENDPOINT)
                 self._sock.settimeout(1.5)
-            return self._sock
-        except socket.error:
-            raise RuntimeError("RESOURCE_BUSY")
+            except socket.error:
+                st = self.meta.format_device_status
+                if st["st_id"] == 1 and time() - st["timestemp"] < 30:
+                    raise RuntimeError("RESOURCE_BUSY")
+                else:
+                    self.on_fatal_error(log="Can not connect to Player socket")
+                    raise SystemError("")
+        return self._sock
 
     def on_process_dead(self, watcher, revent):
         watcher.stop()
@@ -99,7 +120,7 @@ class PlayerManager(object):
     def on_console(self, watcher, revent):
         buf = watcher.data.read(4096).strip()
         if buf:
-            self.logger.info(buf)
+            logger.info(buf)
         else:
             watcher.data.close()
             watcher.data = None
@@ -142,8 +163,11 @@ class PlayerManager(object):
         return self.sock.recv(4096)
 
     def report(self):
-        self.sock.send("REPORT")
-        return self.sock.recv(4096)
+        try:
+            self.sock.send("REPORT")
+            return self.sock.recv(4096)
+        except RuntimeError:
+            return '{"st_label": "INIT", "st_id": 1}'
 
     def quit(self):
         self.sock.send("QUIT")
@@ -151,6 +175,13 @@ class PlayerManager(object):
 
     def is_alive(self):
         return self.proc.poll() is None
+
+    def on_fatal_error(self, log=""):
+        if self.is_alive:
+            logger.error("%s (Proc still alive)", log)
+            self.terminate()
+        else:
+            logger.error("%s (Proc still alive)", log)
 
     def terminate(self):
         self.proc.kill()

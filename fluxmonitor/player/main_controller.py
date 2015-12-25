@@ -5,7 +5,8 @@ import logging
 import socket
 
 from fluxmonitor.err_codes import EXEC_OPERATION_ERROR, EXEC_INTERNAL_ERROR,\
-    EXEC_MAINBOARD_OFFLINE, EXEC_FILAMENT_RUNOUT
+    EXEC_MAINBOARD_OFFLINE, EXEC_FILAMENT_RUNOUT, HARDWARE_ERROR, \
+    EXEC_HOME_FAILED
 
 
 L = logging.getLogger(__name__)
@@ -99,7 +100,7 @@ class MainController(object):
             L.debug("Recv unknow msg: '%s'", msg)
 
     def bootstrap(self, executor):
-        L.error("MAIN BOOTSTRAP")
+        L.info("MAIN BOOTSTRAP")
         if self._flags == FLAG_READY:
             self.callback_flags(self)
         elif self._flags == (FLAG_READY + FLAG_ERROR):
@@ -168,9 +169,12 @@ class MainController(object):
             elif msg == "ok":
                 pass
 
+            elif msg == "ER G28_FAILED":
+                raise SystemError(HARDWARE_ERROR, EXEC_HOME_FAILED)
+
             else:
                 if msg.startswith("ER "):
-                    raise SystemError(*(msg.split(" ")[1:]))
+                    raise SystemError(HARDWARE_ERROR, *(msg.split(" ")[1:]))
 
                 L.debug("Unhandle MB MSG: %s" % msg)
         elif not self.closed:
@@ -242,6 +246,7 @@ class MainController(object):
         if self._flags & FLAG_READY:
             executor.send_mainboard("@DISABLE_LINECHECK\n")
             executor.send_mainboard("G28\n")
+            executor.send_mainboard("X5S0\n")
             self._flags &= ~FLAG_READY
             self._flags |= FLAG_CLOSED
 

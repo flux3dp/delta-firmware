@@ -15,5 +15,6 @@ struct CorrectionResult {
 
 int calculator(float init_endstop_x, float init_endstop_y, float init_endstop_z,
                float init_endstop_h, float input_x, float input_y,
-               float input_z, float input_h, float delta_radious,
+               float input_z, float input_h, float delta_radious, float t1x,
+               float t1y, float t2x, float t2y, float t3x, float t3y, 
                struct CorrectionResult *result);

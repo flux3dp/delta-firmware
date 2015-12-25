@@ -33,8 +33,10 @@ class CorrectionMacroTest(ControlTestBase):
     def test_simple_run(self):
         ## ROUND 0
         # Move to point 1
-        with self.assertSendMainboard("G30X-73.6122Y-42.5") as executor:
+        with self.assertSendMainboard("M666H242",
+                                      "G30X-73.6122Y-42.5") as executor:
             self.cm.start(executor)
+            self.cm.on_command_empty(executor)
         # Get point 1 z
         with self.assertSendMainboard() as executor:
             self.cm.on_mainboard_message(
@@ -83,17 +85,19 @@ class CorrectionMacroTest(ControlTestBase):
 
         ## Calculate
         self.assertIsNone(self.callback_status)
-        with self.assertSendMainboard("G28") as executor:
+        with self.assertSendMainboard("G1F9000X0Y0Z30") as executor:
             self.cm.on_command_empty(executor)  # Send G28
             self.cm.on_command_empty(executor)
             self.assertEqual(self.callback_status, "OK")
 
     def test_failed_run(self):
         self.cm.ttl = 1
-        with self.assertSendMainboard("G30X-73.6122Y-42.5",
+        with self.assertSendMainboard("M666H242",
+                                      "G30X-73.6122Y-42.5",
                                       "G30X73.6122Y-42.5",
                                       "G30X0Y85") as executor:
             self.cm.start(executor)
+            self.cm.on_command_empty(executor)
             self.cm.on_mainboard_message(
                 "Bed Z-Height at X:-73.6122 Y:-42.5 = 5", executor)
             self.cm.on_command_empty(executor)
@@ -105,6 +109,5 @@ class CorrectionMacroTest(ControlTestBase):
 
         ## Calculate
         self.assertIsNone(self.callback_status)
-        with self.assertSendMainboard("G28") as executor:
-            self.cm.on_command_empty(executor)
-            self.assertEqual(self.callback_status, "CONVERGENCE_FAILED")
+        with self.assertSendMainboard("G1F9000X0Y0Z230") as executor:
+            self.assertRaises(RuntimeError, self.cm.on_command_empty, executor)

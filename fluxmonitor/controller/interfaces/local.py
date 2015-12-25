@@ -119,7 +119,11 @@ class LocalConnectionHandler(object):
     @property
     def address(self):
         try:
-            return self.sock.getsockname()[0]
+            ipaddr = self.sock.getpeername()[0]
+            try:
+                return socket.gethostbyaddr(ipaddr)[0]
+            except Exception:
+                return ipaddr
         except (OSError, socket.error):
             return "ZOMBIE"
 
@@ -351,7 +355,7 @@ class ServiceStack(object):
             raise Exception("Task not match")
 
         try:
-            task.on_exit(self)
+            task.on_exit()
         except Exception:
             logger.exception("Exit %s" % self.this_task.__class__.__name__)
 
@@ -365,4 +369,9 @@ class ServiceStack(object):
             self.this_task = current_task
 
     def terminate(self):
-        pass
+        while len(self.task_callstack) > 2:
+            task, cb = self.task_callstack.pop()
+            try:
+                task.on_exit()
+            except Exception:
+                logger.exception("Unhandle error")

@@ -46,7 +46,7 @@ class Options(object):
         self.max_z = __parse_int__(metadata.get("MAX_Z"), inf)
 
     def __load_form_local__(self):
-        self.play_bufsize = 15
+        self.play_bufsize = 10
 
         storage = Storage("general", "meta")
         if not self.correction:
@@ -59,7 +59,7 @@ class Options(object):
 
         if not self.head_error_level:
             self.head_error_level = __parse_int__(
-                storage.readall("head_error_level"), 256)
+                storage.readall("head_error_level"), 4095)
 
         self.max_x = min(self.max_x, DEVICE_POSITION_LIMIT[0])
         self.max_y = min(self.max_y, DEVICE_POSITION_LIMIT[1])

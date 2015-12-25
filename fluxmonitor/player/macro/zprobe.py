@@ -1,7 +1,8 @@
 
 import logging
 
-from fluxmonitor.err_codes import EXEC_CONVERGENCE_FAILED
+from fluxmonitor.err_codes import HARDWARE_ERROR, EXEC_CONVERGENCE_FAILED, \
+    EXEC_ZPROBE_ERROR
 from fluxmonitor.storage import Metadata
 from fluxmonitor.misc import correction
 
@@ -22,9 +23,8 @@ def do_correction(meta, x, y, z):
 class ZprobeMacro(object):
     name = "CORRECTING"
 
-    def __init__(self, on_success_cb, clean=False, ttl=20):
+    def __init__(self, on_success_cb, ttl=5):
         self._on_success_cb = on_success_cb
-        self._clean = clean
         self.meta = Metadata()
         self.history = []
         self.ttl = ttl
@@ -46,15 +46,15 @@ class ZprobeMacro(object):
 
             if abs(data) < 0.05:
                 self.convergence = True
-                executor.main_ctrl.send_cmd("G28", executor)
+                executor.main_ctrl.send_cmd("G1F9000Z50", executor)
                 return
 
             else:
                 if self.round >= self.ttl:
-                    executor.main_ctrl.send_cmd("G28", executor)
-                    raise RuntimeError(EXEC_CONVERGENCE_FAILED)
+                    executor.main_ctrl.send_cmd("G1F9000X0Y0Z230", executor)
+                    raise RuntimeError(HARDWARE_ERROR, EXEC_CONVERGENCE_FAILED)
 
-                elif new_h > 245 or new_h < 239:
+                elif new_h > 244:
                     logger.error("Correction input failed: %s", data)
 
                 else:
@@ -68,12 +68,8 @@ class ZprobeMacro(object):
         pass
 
     def start(self, executor):
-        if self._clean:
-            self.meta.plate_correction = {"H": 242}
-            executor.main_ctrl.send_cmd("M666H242", executor)
-            executor.main_ctrl.send_cmd("G28", executor)
-        else:
-            self.on_command_empty(executor)
+        self.meta.plate_correction = {"H": 242}
+        executor.main_ctrl.send_cmd("M666H242", executor)
 
     def giveup(self):
         pass
@@ -82,8 +78,9 @@ class ZprobeMacro(object):
         if msg.startswith("Bed Z-Height at"):
             str_probe = msg.rsplit(" ", 1)[-1]
             val = float(str_probe)
-            if val <= -100:
-                raise RuntimeError(EXEC_CONVERGENCE_FAILED)
+            if val <= -50:
+                executor.main_ctrl.send_cmd("G1F9000X0Y0Z230", executor)
+                raise RuntimeError(HARDWARE_ERROR, EXEC_ZPROBE_ERROR)
             self.data = val
 
     def on_headboard_message(self, msg, executor):

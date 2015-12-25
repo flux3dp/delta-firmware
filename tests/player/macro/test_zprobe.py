@@ -32,15 +32,16 @@ class CorrectionMacroTest(ControlTestBase):
 
     def test_simple_run(self):
         ## ROUND 0
-        with self.assertSendMainboard("G30X0Y0") as executor:
+        with self.assertSendMainboard("M666H242", "G30X0Y0") as executor:
             self.cm.start(executor)
+            self.cm.on_command_empty(executor)
+
         with self.assertSendMainboard() as executor:
             self.cm.on_mainboard_message(
                 "Bed Z-Height at X:0 Y:0 = 0.3", executor)
         self.assertEqual(self.cm.data, 0.3)
 
-        with self.assertSendMainboard("M666H241.7000",
-                                      "G30X0Y0") as executor:
+        with self.assertSendMainboard("M666H241.7000", "G30X0Y0") as executor:
             self.cm.on_command_empty(executor)
             self.assertEqual(self.meta.plate_correction["H"], 241.7)
 
@@ -48,7 +49,7 @@ class CorrectionMacroTest(ControlTestBase):
             self.cm.on_mainboard_message(
                 "Bed Z-Height at X:0 Y:0 = 0.01", executor)
         self.assertEqual(self.cm.data, 0.01)
-        with self.assertSendMainboard("G28") as executor:
+        with self.assertSendMainboard("G1F9000Z50") as executor:
             self.assertIsNone(self.callback_status)
             self.cm.on_command_empty(executor)
             self.cm.on_command_empty(executor)
@@ -56,17 +57,31 @@ class CorrectionMacroTest(ControlTestBase):
 
 
     def test_failed_run(self):
-        self.cm.ttl = 1
-        with self.assertSendMainboard("G30X0Y0", "G30X0Y0") as executor:
+        self.cm.ttl = 2
+        with self.assertSendMainboard("M666H242", "G30X0Y0",
+                                      "M666H242.5000", "G30X0Y0",
+                                      "M666H242.0000", "G30X0Y0") as executor:
             self.cm.start(executor)
-            self.cm.on_mainboard_message(
-                "Bed Z-Height at X:-73.6122 Y:-42.5 = 100", executor)
             self.cm.on_command_empty(executor)
             self.cm.on_mainboard_message(
-                "Bed Z-Height at X:-73.6122 Y:-42.5 = 100", executor)
+                "Bed Z-Height at X:-73.6122 Y:-42.5 = -0.5", executor)
+            self.cm.on_command_empty(executor)
+            self.cm.on_mainboard_message(
+                "Bed Z-Height at X:-73.6122 Y:-42.5 = 0.5", executor)
+            self.cm.on_command_empty(executor)
 
         # Calculate
         self.assertIsNone(self.callback_status)
-        with self.assertSendMainboard("G28") as executor:
+        with self.assertSendMainboard("G1F9000X0Y0Z230") as executor:
+            self.cm.on_mainboard_message(
+                "Bed Z-Height at X:-73.6122 Y:-42.5 = 0.3", executor)
+            self.assertRaises(RuntimeError, self.cm.on_command_empty, executor)
+
+    def test_zprob_failed(self):
+        with self.assertSendMainboard("M666H242", "G30X0Y0",
+                                      "G1F9000X0Y0Z230") as executor:
+            self.cm.start(executor)
             self.cm.on_command_empty(executor)
-            self.assertEqual(self.callback_status, "CONVERGENCE_FAILED")
+            self.assertRaises(RuntimeError, self.cm.on_mainboard_message,
+                              "Bed Z-Height at X:-73.6122 Y:-42.5 = -100",
+                              executor)

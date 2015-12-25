@@ -49,6 +49,8 @@ def validate_options(orig):
             "route": _b2s(orig.get("route")),
             "ns": ns
         })
+    elif method == b"internal":
+        pass
     else:
         raise KeyError("method")
 
@@ -70,9 +72,14 @@ def validate_options(orig):
         options["security"] = security
 
         if security == "WEP":
+            if wifi_mode == "host":
+                raise KeyError("security")
             options["wepkey"] = _b2s(orig[b"wepkey"])
         elif security in ['WPA-PSK', 'WPA2-PSK']:
             options["psk"] = _b2s(orig[b"psk"])
+
+        if wifi_mode == "host":
+            options["method"] = "internal"
 
     return options
 

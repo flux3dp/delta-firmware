@@ -1,16 +1,20 @@
 
 
-from cpython cimport bool
 from libc.stdio cimport sscanf
+from cpython cimport bool
+
+cdef extern from "systime.c":
+    float monotonic_time()
 
 
 from shlex import split as shlex_split
-from time import time
 import logging
 
 from fluxmonitor.err_codes import EXEC_HEAD_OFFLINE, EXEC_OPERATION_ERROR, \
     EXEC_WRONG_HEAD, EXEC_HEAD_ERROR, EXEC_NEED_REMOVE_HEAD, \
-    EXEC_UNKNOWN_REQUIRED_HEAD_TYPE, UNKNOWN_COMMAND
+    EXEC_UNKNOWN_REQUIRED_HEAD_TYPE, EXEC_HEAD_RESET, EXEC_HEAD_CALIBRATING, \
+    EXEC_HEAD_SHAKE, EXEC_HEAD_TILT, HARDWARE_FAILURE, EXEC_HEAD_FAN_FAILURE, \
+    UNKNOWN_COMMAND
 
 
 cdef L = logging.getLogger(__name__)
@@ -62,6 +66,7 @@ cdef class HeadController:
         else:
             raise SystemError(EXEC_UNKNOWN_REQUIRED_HEAD_TYPE, required_module)
 
+        self._module = "N/A"
         self.bootstrap(executor)
 
     def bootstrap(self, executor):
@@ -107,7 +112,7 @@ cdef class HeadController:
                 if len(sparam) == 2:
                     module_info[sparam[0]] = sparam[1]
             self._ext.hello(**module_info)
-            self._module = module_info.get("TYPE")
+            self._module = module_info.get("TYPE", "UNKNOWN")
         except Exception:
             self._ready = 0
             raise
@@ -197,7 +202,7 @@ cdef class HeadController:
     def _send_cmd(self, executor):
         if not self._wait_update:
             executor.send_headboard(self._padding_cmd)
-            self._cmd_sent_at = time()
+            self._cmd_sent_at = monotonic_time()
 
     def _parse_cmd_response(self, msg, executor):
         if msg.startswith("OK "):
@@ -221,12 +226,12 @@ cdef class HeadController:
     def _handle_ping(self, executor):
         executor.send_headboard("1 PING *33\n")
         self._wait_update = True
-        self._lastupdate = time()
+        self._lastupdate = monotonic_time()
 
     def _handle_pong(self, msg, executor):
         self._update_retry = 0
         self._wait_update = False
-        self._lastupdate = time()
+        self._lastupdate = monotonic_time()
 
         for param in shlex_split(msg[8:]):
             status = param.split(":", 1)
@@ -248,16 +253,18 @@ cdef class HeadController:
                     self._on_head_offline("HEAD_RESET")
                 elif er & self._error_level:
                     if er & 8:
-                        self._raise_error("HEAD_ERROR", "CALIBRATING")
+                        self._raise_error(EXEC_HEAD_ERROR,
+                                          EXEC_HEAD_CALIBRATING)
                     if er & 16:
-                        self._raise_error(EXEC_HEAD_ERROR, "SHAKE")
+                        self._raise_error(EXEC_HEAD_ERROR, EXEC_HEAD_SHAKE)
                     if er & 32:
-                        self._raise_error(EXEC_HEAD_ERROR, "TILT")
+                        self._raise_error(EXEC_HEAD_ERROR, EXEC_HEAD_TILT)
                     if er & 64:
                         self._raise_error(EXEC_HEAD_ERROR,
-                                          "PID_OUT_OF_CONTROL")
+                                          HARDWARE_FAILURE)
                     if er & 128:
-                        self._raise_error(EXEC_HEAD_ERROR, "FAN_FAILURE")
+                        self._raise_error(EXEC_HEAD_ERROR,
+                                          EXEC_HEAD_FAN_FAILURE)
 
             else:
                 self._ext.update_status(*status)
@@ -272,14 +279,15 @@ cdef class HeadController:
         #     if self._ready:
         #         if self._wait_update and
         #     else:
-        #         if self._padding_cmd and time() - self._lastupdate > 1.0:
+        #         if self._padding_cmd and monotonic_time() - self._lastupdate > 1.0:
         #             self.on_message("OK HELLO TYPE=N/A")
         #     return
+        cdef float t = monotonic_time()
 
         if self._wait_update:
             if self._update_retry > 2 and self._ready:
                 self._on_head_offline()
-            if time() - self._lastupdate > 1.5:
+            if t - self._lastupdate > 1.5:
                 self._handle_ping(executor)
                 self._update_retry += 1 if self._ready else 0
                 L.debug("Header ping timeout, retry (%i)", self._update_retry)
@@ -287,12 +295,12 @@ cdef class HeadController:
         if self._ready and self._padding_cmd:
             if self._cmd_retry > 2 and self._ready:
                 self._on_head_offline()
-            elif time() - self._cmd_sent_at > 1.0:
+            elif t - self._cmd_sent_at > 1.0:
                 self._send_cmd(executor)
                 self._cmd_retry += 1 if self._ready else 0
                 L.debug("Header cmd timeout, retry (%i)", self._cmd_retry)
 
-        elif time() - self._lastupdate > 1.0:
+        elif monotonic_time() - self._lastupdate > 0.4:
             if not self._padding_cmd:
                 self._handle_ping(executor)
 

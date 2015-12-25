@@ -9,8 +9,8 @@
 # write by Cerberus
 #
 # REQUIRE FILES:
-#  "bossac" - Atmel fireware tool, ask somebody to get it
-#  "factory.fxfw" - fluxmonitor fireware package, ask someone to get it
+#  "bossac" - Atmel firmware tool, ask somebody to get it
+#  "factory.fxfw" - fluxmonitor firmware package, ask someone to get it
 #  "hostapd-rtl8188cus" - Wifi driver, find it in NAS
 #  "wpa_supplicant-rtl8188cus" - Wifi driver, find it in NAS
 #  "fxupdate.py" - Can be found at up directory
@@ -100,7 +100,7 @@ def copy_wifi_userlevel_driver():
 
 
 @action_wrapper
-def copy_mainboard_fireware_tool():
+def copy_mainboard_firmware_tool():
     logger.info("Copy bossac to system")
     shutil.copyfile("bossac", "/usr/bin/bossac")
     system("chmod 555 /usr/bin/bossac")
@@ -165,7 +165,7 @@ if __name__ == "__main__":
     update_and_install_system_package()
     turn_off_useless_services()
     copy_wifi_userlevel_driver()
-    copy_mainboard_fireware_tool()
+    copy_mainboard_firmware_tool()
     install_pip()
     copy_standlone_py_script()
     install_python_package()

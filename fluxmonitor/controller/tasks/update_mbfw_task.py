@@ -1,26 +1,23 @@
-
-from tempfile import NamedTemporaryFile
+from tempfile import TemporaryFile
 import logging
 import socket
-import shutil
-import os
 
 from fluxmonitor.err_codes import PROTOCOL_ERROR, SUBSYSTEM_ERROR, \
-    FILE_BROKEN, UNKNOWN_ERROR
-from fluxmonitor.config import FIRMWARE_UPDATE_PATH, uart_config
+    UNKNOWN_ERROR
+from fluxmonitor.config import uart_config
 from fluxmonitor.storage import Storage
 
 logger = logging.getLogger(__name__)
 
 
-class UpdateFwTask(object):
+class UpdateMbFwTask(object):
     def __init__(self, stack, handler, length):
         self.stack = stack
-        self.tmpfile = NamedTemporaryFile()
+        self.tmpfile = TemporaryFile()
         self.padding_length = length
         handler.binary_mode = True
 
-    def on_exit(self):
+    def on_exit(self, handler):
         pass
 
     def on_text(self, message, handler):
@@ -41,21 +38,15 @@ class UpdateFwTask(object):
                     self.tmpfile.write(buf[:self.padding_length])
                 handler.binary_mode = False
 
-                self.tmpfile.file.flush()
-                
                 self.tmpfile.seek(0)
                 s = Storage("update_fw")
-                with s.open("upload.fxfw", "wb") as f:
-                    f.write(self.tmpfile.read())
-                ret = os.system("fxupdate.py --dryrun %s" % self.tmpfile.name)
 
-                if ret:
-                    handler.send_text("error %s" % FILE_BROKEN)
-                else:
-                    shutil.copyfile(self.tmpfile.name, FIRMWARE_UPDATE_PATH)
-                    handler.send_text("ok")
-                    handler.close()
-                    os.system("reboot")
+                with s.open("mainboard.bin", "wb") as f:
+                    f.write(self.tmpfile.read())
+
+                logging.warn("Fireware uploaded, start processing")
+                self.send_upload_request()
+                handler.send_text("ok")
 
                 self.stack.exit_task(self, True)
         except RuntimeError as e:
