@@ -269,7 +269,7 @@ class UsbIO(object):
         raw_opts = dict([i.split(b"=", 1) for i in buf.split(b"\x00")])
         name = raw_opts.get(b"name", "").decode("utf8", "ignore")
         if name:
-            self.meta.nickname = name
+            self.meta.nickname = name.encode("utf8", "ignore")
         self.send_response(REQ_CONFIG_GENERAL, True, MSG_OK)
 
     def on_config_network(self, buf):
