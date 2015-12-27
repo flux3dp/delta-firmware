@@ -349,8 +349,32 @@ class ConfigMixIn(object):
             raise RuntimeError(BAD_PARAMS)
 
 
+class TasksMixIn(object):
+    def dispatch_task_cmd(self, handler, cmd, *args):
+        if cmd == "maintain":
+            self.__maintain(handler)
+        elif cmd == "scan":
+            self.__scan(handler)
+        elif cmd == "raw" and allow_god_mode():
+            self.__raw_access(handler)
+
+    def __raw_access(self, handler):
+        task = RawTask(self.stack, handler)
+        self.stack.enter_task(task, empty_callback)
+        handler.send_text("continue")
+
+    def __scan(self, handler):
+        task = ScanTask(self.stack, handler)
+        self.stack.enter_task(task, empty_callback)
+        return "ok"
+
+    def __maintain(self, handler):
+        task = MaintainTask(self.stack, handler)
+        self.stack.enter_task(task, empty_callback)
+
+
 class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
-                  ConfigMixIn):
+                  ConfigMixIn, TasksMixIn):
     _task_file = None
     _task_mimetype = None
 
@@ -377,6 +401,8 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
             self.update_fw(handler, int(filesize, 10))
         elif cmd == "config":
             self.dispatch_config_cmd(handler, *args)
+        elif cmd == "task":
+            self.dispatch_task_cmd(handler, *args)
         elif cmd == "kick":
             self.stack.kernel.destory_exclusive()
             # TODO: more message?
@@ -426,4 +452,3 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
     def maintain(self, handler):
         task = MaintainTask(self.stack, handler)
         self.stack.enter_task(task, empty_callback)
-        handler.send_text("ok")

@@ -23,12 +23,14 @@ def do_correction(meta, x, y, z):
 class ZprobeMacro(object):
     name = "CORRECTING"
 
-    def __init__(self, on_success_cb, ttl=5):
+    def __init__(self, on_success_cb, ttl=5, threshold=0.05, clean=True):
         self._on_success_cb = on_success_cb
         self.meta = Metadata()
+        self.threshold = threshold
         self.history = []
         self.ttl = ttl
         self.data = None
+        self.clean = clean
 
         self.convergence = False
         self.round = 0
@@ -44,32 +46,36 @@ class ZprobeMacro(object):
 
             new_h = self.meta.plate_correction["H"] - data
 
-            if abs(data) < 0.05:
+            if new_h > 244:
+                logger.error("Correction input failed: %s", data)
+            else:
+                logger.warn(">>>> %s", "M666H%.4f, data=%.4f orig=%.4f" % (new_h, data, self.meta.plate_correction["H"]))
+                self.meta.plate_correction = {"H": new_h}
+                executor.main_ctrl.send_cmd("M666H%.4f" % new_h, executor)
+                logger.warn("<<<< %s", "orig=%.4f" % (self.meta.plate_correction["H"]))
+
+            if abs(data) < self.threshold:
                 self.convergence = True
                 executor.main_ctrl.send_cmd("G1F9000Z50", executor)
                 return
 
-            else:
-                if self.round >= self.ttl:
-                    executor.main_ctrl.send_cmd("G1F9000X0Y0Z230", executor)
-                    raise RuntimeError(HARDWARE_ERROR, EXEC_CONVERGENCE_FAILED)
+            elif self.round >= self.ttl:
+                executor.main_ctrl.send_cmd("G1F9000X0Y0Z230", executor)
+                raise RuntimeError(HARDWARE_ERROR, EXEC_CONVERGENCE_FAILED)
 
-                elif new_h > 244:
-                    logger.error("Correction input failed: %s", data)
-
-                else:
-                    self.meta.plate_correction = {"H": new_h}
-                    executor.main_ctrl.send_cmd("M666H%.4f" % new_h, executor)
-                self.round += 1
-
+        self.round += 1
         executor.main_ctrl.send_cmd("G30X0Y0", executor)
+        self.data = None
 
     def on_command_sendable(self, executor):
         pass
 
     def start(self, executor):
-        self.meta.plate_correction = {"H": 242}
-        executor.main_ctrl.send_cmd("M666H242", executor)
+        if self.clean:
+            self.meta.plate_correction = {"H": 242}
+            executor.main_ctrl.send_cmd("M666H242", executor)
+        else:
+            executor.main_ctrl.send_cmd("G30X0Y0", executor)
 
     def giveup(self):
         pass
