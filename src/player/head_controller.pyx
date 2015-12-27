@@ -81,7 +81,9 @@ cdef class HeadController:
         self._update_retry = 0
         self._wait_update = False
 
-        queue = ["1 HELLO *115\n"] + self._ext.bootstrap_commands()
+        if self._ext:
+            queue = ["1 HELLO *115\n"] + self._ext.bootstrap_commands()
+
         self._recover_queue = queue
         self._padding_cmd = queue.pop(0)
         self._send_cmd(executor)
@@ -253,18 +255,15 @@ cdef class HeadController:
                     self._on_head_offline("HEAD_RESET")
                 elif er & self._error_level:
                     if er & 8:
-                        self._raise_error(EXEC_HEAD_ERROR,
-                                          EXEC_HEAD_CALIBRATING)
+                        raise HeadCalibratingError()
                     if er & 16:
-                        self._raise_error(EXEC_HEAD_ERROR, EXEC_HEAD_SHAKE)
+                        raise HeadShakeError()
                     if er & 32:
-                        self._raise_error(EXEC_HEAD_ERROR, EXEC_HEAD_TILT)
+                        raise HeadTiltError()
                     if er & 64:
-                        self._raise_error(EXEC_HEAD_ERROR,
-                                          HARDWARE_FAILURE)
+                        raise HeadHardwareError()
                     if er & 128:
-                        self._raise_error(EXEC_HEAD_ERROR,
-                                          EXEC_HEAD_FAN_FAILURE)
+                        raise HeadFanError()
 
             else:
                 self._ext.update_status(*status)
@@ -424,3 +423,29 @@ class NAExt(BaseExt):
 
     def status(self):
         return {"module": "N/A",}
+
+
+class HeadCalibratingError(RuntimeError):
+    def __init__(self):
+        RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_CALIBRATING)
+
+
+class HeadShakeError(RuntimeError):
+    def __init__(self):
+        RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_SHAKE)
+
+
+class HeadTiltError(RuntimeError):
+    def __init__(self):
+        RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_TILT)
+
+
+class HeadHardwareError(RuntimeError):
+    def __init__(self):
+        RuntimeError.__init__(self, EXEC_HEAD_ERROR, HARDWARE_FAILURE)
+
+
+class HeadFanError(RuntimeError):
+    def __init__(self):
+        RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_FAN_FAILURE)
+
