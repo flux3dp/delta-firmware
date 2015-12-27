@@ -135,16 +135,12 @@ cdef class HeadController:
             self._ready = 0
             raise
 
-    def _on_head_offline(self, minor=None):
+    def _on_head_offline(self, error_klass):
         self._module = "N/A"
         self._ready = 0
         if self._required_module is None:
             self._ext = None
-
-        if minor:
-            self._raise_error(EXEC_HEAD_OFFLINE, minor)
-        else:
-            self._raise_error(EXEC_HEAD_OFFLINE)
+        raise error_klass()
 
     def _on_ready(self):
         self._ready = 2
@@ -272,7 +268,7 @@ cdef class HeadController:
                 if er == 0:
                     pass
                 elif er & 4:
-                    self._on_head_offline(EXEC_HEAD_RESET)
+                    self._on_head_offline(HeadResetError)
                 elif er & self._error_level:
                     if er & 8:
                         raise HeadCalibratingError()
@@ -299,15 +295,19 @@ cdef class HeadController:
 
         if self._wait_update:
             if self._update_retry > 2 and self._ready:
-                self._on_head_offline()
-            if t - self._lastupdate > 1.5:
-                self._handle_ping(executor)
+                self._on_head_offline(HeadOfflineError)
+            if t - self._lastupdate > 0.4:
                 self._update_retry += 1 if self._ready else 0
+                self._handle_ping(executor)
                 L.debug("Header ping timeout, retry (%i)", self._update_retry)
+
+        elif t - self._lastupdate > 0.4:
+            if not self._padding_cmd:
+                self._handle_ping(executor)
 
         if self._ready and self._padding_cmd:
             if self._cmd_retry > 2 and self._ready:
-                self._on_head_offline()
+                self._on_head_offline(HeadOfflineError)
             elif t - self._cmd_sent_at > 0.8:
                 if self._ext:
                     self._send_cmd(executor)
@@ -319,10 +319,6 @@ cdef class HeadController:
                         self._on_ready()
                     else:
                         SystemError("Bad logic")
-
-        elif monotonic_time() - self._lastupdate > 0.4:
-            if not self._padding_cmd:
-                self._handle_ping(executor)
 
     def _raise_error(self, *args):
         raise RuntimeError(*args)
@@ -443,6 +439,16 @@ MODULES_EXT["LASER"] = LaserExt
 
 class HeadError(RuntimeError):
     pass
+
+
+class HeadOfflineError(HeadError):
+    def __init__(self):
+        RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_OFFLINE)
+
+
+class HeadResetError(HeadError):
+    def __init__(self):
+        RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_RESET)
 
 
 class HeadCalibratingError(HeadError):

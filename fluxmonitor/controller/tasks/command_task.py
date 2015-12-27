@@ -366,7 +366,7 @@ class TasksMixIn(object):
     def __scan(self, handler):
         task = ScanTask(self.stack, handler)
         self.stack.enter_task(task, empty_callback)
-        return "ok"
+        handler.send_text("ok")
 
     def __maintain(self, handler):
         task = MaintainTask(self.stack, handler)

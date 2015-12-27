@@ -38,8 +38,8 @@ class DurarararaControlTest(ControlTestBase):
                               "1 OK PONG ER:4 RT:40.0 TT:0 FA:0 *59", executor)
 
     def test_reset_and_hello(self):
-        with self.assertSendHeadboard("1 HELLO *115\n", "1 H:0 T:220.0 *19\n",
-                                     ) as executor:
+        with self.assertSendHeadboard("1 HELLO *115\n",
+                                      "1 H:0 T:220.0 *19\n") as executor:
             self.assertTrue(self.ec.ready)
             self.assertRaises(RuntimeError, self.ec.on_message,
                               "1 OK PONG ER:4 RT:40.0 TT:0 FA:0 *59", executor)
@@ -58,3 +58,19 @@ class DurarararaControlTest(ControlTestBase):
             self.assertEqual(st["rt"], (15,))
             self.assertEqual(st["tt"], (220,))
             self.assertEqual(st["module"], "EXTRUDER")
+
+    def test_extruder_offline(self):
+        with self.assertSendHeadboard("1 PING *33\n", "1 HELLO *115\n",
+                                      "1 PING *33\n", "1 PING *33\n",
+                                      "1 PING *33\n", "1 PING *33\n") as executor:
+            self.ec.patrol(executor)
+            self.assertRaises(RuntimeError, self.ec.on_message,
+                              "1 OK PONG ER:4 RT:40.0 TT:0 FA:0 *59", executor)
+            self.ec.bootstrap(executor)
+            self.assertRaises(UnittestError, self.ec.on_message,
+                              EXTRUDER_HELLO_MSG, executor)
+            for i in range(4):
+                self.ec._lastupdate = 0
+                self.ec.patrol(executor)
+            self.ec._lastupdate = 0
+            self.assertRaises(RuntimeError, self.ec.patrol, executor)

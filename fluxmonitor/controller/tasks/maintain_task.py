@@ -1,17 +1,19 @@
 
 import logging
 import socket
+import json
 import re
 
 from fluxmonitor.player.main_controller import MainController
-from fluxmonitor.player.head_controller import HeadController
+from fluxmonitor.player.head_controller import (
+    HeadController, HeadError, HeadOfflineError, HeadResetError)
 from fluxmonitor.player import macro
 from fluxmonitor.storage import Metadata
 from fluxmonitor.misc import correction
 from fluxmonitor.config import uart_config
 
 from fluxmonitor.err_codes import RESOURCE_BUSY, UNKNOWN_COMMAND, \
-    SUBSYSTEM_ERROR
+    SUBSYSTEM_ERROR, EXEC_WRONG_HEAD
 
 from .base import CommandMixIn, DeviceOperationMixIn, \
     DeviceMessageReceiverMixIn
@@ -25,6 +27,8 @@ logger = logging.getLogger(__name__)
 class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
                    CommandMixIn):
     st_id = -1
+    main_ctrl = None
+    head_ctrl = None
 
     def __init__(self, stack, handler):
         super(MaintainTask, self).__init__(stack, handler)
@@ -99,9 +103,20 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
                 if self._macro:
                     self._macro.on_headboard_message(msg, self)
                 self.head_ctrl.on_message(msg, self)
-        except (RuntimeError, SystemError) as e:
+        except HeadResetError as e:
+            logger.debug("Head reset")
+            self.head_ctrl.bootstrap(self)
             if self._macro:
                 self._on_macro_error(e)
+
+        except HeadError as e:
+            logger.info("Head Error: %s", e)
+
+        except SystemError as e:
+            logger.exception("Unhandle Error")
+            if self._macro:
+                self._on_macro_error(e)
+
         except Exception:
             logger.exception("Unhandle Error")
 
@@ -116,12 +131,21 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             clean = "clean" in args
             self.do_calibration(handler, clean=clean)
 
-        elif cmd == "cor_h":
+        elif cmd == "zprobe":
             if len(args) > 0:
                 h = float(args[0])
                 self.do_h_correction(handler, h=h)
             else:
                 self.do_h_correction(handler)
+
+        elif cmd == "load_filament":
+            self.do_load_filament(handler, int(args[0]), float(args[1]))
+
+        elif cmd == "unload_filament":
+            self.do_unload_filament(handler, int(args[0]), float(args[1]))
+
+        elif cmd == "headinfo":
+            self.headinfo(handler)
 
         elif cmd == "reset_mb":
             s = socket.socket(socket.AF_UNIX)
@@ -138,17 +162,73 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             logger.debug("Can not handle: '%s'" % cmd)
             raise RuntimeError(UNKNOWN_COMMAND)
 
-    def load_filament(self, index, temp):
-        pass
-        # def head_ready(self, _):
-        #     self.head_ctrl.sender
-        #
-        # self.head_ctrl = HeadController(
-        #     executor=self, ready_callback=head_ready,
-        #     required_module="EXTRUDER", error_level=0)
+    def do_load_filament(self, handler, index, temp):
+        if self.head_ctrl.status()["module"] != "EXTRUDER":
+            raise RuntimeError(EXEC_WRONG_HEAD)
 
-    def unload_filament(self):
-        pass
+        def on_load_done():
+            handler.send_text("ok")
+            self._macro = self._on_macro_error = self._on_macro_running = None
+            self._busy = False
+
+        def on_heating_done():
+            self._macro = macro.CommandMacro(on_load_done, ["C3"])
+            self._macro.start(self)
+
+        def on_macro_error(error):
+            self._macro.giveup()
+            self._macro = self._on_macro_error = self._on_macro_running = None
+            self._busy = False
+            handler.send_text("error %s" % " ".join(error.args))
+
+        def on_macro_running():
+            if isinstance(self._macro, macro.WaitHeadMacro):
+                st = self.head_ctrl.status()
+                handler.send_text("CTRL HEATING %.1f" % st.get("rt")[index])
+            else:
+                handler.send_text("CTRL LOADING")
+
+        self._macro = macro.WaitHeadMacro(on_heating_done, "H%.1f" % temp)
+        self._on_macro_error = on_macro_error
+        self._on_macro_running = on_macro_running
+        self._on_macro_error = on_macro_error
+        self._busy = True
+        self._macro.start(self)
+        handler.send_text("continue")
+
+    def do_unload_filament(self, handler, index, temp):
+        if self.head_ctrl.status()["module"] != "EXTRUDER":
+            raise RuntimeError(EXEC_WRONG_HEAD)
+
+        def on_load_done():
+            handler.send_text("ok")
+            self._macro = self._on_macro_error = self._on_macro_running = None
+            self._busy = False
+
+        def on_heating_done():
+            self._macro = macro.CommandMacro(on_load_done, ["C4"])
+            self._macro.start(self)
+
+        def on_macro_error(error):
+            self._macro.giveup()
+            self._macro = self._on_macro_error = self._on_macro_running = None
+            self._busy = False
+            handler.send_text("error %s" % " ".join(error.args))
+
+        def on_macro_running():
+            if isinstance(self._macro, macro.WaitHeadMacro):
+                st = self.head_ctrl.status()
+                handler.send_text("CTRL HEATING %.1f" % st.get("rt")[index])
+            else:
+                handler.send_text("CTRL UNLOADING")
+
+        self._macro = macro.WaitHeadMacro(on_heating_done, "H%.1f" % temp)
+        self._on_macro_error = on_macro_error
+        self._on_macro_running = on_macro_running
+        self._on_macro_error = on_macro_error
+        self._busy = True
+        self._macro.start(self)
+        handler.send_text("continue")
 
     def do_home(self, handler):
         def on_success_cb():
@@ -231,38 +311,10 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         self._busy = True
         self._macro.start(self)
         handler.send_text("continue")
-        # if h is not None:
-        #     corr_cmd = do_h_correction(h=h)
-        #     self.main_ctrl.send_cmd(corr_cmd, self)
-        #     handler.send_text("continue")
-        #     handler.send_text("ok 0")
-        #     return
-        #
-        # def stage_test_h(msg):
-        #     try:
-        #         if msg.startswith("Bed Z-Height at"):
-        #             self._mainboard_msg_filter = None
-        #             self._busy = False
-        #
-        #             data = float(msg.rsplit(" ", 1)[-1])
-        #             handler.send_text("DEBUG H: %.4f" % data)
-        #
-        #             corr_cmd = do_h_correction(delta=data)
-        #             self.main_ctrl.send_cmd(corr_cmd, self)
-        #
-        #             handler.send_text("ok %.4f" % data)
-        #     except ValueError as e:
-        #         handler.send_text("error %s" % e.args[0])
-        #
-        #     except Exception:
-        #         logger.exception("Unhandle Error")
-        #         handler.send_text("error UNKNOWN_ERROR")
-        #         self.stack.exit_task(self)
-        #
-        # self._busy = True
-        # self._mainboard_msg_filter = stage_test_h
-        # self.main_ctrl.send_cmd("G30X0Y0", self)
-        # handler.send_text("continue")
+
+    def headinfo(self, handler):
+        payload = json.dumps(self.head_ctrl.status())
+        handler.send_text("ok %s" % payload)
 
     def on_timer(self, watcher, revent):
         self.meta.update_device_status(self.st_id, 0, "N/A", "")
@@ -273,7 +325,14 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             if self._on_macro_running:
                 self._on_macro_running()
 
+        except (HeadOfflineError, HeadResetError) as e:
+            logger.info("%s", e)
+            if self._macro:
+                self.on_macro_error(e)
+            self.head_ctrl.bootstrap(self)
+
         except RuntimeError as e:
+            logger.info("%s", e)
             if self._macro:
                 self.on_macro_error(e)
 
