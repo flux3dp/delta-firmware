@@ -6,14 +6,14 @@ import re
 
 from fluxmonitor.player.main_controller import MainController
 from fluxmonitor.player.head_controller import (
-    HeadController, HeadError, HeadOfflineError, HeadResetError)
+    HeadController, HeadError, HeadOfflineError, HeadResetError, HeadTypeError)
 from fluxmonitor.player import macro
 from fluxmonitor.storage import Metadata
 from fluxmonitor.misc import correction
 from fluxmonitor.config import uart_config
 
 from fluxmonitor.err_codes import RESOURCE_BUSY, UNKNOWN_COMMAND, \
-    SUBSYSTEM_ERROR, EXEC_WRONG_HEAD
+    SUBSYSTEM_ERROR
 
 from .base import CommandMixIn, DeviceOperationMixIn, \
     DeviceMessageReceiverMixIn
@@ -163,8 +163,9 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             raise RuntimeError(UNKNOWN_COMMAND)
 
     def do_load_filament(self, handler, index, temp):
-        if self.head_ctrl.status()["module"] != "EXTRUDER":
-            raise RuntimeError(EXEC_WRONG_HEAD)
+        module = self.head_ctrl.status()["module"]
+        if module != "EXTRUDER":
+            raise HeadTypeError("EXTRUDER", module)
 
         def on_load_done():
             handler.send_text("ok")
@@ -197,8 +198,9 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         handler.send_text("continue")
 
     def do_unload_filament(self, handler, index, temp):
-        if self.head_ctrl.status()["module"] != "EXTRUDER":
-            raise RuntimeError(EXEC_WRONG_HEAD)
+        module = self.head_ctrl.status()["module"]
+        if module != "EXTRUDER":
+            raise HeadTypeError("EXTRUDER", module)
 
         def on_load_done():
             handler.send_text("ok")

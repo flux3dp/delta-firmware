@@ -43,9 +43,11 @@ class PlayerManager(object):
 
             self.playinfo = ff.metadata, ff.image_buf
 
-            proc = Popen(["fluxplayer", "-c", PLAY_ENDPOINT, "--task",
-                          taskfile], stdin=PIPE,
-                         stdout=PIPE, stderr=PIPE)
+            cmd = ["fluxplayer", "-c", PLAY_ENDPOINT, "--task", taskfile]
+            if logger.getEffectiveLevel() <= 10:
+                cmd += ["--debug"]
+
+            proc = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
             child_watcher = loop.child(proc.pid, False, self.on_process_dead,
                                        terminated_callback)
             child_watcher.start()
@@ -109,6 +111,7 @@ class PlayerManager(object):
         return self._sock
 
     def on_process_dead(self, watcher, revent):
+        logger.debug("Player terminated")
         watcher.stop()
         try:
             if watcher.data:

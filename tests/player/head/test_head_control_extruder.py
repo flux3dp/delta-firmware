@@ -120,3 +120,16 @@ class ExtruderHeadControlTest(ControlTestBase):
         with self.assertSendHeadboard() as executor:
             self.assertRaises(UnittestError, self.ec.on_message,
                               "1 OK FAN *92", executor)
+
+    def test_continue_ping_error(self):
+        PONG_MSG = "1 OK PONG ER:8 RT:169.9 TT:170.0 FA:0 *28"
+        self.assertTrue(self.ec.ready)
+        with self.assertSendHeadboard() as executor:
+            self.assertRaises(RuntimeError, self.ec.on_message, PONG_MSG,
+                              executor)
+            self.ec.on_message(PONG_MSG, executor)
+
+        self.assertFalse(self.ec.ready)
+        with self.assertSendHeadboard("1 PING *33\n") as executor:
+            self.ec._lastupdate = 0
+            self.ec.patrol(executor)

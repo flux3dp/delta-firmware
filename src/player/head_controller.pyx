@@ -11,10 +11,10 @@ from shlex import split as shlex_split
 import logging
 
 from fluxmonitor.err_codes import EXEC_HEAD_OFFLINE, EXEC_OPERATION_ERROR, \
-    EXEC_WRONG_HEAD, EXEC_HEAD_ERROR, EXEC_NEED_REMOVE_HEAD, \
+    EXEC_TYPE_ERROR, EXEC_HEAD_ERROR, EXEC_NEED_REMOVE_HEAD, \
     EXEC_UNKNOWN_REQUIRED_HEAD_TYPE, EXEC_HEAD_RESET, EXEC_HEAD_CALIBRATING, \
     EXEC_HEAD_SHAKE, EXEC_HEAD_TILT, HARDWARE_FAILURE, EXEC_HEAD_FAN_FAILURE, \
-    EXEC_HEAD_RESET, EXEC_UNKNOWN_HEAD, UNKNOWN_COMMAND
+    EXEC_UNKNOWN_HEAD, FILE_BROKEN, UNKNOWN_COMMAND
 
 
 cdef HELLO_CMD = "1 HELLO *115\n"
@@ -54,7 +54,7 @@ cdef class HeadController:
     cdef unsigned int _error_level
 
     def __init__(self, executor, ready_callback, required_module=None,
-                 error_level=256):
+                 error_level=255):
         self._error_level = error_level
         self._required_module = required_module
         self._ready_callback = ready_callback
@@ -64,8 +64,8 @@ cdef class HeadController:
             if ext_klass:
                 self._ext = ext_klass()
             else:
-                raise SystemError(EXEC_UNKNOWN_REQUIRED_HEAD_TYPE,
-                                  required_module)
+                raise SystemError(FILE_BROKEN, EXEC_HEAD_ERROR,
+                                  EXEC_TYPE_ERROR, required_module)
 
         self._module = "N/A"
         self.bootstrap(executor)
@@ -163,6 +163,7 @@ cdef class HeadController:
                                             executor)
                     return
                 elif ptr[0] == 0:
+                    L.warn("Drop message %s", raw_message)
                     return
                 else:
                     s ^= ptr[0]
@@ -199,6 +200,10 @@ cdef class HeadController:
                     self._send_cmd(executor)
                 else:
                     self._on_ready()
+        elif msg.startswith("OK PONG "):
+            self._handle_pong(msg, executor)
+        else:
+            L.info("RECV_UH: '%s'", msg)
 
     def send_cmd(self, cmd, executor, complete_callback=None,
                  allset_callback=None):
@@ -265,11 +270,12 @@ cdef class HeadController:
                         L.error("Head er flag failed")
                         self._raise_error(EXEC_HEAD_ERROR, "ER_ERROR")
 
-                if er == 0:
+                if er == 0 or self._ready == 0:
                     pass
                 elif er & 4:
                     self._on_head_offline(HeadResetError)
-                elif er & self._error_level:
+                elif er & self._error_level & ~7:
+                    self._ready = 0
                     if er & 8:
                         raise HeadCalibratingError()
                     if er & 16:
@@ -280,6 +286,7 @@ cdef class HeadController:
                         raise HeadHardwareError()
                     if er & 128:
                         raise HeadFanError()
+                    raise HeadError(EXEC_HEAD_ERROR, "?")
 
             else:
                 self._ext.update_status(*status)
@@ -362,7 +369,7 @@ class ExtruderExt(BaseExt):
     def hello(self, **kw):
         m = kw.get("TYPE", "UNKNOW")
         if m != "EXTRUDER":
-            raise RuntimeError(EXEC_WRONG_HEAD, "GOT_%s" % m)
+            raise HeadTypeError("EXTRUDER", m)
         super(ExtruderExt, self).hello(**kw)
 
     def bootstrap_commands(self):
@@ -426,7 +433,7 @@ class LaserExt(BaseExt):
     def hello(self, **kw):
         m = kw.get("TYPE", "UNKNOW")
         if m != "LASER":
-            raise RuntimeError(EXEC_WRONG_HEAD, "GOT_%s" % m)
+            raise HeadTypeError("LASER", m)
         super(LaserExt, self).hello(**kw)
 
     def status(self):
@@ -449,6 +456,12 @@ class HeadOfflineError(HeadError):
 class HeadResetError(HeadError):
     def __init__(self):
         RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_RESET)
+
+
+class HeadTypeError(HeadError):
+    def __init__(self, expected_type, got_type):
+        RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_TYPE_ERROR,
+                              expected_type, got_type)
 
 
 class HeadCalibratingError(HeadError):
