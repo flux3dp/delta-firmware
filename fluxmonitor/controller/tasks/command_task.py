@@ -271,7 +271,7 @@ class PlayManagerMixIn(object):
             self.__play_report(handler)
         elif cmd == "select":
             self.__select_file(handler, *args)
-        elif cmd == "play_info":
+        elif cmd == "info":
             self.__play_info(handler)
         elif cmd == "start":
             self.__start(handler)
