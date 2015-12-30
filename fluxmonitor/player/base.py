@@ -69,21 +69,20 @@ class BaseExecutor(object):
         L.debug("GO!")
         self.__start_at = time()
 
-    def pause(self, main_info, minor_info=None):
+    def pause(self, symbol=None):
         if self.status_id & 224:
             # Completed/Aborted/Paused or goting to be
-            L.debug("Pause rejected: %s" % main_info)
+            L.debug("Pause rejected: %s" % symbol)
 
-            if self._err_symbol[0] == "USER_OPERATION":
+            if self._err_symbol is None:
                 # Update error label only
-                self._err_symbol = (main_info, minor_info)
+                self._err_symbol = symbol
             return False
 
         nst = self.status_id | ST_PAUSED | 2
-        L.debug("ST %3i -> %3i: %s %s", self.status_id, nst, main_info,
-                minor_info)
+        L.debug("ST %3i -> %3i: %s", self.status_id, nst, symbol)
         self.status_id = nst
-        self._err_symbol = (main_info, minor_info)
+        self._err_symbol = symbol
 
         if self.__start_at:
             self.time_used += (time() - self.__start_at)
@@ -126,24 +125,21 @@ class BaseExecutor(object):
         self.status_id = nst
         self.__start_at = time()
 
-    def abort(self, main_err, minor_info=None):
+    def abort(self, symbol=None):
         if self.status_id & 192:
             # Completed/Aborted or goting to be
             L.debug("Abort rejected")
             return False
 
-        L.debug("Abort: %s %s" % (main_err, minor_info))
+        L.debug("Abort: %s" % symbol)
         self.status_id = ST_ABORTED
-        self._err_symbol = (main_err, minor_info)
+        self._err_symbol = symbol
         return True
 
     @property
     def error_symbol(self):
         if self._err_symbol:
-            if self._err_symbol[1]:
-                return " ".join(self._err_symbol)
-            else:
-                return self._err_symbol[0]
+            return " ".join(self._err_symbol.args)
         else:
             return ""
 
@@ -153,7 +149,7 @@ class BaseExecutor(object):
             "st_id": st_id,
             "st_label": self.macro.name if self.macro else STATUS_MSG.get(
                 st_id, "UNKNOW_STATUS"),
-            "error": self._err_symbol
+            "error": self._err_symbol.args if self._err_symbol else []
         }
 
     def is_closed(self):

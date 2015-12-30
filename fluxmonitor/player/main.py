@@ -132,10 +132,10 @@ class Player(ServiceBase):
             args = shlex_split(argstr.decode("ascii", "ignore"))
             cmd = args[0]
             if cmd == "PAUSE":  # Pause
-                if self.executor.pause("USER_OPERATION"):
+                if self.executor.pause():
                     self.send_cmd_response(S, R, "ok")
                 else:
-                    self.send_cmd_response(S, R, "ERROR RESOURCE_BUSY")
+                    self.send_cmd_response(S, R, "error RESOURCE_BUSY")
             elif cmd == "REPORT":  # Report
                 st = self.executor.get_status()
                 st["prog"] = self.executor.traveled / self.travel_dist
@@ -145,28 +145,28 @@ class Player(ServiceBase):
                 if self.executor.resume():
                     self.send_cmd_response(S, R, "ok")
                 else:
-                    self.send_cmd_response(S, R, "ERROR RESOURCE_BUSY")
+                    self.send_cmd_response(S, R, "error RESOURCE_BUSY")
             elif cmd == "ABORT":  # Abort
-                if self.executor.abort("USER_OPERATION"):
+                if self.executor.abort():
                     self.send_cmd_response(S, R, "ok")
                 else:
-                    self.send_cmd_response(S, R, "ERROR RESOURCE_BUSY")
+                    self.send_cmd_response(S, R, "error RESOURCE_BUSY")
             elif cmd == "LOAD_FILAMENT":
                 if self.executor.load_filament(int(args[1])):
                     self.send_cmd_response(S, R, "ok")
                 else:
-                    self.send_cmd_response(S, R, "ERROR RESOURCE_BUSY")
+                    self.send_cmd_response(S, R, "error RESOURCE_BUSY")
             elif cmd == "EJECT_FILAMENT":
                 if self.executor.eject_filament(int(args[1])):
                     self.send_cmd_response(S, R, "ok")
                 else:
-                    self.send_cmd_response(S, R, "ERROR RESOURCE_BUSY")
+                    self.send_cmd_response(S, R, "error RESOURCE_BUSY")
             elif cmd == "QUIT":
                 if self.executor.is_closed():
                     self.send_cmd_response(S, R, "ok")
                     self.shutdown("BYE")
                 else:
-                    self.send_cmd_response(S, R, "ERROR RESOURCE_BUSY")
+                    self.send_cmd_response(S, R, "error RESOURCE_BUSY")
         except Exception:
             logger.exception("Unhandle error")
 

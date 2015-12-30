@@ -224,7 +224,7 @@ class CommonMetadata(object):
     def update_device_status(self, st_id, progress, head_type,
                              err_label=""):
         buf = struct.pack("dif16s32s", time(), st_id, progress, head_type,
-                          err_label)
+                          err_label[:32])
         self.shm.write(buf, 3584)
 
 

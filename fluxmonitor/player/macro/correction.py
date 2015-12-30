@@ -23,9 +23,10 @@ def do_correction(meta, x, y, z):
 class CorrectionMacro(object):
     name = "CORRECTING"
 
-    def __init__(self, on_success_cb, clean=False, ttl=6):
+    def __init__(self, on_success_cb, clean=False, ttl=6, threshold=0.05):
         self._on_success_cb = on_success_cb
         self._clean = clean
+        self.threshold = threshold
         self.meta = Metadata()
         self.history = []
         self.data = []
@@ -63,7 +64,7 @@ class CorrectionMacro(object):
                 # Re-run
                 self.round += 1
                 self.on_command_empty(executor)
-            elif dd < 0.05:
+            elif dd < self.threshold:
                 logger.error("Correction completed: %s", data)
                 self.convergence = True
                 executor.main_ctrl.send_cmd("G1F9000X0Y0Z30", executor)

@@ -11,12 +11,14 @@ from shlex import split as shlex_split
 import logging
 
 from fluxmonitor.err_codes import EXEC_HEAD_OFFLINE, EXEC_OPERATION_ERROR, \
-    EXEC_WRONG_HEAD, EXEC_HEAD_ERROR, EXEC_NEED_REMOVE_HEAD, \
+    EXEC_TYPE_ERROR, EXEC_HEAD_ERROR, EXEC_NEED_REMOVE_HEAD, \
     EXEC_UNKNOWN_REQUIRED_HEAD_TYPE, EXEC_HEAD_RESET, EXEC_HEAD_CALIBRATING, \
     EXEC_HEAD_SHAKE, EXEC_HEAD_TILT, HARDWARE_FAILURE, EXEC_HEAD_FAN_FAILURE, \
-    UNKNOWN_COMMAND
+    EXEC_UNKNOWN_HEAD, FILE_BROKEN, UNKNOWN_COMMAND
 
 
+cdef HELLO_CMD = "1 HELLO *115\n"
+cdef MODULES_EXT = {}
 cdef L = logging.getLogger(__name__)
 
 
@@ -52,19 +54,18 @@ cdef class HeadController:
     cdef unsigned int _error_level
 
     def __init__(self, executor, ready_callback, required_module=None,
-                 error_level=256):
+                 error_level=255):
         self._error_level = error_level
         self._required_module = required_module
         self._ready_callback = ready_callback
 
-        if required_module == "EXTRUDER":
-            self._ext = ExtruderExt()
-        elif required_module == "LASER":
-            self._ext = LaserExt()
-        elif required_module == "N/A":
-            self._ext = NAExt()
-        else:
-            raise SystemError(EXEC_UNKNOWN_REQUIRED_HEAD_TYPE, required_module)
+        if required_module != "N/A" and required_module is not None:
+            ext_klass = MODULES_EXT.get(required_module)
+            if ext_klass:
+                self._ext = ext_klass()
+            else:
+                raise SystemError(FILE_BROKEN, EXEC_HEAD_ERROR,
+                                  EXEC_TYPE_ERROR, required_module)
 
         self._module = "N/A"
         self.bootstrap(executor)
@@ -81,7 +82,10 @@ cdef class HeadController:
         self._update_retry = 0
         self._wait_update = False
 
-        queue = ["1 HELLO *115\n"] + self._ext.bootstrap_commands()
+        queue = [HELLO_CMD]
+        if self._ext:
+            queue += self._ext.bootstrap_commands()
+
         self._recover_queue = queue
         self._padding_cmd = queue.pop(0)
         self._send_cmd(executor)
@@ -99,7 +103,7 @@ cdef class HeadController:
         return self._module
 
     def status(self):
-        if self._ready == 2:
+        if self._ready == 2 and self._ext:
             return self._ext.status()
         else:
             return {"module": "N/A"}
@@ -111,19 +115,32 @@ cdef class HeadController:
                 sparam = param.split(":", 1)
                 if len(sparam) == 2:
                     module_info[sparam[0]] = sparam[1]
-            self._ext.hello(**module_info)
-            self._module = module_info.get("TYPE", "UNKNOWN")
+
+            module_type = module_info.get("TYPE", "UNKNOWN")
+
+            if self._ext:
+                self._ext.hello(**module_info)
+            else:
+                if self._required_module == "N/A":
+                    raise RuntimeError(EXEC_NEED_REMOVE_HEAD)
+                else:
+                    ext_klass = MODULES_EXT.get(module_type)
+                    if ext_klass:
+                        self._ext = ext_klass()
+                    else:
+                        raise RuntimeError(EXEC_UNKNOWN_HEAD, module_type)
+
+                self._module = module_info.get("TYPE", "UNKNOWN")
         except Exception:
             self._ready = 0
             raise
 
-    def _on_head_offline(self, minor=None):
+    def _on_head_offline(self, error_klass):
         self._module = "N/A"
         self._ready = 0
-        if minor:
-            self._raise_error(EXEC_HEAD_OFFLINE, minor)
-        else:
-            self._raise_error(EXEC_HEAD_OFFLINE)
+        if self._required_module is None:
+            self._ext = None
+        raise error_klass()
 
     def _on_ready(self):
         self._ready = 2
@@ -146,6 +163,7 @@ cdef class HeadController:
                                             executor)
                     return
                 elif ptr[0] == 0:
+                    L.warn("Drop message %s", raw_message)
                     return
                 else:
                     s ^= ptr[0]
@@ -164,7 +182,7 @@ cdef class HeadController:
             else:
                 L.info("RECV_UH: '%s'", msg)
         elif self._ready == 1:
-            if self._padding_cmd == "1 HELLO *115\n":
+            if self._padding_cmd is HELLO_CMD:
                 if msg.startswith("OK HELLO "):
                     self._on_head_hello(msg[9:])
 
@@ -182,6 +200,10 @@ cdef class HeadController:
                     self._send_cmd(executor)
                 else:
                     self._on_ready()
+        elif msg.startswith("OK PONG "):
+            self._handle_pong(msg, executor)
+        else:
+            L.info("RECV_UH: '%s'", msg)
 
     def send_cmd(self, cmd, executor, complete_callback=None,
                  allset_callback=None):
@@ -201,8 +223,8 @@ cdef class HeadController:
 
     def _send_cmd(self, executor):
         if not self._wait_update:
-            executor.send_headboard(self._padding_cmd)
             self._cmd_sent_at = monotonic_time()
+            executor.send_headboard(self._padding_cmd)
 
     def _parse_cmd_response(self, msg, executor):
         if msg.startswith("OK "):
@@ -223,12 +245,14 @@ cdef class HeadController:
         else:
             return False
 
-    def _handle_ping(self, executor):
+    cdef inline int _handle_ping(self, executor) except *:
         executor.send_headboard("1 PING *33\n")
-        self._wait_update = True
+        if self._ext is not None:
+            self._wait_update = True
         self._lastupdate = monotonic_time()
+        return 0
 
-    def _handle_pong(self, msg, executor):
+    cdef inline int _handle_pong(self, msg, executor) except *:
         self._update_retry = 0
         self._wait_update = False
         self._lastupdate = monotonic_time()
@@ -244,27 +268,25 @@ cdef class HeadController:
                     er = int(status[1])
                 except ValueError:
                         L.error("Head er flag failed")
-                        self._raise_error(EXEC_HEAD_ERROR,
-                                          "ER_ERROR")
+                        self._raise_error(EXEC_HEAD_ERROR, "ER_ERROR")
 
-                if er == 0:
+                if er == 0 or self._ready == 0:
                     pass
                 elif er & 4:
-                    self._on_head_offline("HEAD_RESET")
-                elif er & self._error_level:
+                    self._on_head_offline(HeadResetError)
+                elif er & self._error_level & ~7:
+                    self._ready = 0
                     if er & 8:
-                        self._raise_error(EXEC_HEAD_ERROR,
-                                          EXEC_HEAD_CALIBRATING)
+                        raise HeadCalibratingError()
                     if er & 16:
-                        self._raise_error(EXEC_HEAD_ERROR, EXEC_HEAD_SHAKE)
+                        raise HeadShakeError()
                     if er & 32:
-                        self._raise_error(EXEC_HEAD_ERROR, EXEC_HEAD_TILT)
+                        raise HeadTiltError()
                     if er & 64:
-                        self._raise_error(EXEC_HEAD_ERROR,
-                                          HARDWARE_FAILURE)
+                        raise HeadHardwareError()
                     if er & 128:
-                        self._raise_error(EXEC_HEAD_ERROR,
-                                          EXEC_HEAD_FAN_FAILURE)
+                        raise HeadFanError()
+                    raise HeadError(EXEC_HEAD_ERROR, "?")
 
             else:
                 self._ext.update_status(*status)
@@ -273,36 +295,37 @@ cdef class HeadController:
                         self._allset_callback(self)
                     finally:
                         self._allset_callback = None
+        return 0
 
     def patrol(self, executor):
-        # if self._required_module is None:
-        #     if self._ready:
-        #         if self._wait_update and
-        #     else:
-        #         if self._padding_cmd and monotonic_time() - self._lastupdate > 1.0:
-        #             self.on_message("OK HELLO TYPE=N/A")
-        #     return
         cdef float t = monotonic_time()
 
         if self._wait_update:
             if self._update_retry > 2 and self._ready:
-                self._on_head_offline()
-            if t - self._lastupdate > 1.5:
-                self._handle_ping(executor)
+                self._on_head_offline(HeadOfflineError)
+            if t - self._lastupdate > 0.4:
                 self._update_retry += 1 if self._ready else 0
+                self._handle_ping(executor)
                 L.debug("Header ping timeout, retry (%i)", self._update_retry)
+
+        elif t - self._lastupdate > 0.4:
+            if not self._padding_cmd:
+                self._handle_ping(executor)
 
         if self._ready and self._padding_cmd:
             if self._cmd_retry > 2 and self._ready:
-                self._on_head_offline()
-            elif t - self._cmd_sent_at > 1.0:
-                self._send_cmd(executor)
-                self._cmd_retry += 1 if self._ready else 0
-                L.debug("Header cmd timeout, retry (%i)", self._cmd_retry)
-
-        elif monotonic_time() - self._lastupdate > 0.4:
-            if not self._padding_cmd:
-                self._handle_ping(executor)
+                self._on_head_offline(HeadOfflineError)
+            elif t - self._cmd_sent_at > 0.8:
+                if self._ext:
+                    self._send_cmd(executor)
+                    self._cmd_retry += 1 if self._ready else 0
+                    L.debug("Header cmd timeout, retry (%i)", self._cmd_retry)
+                else:
+                    if self._padding_cmd == HELLO_CMD:
+                        self._padding_cmd = None
+                        self._on_ready()
+                    else:
+                        SystemError("Bad logic")
 
     def _raise_error(self, *args):
         raise RuntimeError(*args)
@@ -346,7 +369,7 @@ class ExtruderExt(BaseExt):
     def hello(self, **kw):
         m = kw.get("TYPE", "UNKNOW")
         if m != "EXTRUDER":
-            raise RuntimeError(EXEC_WRONG_HEAD, "GOT_%s" % m)
+            raise HeadTypeError("EXTRUDER", m)
         super(ExtruderExt, self).hello(**kw)
 
     def bootstrap_commands(self):
@@ -410,17 +433,58 @@ class LaserExt(BaseExt):
     def hello(self, **kw):
         m = kw.get("TYPE", "UNKNOW")
         if m != "LASER":
-            raise RuntimeError(EXEC_WRONG_HEAD, "GOT_%s" % m)
+            raise HeadTypeError("LASER", m)
         super(LaserExt, self).hello(**kw)
 
     def status(self):
         return {"module": "LASER",}
 
 
-class NAExt(BaseExt):
-    def hello(self, **kw):
-        m = kw.get("TYPE", "UNKNOW")
-        raise RuntimeError(EXEC_NEED_REMOVE_HEAD, "GOT_%s" % m)
+MODULES_EXT["EXTRUDER"] = ExtruderExt
+MODULES_EXT["LASER"] = LaserExt
 
-    def status(self):
-        return {"module": "N/A",}
+
+class HeadError(RuntimeError):
+    pass
+
+
+class HeadOfflineError(HeadError):
+    def __init__(self):
+        RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_OFFLINE)
+
+
+class HeadResetError(HeadError):
+    def __init__(self):
+        RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_RESET)
+
+
+class HeadTypeError(HeadError):
+    def __init__(self, expected_type, got_type):
+        RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_TYPE_ERROR,
+                              expected_type, got_type)
+
+
+class HeadCalibratingError(HeadError):
+    def __init__(self):
+        RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_CALIBRATING)
+
+
+class HeadShakeError(HeadError):
+    def __init__(self):
+        RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_SHAKE)
+
+
+class HeadTiltError(HeadError):
+    def __init__(self):
+        RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_TILT)
+
+
+class HeadHardwareError(HeadError):
+    def __init__(self):
+        RuntimeError.__init__(self, EXEC_HEAD_ERROR, HARDWARE_FAILURE)
+
+
+class HeadFanError(HeadError):
+    def __init__(self):
+        RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_FAN_FAILURE)
+

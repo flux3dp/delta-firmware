@@ -53,3 +53,21 @@ class StartUpTest(ControlTestBase):
         with self.assertSendHeadboard() as executor:
             self.assertRaises(RuntimeError, ec.on_message, HELLO_MSG["LASER"],
                               executor)
+
+    def test_none_head(self):
+        with self.get_executor() as executor:
+            ec = HeadController(executor, required_module=None,
+                                ready_callback=self.raiseException)
+        with self.assertSendHeadboard() as executor:
+            ec._cmd_sent_at = 0
+            self.assertRaises(UnittestError, ec.patrol, executor)
+        self.assertTrue(ec.ready)
+
+    def test_na_head(self):
+        with self.get_executor() as executor:
+            ec = HeadController(executor, required_module="N/A",
+                                ready_callback=self.raiseException)
+        with self.assertSendHeadboard() as executor:
+            ec._cmd_sent_at = 0
+            self.assertRaises(UnittestError, ec.patrol, executor)
+        self.assertTrue(ec.ready)

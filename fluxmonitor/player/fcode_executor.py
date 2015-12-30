@@ -4,6 +4,8 @@ import logging
 
 from fluxmonitor.config import MAINBOARD_RETRY_TTL
 from fluxmonitor.err_codes import UNKNOWN_ERROR, EXEC_BAD_COMMAND
+from fluxmonitor.diagnosis.god_mode import allow_god_mode
+
 from .base import BaseExecutor
 from .base import ST_STARTING, ST_RUNNING, ST_COMPLETED, ST_ABORTED
 from .base import ST_COMPLETING
@@ -14,8 +16,6 @@ from .main_controller import MainController
 from .head_controller import HeadController
 
 logger = logging.getLogger(__name__)
-
-FLAG_WAITTING_HEAD = 256
 
 
 class FcodeExecutor(BaseExecutor):
@@ -101,15 +101,17 @@ class FcodeExecutor(BaseExecutor):
             if self.options.correction in ("A", "H"):
                 self.macro = WaitHeadMacro(self.on_preheating_complete,
                                            "H170")
-                logging.debug("Start macro: WaitHeadMacro(\"H170\")")
-                self.macro.start(self)
+                if self.status_id == ST_RUNNING:
+                    logging.debug("Start macro: WaitHeadMacro(\"H170\")")
+                    self.macro.start(self)
             else:
                 self.fire()
 
         elif isinstance(macro, CorrectionMacro):
             self.macro = ZprobeMacro(self.on_macro_complete)
-            logging.debug("Start macro: %s", self.macro)
-            self.macro.start(self)
+            if self.status_id == ST_RUNNING:
+                logging.debug("Start macro: %s", self.macro)
+                self.macro.start(self)
 
         elif isinstance(macro, ZprobeMacro):
             self.fire()
@@ -179,8 +181,8 @@ class FcodeExecutor(BaseExecutor):
                     else:
                         self.fire()
 
-    def pause(self, *args):
-        if BaseExecutor.pause(self, *args):
+    def pause(self, symbol=None):
+        if BaseExecutor.pause(self, symbol):
             self._process_pause()
             return True
         else:
@@ -201,8 +203,8 @@ class FcodeExecutor(BaseExecutor):
         else:
             return False
 
-    def abort(self, *args):
-        if BaseExecutor.abort(self, *args):
+    def abort(self, symbol=None):
+        if BaseExecutor.abort(self, symbol):
             self.main_ctrl.close(self)
             return True
         else:
@@ -216,9 +218,9 @@ class FcodeExecutor(BaseExecutor):
                 if ret == 0:
                     self._eof = True
                 elif ret == -1:
-                    self.abort(EXEC_BAD_COMMAND, "MOVE")
+                    self.abort(RuntimeError(EXEC_BAD_COMMAND, "MOVE"))
                 elif ret == -3:
-                    self.abort(EXEC_BAD_COMMAND, "MULTI_E")
+                    self.abort(RuntimeError(EXEC_BAD_COMMAND, "MULTI_E"))
 
             while self._cmd_queue:
                 target = self._cmd_queue[0][1]
@@ -247,14 +249,14 @@ class FcodeExecutor(BaseExecutor):
                             self.macro.start(self)
                     return
                 elif target == 8:
-                    self.pause("USER_OPERATION", "FROM_CODE")
+                    self.pause(RuntimeError("USER_OPERATION", "FROM_CODE"))
                     self._cmd_queue.popleft()[0]
                     return
                 elif target == 128:
-                    self.abort(self._cmd_queue[0][0])
+                    self.abort(RuntimeError(self._cmd_queue[0][0]))
 
                 else:
-                    raise SystemError("UNKNOWN_ERROR", "target=%i" % target)
+                    raise SystemError(UNKNOWN_ERROR, "TARGET=%i" % target)
 
     def _cb_feed_command(self, *args):
         self._cmd_queue.append(args)
@@ -289,15 +291,18 @@ class FcodeExecutor(BaseExecutor):
             self.main_ctrl.on_message(msg, self)
             self.fire()
         except RuntimeError as err:
-            if not self.pause(*err.args):
-                logger.error("Error occour: %s" % repr(err.args))
+            if not self.pause(err):
+                logger.warn("Error occour: %s" % repr(err.args))
         except SystemError as err:
-            self.abort(*err.args)
+            self.abort(err)
         except Exception as err:
             if self.debug:
                 raise
             logger.exception("Unhandle error")
-            self.abort(UNKNOWN_ERROR, "MAINBOARD_MESSAGE")
+            if allow_god_mode():
+                self.abort(err)
+            else:
+                self.abort(RuntimeError(UNKNOWN_ERROR, "MAINBAORD_ERROR"))
 
     def on_headboard_message(self, msg):
         try:
@@ -307,15 +312,18 @@ class FcodeExecutor(BaseExecutor):
             self.head_ctrl.on_message(msg, self)
             self.fire()
         except RuntimeError as err:
-            if not self.pause(*err.args):
-                logger.error("Error occour: %s" % repr(err.args))
+            if not self.pause(err):
+                logger.warn("Error occour: %s" % repr(err.args))
         except SystemError as err:
-            self.abort(*err.args)
+            self.abort(err)
         except Exception as err:
             if self.debug:
                 raise
             logger.exception("Unhandle error")
-            self.abort(UNKNOWN_ERROR, "HEADBOARD_MESSAGE")
+            if allow_god_mode():
+                self.abort(err)
+            else:
+                self.abort(RuntimeError(UNKNOWN_ERROR, "HEADBOARD_ERROR"))
 
     # def load_filament(self, extruder_id):
     #     self.send_mainboard("@\n")
@@ -330,13 +338,16 @@ class FcodeExecutor(BaseExecutor):
             self.head_ctrl.patrol(self)
 
         except RuntimeError as err:
-            if not self.pause(err.args[0]):
+            if not self.pause(err):
                 if self.status_id == ST_RUNNING:
                     raise SystemError("BAD_LOGIC", None, err)
         except SystemError as err:
-            self.abort(*err.args)
+            self.abort(err)
         except Exception as err:
             if self.debug:
                 raise
             logger.exception("Unhandle error")
-            self.abort(UNKNOWN_ERROR, "LOOPBACK")
+            if allow_god_mode():
+                self.abort(err)
+            else:
+                self.abort(RuntimeError(UNKNOWN_ERROR, "LOOP_ERROR"))

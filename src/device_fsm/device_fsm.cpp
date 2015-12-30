@@ -184,7 +184,7 @@ int DeviceController::feed(int fd, command_cb_t callback, void* data) {
     MACRO_READ(fd, &val, 4)
     snprintf(_proc_buf, 32, "G4 P%i", (int)val);
     callback(_proc_buf, MAIN_MESSAGE, data);
-    return 1;
+    return l;
   } else if((cmd & 3) == 3) {
     // Relative Positioning (G91)
     callback("G91", MAIN_MESSAGE, data);

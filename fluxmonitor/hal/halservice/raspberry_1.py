@@ -34,8 +34,8 @@ GPIO_NOT_DEFINED = (22, 24, )
 
 HEAD_POWER_ON = GPIO.HIGH
 HEAD_POWER_OFF = GPIO.LOW
-USB_SERIAL_ON = GPIO.LOW
-USB_SERIAL_OFF = GPIO.HIGH
+USB_SERIAL_ON = GPIO.HIGH
+USB_SERIAL_OFF = GPIO.LOW
 MAINBOARD_ON = GPIO.HIGH
 MAINBOARD_OFF = GPIO.LOW
 MAIN_BUTTON_DOWN = 0
@@ -147,7 +147,7 @@ class GPIOControl(object):
 
         GPIO.setup(GPIO_HEAD_POW_PIN, GPIO.OUT, initial=self._head_power_stat)
         GPIO.setup(GPIO_MAINBOARD_POW_PIN, GPIO.OUT, initial=MAINBOARD_ON)
-        GPIO.setup(GPIO_USB_SERIAL_PIN, GPIO.OUT)
+        GPIO.setup(GPIO_USB_SERIAL_PIN, GPIO.OUT, initial=USB_SERIAL_OFF)
         L.debug("GPIO configured")
 
         self.update_ama0_routing()
