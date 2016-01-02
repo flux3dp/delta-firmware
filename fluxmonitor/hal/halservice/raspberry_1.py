@@ -2,7 +2,6 @@
 from multiprocessing import Process
 from time import time, sleep
 import logging
-import signal
 import os
 
 from setproctitle import getproctitle, setproctitle
@@ -279,7 +278,6 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOControl):
         L.debug("Init with corr: %s", corr_str)
 
         self.sendto_mainboard(corr_str)
-        self.sendto_mainboard("G28\n")
         buf = self.storage.readall("on_boot")
         if buf:
             self.sendto_mainboard(buf)
