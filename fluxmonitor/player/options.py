@@ -23,12 +23,14 @@ class Options(object):
     correction = None
     head_error_level = None
     play_bufsize = None
+    filament_detect = None
     max_x = None
     max_y = None
     max_z = None
 
-    def __init__(self, taskloader):
-        self.__load_from_metadata__(taskloader.metadata)
+    def __init__(self, taskloader=None):
+        if taskloader:
+            self.__load_from_metadata__(taskloader.metadata)
         self.__load_form_local__()
 
     def __load_from_metadata__(self, metadata):

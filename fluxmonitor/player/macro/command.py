@@ -2,8 +2,9 @@
 class CommandMacro(object):
     name = "SCRIPT"
 
-    def __init__(self, on_success_cb, commands=[]):
+    def __init__(self, on_success_cb, commands=[], on_message_cb=None):
         self._on_success_cb = on_success_cb
+        self._on_message_cb = on_message_cb
         self.commands = commands
 
     def start(self, executor):
@@ -20,7 +21,8 @@ class CommandMacro(object):
         pass
 
     def on_mainboard_message(self, msg, executor):
-        pass
+        if self._on_message_cb:
+            self._on_message_cb(msg)
 
     def on_headboard_message(self, msg, executor):
         pass
