@@ -18,7 +18,9 @@ def device_startup():
         mb.send("G28+\n")
         mb.recv(1024)
     except socket.timeout:
-        pass
+        logger.warn("Mainboard I/O timeout")
+    except socket.error:
+        logger.warn("Connect to mainboard timeout")
 
 
 def _try_clean_head_status():
@@ -63,7 +65,9 @@ def _try_clean_head_status():
             sleep(0.8)
 
     except socket.timeout:
-        if logger.getEffectiveLevel() >= logging.DEBUG:
-            logger.exception("Head no response")
+        if logger.getEffectiveLevel() <= logging.DEBUG:
+            logger.exception("Head I/O timeout")
         else:
-            logger.warn("Head no response")
+            logger.warn("Head I/O timeout")
+    except socket.error:
+        logger.warn("Connect to head timeout")

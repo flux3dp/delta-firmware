@@ -41,7 +41,7 @@ class Robot(ServiceBase):
         try:
             self.button_control = ButtonControl(self, logger=logger)
         except Exception:
-            if logger.getEffectiveLevel() >= logging.DEBUG:
+            if logger.getEffectiveLevel() <= logging.DEBUG:
                 logger.exception("Button control interface launch failed")
             else:
                 logger.warn("Button control interface launch failed")
