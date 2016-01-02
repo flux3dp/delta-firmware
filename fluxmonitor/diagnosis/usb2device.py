@@ -2,6 +2,7 @@
 from select import select
 from time import time
 import socket
+import os
 
 
 def usb2mainboard(usb_serial, mainboard_unixsocket_endpoint):
@@ -59,3 +60,7 @@ def usb2camera(usb_serial):
         errstr = repr(err).encode()
         usb_serial.send(("%8x" % len(errstr)).encode())
         usb_serial.send(errstr)
+
+
+def enable_console():
+    return os.system("systemctl start serial-getty@ttyUSB0.service")
