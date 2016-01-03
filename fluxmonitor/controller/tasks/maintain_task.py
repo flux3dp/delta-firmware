@@ -7,9 +7,9 @@ import re
 from fluxmonitor.player.main_controller import MainController
 from fluxmonitor.player.head_controller import (
     HeadController, HeadError, HeadOfflineError, HeadResetError, HeadTypeError)
+from fluxmonitor.player.options import Options
 from fluxmonitor.player import macro
 from fluxmonitor.storage import Metadata
-from fluxmonitor.misc import correction
 from fluxmonitor.config import uart_config
 
 from fluxmonitor.err_codes import RESOURCE_BUSY, UNKNOWN_COMMAND, \
@@ -65,6 +65,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         self.timer_watcher.start()
 
     def on_exit(self):
+        self.send_mainboard("@HOME_BUTTON_TRIGGER\n")
         self.close()
         super(MaintainTask, self).on_exit()
 
@@ -121,7 +122,10 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             logger.exception("Unhandle Error")
 
     def dispatch_cmd(self, handler, cmd, *args):
-        if self._busy:
+        if cmd == "stop_load_filament":
+            self.send_mainboard("@HOME_BUTTON_TRIGGER\n")
+            return
+        elif self._busy:
             raise RuntimeError(RESOURCE_BUSY)
 
         if cmd == "home":
@@ -173,7 +177,20 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             self._busy = False
 
         def on_heating_done():
-            self._macro = macro.CommandMacro(on_load_done, ["C3"])
+            def on_message(msg):
+                try:
+                    if msg == "CTRL FILAMENT+":
+                        handler.send_text("CTRL LOADING")
+                    elif msg == "CTRL FILAMENT-":
+                        handler.send_text("CTRL WAITTING")
+                except Exception:
+                    self.send_mainboard("@HOME_BUTTON_TRIGGER\n")
+                    raise
+
+            opt = Options()
+            cmds = ("C3", ) if opt.filament_detect == "N" else ("C3+", )
+            self._macro = macro.CommandMacro(on_load_done, cmds,
+                                             on_message_cb=on_message)
             self._macro.start(self)
 
         def on_macro_error(error):
@@ -186,8 +203,6 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             if isinstance(self._macro, macro.WaitHeadMacro):
                 st = self.head_ctrl.status()
                 handler.send_text("CTRL HEATING %.1f" % st.get("rt")[index])
-            else:
-                handler.send_text("CTRL LOADING")
 
         self._macro = macro.WaitHeadMacro(on_heating_done, "H%.1f" % temp)
         self._on_macro_error = on_macro_error
@@ -363,4 +378,3 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             self.main_ctrl.close(self)
             self.main_ctrl = None
         self.meta.update_device_status(0, 0, "N/A", "")
-

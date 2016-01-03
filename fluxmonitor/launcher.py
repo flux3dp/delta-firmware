@@ -57,7 +57,7 @@ def create_logger(options):
         'loggers': {},
         'root': {
             'handlers': list(handlers.keys()),
-            'level': 'DEBUG',
+            'level': log_level,
             'propagate': True
         }
     })

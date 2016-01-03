@@ -11,7 +11,7 @@ import pyev
 from fluxmonitor.controller.tasks.command_task import CommandTask
 from fluxmonitor.storage import CommonMetadata
 from fluxmonitor.err_codes import AUTH_ERROR
-from fluxmonitor.misc import timer as T
+from fluxmonitor.misc import timer as T  # noqa
 from fluxmonitor import security
 
 logger = logging.getLogger(__name__)
@@ -315,6 +315,7 @@ class LocalConnectionHandler(object):
                 self.send_watcher = None
 
             self.sock.close()
+
             if self.stack:
                 self.stack.terminate()
                 self.stack = None
@@ -330,7 +331,7 @@ class ServiceStack(object):
         self.this_task = None
 
         cmd_task = CommandTask(weakref.proxy(self))
-        self.enter_task(cmd_task, None)
+        self.this_task = cmd_task
 
     def __del__(self):
         logger.debug("ServiceStack GC")
@@ -369,9 +370,8 @@ class ServiceStack(object):
             self.this_task = current_task
 
     def terminate(self):
-        while len(self.task_callstack) > 2:
-            task, cb = self.task_callstack.pop()
+        while self.task_callstack:
             try:
-                task.on_exit()
+                self.exit_task(self.this_task)
             except Exception:
                 logger.exception("Unhandle error")
