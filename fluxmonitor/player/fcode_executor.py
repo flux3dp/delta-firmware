@@ -145,10 +145,10 @@ class FcodeExecutor(BaseExecutor):
 
     def _process_pause(self):
         if self.status_id & 4:
-            if self.error_symbol.startswith("USER_"):
-                self.main_ctrl.send_cmd("X5S80", self)
-            else:
+            if self.error_symbol:
                 self.main_ctrl.send_cmd("X5S69", self)
+            else:
+                self.main_ctrl.send_cmd("X5S80", self)
             self.paused()
 
         elif self.main_ctrl.buffered_cmd_size == 0:
@@ -159,10 +159,10 @@ class FcodeExecutor(BaseExecutor):
             elif self._mb_stashed:
                 self.paused()
             else:
-                if self.error_symbol.startswith("USER_"):
-                    self.main_ctrl.send_cmd("C2E1", self)
-                else:
+                if self.error_symbol:
                     self.main_ctrl.send_cmd("C2E2", self)
+                else:
+                    self.main_ctrl.send_cmd("C2E1", self)
                 self._mb_stashed = True
 
     def _process_resume(self):
@@ -274,9 +274,10 @@ class FcodeExecutor(BaseExecutor):
             x, y, z = fsm.get_x(), fsm.get_y(), fsm.get_z()
             if x == x and y == y and z <= 200:
                 self.main_ctrl.send_cmd("G1F6000X0Y0Z205", self)
-                self.main_ctrl.send_cmd("G28+", self)
             else:
-                self.main_ctrl.send_cmd("G28+", self)
+                self.status_id = ST_COMPLETED
+                self.main_ctrl.close(self)
+
         elif self.status_id == ST_COMPLETING:
             self.status_id = ST_COMPLETED
             self.main_ctrl.close(self)

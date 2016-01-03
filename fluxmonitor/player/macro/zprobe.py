@@ -49,18 +49,16 @@ class ZprobeMacro(object):
             if new_h > 244:
                 logger.error("Correction input failed: %s", data)
             else:
-                logger.warn(">>>> %s", "M666H%.4f, data=%.4f orig=%.4f" % (new_h, data, self.meta.plate_correction["H"]))
                 self.meta.plate_correction = {"H": new_h}
                 executor.main_ctrl.send_cmd("M666H%.4f" % new_h, executor)
-                logger.warn("<<<< %s", "orig=%.4f" % (self.meta.plate_correction["H"]))
 
             if abs(data) < self.threshold:
                 self.convergence = True
-                executor.main_ctrl.send_cmd("G1F9000Z50", executor)
+                executor.main_ctrl.send_cmd("G1F6000Z50", executor)
                 return
 
             elif self.round >= self.ttl:
-                executor.main_ctrl.send_cmd("G1F9000X0Y0Z230", executor)
+                executor.main_ctrl.send_cmd("G1F6000X0Y0Z210", executor)
                 raise RuntimeError(HARDWARE_ERROR, EXEC_CONVERGENCE_FAILED)
 
         self.round += 1
@@ -85,7 +83,7 @@ class ZprobeMacro(object):
             str_probe = msg.rsplit(" ", 1)[-1]
             val = float(str_probe)
             if val <= -50:
-                executor.main_ctrl.send_cmd("G1F9000X0Y0Z230", executor)
+                executor.main_ctrl.send_cmd("G1F6000X0Y0Z210", executor)
                 raise RuntimeError(HARDWARE_ERROR, EXEC_ZPROBE_ERROR)
             self.data = val
 

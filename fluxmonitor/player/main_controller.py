@@ -2,7 +2,6 @@
 from collections import deque
 from time import time
 import logging
-import socket
 
 from fluxmonitor.err_codes import EXEC_OPERATION_ERROR, EXEC_INTERNAL_ERROR,\
     EXEC_MAINBOARD_OFFLINE, EXEC_FILAMENT_RUNOUT, HARDWARE_ERROR, \
@@ -245,7 +244,7 @@ class MainController(object):
     def close(self, executor):
         if self._flags & FLAG_READY:
             executor.send_mainboard("@DISABLE_LINECHECK\n")
-            executor.send_mainboard("G28\n")
+            executor.send_mainboard("G28+\n")
             executor.send_mainboard("X5S0\n")
             self._flags &= ~FLAG_READY
             self._flags |= FLAG_CLOSED
