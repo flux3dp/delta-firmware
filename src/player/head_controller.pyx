@@ -17,7 +17,10 @@ from fluxmonitor.err_codes import EXEC_HEAD_OFFLINE, EXEC_OPERATION_ERROR, \
     EXEC_UNKNOWN_HEAD, FILE_BROKEN, UNKNOWN_COMMAND
 
 
-cdef HELLO_CMD = "1 HELLO *115\n"
+DEF MAX_COMMAND_RETRY = 3
+DEF MAX_PING_RETRY = 3
+DEF HELLO_CMD = "1 HELLO *115\n"
+DEF PING_CMD = "1 PING *33\n"
 cdef MODULES_EXT = {}
 cdef L = logging.getLogger(__name__)
 
@@ -45,6 +48,7 @@ cdef class HeadController:
     cdef int _ready
     cdef bool _wait_update
 
+    cdef public float _timer
     cdef public float _cmd_sent_at
     cdef public int _cmd_retry
 
@@ -82,17 +86,17 @@ cdef class HeadController:
         self._update_retry = 0
         self._wait_update = False
 
-        queue = [HELLO_CMD]
         if self._ext:
-            queue += self._ext.bootstrap_commands()
+            self._recover_queue = self._ext.bootstrap_commands()
+        else:
+            self._recover_queue = []
 
-        self._recover_queue = queue
-        self._padding_cmd = queue.pop(0)
+        self._padding_cmd = HELLO_CMD
         self._send_cmd(executor)
 
     @property
     def ready(self):
-        return self._ready == 2
+        return self._ready == 8
 
     @property
     def is_busy(self):
@@ -103,7 +107,7 @@ cdef class HeadController:
         return self._module
 
     def status(self):
-        if self._ready == 2 and self._ext:
+        if self._ready == 8 and self._ext:
             return self._ext.status()
         else:
             return {"module": "N/A"}
@@ -143,7 +147,7 @@ cdef class HeadController:
         raise error_klass()
 
     def _on_ready(self):
-        self._ready = 2
+        self._ready = 8
         if self._ready_callback:
             self._ready_callback(self)
 
@@ -170,9 +174,9 @@ cdef class HeadController:
                     ptr += 1
 
     cdef inline handle_message(self, msg, executor):
-        if self._ready == 2:
+        if self._ready == 8:
             if msg.startswith("OK PONG "):
-                self._handle_pong(msg, executor)
+                self._handle_pong(msg)
                 if self._padding_cmd:
                     self._send_cmd(executor)
             elif self._parse_cmd_response(msg, executor):
@@ -181,29 +185,48 @@ cdef class HeadController:
                 pass
             else:
                 L.info("RECV_UH: '%s'", msg)
-        elif self._ready == 1:
-            if self._padding_cmd is HELLO_CMD:
-                if msg.startswith("OK HELLO "):
-                    self._on_head_hello(msg[9:])
-
-                    self._cmd_sent_at = 0
-                    self._cmd_retry = 0
-                    self._padding_cmd = None
-            elif self._parse_cmd_response(msg, executor):
-                pass
-            else:
-                L.info("RECV_UH: '%s'", msg)
-
-            if self._padding_cmd is None:
+        elif self._ready == 4:
+            if self._parse_cmd_response(msg, executor):
                 if self._recover_queue:
                     self._padding_cmd = self._recover_queue.pop(0)
                     self._send_cmd(executor)
                 else:
                     self._on_ready()
-        elif msg.startswith("OK PONG "):
-            self._handle_pong(msg, executor)
+            else:
+                L.info("GOT: '%s' (ready=%i)", msg, self._ready)
+        elif self._ready == 2:
+            if msg.startswith("OK PONG "):
+                if self._handle_pong(msg) == 0:
+                    self._padding_cmd = None
+                    self._cmd_retry = self._cmd_sent_at = 0
+                    if self._recover_queue:
+                        self._ready = 4
+                        self._padding_cmd = self._recover_queue.pop(0)
+                        self._send_cmd(executor)
+                    else:
+                        self._on_ready()
+                else:
+                    if monotonic_time() - self._timer > 9:
+                        self._ready = 4
+                        self._handle_pong(msg)
+                    else:
+                        self._padding_cmd = PING_CMD
+                        self._send_cmd(executor)
+            else:
+                L.info("GOT: '%s' (ready=%i)", msg, self._ready)
+        elif self._ready == 1:
+            if self._padding_cmd is HELLO_CMD:
+                if msg.startswith("OK HELLO "):
+                    self._on_head_hello(msg[9:])
+                    self._ready = 2
+                    self._padding_cmd = PING_CMD
+                    self._timer = monotonic_time()
+                    self._cmd_retry = self._cmd_sent_at = 0
+                    self._send_cmd(executor)
+                else:
+                    L.info("GOT: '%s' (ready=%i)", msg, self._ready)
         else:
-            L.info("RECV_UH: '%s'", msg)
+            L.info("GOT: '%s' (ready=%i)", msg, self._ready)
 
     def send_cmd(self, cmd, executor, complete_callback=None,
                  allset_callback=None):
@@ -246,13 +269,14 @@ cdef class HeadController:
             return False
 
     cdef inline int _handle_ping(self, executor) except *:
-        executor.send_headboard("1 PING *33\n")
+        executor.send_headboard(PING_CMD)
         if self._ext is not None:
             self._wait_update = True
         self._lastupdate = monotonic_time()
         return 0
 
-    cdef inline int _handle_pong(self, msg, executor) except *:
+    cdef inline int _handle_pong(self, msg) except *:
+        cdef int er = -1
         self._update_retry = 0
         self._wait_update = False
         self._lastupdate = monotonic_time()
@@ -274,7 +298,7 @@ cdef class HeadController:
                     pass
                 elif er & 4:
                     self._on_head_offline(HeadResetError)
-                elif er & self._error_level & ~7:
+                elif self._ready >= 4 and er & self._error_level & ~7:
                     self._ready = 0
                     if er & 8:
                         raise HeadCalibratingError()
@@ -295,13 +319,13 @@ cdef class HeadController:
                         self._allset_callback(self)
                     finally:
                         self._allset_callback = None
-        return 0
+        return er
 
     def patrol(self, executor):
         cdef float t = monotonic_time()
 
         if self._wait_update:
-            if self._update_retry > 2 and self._ready:
+            if self._update_retry > MAX_PING_RETRY and self._ready:
                 self._on_head_offline(HeadOfflineError)
             if t - self._lastupdate > 0.4:
                 self._update_retry += 1 if self._ready else 0
@@ -313,7 +337,7 @@ cdef class HeadController:
                 self._handle_ping(executor)
 
         if self._ready and self._padding_cmd:
-            if self._cmd_retry > 2 and self._ready:
+            if self._cmd_retry > MAX_COMMAND_RETRY and self._ready:
                 self._on_head_offline(HeadOfflineError)
             elif t - self._cmd_sent_at > 0.8:
                 if self._ext:

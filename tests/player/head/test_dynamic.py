@@ -5,6 +5,8 @@ from tests.player.misc import ControlTestBase, UnittestError
 EXTRUDER_HELLO_MSG = ("1 OK HELLO TYPE:EXTRUDER ID:1572870 VENDOR:FLUX\ .inc "
                       "FIRMWARE:OHMAMA VERSION:1.0922 EXTRUDER:1 "
                       "MAX_TEMPERATURE:235.0 *85")
+PING_CMD = "1 PING *33\n"
+PONG_MSG = "1 OK PONG ER:0 RT:40.0 TT:0 FA:0 *63"
 
 
 class DurarararaControlTest(ControlTestBase):
@@ -38,7 +40,7 @@ class DurarararaControlTest(ControlTestBase):
                               "1 OK PONG ER:4 RT:40.0 TT:0 FA:0 *59", executor)
 
     def test_reset_and_hello(self):
-        with self.assertSendHeadboard("1 HELLO *115\n",
+        with self.assertSendHeadboard("1 HELLO *115\n", "1 PING *33\n",
                                       "1 H:0 T:220.0 *19\n") as executor:
             self.assertTrue(self.ec.ready)
             self.assertRaises(RuntimeError, self.ec.on_message,
@@ -46,8 +48,9 @@ class DurarararaControlTest(ControlTestBase):
             self.assertFalse(self.ec.ready)
             self.ec.bootstrap(executor)
             self.assertEqual(self.ec.module, "N/A")
+            self.ec.on_message(EXTRUDER_HELLO_MSG, executor)
             self.assertRaises(UnittestError, self.ec.on_message,
-                              EXTRUDER_HELLO_MSG, executor)
+                              PONG_MSG, executor)
             self.assertEqual(self.ec.module, "EXTRUDER")
             self.ec.send_cmd("H220", executor)
             self.ec.on_message("1 OK HEATER *26",
@@ -60,16 +63,18 @@ class DurarararaControlTest(ControlTestBase):
             self.assertEqual(st["module"], "EXTRUDER")
 
     def test_extruder_offline(self):
-        with self.assertSendHeadboard("1 PING *33\n", "1 HELLO *115\n",
-                                      "1 PING *33\n", "1 PING *33\n",
-                                      "1 PING *33\n", "1 PING *33\n") as executor:
+        with self.assertSendHeadboard(PING_CMD, "1 HELLO *115\n",
+                                      PING_CMD, PING_CMD, PING_CMD, PING_CMD,
+                                      PING_CMD, PING_CMD) as executor:
             self.ec.patrol(executor)
             self.assertRaises(RuntimeError, self.ec.on_message,
                               "1 OK PONG ER:4 RT:40.0 TT:0 FA:0 *59", executor)
             self.ec.bootstrap(executor)
+            self.ec.on_message(EXTRUDER_HELLO_MSG, executor)
             self.assertRaises(UnittestError, self.ec.on_message,
-                              EXTRUDER_HELLO_MSG, executor)
-            for i in range(4):
+                              PONG_MSG, executor)
+            self.assertTrue(self.ec.ready)
+            for i in range(5):
                 self.ec._lastupdate = 0
                 self.ec.patrol(executor)
             self.ec._lastupdate = 0
