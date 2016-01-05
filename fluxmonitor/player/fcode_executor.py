@@ -166,20 +166,21 @@ class FcodeExecutor(BaseExecutor):
                 self._mb_stashed = True
 
     def _process_resume(self):
-        if self.main_ctrl.buffered_cmd_size == 0:
-            if self._mb_stashed:
-                self.main_ctrl.send_cmd("C2F", self)
-                self._mb_stashed = False
-            else:
-                self.main_ctrl.send_cmd("X5S0", self)
-                self.resumed()
-                if self.status_id & 4:
-                    self.started()
+        if self.main_ctrl.ready and self.head_ctrl.ready:
+            if self.main_ctrl.buffered_cmd_size == 0:
+                if self._mb_stashed:
+                    self.main_ctrl.send_cmd("C2F", self)
+                    self._mb_stashed = False
                 else:
-                    if self.macro:
-                        self.macro.start(self)
+                    self.main_ctrl.send_cmd("X5S0", self)
+                    self.resumed()
+                    if self.status_id & 4:
+                        self.started()
                     else:
-                        self.fire()
+                        if self.macro:
+                            self.macro.start(self)
+                        else:
+                            self.fire()
 
     def pause(self, symbol=None):
         if BaseExecutor.pause(self, symbol):
