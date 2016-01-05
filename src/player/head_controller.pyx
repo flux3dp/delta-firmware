@@ -225,6 +225,10 @@ cdef class HeadController:
                     self._send_cmd(executor)
                 else:
                     L.info("GOT: '%s' (ready=%i)", msg, self._ready)
+        elif self._ready == 0 and msg.startswith("OK PONG "):
+            self._update_retry = 0
+            self._wait_update = False
+            self._lastupdate = monotonic_time()
         else:
             L.info("GOT: '%s' (ready=%i)", msg, self._ready)
 
@@ -333,7 +337,7 @@ cdef class HeadController:
                 L.debug("Header ping timeout, retry (%i)", self._update_retry)
 
         elif t - self._lastupdate > 0.4:
-            if not self._padding_cmd:
+            if self._ready > 0 and not self._padding_cmd:
                 self._handle_ping(executor)
 
         if self._ready and self._padding_cmd:

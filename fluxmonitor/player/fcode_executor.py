@@ -153,7 +153,10 @@ class FcodeExecutor(BaseExecutor):
 
         elif self.main_ctrl.buffered_cmd_size == 0:
             if self.macro:
-                self.main_ctrl.send_cmd("X5S69", self)
+                if self.error_symbol:
+                    self.main_ctrl.send_cmd("X5S69", self)
+                else:
+                    self.main_ctrl.send_cmd("X5S80", self)
                 self.paused()
                 self.macro.giveup()
             elif self._mb_stashed:
@@ -172,7 +175,6 @@ class FcodeExecutor(BaseExecutor):
                     self.main_ctrl.send_cmd("C2F", self)
                     self._mb_stashed = False
                 else:
-                    self.main_ctrl.send_cmd("X5S0", self)
                     self.resumed()
                     if self.status_id & 4:
                         self.started()
@@ -191,8 +193,8 @@ class FcodeExecutor(BaseExecutor):
 
     def resume(self):
         if BaseExecutor.resume(self):
-            if self.status_id & 4:
-                self.main_ctrl.send_cmd("X5S0", self)
+            self.main_ctrl.send_cmd("X5S0", self)
+
             if self.main_ctrl.ready and self.head_ctrl.ready:
                 self._process_resume()
             else:
@@ -306,7 +308,7 @@ class FcodeExecutor(BaseExecutor):
         except Exception as err:
             if self.debug:
                 raise
-            logger.exception("Unhandle error")
+            logger.exception("Error while processing mainboard message")
             if allow_god_mode():
                 self.abort(err)
             else:
@@ -327,7 +329,7 @@ class FcodeExecutor(BaseExecutor):
         except Exception as err:
             if self.debug:
                 raise
-            logger.exception("Unhandle error")
+            logger.exception("Error while processing headboard message")
             if allow_god_mode():
                 self.abort(err)
             else:
@@ -354,7 +356,7 @@ class FcodeExecutor(BaseExecutor):
         except Exception as err:
             if self.debug:
                 raise
-            logger.exception("Unhandle error")
+            logger.exception("Error while processing loop")
             if allow_god_mode():
                 self.abort(err)
             else:
