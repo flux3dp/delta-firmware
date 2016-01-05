@@ -135,6 +135,6 @@ class ExtruderHeadControlTest(ControlTestBase):
             self.ec.on_message(ER_PONG_MSG, executor)
 
         self.assertFalse(self.ec.ready)
-        with self.assertSendHeadboard("1 PING *33\n") as executor:
+        with self.assertSendHeadboard() as executor:
             self.ec._lastupdate = 0
             self.ec.patrol(executor)

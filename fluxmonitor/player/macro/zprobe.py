@@ -25,6 +25,7 @@ class ZprobeMacro(object):
 
     def __init__(self, on_success_cb, ttl=5, threshold=0.05, clean=True):
         self._on_success_cb = on_success_cb
+        self._running = False
         self.meta = Metadata()
         self.threshold = threshold
         self.history = []
@@ -36,6 +37,9 @@ class ZprobeMacro(object):
         self.round = 0
 
     def on_command_empty(self, executor):
+        if not self._running:
+            return
+
         if self.convergence:
             self._on_success_cb()
             return
@@ -69,6 +73,7 @@ class ZprobeMacro(object):
         pass
 
     def start(self, executor):
+        self._running = True
         if self.clean:
             self.meta.plate_correction = {"H": 242}
             executor.main_ctrl.send_cmd("M666H242", executor)
@@ -76,7 +81,8 @@ class ZprobeMacro(object):
             executor.main_ctrl.send_cmd("G30X0Y0", executor)
 
     def giveup(self):
-        pass
+        self._running = False
+        self.data = None
 
     def on_mainboard_message(self, msg, executor):
         if msg.startswith("Bed Z-Height at"):

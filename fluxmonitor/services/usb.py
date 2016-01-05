@@ -1,6 +1,7 @@
 
 from pkg_resources import resource_string
 from errno import ENOENT, ENOTSOCK
+from select import select
 from time import time
 import logging
 import socket
@@ -206,6 +207,9 @@ class UsbIO(object):
                     self._recv_view[length + 7:self._recv_offset]
             self._recv_offset = remnant
 
+    def has_request(self):
+        return len(select((self.sock, ), (), (), 0)[0]) > 0
+
     def send_response(self, req, is_success, buf):
         """
             3s: MN
@@ -213,6 +217,11 @@ class UsbIO(object):
             H: response length
             b: request success=1, error=0
         """
+        if self.has_request():
+            # Drop this response because already has next request
+            logger.warn("Drop req %i because already got next req", req)
+            return
+
         success_flag = 1 if is_success else 0
         header = struct.pack("<3sHHb", b'\x97\xae\x02', req, len(buf),
                              success_flag)

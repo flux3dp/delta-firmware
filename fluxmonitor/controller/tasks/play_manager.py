@@ -4,10 +4,7 @@ from tempfile import mktemp
 from time import time
 import logging
 import socket
-import fcntl
 import os
-
-import pyev
 
 from fluxmonitor.player.connection import create_mainboard_socket
 from fluxmonitor.player.base import (ST_COMPLETED, ST_ABORTED,
@@ -16,7 +13,7 @@ from fluxmonitor.misc.fcode_file import FCodeFile, FCodeError
 from fluxmonitor.err_codes import FILE_BROKEN, NOT_SUPPORT, UNKNOWN_ERROR, \
     RESOURCE_BUSY
 from fluxmonitor.config import PLAY_ENDPOINT, PLAY_SWAP
-from fluxmonitor.storage import Metadata
+from fluxmonitor.storage import Storage, Metadata
 
 logger = logging.getLogger("Player")
 
@@ -43,29 +40,19 @@ class PlayerManager(object):
 
             self.playinfo = ff.metadata, ff.image_buf
 
-            cmd = ["fluxplayer", "-c", PLAY_ENDPOINT, "--task", taskfile]
+            storage = Storage("log")
+            cmd = ["fluxplayer", "-c", PLAY_ENDPOINT, "--task", taskfile,
+                   "--log", storage.get_path("fluxplayerd.log")]
             if logger.getEffectiveLevel() <= 10:
                 cmd += ["--debug"]
 
-            proc = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+            proc = Popen(cmd, stdin=PIPE)
             child_watcher = loop.child(proc.pid, False, self.on_process_dead,
                                        terminated_callback)
             child_watcher.start()
             self.meta.update_device_status(1, 0, "N/A", err_label="")
 
-            for io in (proc.stdout, proc.stderr):
-                fd = io.fileno()
-                fl = fcntl.fcntl(fd, fcntl.F_GETFL)
-                fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
-
-            std_watcher = loop.io(proc.stdout, pyev.EV_READ, self.on_console,
-                                  proc.stdout)
-            std_watcher.start()
-            err_watcher = loop.io(proc.stderr, pyev.EV_READ, self.on_console,
-                                  proc.stderr)
-            err_watcher.start()
-
-            self.watchers = (std_watcher, err_watcher, child_watcher)
+            self.watchers = (child_watcher, )
             self.proc = proc
             self._terminated_callback = terminated_callback
 
@@ -119,15 +106,6 @@ class PlayerManager(object):
                 watcher = None
         finally:
             self._terminated_callback = None
-
-    def on_console(self, watcher, revent):
-        buf = watcher.data.read(4096).strip()
-        if buf:
-            logger.info(buf)
-        else:
-            watcher.data.close()
-            watcher.data = None
-            watcher.stop()
 
     def go_to_hell(self):
         # will be called form robot only
