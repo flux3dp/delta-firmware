@@ -182,7 +182,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
                     if msg == "CTRL FILAMENT+":
                         handler.send_text("CTRL LOADING")
                     elif msg == "CTRL FILAMENT-":
-                        handler.send_text("CTRL WAITTING")
+                        handler.send_text("CTRL WAITING")
                 except Exception:
                     self.send_mainboard("@HOME_BUTTON_TRIGGER\n")
                     raise
