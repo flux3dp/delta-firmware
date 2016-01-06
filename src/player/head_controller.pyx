@@ -11,8 +11,7 @@ from shlex import split as shlex_split
 import logging
 
 from fluxmonitor.err_codes import EXEC_HEAD_OFFLINE, EXEC_OPERATION_ERROR, \
-    EXEC_TYPE_ERROR, EXEC_HEAD_ERROR, EXEC_NEED_REMOVE_HEAD, \
-    EXEC_UNKNOWN_REQUIRED_HEAD_TYPE, EXEC_HEAD_RESET, EXEC_HEAD_CALIBRATING, \
+    EXEC_TYPE_ERROR, EXEC_HEAD_ERROR, EXEC_HEAD_RESET, EXEC_HEAD_CALIBRATING, \
     EXEC_HEAD_SHAKE, EXEC_HEAD_TILT, HARDWARE_FAILURE, EXEC_HEAD_FAN_FAILURE, \
     EXEC_UNKNOWN_HEAD, FILE_BROKEN, UNKNOWN_COMMAND
 
@@ -126,7 +125,7 @@ cdef class HeadController:
                 self._ext.hello(**module_info)
             else:
                 if self._required_module == "N/A":
-                    raise RuntimeError(EXEC_NEED_REMOVE_HEAD)
+                    raise HeadTypeError("N/A", module_type)
                 else:
                     ext_klass = MODULES_EXT.get(module_type)
                     if ext_klass:
