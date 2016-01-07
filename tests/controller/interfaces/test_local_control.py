@@ -2,6 +2,7 @@
 from binascii import a2b_hex as from_hex
 from pkg_resources import resource_string
 import unittest
+import pytest
 import struct
 import socket
 
@@ -11,6 +12,7 @@ from fluxmonitor import security
 import pyev
 
 
+@pytest.mark.usefixtures("empty_security")
 class LocalControlTest(unittest.TestCase):
     def setUp(self):
         self.loop = pyev.Loop()

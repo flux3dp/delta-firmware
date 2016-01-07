@@ -2,6 +2,7 @@
 from threading import Thread
 from time import time
 import unittest
+import pytest
 import socket
 import struct
 import gc
@@ -9,10 +10,10 @@ import os
 
 from Crypto.PublicKey import RSA
 
+from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT, uart_config
 from fluxmonitor.halprofile import get_model_id
 from fluxmonitor.security import access_control
 from fluxmonitor.services.usb import UsbIO
-from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT, uart_config
 from fluxmonitor import security
 
 from tests._utils.echo_server import EchoServer
@@ -22,9 +23,9 @@ MODEL_ID = get_model_id()
 MAGIC_NUMBER = b"\x97\xae\x02"
 
 
+@pytest.mark.usefixtures("empty_security")
 class UsbIoTest(unittest.TestCase):
     def setUp(self):
-        # reload(security)
         self.sock, sock = socket.socketpair()
         self.usbio = UsbIO(sock)
 

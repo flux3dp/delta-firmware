@@ -10,10 +10,6 @@ import setup_utils
 
 setup_utils.checklibs()
 
-if setup_utils.is_test():
-    setup_utils.setup_test()
-
-
 setup(
     name="fluxmonitor",
     version=setup_utils.VERSION,

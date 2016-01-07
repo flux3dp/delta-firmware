@@ -3,11 +3,11 @@ from pkg_resources import resource_string
 from io import BytesIO
 from time import time
 import unittest
+import pytest
 
-from fluxmonitor import security
-from fluxmonitor.security import _security
 from fluxmonitor.security.passwd import validate_timestemp, reset_timestemp
-from tests._utils import clean_db
+from fluxmonitor.security import _security
+from fluxmonitor import security
 
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
@@ -17,10 +17,8 @@ from Crypto.Hash import SHA as CryptoSHA  # noqa
 PUBLICKEY_1 = resource_string("fluxmonitor", "data/test/public_1.pem")
 
 
+@pytest.mark.usefixtures("empty_security")
 class MiscSecurityTest(unittest.TestCase):
-    def setUp(self):
-        clean_db()
-
     def test_is_pubkey(self):
         self.assertFalse(security.is_rsakey(None))
         self.assertFalse(security.is_rsakey(""))

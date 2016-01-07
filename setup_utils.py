@@ -44,51 +44,6 @@ def checklib(lib_name, package_name):
         sys.exit(1)
 
 
-def setup_test():
-    from tempfile import mkdtemp
-    tempbase = mkdtemp()
-
-    from fluxmonitor import config
-    config.general_config["db"] = os.path.join(tempbase, "db")
-    config.general_config["keylength"] = 512
-    config.general_config["debug"] = True
-    config.uart_config["headboard"] = os.path.join(tempbase, "headboard-us")
-    config.uart_config["mainboard"] = os.path.join(tempbase, "mainboard-us")
-    config.uart_config["pc"] = os.path.join(tempbase, "pc-us")
-    config.USERSPACE = os.path.join(tempbase, "userspace")
-    config.NETWORK_MANAGE_ENDPOINT = os.path.join(tempbase, "network-us")
-
-    import logging.config
-    logging.config.dictConfig({
-        'version': 1,
-        'disable_existing_loggers': True,
-        'formatters': {
-            'default': {
-                'format': "[%(asctime)s,%(levelname)s,%(name)s] %(message)s",
-                'datefmt': "%Y-%m-%d %H:%M:%S"
-            }
-        },
-        'handlers': {
-            'file': {
-                'formatter': 'default',
-                'class': 'logging.FileHandler',
-                'filename': "./tmp/test.log"
-            }
-        },
-        'root': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
-            'propagate': True
-        }
-    })
-
-    def on_exit():
-        import shutil
-        shutil.rmtree(tempbase)
-    import atexit
-    atexit.register(on_exit)
-
-
 def get_packages():
     return [name
             for _, name, ispkg in walk_packages(".")

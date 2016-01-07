@@ -1,13 +1,9 @@
 
-from fluxmonitor.storage import Storage
 from hashlib import sha1
 from hmac import HMAC
 
 include "halprofile.pxd"
 include "security_encrypt.pyx"
-
-DEF PASSWORD_SYMBOL = "private/password"
-DEF PUBKEY_SYMBOL = "pub"
 
 
 cdef extern from "libflux_identify/flux_identify.h":
@@ -20,9 +16,6 @@ cdef extern from "libflux_identify/flux_identify.h":
     int get_rescue_machine_sn(unsigned char* [16]) except -1
     void generate_wpa_psk(const unsigned char*, int, const unsigned char*,
                           int, unsigned char [64])
-
-
-cdef object storage = Storage("security")
 
 
 def get_rsakey(rescue=False):
@@ -79,20 +72,6 @@ cpdef bint is_rsakey(object pem=None, object der=None):
         return True
     except TypeError:
         return False
-
-
-cpdef bint has_password():
-    return storage.exists(PASSWORD_SYMBOL)
-
-
-cpdef bint validate_password(password):
-    if has_password():
-        with storage.open(PASSWORD_SYMBOL, "r") as f:
-            salt, pwdhash = f.read().split(";")
-            inputhash = HMAC(salt, password, sha1).hexdigest()
-            return pwdhash == inputhash
-    else:
-        return True
 
 
 def get_wpa_psk(ssid, passphrase):
