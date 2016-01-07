@@ -1,13 +1,13 @@
 
-import distutils.sysconfig
 from pkgutil import walk_packages
 from ctypes import cdll
+import distutils.sysconfig
 import ctypes.util
 import platform
 import sys
 import os
 
-from fluxmonitor import __version__ as VERSION
+from fluxmonitor import __version__ as VERSION  # noqa
 
 
 MODEL_DEFINES = {
@@ -99,7 +99,7 @@ DEFAULT_MACROS = []
 
 HARDWARE_MODEL = None
 
-TEST_REQUIRE = ['pycrypto']
+TEST_REQUIRE = ['pytest', 'pycrypto']
 
 PY_INCLUDES = [distutils.sysconfig.get_python_inc()]
 

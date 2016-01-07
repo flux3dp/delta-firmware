@@ -25,6 +25,7 @@ setup(
     entry_points=setup_utils.ENTRY_POINTS,
     install_requires=setup_utils.get_install_requires(),
     tests_require=setup_utils.TEST_REQUIRE,
+    setup_requires=['pytest-runner'],
     libraries=[
         ("flux_hal", {
             "sources": ["src/libflux_hal/halprofile.c"],

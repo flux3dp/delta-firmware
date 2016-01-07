@@ -27,6 +27,7 @@ setup(
     entry_points=setup_utils.ENTRY_POINTS,
     install_requires=setup_utils.get_install_requires(),
     tests_require=setup_utils.TEST_REQUIRE,
+    setup_requires=['pytest-runner'],
     cmdclass={'build_ext': build_ext},
     libraries=[
         ("flux_hal", {
