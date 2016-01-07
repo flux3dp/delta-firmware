@@ -106,7 +106,6 @@ class UsbIO(object):
     def __init__(self, sock):
         self.sock = sock
 
-        self.nw_monitor = NetworkMonitor(None)
         self.meta = Metadata()
 
         self._recv_buf = bytearray(4096)
@@ -321,12 +320,12 @@ class UsbIO(object):
             self.send_response(REQ_LIST_SSID, False, UNKNOWN_ERROR)
 
     def on_query_ipaddr(self, buf):
-        status = self.nw_monitor.full_status()
-        ipaddrs = []
-        for key, data in status.items():
-            for ipaddr, mask in data.get("ipaddr", []):
-                ipaddrs.append(ipaddr)
-        self.send_response(REQ_GET_IPADDR, True, " ".join(ipaddrs))
+        nm = NetworkMonitor(None)
+        try:
+            ipaddrs = nm.get_ipaddresses()
+            self.send_response(REQ_GET_IPADDR, True, " ".join(ipaddrs))
+        finally:
+            nm.close()
 
     def on_set_password(self, buf):
         pwd, pem = buf.split(b"\x00")

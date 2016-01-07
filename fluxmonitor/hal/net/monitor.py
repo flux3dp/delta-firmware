@@ -76,5 +76,14 @@ class Monitor(object):
 
         return status
 
+    def get_ipaddresses(self):
+        addresses = []
+        for addr in self.ipr.get_addr():
+            info = dict(addr['attrs'])
+            addr = info.get('IFA_ADDRESS')
+            if addr:
+                addresses.append(addr)
+        return addresses
+
     def close(self):
         self.ipr.close()
