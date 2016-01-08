@@ -99,6 +99,7 @@ class PlayerManager(object):
 
     def on_process_dead(self, watcher, revent):
         logger.debug("Player terminated")
+        self.meta.update_device_status(0, 0, "N/A", err_label="")
         watcher.stop()
         try:
             if watcher.data:
