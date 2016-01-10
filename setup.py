@@ -83,6 +83,12 @@ setup(
                 "src/player/head_controller.c"],
             define_macros=DEFAULT_MACROS,
             libraries=LD_TIME, extra_objects=[], include_dirs=["src"]
-        )
+        ),
+        Extension(
+            'fluxmonitor.player._main_controller', sources=[
+                "src/player/main_controller.c"],
+            define_macros=DEFAULT_MACROS,
+            libraries=LD_TIME, extra_objects=[], include_dirs=["src"]
+        ),
     ]
 )

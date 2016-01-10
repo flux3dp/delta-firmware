@@ -1,11 +1,12 @@
 
 from time import time
-import socket
 import os
 
-from fluxmonitor.player.main_controller import MainController, FLAG_READY
+from fluxmonitor.player.main_controller import MainController
 from fluxmonitor.config import uart_config
 from .misc import ControlTestBase, UnittestError
+
+FLAG_READY = 1
 
 
 class MainboardControlStartupTest(ControlTestBase):
@@ -56,14 +57,13 @@ class MainboardControlTest(ControlTestBase):
             mc = MainController(executor)
 
         mc._ln = 0
-        mc._waitting_ok = False
         mc._flags |= FLAG_READY
         mc.callback_ready = None
         self.mc = mc
 
     def preset(self, cmd_sent=None, cmd_padding=None, ln=0, ln_ack=0,
                last_recv_ln=None, resend_counter=0, msg_empty_callback=None,
-               msg_sendable_callback=None):
+               msg_sendable_callback=None, last_recv_ts=None):
         if cmd_padding:
             for cmdline in cmd_padding:
                 self.mc._cmd_padding.append(cmdline)
@@ -73,8 +73,12 @@ class MainboardControlTest(ControlTestBase):
 
         self.mc._ln = ln
         self.mc._ln_ack = ln_ack
-        self.mc._last_recv_ts = last_recv_ln if last_recv_ln else time()
-        self.mc._resend_counter = resend_counter
+        if last_recv_ln:
+            self.mc._last_recv_ts = last_recv_ln
+        if resend_counter:
+            self.mc._resend_counter = resend_counter
+        if last_recv_ts is not None:
+            self.mc._last_recv_ts = last_recv_ts
 
         if msg_empty_callback:
             self.mc.callback_msg_empty = msg_empty_callback
@@ -180,7 +184,7 @@ class MainboardControlTest(ControlTestBase):
 
     def test_timeout_and_resend(self):
         self.preset(cmd_sent=((1, b"G28"), (2, b"G1 Z0"), (3, b"G1 X5")),
-                    ln=3, last_recv_ln=time() - 10)
+                    ln=3, last_recv_ln=0, last_recv_ts=0)
 
         with self.assertSendMainboard(b"G28 N1*18\n", b"G1 Z0 N2*96\n",
                                       b"G1 X5 N3*102\n") as executor:
