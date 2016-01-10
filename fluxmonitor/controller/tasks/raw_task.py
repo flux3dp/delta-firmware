@@ -12,7 +12,7 @@ class RawTask(DeviceOperationMixIn):
         super(RawTask, self).__init__(stack, handler)
         handler.binary_mode = True
         self.meta = Metadata()
-        self.meta.update_device_status(self.st_id, 0, "N/A", "")
+        self.meta.update_device_status(self.st_id, 0, "N/A", handler.address)
 
     def on_exit(self):
         super(RawTask, self).on_exit()

@@ -154,7 +154,6 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
                 self.step_length = float(args[1])
                 handler.send_text("ok")
             else:
-                print(args)
                 raise RuntimeError(UNKNOWN_COMMAND, args[1])
 
         elif cmd == "scan_backward":

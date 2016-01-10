@@ -127,7 +127,7 @@ class Player(ServiceBase):
 
     def on_cmd_message(self, watcher, revent):
         try:
-            S = watcher.data
+            S = watcher.data  # noqa
             argstr, R = S.recvfrom(128)
             args = shlex_split(argstr.decode("ascii", "ignore"))
             cmd = args[0]
@@ -138,6 +138,7 @@ class Player(ServiceBase):
                     self.send_cmd_response(S, R, "error RESOURCE_BUSY")
             elif cmd == "REPORT":  # Report
                 st = self.executor.get_status()
+                st["traveled"] = self.executor.traveled
                 st["prog"] = self.executor.traveled / self.travel_dist
                 pl = json.dumps(st)
                 self.send_cmd_response(S, R, pl)
