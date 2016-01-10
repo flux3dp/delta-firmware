@@ -12,8 +12,8 @@ from fluxmonitor.player import macro
 from fluxmonitor.storage import Metadata
 from fluxmonitor.config import uart_config
 
-from fluxmonitor.err_codes import RESOURCE_BUSY, UNKNOWN_COMMAND, \
-    SUBSYSTEM_ERROR
+from fluxmonitor.err_codes import EXEC_HEAD_ERROR, RESOURCE_BUSY, \
+    SUBSYSTEM_ERROR, UNKNOWN_COMMAND
 
 from .base import CommandMixIn, DeviceOperationMixIn, \
     DeviceMessageReceiverMixIn
@@ -167,6 +167,8 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             raise RuntimeError(UNKNOWN_COMMAND)
 
     def do_load_filament(self, handler, index, temp):
+        if not self.head_ctrl.ready:
+            raise HeadError(EXEC_HEAD_ERROR, RESOURCE_BUSY)
         module = self.head_ctrl.status()["module"]
         if module != "EXTRUDER":
             raise HeadTypeError("EXTRUDER", module)
@@ -213,6 +215,8 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         handler.send_text("continue")
 
     def do_unload_filament(self, handler, index, temp):
+        if not self.head_ctrl.ready:
+            raise HeadError(EXEC_HEAD_ERROR, RESOURCE_BUSY)
         module = self.head_ctrl.status()["module"]
         if module != "EXTRUDER":
             raise HeadTypeError("EXTRUDER", module)
