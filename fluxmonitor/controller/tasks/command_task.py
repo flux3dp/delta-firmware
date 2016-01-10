@@ -17,6 +17,8 @@ from fluxmonitor.err_codes import (UNKNOWN_COMMAND, NOT_EXIST, TOO_LARGE,
 from fluxmonitor.storage import Storage, Metadata, UserSpace
 from fluxmonitor.diagnosis.god_mode import allow_god_mode
 from fluxmonitor.misc import mimetypes
+from fluxmonitor import halprofile
+import fluxmonitor
 
 from .base import CommandMixIn
 from .scan_task import ScanTask
@@ -402,6 +404,8 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
         elif cmd == "update_mbfw" and allow_god_mode():
             mimetype, filesize, upload_to = args
             return self.update_mbfw(handler, int(filesize, 10))
+        elif cmd == "deviceinfo":
+            self.deviceinfo(handler)
         elif cmd == "scan":
             # TODO: going tobe remove
             self.dispatch_task_cmd(handler, "scan")
@@ -441,3 +445,8 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
         task = UpdateMbFwTask(self.stack, handler, filesize)
         self.stack.enter_task(task, empty_callback)
         handler.send_text("continue")
+
+    def deviceinfo(self, handler):
+        handler.send_text("ok\nversion:%s\nmodel:%s" % (
+            fluxmonitor.__version__,
+            halprofile.get_model_id()))
