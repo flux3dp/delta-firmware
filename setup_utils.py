@@ -13,7 +13,7 @@ from fluxmonitor import __version__ as VERSION  # noqa
 MODEL_DEFINES = {
     "linux-dev": "FLUX_MODEL_LINUX_DEV",
     "darwin-dev": "FLUX_MODEL_DARWIN_DEV",
-    "model-1": "FLUX_MODEL_G1"
+    "delta-1": "FLUX_MODEL_D1"
 }
 
 
@@ -91,8 +91,8 @@ elif is_linux():
         buf = f.read()
         # TODO: Need some method to check if it is raspberry A
         if "BCM2708" in buf or "BCM2835" in buf:
-            HARDWARE_MODEL = "model-1"
-            DEFAULT_MACROS += [("FLUX_MODEL_G1", 1)]
+            HARDWARE_MODEL = "delta-1"
+            DEFAULT_MACROS += [("FLUX_MODEL_D1", 1)]
         else:
             HARDWARE_MODEL = "linux-dev"
             DEFAULT_MACROS += [("FLUX_MODEL_LINUX_DEV", 1)]
@@ -107,7 +107,7 @@ def get_install_requires():
     if is_darwin():
         packages += ['netifaces']
 
-    if HARDWARE_MODEL == "model-1":
+    if HARDWARE_MODEL == "delta-1":
         packages += ['RPi.GPIO']
 
     libev_path = checklib("ev", "libev")

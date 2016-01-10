@@ -4,7 +4,7 @@ import _halprofile
 
 MODEL_DARWIN_DEV = "darwin-dev"
 MODEL_LINUX_DEV = "linux-dev"
-MODEL_G1 = "model-1"
+MODEL_D1 = "delta-1"
 
 LINUX_PLATFORM = "linux"
 DARWIN_PLATFORM = "darwin"
@@ -25,7 +25,7 @@ PROFILES = {
         "playswap": "/tmp/autoplay.fc",
         "scan_camera_id": None,
     },
-    MODEL_G1: {
+    MODEL_D1: {
         "db": "/var/db/fluxmonitord",
         "userspace": "/var/gcode/userspace",
         "playswap": "var/gcode/autoplay.fc",

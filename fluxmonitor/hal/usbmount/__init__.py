@@ -11,7 +11,7 @@ def get_usbmount_hal():
     elif m == halprofile.MODEL_LINUX_DEV:
         from . import dev
         return dev
-    elif m == halprofile.MODEL_G1:
+    elif m == halprofile.MODEL_D1:
         from . import common_linux
         return common_linux
 
