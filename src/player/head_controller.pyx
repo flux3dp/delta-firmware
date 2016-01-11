@@ -1,5 +1,5 @@
 
-
+from libc.stdlib cimport malloc, free
 from libc.stdio cimport sscanf
 from cpython cimport bool
 
@@ -13,7 +13,8 @@ import logging
 from fluxmonitor.err_codes import EXEC_HEAD_OFFLINE, EXEC_OPERATION_ERROR, \
     EXEC_TYPE_ERROR, EXEC_HEAD_ERROR, EXEC_HEAD_RESET, EXEC_HEAD_CALIBRATING, \
     EXEC_HEAD_SHAKE, EXEC_HEAD_TILT, HARDWARE_FAILURE, EXEC_HEAD_FAN_FAILURE, \
-    EXEC_UNKNOWN_HEAD, FILE_BROKEN, UNKNOWN_COMMAND
+    EXEC_HEAD_INTERLOCK_TRIGGERED, EXEC_UNKNOWN_HEAD, FILE_BROKEN, \
+    UNKNOWN_COMMAND
 
 
 DEF MAX_COMMAND_RETRY = 3
@@ -231,7 +232,7 @@ cdef class HeadController:
         else:
             L.info("GOT: '%s' (ready=%i)", msg, self._ready)
 
-    def send_cmd(self, cmd, executor, complete_callback=None,
+    cpdef send_cmd(self, const char* cmd, executor, complete_callback=None,
                  allset_callback=None):
         if self.is_busy:
             self._raise_error(EXEC_OPERATION_ERROR,
@@ -315,7 +316,7 @@ cdef class HeadController:
                         raise HeadFanError()
                     if er & 256:
                         raise HeadInterlockTriggered()
-                    raise HeadError(EXEC_HEAD_ERROR, "?")
+                    raise HeadError(EXEC_HEAD_ERROR, "?", str(er))
 
             else:
                 self._ext.update_status(*status)
@@ -360,7 +361,12 @@ cdef class HeadController:
         raise RuntimeError(*args)
 
 
-class BaseExt(object):
+cdef class BaseExt:
+    cdef public object id
+    cdef public object vendor
+    cdef public object version
+    cdef public object spec
+
     def __init__(self, **spec):
         self.spec = spec
 
@@ -385,15 +391,24 @@ class BaseExt(object):
         return True
 
 
-class ExtruderExt(BaseExt):
-    _fanspeed = None
-    _temperatures = None
-    _current_temp = None
+cdef class ExtruderExt(BaseExt):
+    cdef float _fanspeed
+    cdef float* _temperatures
+    cdef float* _current_temp
 
-    def __init__(self):
-        self._fanspeed = [0]
-        self._temperatures = [float("NaN")]
-        self._current_temp = [float("NaN")]
+    def __init__(self, num_of_extruder=1):
+        self._fanspeed = 0
+        self._temperatures = <float*>malloc(num_of_extruder * sizeof(float))
+        self._current_temp = <float*>malloc(num_of_extruder * sizeof(float))
+        cdef int i
+        cdef float nan = float("NaN")
+        for i in range(num_of_extruder):
+            self._temperatures[i] = nan
+            self._current_temp[i] = nan
+
+    def __del__(self):
+        free(self._temperatures)
+        free(self._current_temp)
 
     def hello(self, **kw):
         m = kw.get("TYPE", "UNKNOW")
@@ -403,9 +418,8 @@ class ExtruderExt(BaseExt):
 
     def bootstrap_commands(self):
         cmds = []
-        if self._fanspeed[0] >= 0:
-            cmds.append(
-                create_chksum_cmd("1 F:%i S:%i", 0, self._fanspeed[0] * 255))
+        cmds.append(
+            create_chksum_cmd("1 F:%i S:%i", 0, self._fanspeed * 255))
         if self._temperatures[0] > 0:
             cmds.append(
                 create_chksum_cmd("1 H:%i T:%.1f", 0, self._temperatures[0]))
@@ -416,7 +430,7 @@ class ExtruderExt(BaseExt):
             "module": "EXTRUDER",
             "tt": (self._temperatures[0], ),
             "rt": (self._current_temp[0], ),
-            "tf": (self._fanspeed[0], )
+            "tf": (self._fanspeed, )
         }
 
     def set_heater(self, int heater_id, float temperature):
@@ -429,18 +443,19 @@ class ExtruderExt(BaseExt):
         return create_chksum_cmd("1 H:%i T:%.1f", heater_id, temperature)
 
     def set_fanspeed(self, int fan_id, float fan_speed):
-        self._fanspeed[fan_id] = f = max(min(1.0, fan_speed), 0)
+        self._fanspeed = f = max(min(1.0, fan_speed), 0)
         return create_chksum_cmd("1 F:%i S:%i", fan_id, f * 255)
 
-    def generate_command(self, cmd):
-        if cmd.startswith("H"):
-            target_temp = float(cmd[1:])
-            return self.set_heater(0, target_temp)
-        elif cmd.startswith("F"):
-            target_speed = float(cmd[1:])
-            return self.set_fanspeed(0, target_speed)
-        else:
-            return
+    cpdef generate_command(self, const char* cmd):
+        cdef int control_id;
+        cdef float value;
+        if cmd[0] == 'H':
+            if(sscanf(cmd + 1, "%1d%f", &control_id, &value) == 2):
+                return self.set_heater(control_id, value)
+        elif cmd[0] == "F":
+            if(sscanf(cmd + 1, "%1d%f", &control_id, &value) == 2):
+                return self.set_fanspeed(control_id, value)
+        return None
 
     def update_status(self, key, value):
         if key == "RT":
@@ -458,7 +473,7 @@ class ExtruderExt(BaseExt):
         return True
 
 
-class LaserExt(BaseExt):
+cdef class LaserExt(BaseExt):
     def hello(self, **kw):
         m = kw.get("TYPE", "UNKNOW")
         if m != "LASER":
@@ -517,3 +532,8 @@ class HeadFanError(HeadError):
     def __init__(self):
         RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_FAN_FAILURE)
 
+
+class HeadInterlockTriggered(HeadError):
+    def __init__(self):
+        RuntimeError.__init__(self, EXEC_HEAD_ERROR,
+                              EXEC_HEAD_INTERLOCK_TRIGGERED)

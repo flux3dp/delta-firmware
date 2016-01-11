@@ -271,7 +271,8 @@ class FcodeExecutor(BaseExecutor):
             self._process_resume()
         elif self.macro:
             self.macro.on_command_empty(self)
-        elif self.status_id == ST_RUNNING and self._eof:
+        elif self.status_id == ST_RUNNING and self._eof and \
+                not self._cmd_queue:
             self.status_id = ST_COMPLETING
             fsm = self._fsm
             x, y, z = fsm.get_x(), fsm.get_y(), fsm.get_z()

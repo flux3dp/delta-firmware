@@ -34,7 +34,7 @@ class ExtruderHeadControlTest(ControlTestBase):
 
     def test_standard_operation(self):
         with self.assertSendHeadboard(b"1 H:0 T:200.0 *17\n") as executor:
-            self.ec.send_cmd("H200", executor,
+            self.ec.send_cmd("H0200", executor,
                              complete_callback=self.raiseException)
 
         with self.assertSendHeadboard() as executor:
@@ -43,7 +43,7 @@ class ExtruderHeadControlTest(ControlTestBase):
 
     def test_cmd_complete_callback(self):
         with self.assertSendHeadboard(b"1 H:0 T:201.0 *16\n") as executor:
-            self.ec.send_cmd("H201", executor,
+            self.ec.send_cmd("H0201", executor,
                              complete_callback=self.raiseException)
 
         with self.assertSendHeadboard() as executor:
@@ -56,7 +56,7 @@ class ExtruderHeadControlTest(ControlTestBase):
 
     def test_wait_heaters(self):
         with self.assertSendHeadboard(b"1 H:0 T:200.0 *17\n") as executor:
-            self.ec.send_cmd("H200", executor)
+            self.ec.send_cmd("H0200", executor)
             self.ec.on_message("1 OK HEATER *26", executor)
 
         self.ec.wait_allset(self.raiseException)
@@ -78,12 +78,12 @@ class ExtruderHeadControlTest(ControlTestBase):
         self.ec._lastupdate = time()
 
         with self.assertSendHeadboard(b"1 H:0 T:200.0 *17\n") as executor:
-            self.ec.send_cmd("H200", executor)
+            self.ec.send_cmd("H0200", executor)
 
         # Error because command not ready
         with self.assertSendHeadboard() as executor:
             self.assertRaises(RuntimeError,
-                              self.ec.send_cmd, "H200", executor)
+                              self.ec.send_cmd, "H0200", executor)
 
         for i in range(1, 5):
             with self.assertSendHeadboard(HEAT_0_200_CMD) as executor:
