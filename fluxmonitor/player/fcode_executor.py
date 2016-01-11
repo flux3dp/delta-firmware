@@ -100,9 +100,9 @@ class FcodeExecutor(BaseExecutor):
 
             if self.options.correction in ("A", "H"):
                 self.macro = WaitHeadMacro(self.on_preheating_complete,
-                                           "H170")
+                                           "H0170")
                 if self.status_id == ST_RUNNING:
-                    logging.debug("Start macro: WaitHeadMacro(\"H170\")")
+                    logging.debug("Start macro: WaitHeadMacro(\"H0170\")")
                     self.macro.start(self)
             else:
                 self.fire()

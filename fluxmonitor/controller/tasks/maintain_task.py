@@ -206,7 +206,8 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
                 st = self.head_ctrl.status()
                 handler.send_text("CTRL HEATING %.1f" % st.get("rt")[index])
 
-        self._macro = macro.WaitHeadMacro(on_heating_done, "H%.1f" % temp)
+        self._macro = macro.WaitHeadMacro(on_heating_done,
+                                          "H%i%.1f" % (index, temp))
         self._on_macro_error = on_macro_error
         self._on_macro_running = on_macro_running
         self._on_macro_error = on_macro_error
@@ -243,7 +244,8 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             else:
                 handler.send_text("CTRL UNLOADING")
 
-        self._macro = macro.WaitHeadMacro(on_heating_done, "H%.1f" % temp)
+        self._macro = macro.WaitHeadMacro(on_heating_done,
+                                          "H%i%.1f" % (index, temp))
         self._on_macro_error = on_macro_error
         self._on_macro_running = on_macro_running
         self._on_macro_error = on_macro_error
