@@ -1,47 +1,46 @@
 
 from binascii import a2b_hex as from_hex
+from pkg_resources import resource_string
 import unittest
-import logging
+import pytest
 import struct
 import socket
 
 from fluxmonitor.controller.interfaces.local import LocalConnectionHandler
-from fluxmonitor.misc.async_signal import AsyncIO
-from fluxmonitor.event_base import EventBase
-from fluxmonitor import security as S
+from fluxmonitor import security
 
-from tests import _utils as U
+import pyev
 
 
-PRIVATE_KEY = S.get_private_key()
-KEY_LENGTH = PRIVATE_KEY.size()
-
-
+@pytest.mark.usefixtures("empty_security")
 class LocalControlTest(unittest.TestCase):
     def setUp(self):
-        self.keyobj = S.get_keyobj(pem=U.PRIVATEKEY_1)
+        self.loop = pyev.Loop()
+        self.keyobj = security.get_keyobj(
+            pem=resource_string("fluxmonitor", "data/test/private_1.pem"))
 
-        keyobj = S.get_keyobj(der=U.PUBLICKEY_1)
-        S.add_trusted_keyobj(keyobj=keyobj)
+        keyobj = security.get_keyobj(
+            der=resource_string("fluxmonitor", "data/test/public_1.pem"))
+        security.add_trusted_keyobj(keyobj=keyobj)
 
-        self.access_id = S.get_access_id(keyobj=keyobj)
+        self.access_id = security.get_access_id(keyobj=keyobj)
 
     def test_on_handshake_identify(self):
         lc_sock, client_sock = socket.socketpair()
+        pkey = security.RSAObject(keylength=512)
 
-        lc_io = LocalConnectionHandler((lc_sock, ("192.168.1.2", 12345)),
-                                        EventBase(), logging.getLogger())
+        lc_io = LocalConnectionHandler(lc_sock, ("192.168.1.2", 12345),
+                                       pkey, self.loop)
 
-        recvbuf = client_sock.recv(8 + PRIVATE_KEY.size() + 128)
-        ver, signature, salt = struct.unpack("<8s%is128s" % PRIVATE_KEY.size(),
+        recvbuf = client_sock.recv(8 + pkey.size() + 128)
+        ver, signature, salt = struct.unpack("<8s%is128s" % pkey.size(),
                                              recvbuf)
-        self.assertTrue(PRIVATE_KEY.verify(salt, signature))
+        self.assertTrue(pkey.verify(salt, signature))
 
         sendbuf = from_hex(self.access_id) + self.keyobj.sign(salt)
         client_sock.send(sendbuf)
-        lc_io.on_read(self)
+        lc_io.on_recv(lc_io.recv_watcher, 0)  # None is watcher
         client_sock.send(sendbuf)
 
         finalbuf = client_sock.recv(16).rstrip(b"\x00")
         self.assertTrue(finalbuf, b"OK")
-

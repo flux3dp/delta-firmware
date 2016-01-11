@@ -1,19 +1,11 @@
-#
+
 from fluxmonitor.player.macro import ZprobeMacro
 from fluxmonitor.storage import Metadata
 
 from tests.player.misc import ControlTestBase
 
 
-class CorrectionMacroTest(ControlTestBase):
-    @classmethod
-    def setUpClass(cls):
-        cls.meta = Metadata()
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.meta = None
-
+class ZprobeMacroTest(ControlTestBase):
     def on_success_callback(self):
         self.assertIsNone(self.callback_status)
         self.callback_status = "OK"
@@ -26,9 +18,13 @@ class CorrectionMacroTest(ControlTestBase):
         self.callback_status = None
 
     def setUp(self):
+        self.meta = Metadata()
         self.reset_callback()
         self.meta.plate_correction = {"X": 0, "Y": 0, "Z": 0, "H": 242}
         self.cm = ZprobeMacro(self.on_success_callback)
+
+    def tearDown(self):
+        self.meta = None
 
     def test_simple_run(self):
         # ROUND 0

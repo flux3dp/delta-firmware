@@ -142,7 +142,7 @@ int DeviceController::feed(int fd, command_cb_t callback, void* data) {
     // Fan Control
     float val;
     MACRO_READ(fd, &val, 4)
-    snprintf(_proc_buf, 32, "F1%i", (int)(val * 255));
+    snprintf(_proc_buf, 32, "F%i%.4f", 0, val);
     callback(_proc_buf, HEAD_MESSAGE, data);
     return l;
 
@@ -157,8 +157,7 @@ int DeviceController::feed(int fd, command_cb_t callback, void* data) {
     // Heater Control
     float val;
     MACRO_READ(fd, &val, 4)
-
-    snprintf(_proc_buf, 32, "H%i", (int)val);
+    snprintf(_proc_buf, 32, "H%i%.1f", cmd & 7, val);
 
     int block = cmd & 8;
     callback(_proc_buf, (block ? BLOCK_HEAD_MESSAGE : HEAD_MESSAGE), data);

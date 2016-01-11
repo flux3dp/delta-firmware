@@ -1,7 +1,7 @@
 
 #include "libflux_hal/halprofile.h"
 
-#ifdef FLUX_MODEL_G1
+#ifdef FLUX_MODEL_D1
 
 #include <Python.h>
 
@@ -259,4 +259,4 @@ int get_machine_identify(unsigned char** buffer) {
     return len;
 }
 
-#endif  // @ifdef FLUX_MODEL_G1
+#endif  // @ifdef FLUX_MODEL_D1

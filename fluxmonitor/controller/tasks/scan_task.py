@@ -1,4 +1,5 @@
 
+from errno import ECONNREFUSED, ENOENT
 from shlex import split as shlex_split
 from time import sleep
 from io import BytesIO
@@ -6,11 +7,11 @@ import logging
 import struct
 import socket
 
-from fluxmonitor.err_codes import DEVICE_ERROR, NOT_SUPPORT, UNKNOWN_COMMAND
+from fluxmonitor.err_codes import DEVICE_ERROR, SUBSYSTEM_ERROR, \
+    NO_RESPONSE, UNKNOWN_COMMAND
 from fluxmonitor.config import CAMERA_ENDPOINT
 from fluxmonitor.storage import Storage, Metadata
 
-import pyev
 
 from .base import CommandMixIn, DeviceOperationMixIn
 
@@ -19,8 +20,14 @@ logger = logging.getLogger(__name__)
 
 class CameraInterface(object):
     def __init__(self):
-        self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        self.sock.connect(CAMERA_ENDPOINT)
+        try:
+            self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            self.sock.connect(CAMERA_ENDPOINT)
+        except socket.error as err:
+            if err.args[0] in [ECONNREFUSED, ENOENT]:
+                raise RuntimeError(SUBSYSTEM_ERROR, NO_RESPONSE)
+            else:
+                raise
 
     def oneshot(self):
         self.sock.send(struct.pack("@BB", 0, 0))
@@ -147,7 +154,6 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
                 self.step_length = float(args[1])
                 handler.send_text("ok")
             else:
-                print(args)
                 raise RuntimeError(UNKNOWN_COMMAND, args[1])
 
         elif cmd == "scan_backward":
@@ -182,7 +188,8 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
         handler.send_text(self.camera.check_camera_position())
 
     def calibrate(self, handler):
-        table = {8: 60, 7: 51, 6: 40, 5: 32, 4: 26, 3: 19, 2: 11, 1: 6, 0: 1}  # this is measure by data set
+        # this is measure by data set
+        table = {8: 60, 7: 51, 6: 40, 5: 32, 4: 26, 3: 19, 2: 11, 1: 6, 0: 1}
         flag = 0
         self.change_laser(left=False, right=False)
         while True:
@@ -196,7 +203,8 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
             if w == w:  # w is not nan
                 if abs(w) < thres:  # good enough to calibrate
                     calibrate_parameter = []
-                    for step, l, r in [("O", False, False), ("L", True, False), ("R", False, True)]:
+                    for step, l, r in [("O", False, False), ("L", True, False),
+                                       ("R", False, True)]:
                         self.change_laser(left=l, right=r)
                         sleep(0.5)
                         m = self.camera.compute_cab(step)
@@ -206,22 +214,23 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
                     output = ' '.join(calibrate_parameter)
                     logger.info(output)
 
-                    # s.write(' '.join(calibrate_parameter))
                     if 'fail' in calibrate_parameter:
                         flag = 12
                     elif all(abs(float(r) - float(calibrate_parameter[0])) < 72 for r in calibrate_parameter[1:]):  # so naive check
-                        # store data
                         s = Storage('camera')
-                        with s.open('calibration', "w") as f:
-                            f.write(' '.join(map(lambda x: str(round(float(x))), calibrate_parameter)))
+                        s['calibration'] = ' '.join(
+                            map(lambda x: str(round(float(x))),
+                                calibrate_parameter))
                         break
                     else:
                         flag = 12
                 elif w < 0:
-                    self.make_gcode_cmd("G1 F500 E{}".format(table.get(round(abs(w)), 60)))
+                    self.make_gcode_cmd(
+                        "G1 F500 E{}".format(table.get(round(abs(w)), 60)))
                 elif w > 0:
-                    self.make_gcode_cmd("G1 F500 E-{}".format(table.get(round(abs(w)), 60)))
-                record = table[round(abs(w))]
+                    self.make_gcode_cmd(
+                        "G1 F500 E-{}".format(table.get(round(abs(w)), 60)))
+                table[round(abs(w))]
                 thres += 0.05
             else:  # TODO: what about nan
                 pass

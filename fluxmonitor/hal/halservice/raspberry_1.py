@@ -9,7 +9,7 @@ from serial import Serial, SerialException
 from RPi import GPIO
 import pyev
 
-from fluxmonitor.halprofile import MODEL_G1
+from fluxmonitor.halprofile import MODEL_D1
 from fluxmonitor.storage import Storage, CommonMetadata
 from fluxmonitor.config import LENGTH_OF_LONG_PRESS_TIME as LLPT, \
     GAP_BETWEEN_DOUBLE_CLICK as GBDC, HEAD_POWER_TIMEOUT
@@ -254,7 +254,7 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOControl):
     mainboard_io = raspi_io = None
 
     hal_name = "raspberrypi-1"
-    support_hal = [MODEL_G1, ]
+    support_hal = [MODEL_D1, ]
 
     def __init__(self, kernel):
         super(UartHal, self).__init__(kernel)

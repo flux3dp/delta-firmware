@@ -52,7 +52,7 @@ class DurarararaControlTest(ControlTestBase):
             self.assertRaises(UnittestError, self.ec.on_message,
                               PONG_MSG, executor)
             self.assertEqual(self.ec.module, "EXTRUDER")
-            self.ec.send_cmd("H220", executor)
+            self.ec.send_cmd("H0220", executor)
             self.ec.on_message("1 OK HEATER *26",
                                executor)
             self.ec.on_message("1 OK PONG ER:0 RT:15.0 TT:220 FA:0 *63",

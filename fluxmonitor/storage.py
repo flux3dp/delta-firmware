@@ -80,6 +80,8 @@ NICKNAMES = ["Apple", "Apricot", "Avocado", "Banana", "Bilberry", "Blackberry",
 
 
 class CommonMetadata(object):
+    shm = None
+
     def __init__(self):
         self.storage = Storage("general", "meta")
 
@@ -97,8 +99,9 @@ class CommonMetadata(object):
                                          size=4096, init_character='\x00')
 
     def __del__(self):
-        self.shm.detach()
-        self.shm = None
+        if self.shm:
+            self.shm.detach()
+            self.shm = None
 
     @property
     def plate_correction(self):

@@ -1,58 +1,57 @@
 
+from pkg_resources import resource_string
 from io import BytesIO
 from time import time
 import unittest
+import pytest
 
-from fluxmonitor import security
-from fluxmonitor.security import _security
 from fluxmonitor.security.passwd import validate_timestemp, reset_timestemp
-from tests import _utils as U
-from tests._utils.memcache import MemcacheTestClient
+from fluxmonitor.security import _security
+from fluxmonitor import security
 
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.Signature import PKCS1_v1_5
-from Crypto.Hash import SHA as CryptoSHA
+from Crypto.Hash import SHA as CryptoSHA  # noqa
+
+PUBLICKEY_1 = resource_string("fluxmonitor", "data/test/public_1.pem")
 
 
+@pytest.mark.usefixtures("empty_security")
 class MiscSecurityTest(unittest.TestCase):
-    def setUp(self):
-        U.clean_db()
-        self.memcache = MemcacheTestClient()
-
     def test_is_pubkey(self):
         self.assertFalse(security.is_rsakey(None))
         self.assertFalse(security.is_rsakey(""))
         self.assertFalse(security.is_rsakey(3))
         self.assertFalse(security.is_rsakey({}))
-        self.assertTrue(security.is_rsakey(der=U.PUBLICKEY_1))
+        self.assertTrue(security.is_rsakey(der=PUBLICKEY_1))
 
     def test_pubkey_trust(self):
-        keyobj = security.get_keyobj(der=U.PUBLICKEY_1)
+        keyobj = security.get_keyobj(der=PUBLICKEY_1)
         assert keyobj
 
         access_id = security.get_access_id(keyobj=keyobj)
-        self.assertFalse(security.is_trusted_remote(der=U.PUBLICKEY_1))
+        self.assertFalse(security.is_trusted_remote(der=PUBLICKEY_1))
         self.assertFalse(security.is_trusted_remote(keyobj=keyobj))
         self.assertFalse(security.is_trusted_remote(access_id=access_id))
 
         security.add_trusted_keyobj(keyobj)
 
-        self.assertTrue(security.is_trusted_remote(der=U.PUBLICKEY_1))
+        self.assertTrue(security.is_trusted_remote(der=PUBLICKEY_1))
         self.assertTrue(security.is_trusted_remote(keyobj=keyobj))
         self.assertTrue(security.is_trusted_remote(access_id=access_id))
 
     def test_validate_timestemp(self):
         t = time()
-        self.assertFalse(validate_timestemp((t - 40, b"a"*128)))
-        self.assertFalse(validate_timestemp((t - 40, b"a"*128)))
+        self.assertFalse(validate_timestemp((t - 40, b"a" * 128)))
+        self.assertFalse(validate_timestemp((t - 40, b"a" * 128)))
 
-        self.assertTrue(validate_timestemp((t, b"a"*128)))
-        self.assertFalse(validate_timestemp((t, b"a"*128)))
+        self.assertTrue(validate_timestemp((t, b"a" * 128)))
+        self.assertFalse(validate_timestemp((t, b"a" * 128)))
         reset_timestemp()
 
-        self.assertTrue(validate_timestemp((60, b"c"*128), now=60))
-        self.assertTrue(validate_timestemp((100, b"c"*128), now=100))
+        self.assertTrue(validate_timestemp((60, b"c" * 128), now=60))
+        self.assertTrue(validate_timestemp((100, b"c" * 128), now=100))
 
     def test_password(self):
         self.assertFalse(security.has_password())
@@ -64,7 +63,7 @@ class MiscSecurityTest(unittest.TestCase):
         self.assertTrue(security.has_password())
 
 
-class C_RSAObjectTest(unittest.TestCase):
+class ClibRSAObjectTest(unittest.TestCase):
     def encrypt(self, pem, message):
         key = RSA.importKey(pem)
 
@@ -113,8 +112,8 @@ class C_RSAObjectTest(unittest.TestCase):
         rsaobj = _security.RSAObject(keylength=1024)
         pem = rsaobj.export_pem()
 
-        P = "WAWAWASUREMONO\x00\x00"
-        for buf in [P, P * 8, P * 8 + "!", P * 64, P * 64 + "!"]:
+        p = "WAWAWASUREMONO\x00\x00"
+        for buf in [p, p * 8, p * 8 + "!", p * 64, p * 64 + "!"]:
             c_encrypted = rsaobj.encrypt(buf)
             self.assertEqual(self.decrypt(pem, c_encrypted), buf)
 
@@ -134,9 +133,9 @@ class C_RSAObjectTest(unittest.TestCase):
         self.assertTrue(crypto_obj.verify(CryptoSHA.new(buf), c_sign))
         self.assertFalse(rsaobj.verify(buf, ""))
         self.assertFalse(rsaobj.verify(buf, "b"))
-        self.assertFalse(rsaobj.verify(buf, "b"*127))
-        self.assertFalse(rsaobj.verify(buf, "b"*128))
-        self.assertFalse(rsaobj.verify(buf, "b"*129))
+        self.assertFalse(rsaobj.verify(buf, "b" * 127))
+        self.assertFalse(rsaobj.verify(buf, "b" * 128))
+        self.assertFalse(rsaobj.verify(buf, "b" * 129))
 
     def test_export_der(self):
         rsaobj = _security.RSAObject()
@@ -151,7 +150,7 @@ class C_RSAObjectTest(unittest.TestCase):
                          pub_rsakey.export_pubkey_pem())
 
 
-class C_MiscTest(unittest.TestCase):
+class ClibMiscTest(unittest.TestCase):
     def test_wifi_psa(self):
         psk = _security.get_wpa_psk("aaaaaaaa", "aaaaaaaa")
         self.assertEqual(psk,
