@@ -313,6 +313,8 @@ cdef class HeadController:
                         raise HeadHardwareError()
                     if er & 128:
                         raise HeadFanError()
+                    if er & 256:
+                        raise HeadInterlockTriggered()
                     raise HeadError(EXEC_HEAD_ERROR, "?")
 
             else:
