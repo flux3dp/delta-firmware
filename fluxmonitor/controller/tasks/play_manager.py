@@ -1,6 +1,7 @@
 
 from subprocess import Popen, PIPE
 from tempfile import mktemp
+from signal import SIGKILL
 from time import time
 import logging
 import socket
@@ -10,6 +11,7 @@ from fluxmonitor.player.connection import create_mainboard_socket
 from fluxmonitor.player.base import (ST_COMPLETED, ST_ABORTED,
                                      ST_PAUSED, ST_RUNNING)
 from fluxmonitor.misc.fcode_file import FCodeFile, FCodeError
+from fluxmonitor.misc.pidfile import load_pid
 from fluxmonitor.err_codes import FILE_BROKEN, NOT_SUPPORT, UNKNOWN_ERROR, \
     RESOURCE_BUSY
 from fluxmonitor.config import PLAY_ENDPOINT, PLAY_SWAP
@@ -19,12 +21,22 @@ logger = logging.getLogger("Player")
 
 
 class PlayerManager(object):
+    alive = True
     _sock = None
 
     def __init__(self, loop, taskfile, terminated_callback=None,
                  copyfile=False):
+        storage = Storage("run")
         self.meta = Metadata()
         s = create_mainboard_socket()
+
+        oldpid = load_pid(storage.get_path("fluxplayerd.pid"))
+        if oldpid is not None:
+            try:
+                os.kill(oldpid, SIGKILL)
+                logger.error("Kill old player process: %i", oldpid)
+            except Exception:
+                logger.exception("Error while kill old process: %i", oldpid)
 
         try:
             s.send("\n@DISABLE_LINECHECK\nX5S115\n")
@@ -40,9 +52,9 @@ class PlayerManager(object):
 
             self.playinfo = ff.metadata, ff.image_buf
 
-            storage = Storage("log")
             cmd = ["fluxplayer", "-c", PLAY_ENDPOINT, "--task", taskfile,
-                   "--log", storage.get_path("fluxplayerd.log")]
+                   "--log", storage.get_path("fluxplayerd.log"), "--pid",
+                   storage.get_path("fluxplayerd.pid")]
             if logger.getEffectiveLevel() <= 10:
                 cmd += ["--debug"]
 
@@ -52,9 +64,8 @@ class PlayerManager(object):
             child_watcher.start()
             self.meta.update_device_status(1, 0, "N/A", err_label="")
 
-            self.watchers = (child_watcher, )
+            self.child_watcher = child_watcher
             self.proc = proc
-            self._terminated_callback = terminated_callback
 
         except FCodeError as e:
             raise RuntimeError(FILE_BROKEN, *e.args)
@@ -62,12 +73,12 @@ class PlayerManager(object):
             s.close()
 
     def __del__(self):
-        for w in self.watchers:
-            w.stop()
-            w.data = None
-        self.watchers = None
+        if self.child_watcher:
+            self.child_watcher.stop()
+            self.child_watcher.data = None
         self.proc = None
         self._sock = None
+        self.alive = False
 
     @property
     def label(self):
@@ -98,15 +109,21 @@ class PlayerManager(object):
         return self._sock
 
     def on_process_dead(self, watcher, revent):
-        logger.debug("Player terminated")
+        logger.info("Player %i quit: %i", self.proc.pid, watcher.rstatus)
+
+        # This code is use for debug only
+        try:
+            os.kill(self.proc.pid, 0)
+            logger.error("Player %i still alive!", self.proc.pid)
+            os.kill(self.proc.pid, SIGKILL)
+        except OSError:
+            pass
+
         self.meta.update_device_status(0, 0, "N/A", err_label="")
         watcher.stop()
-        try:
-            if watcher.data:
-                watcher.data(self)
-                watcher = None
-        finally:
-            self._terminated_callback = None
+        if watcher.data:
+            watcher.data(self)
+            watcher = None
 
     def go_to_hell(self):
         # will be called form robot only
@@ -152,18 +169,17 @@ class PlayerManager(object):
             return '{"st_label": "INIT", "st_id": 1}'
 
     def quit(self):
-        self.sock.send("QUIT")
-        return self.sock.recv(4096)
-
-    def is_alive(self):
-        return self.proc.poll() is None
+        if self.proc.poll() is None:
+            self.sock.send("QUIT")
+            return self.sock.recv(4096)
+        else:
+            if self.child_watcher and self.child_watcher.data:
+                self.child_watcher.data(self)
+            return "ok"
 
     def on_fatal_error(self, log=""):
-        if self.is_alive:
-            logger.error("%s (Proc still alive)", log)
-            self.terminate()
-        else:
-            logger.error("%s (Proc still alive)", log)
+        logger.error("%s (Proc still alive)", log)
+        self.terminate()
 
     def terminate(self):
         self.proc.kill()
