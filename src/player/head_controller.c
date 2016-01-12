@@ -9562,7 +9562,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
  *         }
  * 
  *     def set_heater(self, int heater_id, float temperature):             # <<<<<<<<<<<<<<
- *         if temperature < 5:
+ *         if temperature < 0:
  *             raise RuntimeError(EXEC_OPERATION_ERROR, "BAD TEMP")
  */
 
@@ -9646,16 +9646,16 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   /* "src/player/head_controller.pyx":437
  * 
  *     def set_heater(self, int heater_id, float temperature):
- *         if temperature < 5:             # <<<<<<<<<<<<<<
+ *         if temperature < 0:             # <<<<<<<<<<<<<<
  *             raise RuntimeError(EXEC_OPERATION_ERROR, "BAD TEMP")
  *         elif temperature > 280:
  */
-  __pyx_t_1 = ((__pyx_v_temperature < 5.0) != 0);
+  __pyx_t_1 = ((__pyx_v_temperature < 0.0) != 0);
   if (__pyx_t_1) {
 
     /* "src/player/head_controller.pyx":438
  *     def set_heater(self, int heater_id, float temperature):
- *         if temperature < 5:
+ *         if temperature < 0:
  *             raise RuntimeError(EXEC_OPERATION_ERROR, "BAD TEMP")             # <<<<<<<<<<<<<<
  *         elif temperature > 280:
  *             raise SystemError(EXEC_OPERATION_ERROR, "BAD TEMP")
@@ -9679,7 +9679,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   }
 
   /* "src/player/head_controller.pyx":439
- *         if temperature < 5:
+ *         if temperature < 0:
  *             raise RuntimeError(EXEC_OPERATION_ERROR, "BAD TEMP")
  *         elif temperature > 280:             # <<<<<<<<<<<<<<
  *             raise SystemError(EXEC_OPERATION_ERROR, "BAD TEMP")
@@ -9774,7 +9774,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
  *         }
  * 
  *     def set_heater(self, int heater_id, float temperature):             # <<<<<<<<<<<<<<
- *         if temperature < 5:
+ *         if temperature < 0:
  *             raise RuntimeError(EXEC_OPERATION_ERROR, "BAD TEMP")
  */
 
