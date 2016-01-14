@@ -178,6 +178,9 @@ class NetworkService(ServiceBase, NetworkConfigMixIn, NetworkMonitorMixIn):
         config = self.get_config(ifname)
         if config:
             self.config_device(ifname, config)
+        else:
+            if not self.is_wireless(ifname):
+                self.config_device(ifname, {"method": "dhcp"})
 
     def bootstrap_nic(self, ifname, delay=0.5, forcus_restart=False):
         """Startup nic, this method will get device information from
