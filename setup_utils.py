@@ -1,11 +1,15 @@
 
-from pkgutil import walk_packages
 from ctypes import cdll
 import distutils.sysconfig
 import ctypes.util
 import platform
 import sys
 import os
+
+try:
+    from setuptools import find_packages
+except ImportError:
+    raise RuntimeError("`setuptools` is required")
 
 from fluxmonitor import __version__ as VERSION  # noqa
 
@@ -45,9 +49,7 @@ def checklib(lib_name, package_name):
 
 
 def get_packages():
-    return [name
-            for _, name, ispkg in walk_packages(".")
-            if name.startswith("fluxmonitor") and ispkg]
+    return [p for p in find_packages() if p.startswith("fluxmonitor")]
 
 
 DEFAULT_MACROS = []
