@@ -100,6 +100,7 @@ class Player(ServiceBase):
         else:
             copyfile(filename,
                      space.get_path("SD", "recent-%i.fc" % 1))
+        os.system("sync")
 
     def on_start(self):
         pass
@@ -202,7 +203,8 @@ class Player(ServiceBase):
             self.executor.on_loop()
 
             if self.executor.error_symbol:
-                err = self.executor.error_str
+                e = self.executor.error_str
+                err = e.encode() if isinstance(e, unicode) else e
             else:
                 err = ""
 
