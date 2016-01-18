@@ -1,5 +1,6 @@
 
 from shlex import split as shlex_split
+from shutil import copyfile
 import logging
 import socket
 import json
@@ -8,7 +9,7 @@ import re
 
 import pyev
 
-from fluxmonitor.storage import CommonMetadata as Metadata
+from fluxmonitor.storage import Metadata, UserSpace
 from fluxmonitor.services.base import ServiceBase
 
 from .fcode_executor import FcodeExecutor
@@ -40,6 +41,7 @@ class Player(ServiceBase):
 
         taskfile = open(options.taskfile, "rb")
         taskloader = TaskLoader(taskfile)
+        self.place_recent_file(options.taskfile)
 
         self.prepare_control_socket(options.control_endpoint)
         self.meta = Metadata()
@@ -78,6 +80,26 @@ class Player(ServiceBase):
         except Exception:
             logger.exception("Error while listen endpoint at %s")
             raise
+
+    def place_recent_file(self, filename):
+        space = UserSpace()
+
+        def place_file(syntax, index):
+            name = syntax % index
+            if space.exist("SD", name):
+                if index >= 5:
+                    space.rm("SD", name)
+                else:
+                    place_file(syntax, index + 1)
+                    space.mv("SD", name, syntax % (index + 1))
+
+        place_file("recent-%i.fc", 1)
+        if space.in_entry("SD", filename):
+            os.link(filename,
+                    space.get_path("SD", "recent-%i.fc" % 1))
+        else:
+            copyfile(filename,
+                     space.get_path("SD", "recent-%i.fc" % 1))
 
     def on_start(self):
         pass
