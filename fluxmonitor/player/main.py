@@ -179,8 +179,8 @@ class Player(ServiceBase):
         try:
             self.executor.on_loop()
 
-            if self.executor._err_symbol:
-                err = str(self.executor._err_symbol[0])
+            if self.executor.error_symbol:
+                err = self.executor.error_str
             else:
                 err = ""
 

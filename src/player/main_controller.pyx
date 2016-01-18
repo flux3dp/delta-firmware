@@ -171,7 +171,9 @@ cdef class MainController:
             elif msg.startswith("CTRL FILAMENTRUNOUT "):
                 if self._flags & FLAG_ERROR == 0:
                     self._flags |= FLAG_ERROR
-                    raise RuntimeError(EXEC_FILAMENT_RUNOUT, msg.split(" ")[2])
+                    err = RuntimeError(EXEC_FILAMENT_RUNOUT, msg.split(" ")[2])
+                    err.hw_error_code = 49
+                    raise err
 
             elif msg == "CTRL LINECHECK_DISABLED":
                 executor.send_mainboard(b"C1O\n")
