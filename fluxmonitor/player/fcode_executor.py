@@ -144,26 +144,25 @@ class FcodeExecutor(BaseExecutor):
         self.macro.start(self)
 
     def _process_pause(self):
+        if self.error_symbol:
+            errcode = getattr(self.error_symbol, "hw_error_code", 69)
+        else:
+            errcode = 80
+
         if self.status_id & 4:
-            if self.error_symbol:
-                self.main_ctrl.send_cmd("X5S69", self)
-            else:
-                self.main_ctrl.send_cmd("X5S80", self)
+            self.main_ctrl.send_cmd("X5S%i" % errcode, self)
             self.paused()
 
         elif self.main_ctrl.buffered_cmd_size == 0:
             if self.macro:
-                if self.error_symbol:
-                    self.main_ctrl.send_cmd("X5S69", self)
-                else:
-                    self.main_ctrl.send_cmd("X5S80", self)
+                self.main_ctrl.send_cmd("X5S%i" % errcode, self)
                 self.paused()
                 self.macro.giveup()
             elif self._mb_stashed:
                 self.paused()
             else:
                 if self.error_symbol:
-                    self.main_ctrl.send_cmd("C2E2", self)
+                    self.main_ctrl.send_cmd("C2E%i" % errcode, self)
                 else:
                     self.main_ctrl.send_cmd("C2E1", self)
                 self._mb_stashed = True

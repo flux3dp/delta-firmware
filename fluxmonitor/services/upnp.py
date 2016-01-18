@@ -12,14 +12,14 @@ logger = logging.getLogger(__name__)
 
 import pyev
 
-from fluxmonitor.misc import network_config_encoder as NCE
+from fluxmonitor.misc import network_config_encoder as NCE  # noqa
 from fluxmonitor.halprofile import get_model_id
 from fluxmonitor.hal.net.monitor import Monitor as NetworkMonitor
 from fluxmonitor.storage import CommonMetadata
 from fluxmonitor.err_codes import BAD_PASSWORD, AUTH_ERROR
 from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT
 
-from fluxmonitor import __version__ as VERSION
+from fluxmonitor import __version__ as VERSION  # noqa
 from fluxmonitor import security
 from .base import ServiceBase
 

@@ -239,6 +239,19 @@ class UserSpace(object):
         self.filepool = os.path.realpath(USERSPACE)
         self.usbmount = get_usbmount_hal()
 
+    def in_entry(self, entry, path):
+        if entry == "SD":
+            prefix = self.filepool
+        elif entry == "USB":
+            prefix = self.usbmount.get_entry()
+            if not prefix:
+                raise RuntimeError(NOT_EXIST, "BAD_NODE")
+        else:
+            raise RuntimeError(NOT_EXIST, "BAD_ENTRY")
+
+        b = os.path.commonprefix([prefix, self.get_path(entry, path)])
+        return b == prefix
+
     def get_path(self, _entry, _path, sd_only=False, require_file=False,
                  require_dir=False):
         if _entry == "SD":
@@ -262,3 +275,16 @@ class UserSpace(object):
         if require_dir and (not os.path.isdir(abspath)):
             raise RuntimeError(NOT_EXIST, "NOT_DIR")
         return abspath
+
+    def exist(self, entry, path):
+        return os.path.exists(self.get_path(entry, path))
+
+    def mv(self, entry, oldpath, newpath):
+        os.rename(self.get_path(entry, oldpath),
+                  self.get_path(entry, newpath))
+
+    def rm(self, entry, path):
+        try:
+            os.remove(self.get_path(entry, path))
+        except OSError:
+            pass
