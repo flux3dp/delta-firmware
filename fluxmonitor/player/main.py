@@ -83,6 +83,8 @@ class Player(ServiceBase):
 
     def place_recent_file(self, filename):
         space = UserSpace()
+        if os.path.abspath(filename) == space.get_path("SD", "recent-1.fc"):
+            return
 
         def place_file(syntax, index):
             name = syntax % index
