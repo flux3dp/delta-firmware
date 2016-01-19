@@ -106,6 +106,10 @@ cdef class HeadController:
     def module(self):
         return self._module
 
+    @property
+    def allset(self):
+        return self._ext.all_set()
+
     def status(self):
         if self._ready == 8 and self._ext:
             return self._ext.status()

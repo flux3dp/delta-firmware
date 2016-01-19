@@ -249,7 +249,7 @@ class UserSpace(object):
         else:
             raise RuntimeError(NOT_EXIST, "BAD_ENTRY")
 
-        b = os.path.commonprefix([prefix, self.get_path(entry, path)])
+        b = os.path.commonprefix([prefix, path])
         return b == prefix
 
     def get_path(self, _entry, _path, sd_only=False, require_file=False,
