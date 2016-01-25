@@ -71,8 +71,10 @@ class UartHalBase(object):
                     self.reconnect()
                 elif cmd == "reset mb":
                     self.reset_mainboard(watcher)
+                elif cmd == "update_head_fw":
+                    self.update_head_fw(watcher.data)
                 elif cmd == "update_fw":
-                    self.update_fw(watcher)
+                    self.update_fw(watcher.data)
             else:
                 self.on_disconnect_control(watcher)
 

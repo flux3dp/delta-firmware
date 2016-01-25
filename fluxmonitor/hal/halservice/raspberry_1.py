@@ -1,11 +1,13 @@
 
 from multiprocessing import Process
 from time import time, sleep
+from select import select
 import logging
+import struct
 import os
 
 from setproctitle import getproctitle, setproctitle
-from serial import Serial, SerialException
+from serial import Serial, PARITY_EVEN, PARITY_NONE, SerialException
 from RPi import GPIO
 import pyev
 
@@ -13,7 +15,8 @@ from fluxmonitor.halprofile import MODEL_D1
 from fluxmonitor.storage import Storage, CommonMetadata
 from fluxmonitor.config import LENGTH_OF_LONG_PRESS_TIME as LLPT, \
     GAP_BETWEEN_DOUBLE_CLICK as GBDC, HEAD_POWER_TIMEOUT
-
+from fluxmonitor.err_codes import NO_RESPONSE, UNKNOWN_ERROR, \
+    SUBSYSTEM_ERROR, NOT_FOUND, NOT_SUPPORT
 from .base import UartHalBase, BaseOnSerial
 
 L = logging.getLogger("halservice.rasp")
@@ -205,6 +208,132 @@ class GPIOControl(object):
                 L.debug("Head Power delay off")
                 self._head_power_timer = time()
 
+    def update_head_fw(self, r):
+        def wait_ack(stage):
+            t = time()
+            while time() - t < 5.0:
+                rl = select((self.raspi_uart, ), (), (), 5.0)[0]
+                if rl:
+                    ret = self.raspi_uart.read(1)
+                    if ret == 'y':
+                        return
+                    elif ret == '\x1f':
+                        raise RuntimeError(SUBSYSTEM_ERROR, "HEAD RETURN 0x1f")
+                    else:
+                        raise RuntimeError(UNKNOWN_ERROR,
+                                           "HEAD RETURN %s" % repr(ret))
+            raise RuntimeError(NO_RESPONSE, stage)
+
+        def send_cmd(cmd, stage):
+            self.raspi_uart.write(chr(cmd))
+            self.raspi_uart.write(chr(cmd ^ 0xFF))
+            wait_ack(stage)
+            sleep(0.1)
+
+        def crc8(msg, init=0):
+            crc = init
+            for c in msg:
+                crc = crc ^ ord(c)
+            return chr(crc)
+
+        def bootloader_hello():
+            self.raspi_uart.write('\x7f')
+            wait_ack("HELLO")
+
+        L.debug("Update head fw")
+        storage = Storage("update_fw")
+        if not storage.exists("head.bin"):
+            raise RuntimeError(NOT_FOUND)
+
+        with storage.open("head.bin", "rb") as f:
+            fw = f.read()
+
+        size = len(fw)
+        pages = size // 2048
+        if size % 2048 > 0:
+            pages += 1
+        L.debug("Fw size=%i, use page=%i", size, pages)
+
+        try:
+            # Bootstrap
+            if r:
+                r.send(b"B")
+
+            self.raspi_uart.parity = PARITY_EVEN
+
+            GPIO.output(GPIO_HEAD_POW_PIN, HEAD_POWER_OFF)
+            GPIO.output(GPIO_HEAD_BOOT_MODE_PIN, GPIO.HIGH)
+            sleep(0.5)
+
+            GPIO.output(GPIO_HEAD_POW_PIN, HEAD_POWER_ON)
+            sleep(0.5)
+
+            self.raspi_uart.setRTS(0)
+            self.raspi_uart.setDTR(0)
+            sleep(0.1)
+            self.raspi_uart.setDTR(1)
+            sleep(0.5)
+
+            # Hello
+            if r:
+                r.send(b"H")
+
+            try:
+                bootloader_hello()
+            except Exception:
+                sleep(0.5)
+                bootloader_hello()
+
+            send_cmd(0x00, "G_VR")
+            l = ord(self.raspi_uart.read())
+            version = self.raspi_uart.read(1)
+            a = self.raspi_uart.read(l)
+            L.debug("VER %s", repr(a))
+            wait_ack("G_VRL")
+            L.debug("Update head: bootloader ver=%s", version)
+            if version != '1':
+                raise RuntimeError(NOT_SUPPORT)
+
+            # Earse
+            if r:
+                r.send(b"E")
+
+            send_cmd(0x44, "G_ERASE")
+            cmd = struct.pack(">H", pages - 1)
+            cmd += "".join([struct.pack(">H", i) for i in xrange(pages)])
+            self.raspi_uart.write(cmd)
+            self.raspi_uart.write(crc8(cmd))
+            wait_ack("G_E")
+
+            # Write
+            if r:
+                r.send(b"W")
+            offset = 0
+            while offset < size:
+                if r:
+                    r.send(("%08x" % offset).encode())
+                l = min(size - offset, 128)
+                send_cmd(0x31, "G_WINIT")
+                addr = struct.pack(">I", 0x08000000 + offset)
+                self.raspi_uart.write(addr)
+                self.raspi_uart.write(crc8(addr))
+                wait_ack("G_WREADY")
+                payload = chr(l - 1) + fw[offset:offset + l]
+                self.raspi_uart.write(payload)
+                self.raspi_uart.write(crc8(payload))
+                wait_ack("G_WDONE")
+                offset += l
+
+            r.send("ok      ")
+        finally:
+            GPIO.output(GPIO_HEAD_BOOT_MODE_PIN, GPIO.LOW)
+            GPIO.output(GPIO_HEAD_POW_PIN, HEAD_POWER_OFF)
+            sleep(0.5)
+            GPIO.output(GPIO_HEAD_POW_PIN, self._head_power_stat)
+            self.raspi_uart.parity = PARITY_NONE
+
+        L.debug("Update fw end")
+
     def update_fw(self, watcher):
         L.debug("Update mainboard firemare")
         self.mainboard_disconnect()
@@ -337,8 +466,8 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOControl):
                 pass
 
     def _rasp_connect(self, loop):
-        self.raspi_uart = Serial(port="/dev/ttyAMA0",
-                                 baudrate=115200, timeout=0)
+        self.raspi_uart = Serial(port="/dev/ttyAMA0", baudrate=115200,
+                                 stopbits=1, xonxoff=0, rtscts=0, timeout=0)
         self.raspi_io = loop.io(self.raspi_uart, pyev.EV_READ,
                                 self.on_recvfrom_raspi_io,
                                 self.raspi_uart)
