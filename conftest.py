@@ -39,9 +39,15 @@ def setup_test():
     config.general_config["db"] = os.path.join(tempbase, "db")
     config.general_config["keylength"] = 512
     config.general_config["debug"] = True
-    config.uart_config["headboard"] = os.path.join(tempbase, "headboard-us")
-    config.uart_config["mainboard"] = os.path.join(tempbase, "mainboard-us")
-    config.uart_config["pc"] = os.path.join(tempbase, "pc-us")
+
+    config.MAINBOARD_ENDPOINT = config.uart_config["mainboard"] = \
+        os.path.join(tempbase, "mainboard-us")
+    config.HEADBOARD_ENDPOINT = config.uart_config["headboard"] = \
+        os.path.join(tempbase, "headboard-us")
+    config.PC_ENDPOINT = config.uart_config["pc"] = \
+        os.path.join(tempbase, "pc-us")
+    config.HALCONTROL_ENDPOINT = config.uart_config["control"] = \
+        os.path.join(tempbase, "ctrl-us")
     config.USERSPACE = os.path.join(tempbase, "userspace")
     config.NETWORK_MANAGE_ENDPOINT = os.path.join(tempbase, "network-us")
 

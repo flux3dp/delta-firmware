@@ -175,13 +175,13 @@ class GPIOControl(object):
         L.debug("GPIO/PWM cleanup")
         GPIO.cleanup()
 
-    def reset_mainboard(self, watcher):
+    def reset_mainboard(self, loop):
         self.mainboard_disconnect()
         GPIO.output(GPIO_MAINBOARD_POW_PIN, MAINBOARD_OFF)
         sleep(0.3)
         GPIO.output(GPIO_MAINBOARD_POW_PIN, MAINBOARD_ON)
         sleep(1.5)
-        self.mainboard_connect(watcher.loop)
+        self.mainboard_connect(loop)
         self._init_mainboard_status()
 
     def update_ama0_routing(self):
@@ -208,7 +208,7 @@ class GPIOControl(object):
                 L.debug("Head Power delay off")
                 self._head_power_timer = time()
 
-    def update_head_fw(self, r):
+    def update_head_fw(self, stage_cb=lambda m: None):
         def wait_ack(stage):
             t = time()
             while time() - t < 5.0:
@@ -256,8 +256,7 @@ class GPIOControl(object):
 
         try:
             # Bootstrap
-            if r:
-                r.send(b"B")
+            stage_cb(b"B")
 
             self.raspi_uart.parity = PARITY_EVEN
 
@@ -275,8 +274,7 @@ class GPIOControl(object):
             sleep(0.5)
 
             # Hello
-            if r:
-                r.send(b"H")
+            stage_cb(b"H")
 
             try:
                 bootloader_hello()
@@ -295,8 +293,7 @@ class GPIOControl(object):
                 raise RuntimeError(NOT_SUPPORT)
 
             # Earse
-            if r:
-                r.send(b"E")
+            stage_cb(b"E")
 
             send_cmd(0x44, "G_ERASE")
             cmd = struct.pack(">H", pages - 1)
@@ -306,12 +303,10 @@ class GPIOControl(object):
             wait_ack("G_E")
 
             # Write
-            if r:
-                r.send(b"W")
+            stage_cb(b"W")
             offset = 0
             while offset < size:
-                if r:
-                    r.send(("%08x" % offset).encode())
+                stage_cb(("%08x" % (size - offset)).encode())
                 l = min(size - offset, 128)
                 send_cmd(0x31, "G_WINIT")
                 addr = struct.pack(">I", 0x08000000 + offset)
@@ -324,7 +319,7 @@ class GPIOControl(object):
                 wait_ack("G_WDONE")
                 offset += l
 
-            r.send("ok      ")
+            stage_cb("00000000")
         finally:
             GPIO.output(GPIO_HEAD_BOOT_MODE_PIN, GPIO.LOW)
             GPIO.output(GPIO_HEAD_POW_PIN, HEAD_POWER_OFF)
@@ -334,7 +329,7 @@ class GPIOControl(object):
 
         L.debug("Update fw end")
 
-    def update_fw(self, watcher):
+    def update_fw(self, loop):
         L.debug("Update mainboard firemare")
         self.mainboard_disconnect()
 
@@ -371,7 +366,7 @@ class GPIOControl(object):
             GPIO.output(GPIO_MAINBOARD_POW_PIN, MAINBOARD_ON)
             sleep(1.0)
 
-            self.mainboard_connect(watcher.loop)
+            self.mainboard_connect(loop)
             self._init_mainboard_status()
 
         except Exception:
