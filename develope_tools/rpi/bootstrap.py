@@ -35,7 +35,7 @@ if __name__ == "__main__":
             'console': {
                 'level': 'INFO',
                 'formatter': 'default',
-                'class': 'logging.StreamHandler',}
+                'class': 'logging.StreamHandler', }
         },
         'root': {
             'handlers': ['console'],
@@ -65,6 +65,7 @@ def system(cmd):
     if os.system(cmd) > 0:
         raise RuntimeError("Subtask return error")
 
+
 @action_wrapper
 def close_wifi_power_management():
     logger.info("Write wifi power management setting to "
@@ -82,7 +83,8 @@ def update_and_install_system_package():
 @action_wrapper
 def turn_off_useless_services():
     services = ["avahi-daemon", "dbus", "triggerhappy", "dhcpcd", "ssh",
-                "isc-dhcp-server", "networking"]
+                "isc-dhcp-server", "networking", "alsa-state.service",
+                "alsa-store.service", "alsa-restore.service"]
     for s in services:
         system("sudo update-rc.d -f %s remove" % s)
         system("sudo systemctl disable %s.service")
@@ -95,8 +97,10 @@ def copy_wifi_userlevel_driver():
     logger.info("Copy hostapd and wpa_supplicant to system")
     shutil.copyfile("hostapd-rtl8188cus",
                     "/usr/sbin/hostapd")
+    system("chmod 555 /usr/sbin/hostapd")
     shutil.copyfile("wpa_supplicant-rtl8188cus",
                     "/usr/bin/wpa_supplicant")
+    system("chmod 555 /usr/bin/wpa_supplicant")
 
 
 @action_wrapper
@@ -147,6 +151,7 @@ def set_system_console():
     system("sudo systemctl stop serial-getty@ttyAMA0.service")
     system("sudo systemctl disable serial-getty@ttyAMA0.service")
 
+
 @action_wrapper
 def install_fluxmonitor():
     if not os.path.exists("/etc/flux"):
@@ -178,4 +183,3 @@ if __name__ == "__main__":
     resp = sys.stdin.readline()
     if resp.strip().lower() != "n":
         system("sudo reboot")
-

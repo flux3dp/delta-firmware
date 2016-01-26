@@ -10,7 +10,7 @@ import pyev
 logger = logging.getLogger(__name__)
 
 from fluxmonitor.config import uart_config, DEBUG
-from fluxmonitor.err_codes import NO_RESPONSE, UNKNOWN_ERROR
+from fluxmonitor.err_codes import SUBSYSTEM_ERROR, NO_RESPONSE, UNKNOWN_ERROR
 
 
 class CommandMixIn(object):
@@ -92,7 +92,7 @@ class DeviceOperationMixIn(object):
             self._disconnect()
 
             if err.args[0] in [ECONNREFUSED, ENOENT]:
-                raise RuntimeError(NO_RESPONSE)
+                raise RuntimeError(SUBSYSTEM_ERROR, NO_RESPONSE)
             else:
                 raise
 
@@ -125,7 +125,7 @@ class DeviceOperationMixIn(object):
 
     def on_dead(self, reason=None):
         if self.stack.this_task == self:
-            logger.info("%s dead (reason=%s)" % (self.__class__.__name__, reason))
+            logger.info("%s dead (reason=%s)", self.__class__.__name__, reason)
             self.stack.exit_task(self)
         self.handler.close()
 

@@ -1,1 +1,2 @@
 include fluxmonitor/data/*
+prune fluxmonitor/data/test

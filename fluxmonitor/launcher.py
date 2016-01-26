@@ -1,6 +1,5 @@
 
 from __future__ import absolute_import
-from errno import EAGAIN, errorcode
 import logging.config
 import importlib
 import signal
@@ -8,6 +7,7 @@ import fcntl
 import sys
 import os
 
+from fluxmonitor.misc.pidfile import lock_pidfile as _lock_pidfile
 from fluxmonitor.config import general_config
 
 
@@ -57,7 +57,7 @@ def create_logger(options):
         'loggers': {},
         'root': {
             'handlers': list(handlers.keys()),
-            'level': 'DEBUG',
+            'level': log_level,
             'propagate': True
         }
     })
@@ -65,20 +65,10 @@ def create_logger(options):
 
 def lock_pidfile(options):
     try:
-        pid_handler = os.open(options.pidfile,
-                              os.O_CREAT | os.O_RDONLY | os.O_WRONLY, 0o644)
-        fcntl.lockf(pid_handler, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        return os.fdopen(pid_handler, "w")
-    except IOError as e:
-        if options.debug:
-            raise
-        elif e.args[0] == EAGAIN:
-            sys.stderr.write('Can not lock pidfile %s\n' % options.pidfile)
-            raise FatalException(0x80)
-        else:
-            sys.stderr.write('Can not open pidfile %s (%s)\n' %
-                             (options.pidfile, errorcode.get(e.args[0], "?")))
-            raise FatalException(0x81)
+        return _lock_pidfile(options.pidfile, options.debug)
+    except SystemError as e:
+        sys.stderr.write(e.args[1])
+        raise FatalException(e.args[0])
 
 
 def load_service_klass(klass_name):

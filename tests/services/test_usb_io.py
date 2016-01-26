@@ -2,16 +2,18 @@
 from threading import Thread
 from time import time
 import unittest
+import pytest
 import socket
 import struct
+import gc
 import os
 
 from Crypto.PublicKey import RSA
 
-from fluxmonitor.halprofile import get_model_id, get_platform
+from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT, uart_config
+from fluxmonitor.halprofile import get_model_id
 from fluxmonitor.security import access_control
 from fluxmonitor.services.usb import UsbIO
-from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT, uart_config
 from fluxmonitor import security
 
 from tests._utils.echo_server import EchoServer
@@ -21,6 +23,7 @@ MODEL_ID = get_model_id()
 MAGIC_NUMBER = b"\x97\xae\x02"
 
 
+@pytest.mark.usefixtures("empty_security")
 class UsbIoTest(unittest.TestCase):
     def setUp(self):
         self.sock, sock = socket.socketpair()
@@ -29,6 +32,8 @@ class UsbIoTest(unittest.TestCase):
     def tearDown(self):
         self.sock.close()
         self.sock = self.usbio = None
+        self.usbio = None
+        gc.collect()
 
     def recv_response(self):
         head = self.sock.recv(8)
@@ -36,39 +41,39 @@ class UsbIoTest(unittest.TestCase):
         buf = self.sock.recv(l)
         return mn, req, l, flag, buf
 
-    def test_single_check_recv_buffer(self):
-        REQ0_PAYLOAD = b'\x97\xae\x02\x00\x00\x02\x00HI'
-        REQ1_PAYLOAD = b'\x97\xae\x02\x01\x00\x02\x00BI'
+    def test_actionid_and_trigger_callback(self):
+        req0_payload = b'\x97\xae\x02\x00\x00\x02\x00HI'
+        req1_payload = b'\x97\xae\x02\x01\x00\x02\x00BI'
 
         def cb(buf):
             raise RuntimeError(buf)
         self.usbio.callbacks = {0: cb}
 
-        self.usbio._recv_view[:9] = REQ0_PAYLOAD
+        self.usbio._recv_view[:9] = req0_payload
         self.usbio._recv_offset = 9
         with self.assertRaises(RuntimeError) as cm:
             self.usbio.check_recv_buffer()
         self.assertEqual(cm.exception.args[0], "HI")
 
-        self.usbio._recv_view[:9] = REQ1_PAYLOAD
+        self.usbio._recv_view[:9] = req1_payload
         self.usbio._recv_offset = 9
         self.usbio.check_recv_buffer()
 
     def test_multi_check_recv_buffer(self):
-        REQ_PAYLOAD = b'\x97\xae\x02\x00\x00\x02\x00HI'
+        req_payload = b'\x97\xae\x02\x00\x00\x02\x00HI'
+
         def cb(buf):
             raise RuntimeError(buf)
         self.usbio.callbacks = {0: cb}
 
-        self.usbio._recv_view[:9] = REQ_PAYLOAD
-        self.usbio._recv_view[9:18] = REQ_PAYLOAD
-        self.usbio._recv_view[20:29] = REQ_PAYLOAD
+        self.usbio._recv_view[:9] = req_payload
+        self.usbio._recv_view[9:18] = req_payload
+        self.usbio._recv_view[20:29] = req_payload
         self.usbio._recv_offset = 29
 
         self.assertRaises(RuntimeError, self.usbio.check_recv_buffer)
         self.assertRaises(RuntimeError, self.usbio.check_recv_buffer)
         self.assertRaises(RuntimeError, self.usbio.check_recv_buffer)
-
 
     def test_on_identify(self):
         self.usbio.on_identify(b"")
@@ -204,15 +209,16 @@ class UsbIoTest(unittest.TestCase):
         signature = keyobj.sign(salt + identify["vector"])
 
         self.sock.settimeout(8)
-        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 2**22)
-        self.usbio.sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2**22)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 2 ** 22)
+        self.usbio.sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF,
+                                   2 ** 22)
         self.usbio.on_take_pic(salt + b"$" + signature)
         mn, req, l, flag, buf = self.recv_response()
         self.assertEqual(buf, "continue")
 
         status = self.sock.recv(1)
         hex_length = self.sock.recv(8, socket.MSG_WAITALL)
-        body = self.sock.recv(int(hex_length, 16),  socket.MSG_WAITALL)
+        body = self.sock.recv(int(hex_length, 16), socket.MSG_WAITALL)
 
         mn, req, l, flag, buf = self.recv_response()
         self.assertEqual(buf, b"OK")

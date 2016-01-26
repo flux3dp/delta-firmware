@@ -2,7 +2,6 @@
 from multiprocessing import Process
 from time import time, sleep
 import logging
-import signal
 import os
 
 from setproctitle import getproctitle, setproctitle
@@ -10,7 +9,7 @@ from serial import Serial, SerialException
 from RPi import GPIO
 import pyev
 
-from fluxmonitor.halprofile import MODEL_G1
+from fluxmonitor.halprofile import MODEL_D1
 from fluxmonitor.storage import Storage, CommonMetadata
 from fluxmonitor.config import LENGTH_OF_LONG_PRESS_TIME as LLPT, \
     GAP_BETWEEN_DOUBLE_CLICK as GBDC, HEAD_POWER_TIMEOUT
@@ -34,8 +33,8 @@ GPIO_NOT_DEFINED = (22, 24, )
 
 HEAD_POWER_ON = GPIO.HIGH
 HEAD_POWER_OFF = GPIO.LOW
-USB_SERIAL_ON = GPIO.LOW
-USB_SERIAL_OFF = GPIO.HIGH
+USB_SERIAL_ON = GPIO.HIGH
+USB_SERIAL_OFF = GPIO.LOW
 MAINBOARD_ON = GPIO.HIGH
 MAINBOARD_OFF = GPIO.LOW
 MAIN_BUTTON_DOWN = 0
@@ -147,7 +146,7 @@ class GPIOControl(object):
 
         GPIO.setup(GPIO_HEAD_POW_PIN, GPIO.OUT, initial=self._head_power_stat)
         GPIO.setup(GPIO_MAINBOARD_POW_PIN, GPIO.OUT, initial=MAINBOARD_ON)
-        GPIO.setup(GPIO_USB_SERIAL_PIN, GPIO.OUT)
+        GPIO.setup(GPIO_USB_SERIAL_PIN, GPIO.OUT, initial=USB_SERIAL_OFF)
         L.debug("GPIO configured")
 
         self.update_ama0_routing()
@@ -255,7 +254,7 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOControl):
     mainboard_io = raspi_io = None
 
     hal_name = "raspberrypi-1"
-    support_hal = [MODEL_G1, ]
+    support_hal = [MODEL_D1, ]
 
     def __init__(self, kernel):
         super(UartHal, self).__init__(kernel)
@@ -279,7 +278,6 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOControl):
         L.debug("Init with corr: %s", corr_str)
 
         self.sendto_mainboard(corr_str)
-        self.sendto_mainboard("G28\n")
         buf = self.storage.readall("on_boot")
         if buf:
             self.sendto_mainboard(buf)

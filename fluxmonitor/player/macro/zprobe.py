@@ -23,17 +23,23 @@ def do_correction(meta, x, y, z):
 class ZprobeMacro(object):
     name = "CORRECTING"
 
-    def __init__(self, on_success_cb, ttl=5):
+    def __init__(self, on_success_cb, ttl=5, threshold=0.05, clean=True):
         self._on_success_cb = on_success_cb
+        self._running = False
         self.meta = Metadata()
+        self.threshold = threshold
         self.history = []
         self.ttl = ttl
         self.data = None
+        self.clean = clean
 
         self.convergence = False
         self.round = 0
 
     def on_command_empty(self, executor):
+        if not self._running:
+            return
+
         if self.convergence:
             self._on_success_cb()
             return
@@ -44,42 +50,46 @@ class ZprobeMacro(object):
 
             new_h = self.meta.plate_correction["H"] - data
 
-            if abs(data) < 0.05:
+            if new_h > 244:
+                logger.error("Correction input failed: %s", data)
+            else:
+                self.meta.plate_correction = {"H": new_h}
+                executor.main_ctrl.send_cmd("M666H%.4f" % new_h, executor)
+
+            if abs(data) < self.threshold:
                 self.convergence = True
-                executor.main_ctrl.send_cmd("G1F9000Z50", executor)
+                executor.main_ctrl.send_cmd("G1F6000Z50", executor)
                 return
 
-            else:
-                if self.round >= self.ttl:
-                    executor.main_ctrl.send_cmd("G1F9000X0Y0Z230", executor)
-                    raise RuntimeError(HARDWARE_ERROR, EXEC_CONVERGENCE_FAILED)
+            elif self.round >= self.ttl:
+                executor.main_ctrl.send_cmd("G1F6000X0Y0Z210", executor)
+                raise RuntimeError(HARDWARE_ERROR, EXEC_CONVERGENCE_FAILED)
 
-                elif new_h > 244:
-                    logger.error("Correction input failed: %s", data)
-
-                else:
-                    self.meta.plate_correction = {"H": new_h}
-                    executor.main_ctrl.send_cmd("M666H%.4f" % new_h, executor)
-                self.round += 1
-
+        self.round += 1
         executor.main_ctrl.send_cmd("G30X0Y0", executor)
+        self.data = None
 
     def on_command_sendable(self, executor):
         pass
 
     def start(self, executor):
-        self.meta.plate_correction = {"H": 242}
-        executor.main_ctrl.send_cmd("M666H242", executor)
+        self._running = True
+        if self.clean:
+            self.meta.plate_correction = {"H": 242}
+            executor.main_ctrl.send_cmd("M666H242", executor)
+        else:
+            executor.main_ctrl.send_cmd("G30X0Y0", executor)
 
     def giveup(self):
-        pass
+        self._running = False
+        self.data = None
 
     def on_mainboard_message(self, msg, executor):
         if msg.startswith("Bed Z-Height at"):
             str_probe = msg.rsplit(" ", 1)[-1]
             val = float(str_probe)
             if val <= -50:
-                executor.main_ctrl.send_cmd("G1F9000X0Y0Z230", executor)
+                executor.main_ctrl.send_cmd("G1F6000X0Y0Z210", executor)
                 raise RuntimeError(HARDWARE_ERROR, EXEC_ZPROBE_ERROR)
             self.data = val
 

@@ -1,4 +1,4 @@
-#
+
 from fluxmonitor.player.macro.correction import CorrectionMacro
 from fluxmonitor.storage import Metadata
 
@@ -6,14 +6,6 @@ from tests.player.misc import ControlTestBase
 
 
 class CorrectionMacroTest(ControlTestBase):
-    @classmethod
-    def setUpClass(cls):
-        cls.meta = Metadata()
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.meta = None
-
     def on_success_callback(self):
         self.assertIsNone(self.callback_status)
         self.callback_status = "OK"
@@ -26,12 +18,16 @@ class CorrectionMacroTest(ControlTestBase):
         self.callback_status = None
 
     def setUp(self):
+        self.meta = Metadata()
         self.reset_callback()
-        self.meta.plate_correction = {"X": 0, "Y":0, "Z": 0, "H": 242}
+        self.meta.plate_correction = {"X": 0, "Y": 0, "Z": 0, "H": 242}
         self.cm = CorrectionMacro(self.on_success_callback)
 
+    def tearDown(self):
+        self.meta = None
+
     def test_simple_run(self):
-        ## ROUND 0
+        # # ROUND 0
         # Move to point 1
         with self.assertSendMainboard("M666H242",
                                       "G30X-73.6122Y-42.5") as executor:
@@ -61,13 +57,13 @@ class CorrectionMacroTest(ControlTestBase):
                 "Bed Z-Height at X:0 Y:85 = 0.31", executor)
         self.assertEqual(self.cm.data, [0.3, 0.25, 0.31])
 
-        ## Calculate
+        # # Calculate
         with self.assertSendMainboard("M666X-0.0100Y-0.0640Z-0.0000",
                                       "G30X-73.6122Y-42.5") as executor:
             self.cm.on_command_empty(executor)
             self.assertEqual(self.cm.round, 1)
 
-        ## ROUND 1
+        # # ROUND 1
         with self.assertSendMainboard("G30X-73.6122Y-42.5",
                                       "G30X73.6122Y-42.5",
                                       "G30X0Y85") as executor:
@@ -83,7 +79,7 @@ class CorrectionMacroTest(ControlTestBase):
             self.cm.on_mainboard_message(
                 "Bed Z-Height at X:0 Y:85 = 0.02", executor)
 
-        ## Calculate
+        # # Calculate
         self.assertIsNone(self.callback_status)
         with self.assertSendMainboard("G1F9000X0Y0Z30") as executor:
             self.cm.on_command_empty(executor)  # Send G28
@@ -107,7 +103,7 @@ class CorrectionMacroTest(ControlTestBase):
             self.cm.on_mainboard_message(
                 "Bed Z-Height at X:0 Y:85 = 0", executor)
 
-        ## Calculate
+        # # Calculate
         self.assertIsNone(self.callback_status)
         with self.assertSendMainboard("G1F9000X0Y0Z230") as executor:
             self.assertRaises(RuntimeError, self.cm.on_command_empty, executor)

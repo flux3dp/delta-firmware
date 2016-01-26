@@ -1,19 +1,23 @@
 
-import distutils.sysconfig
-from pkgutil import walk_packages
 from ctypes import cdll
+import distutils.sysconfig
 import ctypes.util
 import platform
 import sys
 import os
 
-from fluxmonitor import __version__ as VERSION
+try:
+    from setuptools import find_packages
+except ImportError:
+    raise RuntimeError("`setuptools` is required")
+
+from fluxmonitor import __version__ as VERSION  # noqa
 
 
 MODEL_DEFINES = {
     "linux-dev": "FLUX_MODEL_LINUX_DEV",
     "darwin-dev": "FLUX_MODEL_DARWIN_DEV",
-    "model-1": "FLUX_MODEL_G1"
+    "delta-1": "FLUX_MODEL_D1"
 }
 
 
@@ -44,62 +48,15 @@ def checklib(lib_name, package_name):
         sys.exit(1)
 
 
-def setup_test():
-    from tempfile import mkdtemp
-    tempbase = mkdtemp()
-
-    from fluxmonitor import config
-    config.general_config["db"] = os.path.join(tempbase, "db")
-    config.general_config["keylength"] = 512
-    config.general_config["debug"] = True
-    config.uart_config["headboard"] = os.path.join(tempbase, "headboard-us")
-    config.uart_config["mainboard"] = os.path.join(tempbase, "mainboard-us")
-    config.uart_config["pc"] = os.path.join(tempbase, "pc-us")
-    config.USERSPACE = os.path.join(tempbase, "userspace")
-    config.NETWORK_MANAGE_ENDPOINT = os.path.join(tempbase, "network-us")
-
-    import logging.config
-    logging.config.dictConfig({
-        'version': 1,
-        'disable_existing_loggers': True,
-        'formatters': {
-            'default': {
-                'format': "[%(asctime)s,%(levelname)s,%(name)s] %(message)s",
-                'datefmt': "%Y-%m-%d %H:%M:%S"
-            }
-        },
-        'handlers': {
-            'file': {
-                'formatter': 'default',
-                'class': 'logging.FileHandler',
-                'filename': "./tmp/test.log"
-            }
-        },
-        'root': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
-            'propagate': True
-        }
-    })
-
-    def on_exit():
-        import shutil
-        shutil.rmtree(tempbase)
-    import atexit
-    atexit.register(on_exit)
-
-
 def get_packages():
-    return [name
-            for _, name, ispkg in walk_packages(".")
-            if name.startswith("fluxmonitor") and ispkg]
+    return [p for p in find_packages() if p.startswith("fluxmonitor")]
 
 
 DEFAULT_MACROS = []
 
 HARDWARE_MODEL = None
 
-TEST_REQUIRE = ['pycrypto']
+TEST_REQUIRE = ['pytest', 'pycrypto']
 
 PY_INCLUDES = [distutils.sysconfig.get_python_inc()]
 
@@ -136,8 +93,8 @@ elif is_linux():
         buf = f.read()
         # TODO: Need some method to check if it is raspberry A
         if "BCM2708" in buf or "BCM2835" in buf:
-            HARDWARE_MODEL = "model-1"
-            DEFAULT_MACROS += [("FLUX_MODEL_G1", 1)]
+            HARDWARE_MODEL = "delta-1"
+            DEFAULT_MACROS += [("FLUX_MODEL_D1", 1)]
         else:
             HARDWARE_MODEL = "linux-dev"
             DEFAULT_MACROS += [("FLUX_MODEL_LINUX_DEV", 1)]
@@ -152,7 +109,7 @@ def get_install_requires():
     if is_darwin():
         packages += ['netifaces']
 
-    if HARDWARE_MODEL == "model-1":
+    if HARDWARE_MODEL == "delta-1":
         packages += ['RPi.GPIO']
 
     libev_path = checklib("ev", "libev")

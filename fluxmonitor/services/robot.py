@@ -5,10 +5,10 @@ import logging
 from fluxmonitor.controller.interfaces.local import LocalControl
 from fluxmonitor.controller.interfaces.button import ButtonControl
 from fluxmonitor.controller.tasks.play_manager import PlayerManager
-from fluxmonitor.services.base import ServiceBase
 from fluxmonitor.err_codes import RESOURCE_BUSY, EXEC_OPERATION_ERROR
+from fluxmonitor.controller.startup import device_startup
+from fluxmonitor.services.base import ServiceBase
 from fluxmonitor.storage import UserSpace
-
 
 STATUS_IDLE = 0x0
 STATUS_RUNNING = 0x1
@@ -22,13 +22,9 @@ class Robot(ServiceBase):
 
     def __init__(self, options):
         ServiceBase.__init__(self, logger)
-        self.local_control = LocalControl(self)
 
-        try:
-            self.button_control = ButtonControl(self, logger=logger)
-        except Exception:
-            logger.exception("Button control interface launch failed, ignore.")
-            self.button_control = None
+        self.local_control = LocalControl(self)
+        self._connect_button_service()
 
         try:
             if options.taskfile:
@@ -40,6 +36,16 @@ class Robot(ServiceBase):
                 self.autoplay()
         except Exception:
             logger.exception("Error while setting task at init")
+
+    def _connect_button_service(self):
+        try:
+            self.button_control = ButtonControl(self, logger=logger)
+        except Exception:
+            if logger.getEffectiveLevel() <= logging.DEBUG:
+                logger.exception("Button control interface launch failed")
+            else:
+                logger.warn("Button control interface launch failed")
+            self.button_control = None
 
     def on_button_control(self, message):
         logger.debug("Button trigger: %s", message)
@@ -66,7 +72,7 @@ class Robot(ServiceBase):
                 self.autoplay()
 
     def on_start(self):
-        pass
+        device_startup()
 
     def on_shutdown(self):
         self.running = False
@@ -134,12 +140,14 @@ class Robot(ServiceBase):
     def destory_exclusive(self):
         """Call this method from others to release exclusive lock"""
         if self.exclusive_component:
-            try:
-                self.exclusive_component.on_dead("Kicked")
-            except Exception:
-                logger.exception("Unknow Error")
-            self.exclusive_component = None
-            return True
+            if isinstance(self.exclusive_component, PlayerManager):
+                raise RuntimeError(RESOURCE_BUSY)
+            else:
+                try:
+                    self.exclusive_component.on_dead("Kicked")
+                except Exception:
+                    logger.exception("Unknow Error")
+                self.exclusive_component = None
+                return True
         else:
             return False
-

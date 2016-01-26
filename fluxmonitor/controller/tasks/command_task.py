@@ -17,6 +17,8 @@ from fluxmonitor.err_codes import (UNKNOWN_COMMAND, NOT_EXIST, TOO_LARGE,
 from fluxmonitor.storage import Storage, Metadata, UserSpace
 from fluxmonitor.diagnosis.god_mode import allow_god_mode
 from fluxmonitor.misc import mimetypes
+from fluxmonitor import halprofile
+import fluxmonitor
 
 from .base import CommandMixIn
 from .scan_task import ScanTask
@@ -102,7 +104,7 @@ class FileManagerMixIn(object):
 
     def rmdir(self, handler, entry, path):
         abspath = self.storage_dispatch(entry, path, sd_only=True,
-                                         require_dir=True)
+                                        require_dir=True)
         try:
             shutil.rmtree(abspath)
             handler.send_text("ok")
@@ -112,9 +114,9 @@ class FileManagerMixIn(object):
     def cpfile(self, handler, from_entry, from_path, to_entry, to_path):
         try:
             abssource = self.storage_dispatch(from_entry, from_path,
-                                               require_file=True)
+                                              require_file=True)
             abstarget = self.storage_dispatch(to_entry, to_path,
-                                               sd_only=True)
+                                              sd_only=True)
             shutil.copy(abssource, abstarget)
             handler.send_text("ok")
         except OSError as e:
@@ -125,7 +127,7 @@ class FileManagerMixIn(object):
     def rmfile(self, handler, entry, path):
         try:
             abspath = self.storage_dispatch(entry, path, sd_only=True,
-                                             require_file=True)
+                                            require_file=True)
             os.remove(abspath)
             handler.send_text("ok")
         except OSError as e:
@@ -134,7 +136,7 @@ class FileManagerMixIn(object):
     def md5(self, handler, entry, path):
         try:
             with open(self.storage_dispatch(entry, path,
-                                             require_file=True), "rb") as f:
+                                            require_file=True), "rb") as f:
                 buf = bytearray(4096)
                 l = f.readinto(buf)
                 m = md5()
@@ -179,14 +181,12 @@ class FileManagerMixIn(object):
 
 
 class PlayManagerMixIn(object):
-    def __validate_status(callback):
-        def wrapper(self, *args):
-            component = self.stack.kernel.exclusive_component
-            if isinstance(component, PlayerManager):
-                callback(self, component, *args)
-            else:
-                raise RuntimeError(NO_TASK)
-        return wrapper
+    def __get_manager(self):
+        component = self.stack.kernel.exclusive_component
+        if isinstance(component, PlayerManager):
+            return component
+        else:
+            raise RuntimeError(NO_TASK)
 
     def __select_file(self, handler, entry, path):
         abspath = self.storage_dispatch(entry, path, require_file=True)
@@ -212,27 +212,27 @@ class PlayManagerMixIn(object):
         else:
             raise RuntimeError(NO_TASK)
 
-    @__validate_status
-    def __play_pause(self, manager, handler):
+    def __play_pause(self, handler):
+        manager = self.__get_manager()
         handler.send_text(manager.pause())
 
-    @__validate_status
-    def __play_resume(self, manager, handler):
+    def __play_resume(self, handler):
+        manager = self.__get_manager()
         handler.send_text(manager.resume())
 
-    @__validate_status
-    def __play_abort(self, manager, handler):
+    def __play_abort(self, handler):
+        manager = self.__get_manager()
         handler.send_text(manager.abort())
 
-    @__validate_status
-    def __play_quit(self, manager, handler):
+    def __play_quit(self, handler):
+        manager = self.__get_manager()
         if manager.is_terminated:
             handler.send_text(manager.quit())
         else:
             raise RuntimeError(RESOURCE_BUSY)
 
-    @__validate_status
-    def __play_info(self, manager, handler):
+    def __play_info(self, handler):
+        manager = self.__get_manager()
         metadata, imgbuf = manager.playinfo
 
         def end_img(h):
@@ -271,7 +271,7 @@ class PlayManagerMixIn(object):
             self.__play_report(handler)
         elif cmd == "select":
             self.__select_file(handler, *args)
-        elif cmd == "play_info":
+        elif cmd == "info":
             self.__play_info(handler)
         elif cmd == "start":
             self.__start(handler)
@@ -349,8 +349,32 @@ class ConfigMixIn(object):
             raise RuntimeError(BAD_PARAMS)
 
 
+class TasksMixIn(object):
+    def dispatch_task_cmd(self, handler, cmd, *args):
+        if cmd == "maintain":
+            self.__maintain(handler)
+        elif cmd == "scan":
+            self.__scan(handler)
+        elif cmd == "raw" and allow_god_mode():
+            self.__raw_access(handler)
+
+    def __raw_access(self, handler):
+        task = RawTask(self.stack, handler)
+        self.stack.enter_task(task, empty_callback)
+        handler.send_text("continue")
+
+    def __scan(self, handler):
+        task = ScanTask(self.stack, handler)
+        self.stack.enter_task(task, empty_callback)
+        handler.send_text("ok")
+
+    def __maintain(self, handler):
+        task = MaintainTask(self.stack, handler)
+        self.stack.enter_task(task, empty_callback)
+
+
 class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
-                  ConfigMixIn):
+                  ConfigMixIn, TasksMixIn):
     _task_file = None
     _task_mimetype = None
 
@@ -364,12 +388,6 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
             self.dispatch_playmanage_cmd(handler, *args)
         elif cmd == "file":
             self.dispatch_filemanage_cmd(handler, *args)
-        elif cmd == "scan":
-            return self.scan(handler)
-        elif cmd == "start":
-            self.play(handler)
-        elif cmd == "maintain":
-            return self.maintain(handler)
         elif cmd == "update_fw":
             mimetype, filesize, upload_to = args
             if mimetype != mimetypes.MIMETYPE_FLUX_FIRMWARE:
@@ -377,15 +395,30 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
             self.update_fw(handler, int(filesize, 10))
         elif cmd == "config":
             self.dispatch_config_cmd(handler, *args)
+        elif cmd == "task":
+            self.dispatch_task_cmd(handler, *args)
         elif cmd == "kick":
             self.stack.kernel.destory_exclusive()
             # TODO: more message?
             handler.send_text("ok")
-        elif cmd == "raw" and allow_god_mode():
-            self.raw_access(handler)
         elif cmd == "update_mbfw" and allow_god_mode():
             mimetype, filesize, upload_to = args
             return self.update_mbfw(handler, int(filesize, 10))
+        elif cmd == "deviceinfo":
+            self.deviceinfo(handler)
+        elif cmd == "scan":
+            # TODO: going tobe remove
+            self.dispatch_task_cmd(handler, "scan")
+        elif cmd == "start":
+            # TODO: going tobe removed
+            self.dispatch_playmanage_cmd(handler, "start")
+            self.play(handler)
+        elif cmd == "maintain":
+            # TODO: going tobe removed
+            self.dispatch_task_cmd(handler, "maintain")
+        elif cmd == "raw":
+            # TODO: going tobe removed
+            self.dispatch_task_cmd(handler, "raw")
         else:
             logger.debug("Can not handle: %s" % repr(cmd))
             raise RuntimeError(UNKNOWN_COMMAND)
@@ -413,17 +446,7 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
         self.stack.enter_task(task, empty_callback)
         handler.send_text("continue")
 
-    def raw_access(self, handler):
-        task = RawTask(self.stack, handler)
-        self.stack.enter_task(task, empty_callback)
-        handler.send_text("continue")
-
-    def scan(self, handler):
-        task = ScanTask(self.stack, handler)
-        self.stack.enter_task(task, empty_callback)
-        return "ok"
-
-    def maintain(self, handler):
-        task = MaintainTask(self.stack, handler)
-        self.stack.enter_task(task, empty_callback)
-        handler.send_text("ok")
+    def deviceinfo(self, handler):
+        handler.send_text("ok\nversion:%s\nmodel:%s" % (
+            fluxmonitor.__version__,
+            halprofile.get_model_id()))

@@ -10,10 +10,6 @@ import setup_utils
 
 setup_utils.checklibs()
 
-if setup_utils.is_test():
-    setup_utils.setup_test()
-
-
 setup(
     name="fluxmonitor",
     version=setup_utils.VERSION,
@@ -27,6 +23,7 @@ setup(
     entry_points=setup_utils.ENTRY_POINTS,
     install_requires=setup_utils.get_install_requires(),
     tests_require=setup_utils.TEST_REQUIRE,
+    setup_requires=['pytest-runner'],
     cmdclass={'build_ext': build_ext},
     libraries=[
         ("flux_hal", {
@@ -90,6 +87,12 @@ setup(
                 "src/player/head_controller.pyx"],
             define_macros=DEFAULT_MACROS,
             libraries=LD_TIME, extra_objects=[], include_dirs=["src"]
-        )
+        ),
+        Extension(
+            'fluxmonitor.player._main_controller', sources=[
+                "src/player/main_controller.pyx"],
+            define_macros=DEFAULT_MACROS,
+            libraries=LD_TIME, extra_objects=[], include_dirs=["src"]
+        ),
     ]
 )

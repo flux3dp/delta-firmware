@@ -80,6 +80,8 @@ NICKNAMES = ["Apple", "Apricot", "Avocado", "Banana", "Bilberry", "Blackberry",
 
 
 class CommonMetadata(object):
+    shm = None
+
     def __init__(self):
         self.storage = Storage("general", "meta")
 
@@ -97,8 +99,9 @@ class CommonMetadata(object):
                                          size=4096, init_character='\x00')
 
     def __del__(self):
-        self.shm.detach()
-        self.shm = None
+        if self.shm:
+            self.shm.detach()
+            self.shm = None
 
     @property
     def plate_correction(self):
@@ -224,7 +227,7 @@ class CommonMetadata(object):
     def update_device_status(self, st_id, progress, head_type,
                              err_label=""):
         buf = struct.pack("dif16s32s", time(), st_id, progress, head_type,
-                          err_label)
+                          err_label[:32])
         self.shm.write(buf, 3584)
 
 
@@ -235,6 +238,19 @@ class UserSpace(object):
     def __init__(self):
         self.filepool = os.path.realpath(USERSPACE)
         self.usbmount = get_usbmount_hal()
+
+    def in_entry(self, entry, path):
+        if entry == "SD":
+            prefix = self.filepool
+        elif entry == "USB":
+            prefix = self.usbmount.get_entry()
+            if not prefix:
+                raise RuntimeError(NOT_EXIST, "BAD_NODE")
+        else:
+            raise RuntimeError(NOT_EXIST, "BAD_ENTRY")
+
+        b = os.path.commonprefix([prefix, path])
+        return b == prefix
 
     def get_path(self, _entry, _path, sd_only=False, require_file=False,
                  require_dir=False):
@@ -259,3 +275,16 @@ class UserSpace(object):
         if require_dir and (not os.path.isdir(abspath)):
             raise RuntimeError(NOT_EXIST, "NOT_DIR")
         return abspath
+
+    def exist(self, entry, path):
+        return os.path.exists(self.get_path(entry, path))
+
+    def mv(self, entry, oldpath, newpath):
+        os.rename(self.get_path(entry, oldpath),
+                  self.get_path(entry, newpath))
+
+    def rm(self, entry, path):
+        try:
+            os.remove(self.get_path(entry, path))
+        except OSError:
+            pass

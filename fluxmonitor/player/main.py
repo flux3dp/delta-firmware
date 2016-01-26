@@ -1,5 +1,6 @@
 
 from shlex import split as shlex_split
+from shutil import copyfile
 import logging
 import socket
 import json
@@ -8,7 +9,7 @@ import re
 
 import pyev
 
-from fluxmonitor.storage import CommonMetadata as Metadata
+from fluxmonitor.storage import Metadata, UserSpace
 from fluxmonitor.services.base import ServiceBase
 
 from .fcode_executor import FcodeExecutor
@@ -40,6 +41,7 @@ class Player(ServiceBase):
 
         taskfile = open(options.taskfile, "rb")
         taskloader = TaskLoader(taskfile)
+        self.place_recent_file(options.taskfile)
 
         self.prepare_control_socket(options.control_endpoint)
         self.meta = Metadata()
@@ -78,6 +80,29 @@ class Player(ServiceBase):
         except Exception:
             logger.exception("Error while listen endpoint at %s")
             raise
+
+    def place_recent_file(self, filename):
+        space = UserSpace()
+        if os.path.abspath(filename) == space.get_path("SD", "recent-1.fc"):
+            return
+
+        def place_file(syntax, index):
+            name = syntax % index
+            if space.exist("SD", name):
+                if index >= 5:
+                    space.rm("SD", name)
+                else:
+                    place_file(syntax, index + 1)
+                    space.mv("SD", name, syntax % (index + 1))
+
+        place_file("recent-%i.fc", 1)
+        if space.in_entry("SD", filename):
+            os.link(filename,
+                    space.get_path("SD", "recent-%i.fc" % 1))
+        else:
+            copyfile(filename,
+                     space.get_path("SD", "recent-%i.fc" % 1))
+        os.system("sync")
 
     def on_start(self):
         pass
@@ -127,17 +152,18 @@ class Player(ServiceBase):
 
     def on_cmd_message(self, watcher, revent):
         try:
-            S = watcher.data
+            S = watcher.data  # noqa
             argstr, R = S.recvfrom(128)
             args = shlex_split(argstr.decode("ascii", "ignore"))
             cmd = args[0]
             if cmd == "PAUSE":  # Pause
-                if self.executor.pause("USER_OPERATION"):
+                if self.executor.pause():
                     self.send_cmd_response(S, R, "ok")
                 else:
-                    self.send_cmd_response(S, R, "ERROR RESOURCE_BUSY")
+                    self.send_cmd_response(S, R, "error RESOURCE_BUSY")
             elif cmd == "REPORT":  # Report
                 st = self.executor.get_status()
+                st["traveled"] = self.executor.traveled
                 st["prog"] = self.executor.traveled / self.travel_dist
                 pl = json.dumps(st)
                 self.send_cmd_response(S, R, pl)
@@ -145,28 +171,28 @@ class Player(ServiceBase):
                 if self.executor.resume():
                     self.send_cmd_response(S, R, "ok")
                 else:
-                    self.send_cmd_response(S, R, "ERROR RESOURCE_BUSY")
+                    self.send_cmd_response(S, R, "error RESOURCE_BUSY")
             elif cmd == "ABORT":  # Abort
-                if self.executor.abort("USER_OPERATION"):
+                if self.executor.abort():
                     self.send_cmd_response(S, R, "ok")
                 else:
-                    self.send_cmd_response(S, R, "ERROR RESOURCE_BUSY")
+                    self.send_cmd_response(S, R, "error RESOURCE_BUSY")
             elif cmd == "LOAD_FILAMENT":
                 if self.executor.load_filament(int(args[1])):
                     self.send_cmd_response(S, R, "ok")
                 else:
-                    self.send_cmd_response(S, R, "ERROR RESOURCE_BUSY")
+                    self.send_cmd_response(S, R, "error RESOURCE_BUSY")
             elif cmd == "EJECT_FILAMENT":
                 if self.executor.eject_filament(int(args[1])):
                     self.send_cmd_response(S, R, "ok")
                 else:
-                    self.send_cmd_response(S, R, "ERROR RESOURCE_BUSY")
+                    self.send_cmd_response(S, R, "error RESOURCE_BUSY")
             elif cmd == "QUIT":
                 if self.executor.is_closed():
                     self.send_cmd_response(S, R, "ok")
                     self.shutdown("BYE")
                 else:
-                    self.send_cmd_response(S, R, "ERROR RESOURCE_BUSY")
+                    self.send_cmd_response(S, R, "error RESOURCE_BUSY")
         except Exception:
             logger.exception("Unhandle error")
 
@@ -178,8 +204,9 @@ class Player(ServiceBase):
         try:
             self.executor.on_loop()
 
-            if self.executor._err_symbol:
-                err = str(self.executor._err_symbol[0])
+            if self.executor.error_symbol:
+                e = self.executor.error_str
+                err = e.encode() if isinstance(e, unicode) else e
             else:
                 err = ""
 

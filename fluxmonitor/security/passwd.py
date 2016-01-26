@@ -3,7 +3,6 @@ from hashlib import sha1
 from hmac import HMAC
 from time import time
 
-from fluxmonitor.security import _security
 from fluxmonitor.storage import Storage
 from .access_control import untrust_all
 from .misc import randstr
@@ -14,7 +13,7 @@ _storage = Storage("security", "private")
 
 
 def has_password():
-    return _security.has_password()
+    return _storage.exists("password")
 
 
 def validate_and_set_password(password, old_password):
@@ -35,7 +34,13 @@ def set_password(password):
 
 
 def validate_password(password):
-    return _security.validate_password(password)
+    if has_password():
+        with _storage.open("password", "r") as f:
+            salt, pwdhash = f.read().split(";")
+            inputhash = HMAC(salt, password, sha1).hexdigest()
+            return pwdhash == inputhash
+    else:
+        return True
 
 
 def validate_timestemp(timestemp, now=None):

@@ -1,6 +1,7 @@
 
 from pkg_resources import resource_string
 from errno import ENOENT, ENOTSOCK
+from select import select
 from time import time
 import logging
 import socket
@@ -12,7 +13,7 @@ import pyev
 from fluxmonitor.hal.nl80211.config import get_wlan_ssid
 from fluxmonitor.hal.nl80211.scan import scan as wifiscan
 from fluxmonitor.hal.net.monitor import Monitor as NetworkMonitor
-from fluxmonitor.misc import network_config_encoder as NCE
+from fluxmonitor.misc import network_config_encoder as NCE  # noqa
 from fluxmonitor.security.passwd import set_password
 from fluxmonitor.security.access_control import is_rsakey, get_keyobj, \
     add_trusted_keyobj, untrust_all
@@ -22,7 +23,7 @@ from fluxmonitor.halprofile import get_model_id
 from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT, uart_config
 from fluxmonitor.err_codes import UNKNOWN_ERROR
 from fluxmonitor import security
-from fluxmonitor import __version__ as VERSION
+from fluxmonitor import __version__ as VERSION  # noqa
 from .base import ServiceBase
 
 logger = logging.getLogger(__name__)
@@ -47,7 +48,8 @@ REQ_SET_PASSWORD = 0x06
 
 REQ_MAINBOARD_TUNNEL = 0x80
 REQ_PHOTO = 0x81
-STORE_DATA = 0x82
+REQ_STORE_DATA = 0x82
+REQ_ENABLE_CONSOLE = 0x83
 
 
 class UsbService(ServiceBase):
@@ -104,7 +106,6 @@ class UsbIO(object):
     def __init__(self, sock):
         self.sock = sock
 
-        self.nw_monitor = NetworkMonitor(None)
         self.meta = Metadata()
 
         self._recv_buf = bytearray(4096)
@@ -125,8 +126,8 @@ class UsbIO(object):
 
             REQ_MAINBOARD_TUNNEL: self.on_mainboard_tunnel,
             REQ_PHOTO: self.on_take_pic,
-            STORE_DATA: self.on_store_data
-
+            REQ_STORE_DATA: self.on_store_data,
+            REQ_ENABLE_CONSOLE: self.on_enable_console,
         }
 
     def fileno(self):
@@ -205,6 +206,9 @@ class UsbIO(object):
                     self._recv_view[length + 7:self._recv_offset]
             self._recv_offset = remnant
 
+    def has_request(self):
+        return len(select((self.sock, ), (), (), 0)[0]) > 0
+
     def send_response(self, req, is_success, buf):
         """
             3s: MN
@@ -212,6 +216,11 @@ class UsbIO(object):
             H: response length
             b: request success=1, error=0
         """
+        if self.has_request():
+            # Drop this response because already has next request
+            logger.warn("Drop req %i because already got next req", req)
+            return
+
         success_flag = 1 if is_success else 0
         header = struct.pack("<3sHHb", b'\x97\xae\x02', req, len(buf),
                              success_flag)
@@ -269,7 +278,7 @@ class UsbIO(object):
         raw_opts = dict([i.split(b"=", 1) for i in buf.split(b"\x00")])
         name = raw_opts.get(b"name", "").decode("utf8", "ignore")
         if name:
-            self.meta.nickname = name
+            self.meta.nickname = name.encode("utf8", "ignore")
         self.send_response(REQ_CONFIG_GENERAL, True, MSG_OK)
 
     def on_config_network(self, buf):
@@ -311,12 +320,12 @@ class UsbIO(object):
             self.send_response(REQ_LIST_SSID, False, UNKNOWN_ERROR)
 
     def on_query_ipaddr(self, buf):
-        status = self.nw_monitor.full_status()
-        ipaddrs = []
-        for key, data in status.items():
-            for ipaddr, mask in data.get("ipaddr", []):
-                ipaddrs.append(ipaddr)
-        self.send_response(REQ_GET_IPADDR, True, " ".join(ipaddrs))
+        nm = NetworkMonitor(None)
+        try:
+            ipaddrs = nm.get_ipaddresses()
+            self.send_response(REQ_GET_IPADDR, True, " ".join(ipaddrs))
+        finally:
+            nm.close()
 
     def on_set_password(self, buf):
         pwd, pem = buf.split(b"\x00")
@@ -372,9 +381,25 @@ class UsbIO(object):
             with s.open(name, "w") as f:
                 f.write(value)
 
-            self.send_response(STORE_DATA, True, MSG_OK)
+            self.send_response(REQ_STORE_DATA, True, MSG_OK)
         else:
-            self.send_response(STORE_DATA, False, "Signature Error")
+            self.send_response(REQ_STORE_DATA, False, "Signature Error")
+
+    def on_enable_console(self, buf):
+        pem = resource_string("fluxmonitor", "data/develope.pem")
+        rsakey = get_keyobj(pem=pem)
+
+        salt, signature = buf.split(b"$", 1)
+
+        if rsakey.verify(salt + self._vector, signature):
+            from fluxmonitor.diagnosis.usb2device import enable_console
+            ret = enable_console()
+            if ret == 0:
+                self.send_response(REQ_ENABLE_CONSOLE, True, MSG_OK)
+            else:
+                self.send_response(REQ_ENABLE_CONSOLE, False, str(ret))
+        else:
+            self.send_response(REQ_ENABLE_CONSOLE, False, "Signature Error")
 
     def close(self):
         self.sock.close()
