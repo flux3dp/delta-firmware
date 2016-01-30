@@ -10,13 +10,14 @@ from fluxmonitor.player.head_controller import (
 from fluxmonitor.player.options import Options
 from fluxmonitor.player import macro
 from fluxmonitor.storage import Metadata
-from fluxmonitor.config import uart_config
+from fluxmonitor.config import HALCONTROL_ENDPOINT
 
 from fluxmonitor.err_codes import EXEC_HEAD_ERROR, RESOURCE_BUSY, \
-    SUBSYSTEM_ERROR, UNKNOWN_COMMAND
+    SUBSYSTEM_ERROR, TOO_LARGE, UNKNOWN_COMMAND
 
 from .base import CommandMixIn, DeviceOperationMixIn, \
     DeviceMessageReceiverMixIn
+from .update_hbfw_task import UpdateHbFwTask
 
 RE_REPORT_DIST = re.compile("X:(?P<X>(-)?[\d]+(.[\d]+)?) "
                             "Y:(?P<Y>(-)?[\d]+(.[\d]+)?) "
@@ -153,11 +154,15 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
 
         elif cmd == "reset_mb":
             s = socket.socket(socket.AF_UNIX)
-            s.connect(uart_config["control"])
+            s.connect(HALCONTROL_ENDPOINT)
             s.send(b"reset mb")
+            s.recv(4096)
             s.close()
             self.stack.exit_task(self)
             handler.send_text("ok")
+
+        elif cmd == "update_head":
+            self.update_head(handler, *args)
 
         elif cmd == "quit":
             self.stack.exit_task(self)
@@ -338,6 +343,15 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
     def headinfo(self, handler):
         payload = json.dumps(self.head_ctrl.status())
         handler.send_text("ok %s" % payload)
+
+    def update_head(self, handler, mimetype, sfilesize):
+        filesize = int(sfilesize)
+        if filesize > (1024 * 256):
+            raise RuntimeError(TOO_LARGE)
+
+        t = UpdateHbFwTask(self.stack, handler, filesize)
+        self.stack.enter_task(t, lambda *a: None)
+        handler.send_text("continue")
 
     def on_timer(self, watcher, revent):
         self.meta.update_device_status(self.st_id, 0, "N/A", "")
