@@ -161,6 +161,9 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             self.stack.exit_task(self)
             handler.send_text("ok")
 
+        elif cmd == "extruder_temp":
+            self.do_change_extruder_temperature(handler, *args)
+
         elif cmd == "update_head":
             self.update_head(handler, *args)
 
@@ -170,6 +173,16 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         else:
             logger.debug("Can not handle: '%s'" % cmd)
             raise RuntimeError(UNKNOWN_COMMAND)
+
+    def do_change_extruder_temperature(self, handler, sindex, stemp):
+        if not self.head_ctrl.ready:
+            raise HeadError(EXEC_HEAD_ERROR, RESOURCE_BUSY)
+        module = self.head_ctrl.status()["module"]
+        if module != "EXTRUDER":
+            raise HeadTypeError("EXTRUDER", module)
+
+        self.head_ctrl.send_cmd("H%i%.1f" % (int(sindex), float(stemp)), self)
+        handler.send_text("ok")
 
     def do_load_filament(self, handler, index, temp):
         if not self.head_ctrl.ready:
