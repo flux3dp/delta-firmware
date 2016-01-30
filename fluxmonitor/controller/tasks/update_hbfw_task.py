@@ -89,6 +89,11 @@ class UpdateHbFwTask(object):
                         handler.send_text("error " + UNKNOWN_ERROR)
                 elif stage == 1:
                     buf = s.recv(8, socket.MSG_WAITALL)
+                    if buf.startswith("er "):
+                        buf += s.recv(4096)
+                        handler.send_text("error " + buf[3:])
+                        return
+
                     left = int(buf, 16)
                     logger.debug("WRITE: %i", left)
                     handler.send_text("CTRL WRITE %i" % left)
@@ -104,7 +109,9 @@ class UpdateHbFwTask(object):
                     else:
                         handler.send_text("error " + UNKNOWN_ERROR + " " + buf)
                     return
-        except socket.error:
+
+        except socket.error as e:
+            logger.warn("Socket error: %s", e)
             raise RuntimeError(SUBSYSTEM_ERROR)
         finally:
             s.close()
