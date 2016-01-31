@@ -41,7 +41,10 @@ class Player(ServiceBase):
 
         taskfile = open(options.taskfile, "rb")
         taskloader = TaskLoader(taskfile)
-        self.place_recent_file(options.taskfile)
+        try:
+            self.place_recent_file(options.taskfile)
+        except Exception:
+            logger.exception("Can not place recent file")
 
         self.prepare_control_socket(options.control_endpoint)
         self.meta = Metadata()
