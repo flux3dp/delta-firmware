@@ -246,10 +246,10 @@ class FcodeExecutor(BaseExecutor):
                         self.main_ctrl.send_cmd(cmd, self)
                 elif target == 2:
                     if self.main_ctrl.buffered_cmd_size == 0:
-                        cmd = self._cmd_queue.popleft()[0]
                         if self.head_ctrl.is_busy:
                             return
                         else:
+                            cmd = self._cmd_queue.popleft()[0]
                             self.head_ctrl.send_cmd(cmd, self)
                     else:
                         return
