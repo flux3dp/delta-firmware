@@ -8,7 +8,7 @@ import socket
 
 from setproctitle import setproctitle
 
-from fluxmonitor.err_codes import FILE_BROKEN
+from fluxmonitor.err_codes import FILE_BROKEN, UNKNOWN_ERROR
 
 # G0_G1_CMD_PARSER = re.compile("G[0-1]( F(?P<F>[0-9]+))?( X(?P<X>[\-0-9.]+))?"
 #                               "( Y(?P<Y>[\-0-9.]+))?( Z(?P<Z>[\-0-9.]+))?"
@@ -30,6 +30,9 @@ class TaskLoader(Process):
         loader.metadata - Dict store metadata in file
         loader.image_buf - Image bytes data (image/png)
     """
+
+    error_symbol = None
+
     def _check_task(self):
         t = self.task_file
 
@@ -76,7 +79,13 @@ class TaskLoader(Process):
 
     def __init__(self, task_file):
         self.task_file = task_file
-        self._check_task()
+
+        try:
+            self._check_task()
+        except Exception as e:
+            self.error_symbol = e
+            self.metadata = {}
+            return
 
         self.io_in, self.io_out = socket.socketpair()
 
@@ -89,6 +98,14 @@ class TaskLoader(Process):
         # Remember to close after forked !!
         self.io_in.close()
         del self.io_in
+
+    def validate_status(self):
+        if self.error_symbol:
+            es = self.error_symbol
+            if isinstance(es, RuntimeError):
+                raise SystemError(*es.args)
+            else:
+                raise SystemError(UNKNOWN_ERROR, *es.args)
 
     @property
     def io_progress(self):
@@ -142,6 +159,9 @@ class TaskLoader(Process):
         return self.fout.fileno()
 
     def close(self):
+        if self.error_symbol:
+            return
+
         self.io_out.close()
         self.fout.close()
         self.task_file.close()

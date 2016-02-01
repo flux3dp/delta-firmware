@@ -246,7 +246,7 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
         s = Storage('camera')
         a = s.readall('calibration')
         if a is None:
-            a = '0 0'
+            a = '0 0 0'
         handler.send_text("ok " + a)
 
     def oneshot(self, handler):

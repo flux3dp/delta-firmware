@@ -26,7 +26,7 @@ uart_config = {
     "mainboard": "/tmp/.mainboard",
     "pc": "/tmp/.pc",
 
-    "control": "/tmp/.uart-control"
+    "control": "/tmp/.halcontrol"
 }
 
 
@@ -39,8 +39,10 @@ HEADBOARD_RETRY_TTL = 5
 
 HEAD_POWER_TIMEOUT = 300
 
-HEADBOARD_ENDPOINT = "/tmp/.headboard"
 MAINBOARD_ENDPOINT = "/tmp/.mainboard"
+HEADBOARD_ENDPOINT = "/tmp/.headboard"
+PC_ENDPOINT = "/tmp/.pc"
+HALCONTROL_ENDPOINT = "/tmp/.halcontrol"
 
 CAMERA_ENDPOINT = "/tmp/.camera"
 PLAY_ENDPOINT = "/tmp/.player"

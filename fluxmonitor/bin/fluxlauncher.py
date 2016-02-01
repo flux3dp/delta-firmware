@@ -1,11 +1,9 @@
 
 from pkg_resources import load_entry_point
 from time import sleep, time
-from signal import SIGTERM
 import argparse
 import fcntl
 import errno
-import sys
 import os
 
 
@@ -24,6 +22,11 @@ SERVICE_LIST = (
     ("fluxcamerad", ('--pid', '/var/run/fluxcamerad.pid',
                      '--log', '/var/log/fluxcamerad.log', '--daemon')),
 )
+
+
+def init_rapi():
+    if not os.path.exists("/var/gcode/userspace"):
+        os.mkdir("/var/gcode/userspace")
 
 
 def check_running(service):
@@ -51,6 +54,14 @@ def check_running(service):
 def main(params=None):
     parser = argparse.ArgumentParser(description='flux launcher')
     options = parser.parse_args(params)
+
+    from fluxmonitor.halprofile import CURRENT_MODEL
+
+    try:
+        if CURRENT_MODEL == 'delta-1':
+            init_rapi()
+    except Exception:
+        pass
 
     for service, startup_params in SERVICE_LIST:
         ret = check_running(service)

@@ -5,7 +5,8 @@ import os
 
 import pyev
 
-from fluxmonitor.config import uart_config
+from fluxmonitor.config import MAINBOARD_ENDPOINT, HEADBOARD_ENDPOINT, \
+    HALCONTROL_ENDPOINT, PC_ENDPOINT
 from fluxmonitor.storage import Storage
 
 logger = logging.getLogger("halservice.base")
@@ -19,16 +20,16 @@ class UartHalBase(object):
         self.storage = Storage("general", "mainboard")
 
         self.mainboard = self.create_socket(
-            loop=kernel.loop, path=uart_config["mainboard"],
+            loop=kernel.loop, path=MAINBOARD_ENDPOINT,
             callback=self.on_connected_mainboard)
         self.headboard = self.create_socket(
-            loop=kernel.loop, path=uart_config["headboard"],
+            loop=kernel.loop, path=HEADBOARD_ENDPOINT,
             callback=self.on_connected_headboard)
         self.pc = self.create_socket(
-            loop=kernel.loop, path=uart_config["pc"],
+            loop=kernel.loop, path=PC_ENDPOINT,
             callback=self.on_connected_pc)
         self.control = self.create_socket(
-            loop=kernel.loop, path=uart_config["control"],
+            loop=kernel.loop, path=HALCONTROL_ENDPOINT,
             callback=self.on_connected_control)
 
         self.mainboard_watchers = []
@@ -65,19 +66,32 @@ class UartHalBase(object):
     def on_control_message(self, watcher, revent):
         try:
             buf = watcher.data.recv(4096)
-            if buf:
-                cmd = buf.decode("ascii").strip()
-                if cmd == "reconnect":
-                    self.reconnect()
-                elif cmd == "reset mb":
-                    self.reset_mainboard(watcher)
-                elif cmd == "update_fw":
-                    self.update_fw(watcher)
-            else:
+            if not buf:
                 self.on_disconnect_control(watcher)
+                return
 
+            cmd = buf.decode("ascii").strip()
+            if cmd == "reconnect":
+                self.reconnect()
+                watcher.data.send("ok")
+            elif cmd == "reset mb":
+                self.reset_mainboard(watcher.loop)
+                watcher.data.send("ok")
+            elif cmd == "update_head_fw":
+                def cb(message):
+                    watcher.data.send(message)
+                self.update_head_fw(cb)
+                watcher.data.send("ok")
+            elif cmd == "update_fw":
+                self.update_fw(watcher.loop)
+                watcher.data.send("ok")
+
+        except RuntimeError as e:
+            logger.debug("RuntimeError: %s", e)
+            watcher.data.send("er %s" % e.args[0])
         except Exception:
             logger.exception("Unhandle error")
+            watcher.data.send("er UNKNOWN_ERROR")
 
     def on_connected_mainboard(self, watcher, revent):
         logger.debug("Connect to mainboard")

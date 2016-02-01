@@ -68,7 +68,10 @@ class PlayerManager(object):
             self.proc = proc
 
         except FCodeError as e:
+            s.send("X5S0\n")
             raise RuntimeError(FILE_BROKEN, *e.args)
+        except Exception as e:
+            s.send("X5S0\n")
         finally:
             s.close()
 
