@@ -39,13 +39,6 @@ class Player(ServiceBase):
         except Exception:
             logger.error("Can not renice process to -5")
 
-        taskfile = open(options.taskfile, "rb")
-        taskloader = TaskLoader(taskfile)
-        try:
-            self.place_recent_file(options.taskfile)
-        except Exception:
-            logger.exception("Can not place recent file")
-
         self.prepare_control_socket(options.control_endpoint)
         self.meta = Metadata()
 
@@ -62,15 +55,33 @@ class Player(ServiceBase):
         self.timer_watcher = self.loop.timer(0.8, 0.8, self.on_timer)
         self.timer_watcher.start()
 
-        options = Options(taskloader)
+        taskfile = open(options.taskfile, "rb")
+        taskloader = TaskLoader(taskfile)
+
+        exec_opt = None
+        if taskloader.error_symbol:
+            exec_opt = Options()
+
+        else:
+            exec_opt = Options(taskloader)
+
+            try:
+                self.place_recent_file(options.taskfile)
+            except Exception:
+                logger.exception("Can not place recent file")
+
         self.executor = FcodeExecutor(main_sock, head_sock, taskloader,
-                                      options)
+                                      exec_opt)
 
         self.travel_dist = parse_float(taskloader.metadata.get("TRAVEL_DIST"))
         self.time_cose = parse_float(taskloader.metadata.get("TIME_COST"))
         self.avg_speed = self.travel_dist / self.time_cose
 
     def prepare_control_socket(self, endpoint):
+        if not endpoint:
+            logger.warn("Control endpoit not set, use default /tmp/.player")
+            endpoint = "/tmp/.player"
+
         try:
             if os.path.exists(endpoint):
                 os.unlink(endpoint)

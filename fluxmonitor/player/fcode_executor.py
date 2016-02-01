@@ -56,11 +56,16 @@ class FcodeExecutor(BaseExecutor):
         self.main_ctrl.callback_msg_empty = self._on_mainboard_empty
         self.main_ctrl.callback_msg_sendable = self._on_mainboard_sendable
 
-        self.start()
-
         self._fsm = PyDeviceFSM(max_x=self.options.max_x,
                                 max_y=self.options.max_y,
                                 max_z=self.options.max_z)
+
+        try:
+            task_loader.validate_status()
+            self.start()
+
+        except Exception as e:
+            self.abort(e)
 
     @property
     def traveled(self):

@@ -24,9 +24,9 @@ class Options(object):
     head_error_level = None
     play_bufsize = None
     filament_detect = None
-    max_x = None
-    max_y = None
-    max_z = None
+    max_x = inf
+    max_y = inf
+    max_z = inf
 
     def __init__(self, taskloader=None):
         if taskloader:
