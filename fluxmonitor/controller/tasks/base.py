@@ -21,7 +21,12 @@ class CommandMixIn(object):
             if cmd == "position":
                 handler.send_text(self.__class__.__name__)
             else:
-                params = shlex_split(cmd)
+                # NOTE: PY27
+                if isinstance(buf, unicode):
+                    params = [p.decode("utf8")
+                              for p in shlex_split(cmd.encode("utf8"))]
+                else:
+                    params = shlex_split(cmd)
                 response = self.dispatch_cmd(handler, *params)
                 if response is not None:
                     logger.error("Shoud not response anything")
