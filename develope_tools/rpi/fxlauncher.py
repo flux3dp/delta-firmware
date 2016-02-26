@@ -2,10 +2,9 @@
 
 from time import sleep
 import shutil
-import sys
 import os
 
-from serial import Serial, SerialException
+from serial import Serial
 
 
 USB_AUTOUPDATE_LOCATION = "/media/usb/autoupdate.fxfw"
@@ -99,7 +98,7 @@ def execute_autoupdate(find_usb=True):
 
         print("Invoke fxupdate.py")
         ret = os.system("fxupdate.py %s" % AUTOUPDATE_LOCATION)
-        if ret in (0, 8, 9):
+        if ret in (0, 8, 9, 2303, 2304):
             os.unlink(AUTOUPDATE_LOCATION)
         else:
             raise UpdateError("Return %i" % ret)
