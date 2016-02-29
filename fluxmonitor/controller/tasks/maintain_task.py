@@ -356,7 +356,9 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         handler.send_text("continue")
 
     def headinfo(self, handler):
-        payload = json.dumps(self.head_ctrl.status())
+        dataset = self.head_ctrl.status()
+        dataset.update(self.head_ctrl.info())
+        payload = json.dumps(dataset)
         handler.send_text("ok %s" % payload)
 
     def update_head(self, handler, mimetype, sfilesize):
