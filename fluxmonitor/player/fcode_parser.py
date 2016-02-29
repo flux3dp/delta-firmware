@@ -31,8 +31,16 @@ def fast_read_meta(filename):
                     metadata[sitem[0]] = sitem[1]
 
             # Load image
-            image_size = UINT_PACKER.unpack(f.read(4))[0]
-            return metadata, f.read(image_size)
+            images = []
+            size_buf = f.read(4)
+            while len(size_buf) == 4:
+                img_s = UINT_PACKER.unpack(size_buf)[0]
+                if img_s > 0:
+                    images.append(f.read(img_s))
+                    size_buf = f.read(4)
+                else:
+                    break
+            return metadata, images
 
         except AssertionError as e:
             raise RuntimeError(FILE_BROKEN, e.args[0] if e.args else "#")

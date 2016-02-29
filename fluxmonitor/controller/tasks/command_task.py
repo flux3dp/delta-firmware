@@ -86,10 +86,11 @@ class FileManagerMixIn(object):
     def fileinfo(self, handler, entry, path):
         abspath = self.storage_dispatch(entry, path, require_file=True)
         if mimetypes.guess_type(abspath)[0] == mimetypes.MIMETYPE_FCODE:
-            metadata, image = fast_read_meta(abspath)
+            metadata, images = fast_read_meta(abspath)
+            for img in images:
+                handler.send_text("binary image/png %i" % len(img))
+                handler.send(img)
             metadata["size"] = os.path.getsize(abspath)
-            handler.send_text("binary image/png %i" % len(image))
-            handler.send(image)
             handler.send_text(
                 "ok %s" % "\x00".join(
                     "%s=%s" % (k, v)for k, v in metadata.items()))
