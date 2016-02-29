@@ -28,7 +28,6 @@ class TaskLoader(Process):
         loader.script_size - Entire script size (bytes)
         loader.io_progress - Script alread readed (bytes)
         loader.metadata - Dict store metadata in file
-        loader.image_buf - Image bytes data (image/png)
     """
 
     error_symbol = None
@@ -70,10 +69,6 @@ class TaskLoader(Process):
             if len(sitem) == 2:
                 metadata[sitem[0]] = sitem[1]
         self.metadata = metadata
-
-        # Load image
-        image_size = UINT_PACKER.unpack(t.read(4))[0]
-        self.image_buf = t.read(image_size)
 
         t.seek(self.script_ptr)
 

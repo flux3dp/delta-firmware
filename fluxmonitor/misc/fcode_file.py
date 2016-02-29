@@ -49,8 +49,15 @@ class FCodeFile(object):
         self.metadata = metadata
 
         # Load image
-        image_size = UINT_PACKER.unpack(f.read(4))[0]
-        self.image_buf = f.read(image_size)
+        self.image_buf = []
+        buf = f.read(4)
+        while len(buf) == 4:
+            image_size = UINT_PACKER.unpack(buf)[0]
+            if image_size > 0:
+                self.image_buf.append(f.read(image_size))
+                buf = f.read(4)
+            else:
+                break
 
 
 class FCodeError(Exception):

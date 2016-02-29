@@ -223,7 +223,7 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
                                 calibrate_parameter))
                         break
                     else:
-                        flag = 12
+                        flag = 13
                 elif w < 0:
                     self.make_gcode_cmd(
                         "G1 F500 E{}".format(table.get(round(abs(w)), 60)))
@@ -240,13 +240,15 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
         elif flag == 11:
             handler.send_text('ok fail chess')
         elif flag == 12:
-            handler.send_text('ok fail laser')
+            handler.send_text('ok fail laser %d'.format(flag))
+        else:
+            handler.send_text('ok fail laser %d'.format(flag))
 
     def get_cab(self, handler):
         s = Storage('camera')
         a = s.readall('calibration')
         if a is None:
-            a = '0 0 0'
+            a = '320 320 320'
         handler.send_text("ok " + a)
 
     def oneshot(self, handler):

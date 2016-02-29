@@ -53,6 +53,8 @@ class FileManagerMixIn(object):
         elif cmd == "upload":
             # upload [mimetype] [size] [entry] [path]
             self.upload_file(handler, *args)
+        elif cmd == "download":
+            self.download_file(handler, *args)
         elif cmd == "md5":
             self.md5(handler, *args)
         else:
@@ -84,10 +86,11 @@ class FileManagerMixIn(object):
     def fileinfo(self, handler, entry, path):
         abspath = self.storage_dispatch(entry, path, require_file=True)
         if mimetypes.guess_type(abspath)[0] == mimetypes.MIMETYPE_FCODE:
-            metadata, image = fast_read_meta(abspath)
+            metadata, images = fast_read_meta(abspath)
+            for img in images:
+                handler.send_text("binary image/png %i" % len(img))
+                handler.send(img)
             metadata["size"] = os.path.getsize(abspath)
-            handler.send_text("binary image/png %i" % len(image))
-            handler.send(image)
             handler.send_text(
                 "ok %s" % "\x00".join(
                     "%s=%s" % (k, v)for k, v in metadata.items()))
@@ -147,6 +150,19 @@ class FileManagerMixIn(object):
                         m.update(buf[:l])
                     l = f.readinto(buf)
             handler.send_text("md5 %s" % m.hexdigest())
+        except OSError as e:
+            raise RuntimeError("OSERR_" + errorcode.get(e.args[0], "UNKNOW"))
+
+    def download_file(self, handler, entry, path):
+        def cb(h):
+            handler.send_text("ok")
+
+        try:
+            abspath = self.storage_dispatch(entry, path, require_file=True)
+            mimetype = mimetypes.guess_type(abspath)[0]
+            length = os.path.getsize(abspath)
+            stream = open(abspath, "rb")
+            handler.async_send_binary(mimetype, length, stream, cb)
         except OSError as e:
             raise RuntimeError("OSERR_" + errorcode.get(e.args[0], "UNKNOW"))
 

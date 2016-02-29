@@ -110,6 +110,12 @@ cdef class HeadController:
     def allset(self):
         return self._ext.all_set()
 
+    def info(self):
+        if self._ready == 8 and self._ext:
+            return self._ext.info()
+        else:
+            return {}
+
     def status(self):
         if self._ready == 8 and self._ext:
             return self._ext.status()
@@ -135,6 +141,7 @@ cdef class HeadController:
                     ext_klass = MODULES_EXT.get(module_type)
                     if ext_klass:
                         self._ext = ext_klass()
+                        self._ext.hello(**module_info)
                     else:
                         raise RuntimeError(EXEC_UNKNOWN_HEAD, module_type)
 
@@ -381,6 +388,9 @@ cdef class BaseExt:
         self.id = kw.get("ID")
         self.vendor = kw.get("VENDOR")
         self.version = kw.get("VERSION")
+
+    def info(self):
+        return {"id": self.id, "vendor": self.vendor, "version": self.version}
 
     def generate_command(self, cmd):
         pass

@@ -208,7 +208,8 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
                     raise
 
             opt = Options()
-            cmds = ("C3", ) if opt.filament_detect == "N" else ("C3+", )
+            cmds = (("T%i" % index),
+                    ("C3" if opt.filament_detect == "N" else "C3+"))
             self._macro = macro.CommandMacro(on_load_done, cmds,
                                              on_message_cb=on_message)
             self._macro.start(self)
@@ -246,7 +247,8 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             self._busy = False
 
         def on_heating_done():
-            self._macro = macro.CommandMacro(on_load_done, ["C4"])
+            self._macro = macro.CommandMacro(on_load_done, ("T%i" % index,
+                                                            "C4", ))
             self._macro.start(self)
 
         def on_macro_error(error):
@@ -354,7 +356,9 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         handler.send_text("continue")
 
     def headinfo(self, handler):
-        payload = json.dumps(self.head_ctrl.status())
+        dataset = self.head_ctrl.status()
+        dataset.update(self.head_ctrl.info())
+        payload = json.dumps(dataset)
         handler.send_text("ok %s" % payload)
 
     def update_head(self, handler, mimetype, sfilesize):

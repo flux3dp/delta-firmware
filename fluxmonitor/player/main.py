@@ -97,7 +97,11 @@ class Player(ServiceBase):
 
     def place_recent_file(self, filename):
         space = UserSpace()
-        if os.path.abspath(filename) == space.get_path("SD", "recent-1.fc"):
+        if not os.path.exists(space.get_path("SD", "Recent")):
+            os.makedirs(space.get_path("SD", "Recent"))
+
+        if os.path.abspath(filename) == space.get_path("SD",
+                                                       "Recent/recent-1.fc"):
             return
 
         def place_file(syntax, index):
@@ -109,13 +113,13 @@ class Player(ServiceBase):
                     place_file(syntax, index + 1)
                     space.mv("SD", name, syntax % (index + 1))
 
-        place_file("recent-%i.fc", 1)
+        place_file("Recent/recent-%i.fc", 1)
         if space.in_entry("SD", filename):
             os.link(filename,
-                    space.get_path("SD", "recent-%i.fc" % 1))
+                    space.get_path("SD", "Recent/recent-%i.fc" % 1))
         else:
             copyfile(filename,
-                     space.get_path("SD", "recent-%i.fc" % 1))
+                     space.get_path("SD", "Recent/recent-%i.fc" % 1))
         os.system("sync")
 
     def on_start(self):

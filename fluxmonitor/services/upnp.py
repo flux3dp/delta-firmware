@@ -35,8 +35,6 @@ MODEL_ID = get_model_id()
 CODE_NOPWD_ACCESS = 0x04
 CODE_PWD_ACCESS = 0x06
 
-# CODE_CONTROL_STATUS = 0x80
-# CODE_RESET_CONTROL = 0x82
 CODE_REQUEST_ROBOT = 0x84
 CODE_CHANGE_PWD = 0xa0
 CODE_SET_NETWORK = 0xa2
@@ -109,6 +107,7 @@ class MulticastInterface(object):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM,
                                   socket.IPPROTO_UDP)
         self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
+        self.sock.bind(('', port))
         self.mcst_addr = (addr, port)
 
         self._generate_discover_info()
@@ -166,6 +165,10 @@ class MulticastInterface(object):
             self.poke_counter[key] = val + 3
             return False
 
+    def on_discover(self, endpoint):
+        self.sock.sendto(self._discover_payload + self.meta.device_status,
+                         endpoint)
+
     def on_touch(self, endpoint):
         info = "ver=%s\x00model=%s\x00name=%s\x00pwd=%s\x00time=%i" % (
             VERSION, MODEL_ID, self.meta.nickname,
@@ -219,8 +222,8 @@ class MulticastInterface(object):
             logger.debug("%s request 0x%x (t=%f)" % (
                 endpoint[0], action_id, time() - t1))
         else:
-            # UUID not match, ignore message
-            return
+            if action_id == 0 and buuid == GLOBAL_SERIAL.bytes:
+                self.on_discover(endpoint)
 
     def send_response(self, endpoint, action_id, message):
         payload = struct.pack("<4sBB16sH", b"FLUX", 1, action_id + 1,
