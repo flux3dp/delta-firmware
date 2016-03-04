@@ -81,7 +81,7 @@ class Monitor(object):
         for addr in self.ipr.get_addr():
             info = dict(addr['attrs'])
             addr = info.get('IFA_ADDRESS')
-            if addr and addr != "127.0.0.1":
+            if addr and addr != "127.0.0.1" and addr != "::1":
                 addresses.append(addr)
         return addresses
 

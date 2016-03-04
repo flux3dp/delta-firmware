@@ -64,7 +64,7 @@ def validate_options(orig):
 
         if wifi_mode not in ("client", "host"):
             raise KeyError("wifi_mode")
-        if security not in ('WPA-PSK', 'WPA2-PSK', None):
+        if security not in ('WPA-PSK', 'WPA2-PSK', 'WEP', None):
             raise KeyError("security")
 
         options["ssid"] = ssid

@@ -33,7 +33,7 @@ def usb2mainboard(usb_serial, mainboard_unixsocket_endpoint):
     mb_serial.close()
 
 
-def usb2camera(usb_serial):
+def usb2camera(usb_serial, ttl=100):
     try:
         from fluxmonitor.hal.camera import get_scan_camera
         import cv2
@@ -41,7 +41,10 @@ def usb2camera(usb_serial):
         camera = get_scan_camera(0)
         for i in range(4):
             while not camera.grab():
-                pass
+                if ttl > 0:
+                    ttl -= 1
+                else:
+                    raise RuntimeError("CAMERA_ERROR")
         ret, img_buf = camera.read()
         if not ret:
             raise RuntimeError("Camera does not return image")
