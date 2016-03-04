@@ -256,8 +256,8 @@ class PlayManagerMixIn(object):
 
         def end_meta__send_img(h):
             if imgbuf:
-                h.async_send_binary("image/png", len(imgbuf), BytesIO(imgbuf),
-                                    end_img)
+                h.async_send_binary("image/png", len(imgbuf[0]),
+                                    BytesIO(imgbuf[0]), end_img)
             else:
                 h.send_text("ok")
 
