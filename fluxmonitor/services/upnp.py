@@ -8,20 +8,20 @@ import struct
 import socket
 import json
 
-logger = logging.getLogger(__name__)
-
 import pyev
 
-from fluxmonitor.misc import network_config_encoder as NCE  # noqa
-from fluxmonitor.halprofile import get_model_id
 from fluxmonitor.hal.net.monitor import Monitor as NetworkMonitor
-from fluxmonitor.storage import CommonMetadata
+from fluxmonitor.halprofile import get_model_id
 from fluxmonitor.err_codes import BAD_PASSWORD, AUTH_ERROR
+from fluxmonitor.storage import CommonMetadata
 from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT
+from fluxmonitor.misc import network_config_encoder as NCE  # noqa
 
 from fluxmonitor import __version__ as VERSION  # noqa
 from fluxmonitor import security
 from .base import ServiceBase
+
+logger = logging.getLogger(__name__)
 
 
 SERIAL_HEX = security.get_uuid()
@@ -35,7 +35,6 @@ MODEL_ID = get_model_id()
 CODE_NOPWD_ACCESS = 0x04
 CODE_PWD_ACCESS = 0x06
 
-CODE_REQUEST_ROBOT = 0x84
 CODE_CHANGE_PWD = 0xa0
 CODE_SET_NETWORK = 0xa2
 
@@ -95,14 +94,12 @@ def parse_signed_request(payload, secretkey):
 
 
 class MulticastInterface(object):
-    temp_rsakey = None
     timer = 0
 
-    def __init__(self, server, pkey, meta, addr='239.255.255.250', port=1901):
+    def __init__(self, server, pkey, meta, addr, port):
         self.server = server
         self.master_key = pkey
         self.meta = meta
-        self.poke_counter = {}
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM,
                                   socket.IPPROTO_UDP)
@@ -110,6 +107,18 @@ class MulticastInterface(object):
         self.sock.bind(('', port))
         self.mcst_addr = (addr, port)
 
+    def fileno(self):
+        return self.sock.fileno()
+
+    def close(self):
+        self.sock.close()
+
+
+class Version1Interface(MulticastInterface):
+    temp_rsakey = None
+
+    def __init__(self, server, pkey, meta, addr='239.255.255.250', port=1901):
+        super(Version1Interface, self).__init__(server, pkey, meta, addr, port)
         self._generate_discover_info()
 
     def _generate_discover_info(self):
@@ -147,24 +156,6 @@ class MulticastInterface(object):
             len(temp_pkey_sign)  # Temp pkey sign
         ) + temp_pkey_der + temp_pkey_sign
 
-    def reduce_drop_request(self):
-        for key in self.poke_counter.keys():
-            val = self.poke_counter[key]
-            if val > 1:
-                self.poke_counter[key] = val - 1
-            else:
-                self.poke_counter.pop(key)
-
-    def drop_request(self, endpoint, action_id):
-        key = "%s+%i" % (endpoint[0], action_id)
-
-        val = self.poke_counter.get(key, 0)
-        if val > 60:
-            return True
-        else:
-            self.poke_counter[key] = val + 3
-            return False
-
     def on_discover(self, endpoint):
         self.sock.sendto(self._discover_payload + self.meta.device_status,
                          endpoint)
@@ -180,9 +171,6 @@ class MulticastInterface(object):
             self.server.slave_pkey.sign(info)
 
         self.sock.sendto(payload, endpoint)
-
-    def fileno(self):
-        return self.sock.fileno()
 
     def on_message(self, watcher, revent):
         """Payload struct:
@@ -207,9 +195,6 @@ class MulticastInterface(object):
 
         magic_num, proto_ver, action_id, buuid = struct.unpack("<4sBB16s",
                                                                buf[:22])
-        if self.drop_request(endpoint, action_id):
-            logger.debug("Drop %s request %i", endpoint[0], action_id)
-            return
 
         if magic_num != b"FLUX":
             return
@@ -231,15 +216,11 @@ class MulticastInterface(object):
         signature = self.server.slave_pkey.sign(message)
         self.sock.sendto(payload + message + signature, endpoint)
 
-    def send_discover(self):
+    def send_notify(self):
         if time() - self.timer > 2.5:
-            self.reduce_drop_request()
             self.sock.sendto(self._discover_payload + self.meta.device_status,
                              self.mcst_addr)
             self.timer = time()
-
-    def close(self):
-        self.sock.close()
 
 
 class UpnpServiceMixIn(object):
@@ -349,11 +330,6 @@ class UpnpServiceMixIn(object):
 
         return {"timestemp": time()}
 
-    @json_payload_wrapper
-    def cmd_require_robot(self, access_id, message):
-        # TODO: to be delete
-        return {"status": "launched"}
-
 
 class UpnpService(ServiceBase, UpnpServiceMixIn):
     ipaddress = None
@@ -376,10 +352,6 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
             CODE_PWD_ACCESS: self.cmd_pwd_access,
             CODE_CHANGE_PWD: self.cmd_change_pwd,
             CODE_SET_NETWORK: self.cmd_set_network,
-
-            # CODE_CONTROL_STATUS: self.cmd_control_status,
-            # CODE_RESET_CONTROL: self.cmd_reset_control,
-            CODE_REQUEST_ROBOT: self.cmd_require_robot
         }
 
         super(UpnpService, self).__init__(logger)
@@ -409,10 +381,12 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
         self._try_close_upnp_sock()
 
         try:
-            self.mcst = MulticastInterface(self, self.master_key, self.meta)
+            self.mcst = Version1Interface(self, self.master_key, self.meta)
+
             self.mcst_watcher = self.loop.io(self.mcst, pyev.EV_READ,
                                              self.mcst.on_message)
             self.mcst_watcher.start()
+
             self.logger.info("Upnp going UP")
 
         except socket.error:
@@ -437,7 +411,7 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
         #     self.button_control.close()
 
     def on_cron(self, watcher, revent):
-        self.mcst.send_discover()
+        self.mcst.send_notify()
 
     def on_request(self, remote, request_code, payload, interface):
         callback = self._callback.get(request_code)
