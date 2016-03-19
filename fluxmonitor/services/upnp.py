@@ -28,7 +28,6 @@ SERIAL_HEX = security.get_uuid()
 SERIAL_BIN = binascii.a2b_hex(SERIAL_HEX)
 SERIAL_NUMBER = security.get_serial()
 UUID_BYTES = SERIAL_BIN
-MULTICAST_VERSION = 1
 MODEL_ID = get_model_id()
 
 
@@ -93,72 +92,61 @@ def parse_signed_request(payload, secretkey):
     return True, access_id, body[32:]
 
 
-class MulticastInterface(object):
-    timer = 0
+class InterfaceBaseV1(object):
+    __notify_payload = None
+    __touch_payload = None
 
-    def __init__(self, server, pkey, meta, addr, port):
+    def __init__(self, server):
         self.server = server
-        self.master_key = pkey
-        self.meta = meta
-
+        self.meta = server.meta
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM,
                                   socket.IPPROTO_UDP)
-        self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
-        self.sock.bind(('', port))
-        self.mcst_addr = (addr, port)
 
     def fileno(self):
         return self.sock.fileno()
 
-    def close(self):
-        self.sock.close()
+    @property
+    def _notify_payload(self):
+        if not self.__notify_payload:
+            slave_pkey_ts = self.server.slave_pkey_ts
+            main_pubder = self.server.master_key.export_pubkey_der()
+            identify = security.get_identify()
 
+            self.__notify_payload = struct.pack(
+                "<4sBB16s10sfHH",
+                "FLUX",             # Magic String
+                1,                  # Protocol Version
+                0,                  # Discover Code
+                UUID_BYTES,         # Device UUID
+                SERIAL_NUMBER,      # Device Serial Number
+                slave_pkey_ts,      # TEMP TS
+                len(main_pubder),   # Public Key length
+                len(identify),      # Identify length
+            ) + main_pubder + identify
+        return self.__notify_payload + self.meta.device_status
 
-class Version1Interface(MulticastInterface):
-    temp_rsakey = None
+    @property
+    def _touch_payload(self):
+        if not self.__touch_payload:
+            temp_ts = self.server.slave_pkey_ts
+            temp_pkey_der = self.server.slave_pkey.export_pubkey_der()
+            temp_pkey_sign = self.server.master_key.sign(
+                struct.pack("<f", temp_ts) + temp_pkey_der)
 
-    def __init__(self, server, pkey, meta, addr='239.255.255.250', port=1901):
-        super(Version1Interface, self).__init__(server, pkey, meta, addr, port)
-        self._generate_discover_info()
+            self.__touch_payload = struct.pack(
+                "<4sBB16sfHH",
+                "FLUX",              # Magic String
+                1,                   # Protocol Version
+                3,                   # Tocuh Code
+                UUID_BYTES,          # Device UUID
+                temp_ts,
+                len(temp_pkey_der),  # Temp pkey length
+                len(temp_pkey_sign)  # Temp pkey sign
+            ) + temp_pkey_der + temp_pkey_sign
+        return self.__touch_payload
 
-    def _generate_discover_info(self):
-        temp_ts = time()
-        temp_pkey_der = self.server.slave_pkey.export_pubkey_der()
-
-        temp_pkey_sign = self.master_key.sign(
-            struct.pack("<f", temp_ts) + temp_pkey_der)
-
-        self.meta.shared_der_rsakey = self.server.slave_pkey.export_der()
-
-        main_pubder = self.master_key.export_pubkey_der()
-        identify = security.get_identify()
-
-        self._discover_payload = struct.pack(
-            "<4sBB16s10sfHH",
-            "FLUX",             # Magic String
-            MULTICAST_VERSION,  # Protocol Version
-            0,                  # Discover Code
-            UUID_BYTES,         # Device UUID
-            SERIAL_NUMBER,      # Device Serial Number
-            temp_ts,            # TEMP TS
-            len(main_pubder),   # Public Key length
-            len(identify),      # Identify length
-        ) + main_pubder + identify
-
-        self._touch_payload = struct.pack(
-            "<4sBB16sfHH",
-            "FLUX",              # Magic String
-            MULTICAST_VERSION,   # Protocol Version
-            3,                   # Tocuh Code
-            UUID_BYTES,          # Device UUID
-            temp_ts,
-            len(temp_pkey_der),  # Temp pkey length
-            len(temp_pkey_sign)  # Temp pkey sign
-        ) + temp_pkey_der + temp_pkey_sign
-
-    def on_discover(self, endpoint):
-        self.sock.sendto(self._discover_payload + self.meta.device_status,
-                         endpoint)
+    def send_notify_to(self, endpoint):
+        self.sock.sendto(self._notify_payload, endpoint)
 
     def on_touch(self, endpoint):
         info = "ver=%s\x00model=%s\x00name=%s\x00pwd=%s\x00time=%i" % (
@@ -208,7 +196,7 @@ class Version1Interface(MulticastInterface):
                 endpoint[0], action_id, time() - t1))
         else:
             if action_id == 0 and buuid == GLOBAL_SERIAL.bytes:
-                self.on_discover(endpoint)
+                self.send_notify_to(endpoint)
 
     def send_response(self, endpoint, action_id, message):
         payload = struct.pack("<4sBB16sH", b"FLUX", 1, action_id + 1,
@@ -216,11 +204,62 @@ class Version1Interface(MulticastInterface):
         signature = self.server.slave_pkey.sign(message)
         self.sock.sendto(payload + message + signature, endpoint)
 
+    def close(self):
+        self.sock.close()
+
+
+class InterfaceBaseV2(InterfaceBaseV1):
+    __notify_payload = None
+
+    @property
+    def _notify_payload(self):
+        if not self.__notify_payload:
+            self.__notify_payload = struct.pack(
+                "<4sBB16s",
+                "FLUX",             # Magic String
+                2,                  # Protocol Version
+                0,                  # Discover Code
+                UUID_BYTES)         # Device UUID
+        return self.__notify_payload + self.meta.device_status
+
+
+class BroadcaseNotifyInterface(InterfaceBaseV2):
+    def __init__(self, server, sendto=("255.255.255.255", 1902)):
+        super(BroadcaseNotifyInterface, self).__init__(server)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        self.endpoint = sendto
+
     def send_notify(self):
-        if time() - self.timer > 2.5:
-            self.sock.sendto(self._discover_payload + self.meta.device_status,
-                             self.mcst_addr)
-            self.timer = time()
+        self.sock.sendto(self._notify_payload, self.endpoint)
+
+    def close(self):
+        self.sock.close()
+
+
+class MulticaseNotifyInterface(InterfaceBaseV1):
+    def __init__(self, server, sendto=("239.255.255.250", 1901)):
+        super(MulticaseNotifyInterface, self).__init__(server)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.endpoint = sendto
+
+    def send_notify(self):
+        self.sock.sendto(self._notify_payload, self.endpoint)
+
+    def send_notify_to(self, endpoint):
+        self.sock.sendto(self._notify_payload + self.meta.device_status,
+                         endpoint)
+
+
+class UnicasetInterface(InterfaceBaseV1):
+    def __init__(self, server, ipaddr="", port=1901):
+        super(UnicasetInterface, self).__init__(server)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # mreq = struct.pack("4sl", socket.inet_aton(addr),
+        #                    socket.INADDR_ANY)
+        # self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP,
+        #                      mreq)
+        self.sock.bind((ipaddr, port))
 
 
 class UpnpServiceMixIn(object):
@@ -332,19 +371,22 @@ class UpnpServiceMixIn(object):
 
 
 class UpnpService(ServiceBase, UpnpServiceMixIn):
-    ipaddress = None
+    bcst = None
     mcst = None
-    mcst_watcher = None
+    ucst = None
+    ucst_watcher = None
     cron_watcher = None
-    # button_control = None
+    ipaddress = None
 
     def __init__(self, options):
         # Create RSA key if not exist. This will prevent upnp create key during
         # upnp is running (Its takes times and will cause timeout)
         self.master_key = security.get_private_key()
         self.slave_pkey = security.RSAObject(keylength=1024)
+        self.slave_pkey_ts = time()
 
         self.meta = CommonMetadata()
+        self.meta.shared_der_rsakey = self.slave_pkey.export_der()
         self.meta.update_device_status(0, 0, "OFFLINE", "")
 
         self._callback = {
@@ -375,43 +417,71 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
 
             if self.ipaddress != ipaddress:
                 self.ipaddress = ipaddress
-                self._replace_upnp_sock()
+                if watcher:
+                    self._replace_upnp_sock()
+                else:
+                    self._try_open_upnp_sock()
 
     def _replace_upnp_sock(self):
         self._try_close_upnp_sock()
+        self._try_open_upnp_sock()
 
+    def _try_open_upnp_sock(self):
         try:
-            self.mcst = Version1Interface(self, self.master_key, self.meta)
+            self.logger.debug("Upnp going UP")
 
-            self.mcst_watcher = self.loop.io(self.mcst, pyev.EV_READ,
-                                             self.mcst.on_message)
-            self.mcst_watcher.start()
+            mcst_if = MulticaseNotifyInterface(self)
+            mcst_watcher = self.loop.io(mcst_if, pyev.EV_READ,
+                                        mcst_if.on_message)
+            mcst_watcher.start()
+            self.mcst = (mcst_if, mcst_watcher)
 
-            self.logger.info("Upnp going UP")
+            ucst_if = UnicasetInterface(self)
+            ucst_watcher = self.loop.io(ucst_if, pyev.EV_READ,
+                                        ucst_if.on_message)
+            ucst_watcher.start()
+            self.ucst = (ucst_if, ucst_watcher)
 
+            if self.meta.broadcast == "on":
+                bcst_if = BroadcaseNotifyInterface(self)
+                bcst_watcher = self.loop.io(bcst_if, pyev.EV_READ,
+                                            bcst_if.on_message)
+                self.bcst = (bcst_if, bcst_watcher)
         except socket.error:
-            self.logger.exception("")
+            self.logger.exception("Error while upnp going UP")
             self._try_close_upnp_sock()
 
     def _try_close_upnp_sock(self):
-        if self.mcst_watcher:
-            self.mcst_watcher.stop()
-            self.mcst_watcher = None
+        self.logger.debug("Upnp going DOWN")
+        if self.ucst:
+            ifce, watcher = self.ucst
+            watcher.stop()
+            ifce.close()
+            self.ucst = None
+
         if self.mcst:
-            self.logger.info("Upnp going DOWN")
-            self.mcst.close()
+            ifce, watcher = self.mcst
+            watcher.stop()
+            ifce.close()
             self.mcst = None
+
+        if self.bcst:
+            ifce, watcher = self.bcst
+            watcher.stop()
+            ifce.close()
+            self.bcst = None
 
     def on_start(self):
         self.on_network_changed(None, None)
 
     def on_shutdown(self):
         self._try_close_upnp_sock()
-        # if self.button_control:
-        #     self.button_control.close()
 
     def on_cron(self, watcher, revent):
-        self.mcst.send_notify()
+        if self.mcst:
+            self.mcst[0].send_notify()
+        if self.bcst:
+            self.bcst[0].send_notify()
 
     def on_request(self, remote, request_code, payload, interface):
         callback = self._callback.get(request_code)
