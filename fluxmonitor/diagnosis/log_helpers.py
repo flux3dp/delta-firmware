@@ -49,7 +49,7 @@ def create_raven_logger(dsn):
         return {
             'level': 'ERROR',
             'class': 'raven.handlers.logging.SentryHandler',
-            'machine': m.nickname,
+            'machine': m.nickname.decode("utf8", "ignore"),
             'dsn': dsn
         }
     except ImportError:
