@@ -6,14 +6,14 @@ import pytest
 import struct
 import socket
 
-from fluxmonitor.controller.interfaces.local import LocalConnectionHandler
+from fluxmonitor.interfaces.robot import RobotTcpConnectionHandler
 from fluxmonitor import security
 
 import pyev
 
 
 @pytest.mark.usefixtures("empty_security")
-class LocalControlTest(unittest.TestCase):
+class RobotTcpHandlerTest(unittest.TestCase):
     def setUp(self):
         self.loop = pyev.Loop()
         self.keyobj = security.get_keyobj(
@@ -29,8 +29,8 @@ class LocalControlTest(unittest.TestCase):
         lc_sock, client_sock = socket.socketpair()
         pkey = security.RSAObject(keylength=512)
 
-        lc_io = LocalConnectionHandler(lc_sock, ("192.168.1.2", 12345),
-                                       pkey, self.loop)
+        lc_io = RobotTcpConnectionHandler(self, lc_sock,
+                                          ("192.168.1.2", 12345), pkey)
 
         recvbuf = client_sock.recv(8 + pkey.size() + 128)
         ver, signature, salt = struct.unpack("<8s%is128s" % pkey.size(),

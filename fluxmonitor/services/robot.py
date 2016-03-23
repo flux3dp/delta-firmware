@@ -2,7 +2,7 @@
 import weakref
 import logging
 
-from fluxmonitor.controller.interfaces.local import LocalControl
+from fluxmonitor.interfaces.robot import RobotTcpInterface
 from fluxmonitor.controller.interfaces.button import ButtonControl
 from fluxmonitor.controller.tasks.play_manager import PlayerManager
 from fluxmonitor.err_codes import RESOURCE_BUSY, EXEC_OPERATION_ERROR
@@ -23,7 +23,7 @@ class Robot(ServiceBase):
     def __init__(self, options):
         ServiceBase.__init__(self, logger)
 
-        self.local_control = LocalControl(self)
+        self.local_control = RobotTcpInterface(self)
         self._connect_button_service()
 
         try:
