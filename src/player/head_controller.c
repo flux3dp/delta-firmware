@@ -255,7 +255,7 @@ class __Pyx_FakeReference {
 #include "stdlib.h"
 #include "stdio.h"
 #include "pythread.h"
-#include "systime.c"
+#include "../systime/systime.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif /* _OPENMP */

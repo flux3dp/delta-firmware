@@ -253,7 +253,7 @@ class __Pyx_FakeReference {
 #define __PYX_HAVE_API__fluxmonitor__player___main_controller
 #include "string.h"
 #include "stdio.h"
-#include "systime.c"
+#include "../systime/systime.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif /* _OPENMP */

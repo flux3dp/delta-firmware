@@ -2,7 +2,7 @@
 from libc.stdio cimport snprintf, sscanf
 from libc.string cimport strncmp
 
-cdef extern from "systime.c":
+cdef extern from "../systime/systime.h":
     float monotonic_time()
 
 from collections import deque

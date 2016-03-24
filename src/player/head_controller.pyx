@@ -3,7 +3,7 @@ from libc.stdlib cimport malloc, free
 from libc.stdio cimport sscanf
 from cpython cimport bool
 
-cdef extern from "systime.c":
+cdef extern from "../systime/systime.h":
     float monotonic_time()
 
 
