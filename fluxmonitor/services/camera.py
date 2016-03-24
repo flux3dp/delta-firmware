@@ -1,6 +1,4 @@
 
-from weakref import WeakSet
-from io import BytesIO
 import logging
 
 try:
@@ -12,10 +10,10 @@ except ImportError:
     ScanChecking = None
 
 from fluxmonitor.interfaces.camera import CameraUnixStreamInterface
+from fluxmonitor.hal.camera import Cameras
 from .base import ServiceBase
 
 logger = logging.getLogger(__name__)
-IMAGE_QUALITY = 80
 
 
 class CameraService(ServiceBase):
@@ -23,15 +21,9 @@ class CameraService(ServiceBase):
 
     def __init__(self, options):
         super(CameraService, self).__init__(logger)
+        self.cameras = Cameras()
 
         self.internal_ifce = CameraUnixStreamInterface(self)
-        self.internal_conn = WeakSet()
-        self.live_conn = WeakSet()
-
-        self.timer_w = self.loop.timer(0.1, 0, self.on_timer)
-
-    def on_timer(self, watcher, revent):
-        pass
 
     def on_start(self):
         logger.info("Camera service started")
@@ -39,25 +31,12 @@ class CameraService(ServiceBase):
     def on_shutdown(self):
         self.internal_ifce.close()
 
-    def initial_cameras(self):
-        try:
-            self.cameras = [CameraControl(0)]
-        except Exception:
-            logger.exception("Camera initial failed")
+    def on_client_connected(self):
+        self.cameras.attach()
 
-    def release_cameras(self):
-        if self.cameras:
-            for c in self.cameras:
-                c.release()
-            self.cameras = None
-
-    def update_camera_status(self):
-        if self.internal_conn:
-            if not self.cameras:
-                self.initial_cameras()
-        else:
-            if self.cameras:
-                self.release_cameras()
+    def on_client_gone(self):
+        if not self.internal_ifce.clients:
+            self.cameras.release()
 
     def makeshot(self, camera_id):
         # API for client
@@ -128,36 +107,3 @@ class CameraService(ServiceBase):
                 return result
             else:
                 return 'fail'
-
-
-class CameraControl(object):
-    def __init__(self, camera_id):
-        self.camera_id = camera_id
-        self.camera = cv2.VideoCapture(0)
-        self.img_buf = None
-        self._img_file = None
-
-    def fetch(self):
-        for i in range(4):
-            while not self.camera.grab():
-                pass
-        ret, self.img_buf = self.camera.read(self.img_buf)
-        while not ret:
-            logger.error("Take image failed (camera id=%i)", self.camera_id)
-            ret, self.img_buf = self.camera.read(self.img_buf)
-        self._img_file = None
-        return self.img_buf
-
-    @property
-    def imagefile(self):
-        if not self._img_file:
-            ret, buf = cv2.imencode(".jpg", self.img_buf,
-                                    [int(cv2.IMWRITE_JPEG_QUALITY),
-                                     IMAGE_QUALITY])
-        return ("image/jpeg", len(buf), BytesIO(buf))
-
-    def release(self):
-        self.camera.release()
-        self.camera = None
-        self.img_buf = None
-        self._img_file = None

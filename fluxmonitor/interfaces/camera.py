@@ -31,13 +31,22 @@ class CameraTcpHandler(TcpConnectionHandler):
 
 
 class CameraUnixStreamInterface(UnixStreamInterface):
+    _empty = True
+
     def __init__(self, kernel, endpoint=CAMERA_ENDPOINT):
         super(CameraUnixStreamInterface, self).__init__(kernel, endpoint)
 
+    def on_timer(self, watcher, revent):
+        super(CameraUnixStreamInterface, self).on_timer(watcher, revent)
+        if not self.clients and self._empty is False:
+            self._empty = True
+            self.kernel.on_client_gone()
+
     def create_handler(self, sock, endpoint):
         h = CameraUnixStreamHandler(self.kernel, sock, endpoint)
-        self.kernel.internal_conn.add(h)
-        self.kernel.update_camera_status()
+        if self._empty is True:
+            self._empty = False
+            self.kernel.on_client_connected()
         return h
 
     def close(self):
