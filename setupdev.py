@@ -58,6 +58,13 @@ setup(
             include_dirs=["src"]
         ),
         Extension(
+            'fluxmonitor.misc.systime', sources=[
+                "src/systime/systime.pyx", ],
+            extra_compile_args=["-std=c99"],
+            define_macros=DEFAULT_MACROS,
+            libraries=[], extra_objects=[], include_dirs=["src"]
+        ),
+        Extension(
             'fluxmonitor.security._security', sources=[
                 "src/security/security.pyx", ],
             extra_compile_args=["-std=c99"],
