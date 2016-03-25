@@ -36,6 +36,20 @@ class Camera(object):
         self.img_buf = None
         self._img_file = None
 
+    def live(self, ts):
+        if self.ts - ts > 0.1:
+            return self.ts
+        ttl = 4
+        while not self.obj.grab() and ttl > 0:
+            ttl -= 1
+
+        ret, self.img_buf = self.obj.read(self.img_buf)
+        if not ret:
+            raise RuntimeError(HARDWARE_ERROR, "CAMERA", str(self.camera_id))
+        self.ts = systime()
+        self._img_file = None
+        return self.ts
+
     def fetch(self):
         # Take a new photo immediately
         if not self.obj:
@@ -47,20 +61,20 @@ class Camera(object):
                 ttl -= 1
 
         ret, self.img_buf = self.obj.read(self.img_buf)
-        self.ts = systime()
-        while not ret:
+        if not ret:
             raise RuntimeError(HARDWARE_ERROR, "CAMERA", str(self.camera_id))
+        self.ts = systime()
         self._img_file = None
         return self.img_buf
 
     @property
     def imagefile(self):
-        if not self._img_file:
+        if self._img_file is None:
             ret, buf = cv2.imencode(".jpg", self.img_buf,
                                     [int(cv2.IMWRITE_JPEG_QUALITY),
                                      IMAGE_QUALITY])
             self._img_file = buf
-        return ("image/jpeg", len(buf), BytesIO(self._img_file))
+        return ("image/jpeg", len(self._img_file), BytesIO(self._img_file))
 
     def attach(self):
         if self.obj:

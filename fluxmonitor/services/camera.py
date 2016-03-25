@@ -9,7 +9,9 @@ except ImportError:
     cv2 = None
     ScanChecking = None
 
-from fluxmonitor.interfaces.camera import CameraUnixStreamInterface
+from fluxmonitor.interfaces.camera import (CameraTcpInterface,
+                                           CameraUnixStreamInterface)
+
 from fluxmonitor.hal.camera import Cameras
 from .base import ServiceBase
 
@@ -23,20 +25,28 @@ class CameraService(ServiceBase):
         super(CameraService, self).__init__(logger)
         self.cameras = Cameras()
 
+        self.public_ifce = CameraTcpInterface(self)
         self.internal_ifce = CameraUnixStreamInterface(self)
 
     def on_start(self):
         logger.info("Camera service started")
 
     def on_shutdown(self):
+        self.public_ifce.close()
         self.internal_ifce.close()
 
     def on_client_connected(self):
         self.cameras.attach()
 
     def on_client_gone(self):
-        if not self.internal_ifce.clients:
+        if not self.internal_ifce.clients and not self.public_ifce.clients:
             self.cameras.release()
+
+    def live(self, camera_id, ts):
+        # API for client
+        camera = self.cameras[camera_id]
+        ts = camera.live(ts)
+        return ts, camera.imagefile
 
     def makeshot(self, camera_id):
         # API for client

@@ -12,22 +12,46 @@ from .unixsocket import UnixStreamInterface, UnixStreamHandler
 __all__ = ["CameraTcpInterface", "CameraTcpHandler",
            "CameraUnixStreamInterface", "CameraUnixStreamHandler"]
 UNIX_CMD_PACKER = Struct("@BB")
+UINT_PACKER = Struct("<I")
 BYTE_PACKER = Struct("@B")
 logger = logging.getLogger(__name__)
 
 
 class CameraTcpInterface(TcpInterface):
+    _empty = True
+
     def __init__(self, kernel, endpoint=("", 23812)):
         super(CameraTcpInterface, self).__init__(kernel, endpoint)
 
+    def on_timer(self, watcher, revent):
+        super(CameraTcpInterface, self).on_timer(watcher, revent)
+        if not self.clients and self._empty is False:
+            self._empty = True
+            self.kernel.on_client_gone()
+
     def create_handler(self, sock, endpoint):
-        return CameraTcpHandler(self.kernel, sock, endpoint, self.privatekey)
+        h = CameraTcpHandler(self.kernel, sock, endpoint, self.privatekey)
+        if self._empty is True:
+            self._empty = False
+            self.kernel.on_client_connected()
+        return h
 
 
 class CameraTcpHandler(TcpConnectionHandler):
     def on_ready(self):
-        # TODO
-        self.delegate = proxy(self.kernel)
+        self.delegate = proxy(self)
+        self.ts = 0
+
+        self.next_frame()
+
+    def next_frame(self, _=None):
+        self.ts, imageobj = self.kernel.live(0, self.ts)
+        mimetype, length, stream = imageobj
+        self.send(UINT_PACKER.pack(length))
+        self.begin_send(stream, length, self.next_frame)
+
+    def on_close(self, handler):
+        pass
 
 
 class CameraUnixStreamInterface(UnixStreamInterface):
