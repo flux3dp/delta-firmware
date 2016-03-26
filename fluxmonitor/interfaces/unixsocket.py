@@ -1,13 +1,18 @@
 
 import logging
 import socket
+import os
+from .base import InterfaceBase, HandlerBase
 
 __all__ = ["UnixStreamInterface", "UnixStreamHandler"]
 logger = logging.getLogger(__name__)
 
 
-class UnixStreamInterface(object):
+class UnixStreamInterface(InterfaceBase):
     def create_socket(self, endpoint):
+        if os.path.exists(endpoint):
+            logger.info("Unlink '%s' for new unix socket", endpoint)
+            os.unlink(endpoint)
         logger.info("Listen on '%s'", endpoint)
         s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         s.bind(endpoint)
@@ -15,7 +20,7 @@ class UnixStreamInterface(object):
         return s
 
 
-class UnixStreamHandler(object):
+class UnixStreamHandler(HandlerBase):
     def send(self, message):
         buf = memoryview(message)
         length = len(message)
