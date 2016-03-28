@@ -51,10 +51,12 @@ def prepare_cert():
         cert.sign(key, 'sha1')
         s["cert.pem"] = crypto.dump_certificate(crypto.FILETYPE_PEM, cert)
 
+    return s.get_path("cert.pem"), s.get_path("sslkey.pem")
+
 
 class SSLInterface(InterfaceBase):
     def create_socket(self, endpoint):
-        prepare_cert()
+        self.certfile, self.keyfile = prepare_cert()
 
         logger.info("Listen on %s:%i", *endpoint)
         s = socket.socket()
@@ -81,7 +83,6 @@ class SSLConnectionHandler(HandlerBase):
             self.randbytes = randbytes(64)
 
             sock.send(b"FLUX0003")
-            sock.send(self.randbytes)
             self.sock = ssl.SSLSocket(sock, certfile=certfile, keyfile=keyfile,
                                       server_side=True,
                                       do_handshake_on_connect=False)
@@ -98,6 +99,7 @@ class SSLConnectionHandler(HandlerBase):
 
         try:
             self.sock.do_handshake()
+            self.sock.send(self.randbytes)
 
             # SSL Handshake ready, prepare buffer
             self._buf = bytearray(4096)
@@ -109,10 +111,9 @@ class SSLConnectionHandler(HandlerBase):
             pass
         except ssl.SSLWantWriteError:
             self.send_watcher = self.kernel.loop.io(
-                self.sock, pyev.EV_WRITE, self.do_ssl_handshake)
+                self.sock, pyev.EV_WRITE, self._do_ssl_handshake)
         except Exception:
             logger.exception("SSL handshake failed")
-            raise
             self.close()
 
     def _on_identify_handshake(self):
@@ -232,11 +233,14 @@ class SSLConnectionHandler(HandlerBase):
         pass
 
     def send(self, buf):
-        length = len(buf)
-        sent = self.sock.send(buf)
-        while sent < length:
-            sent += self.sock.send(buf[sent:])
-        return length
+        try:
+            length = len(buf)
+            sent = self.sock.send(buf)
+            while sent < length:
+                sent += self.sock.send(buf[sent:])
+            return length
+        except ssl.SSLError as e:
+            raise SystemError("SOCKET_ERROR", "SSL", repr(e))
 
     def send_text(self, message):
         if isinstance(message, unicode):
