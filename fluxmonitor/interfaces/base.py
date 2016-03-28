@@ -133,13 +133,22 @@ class HandlerBase(object):
                 watcher.data = (length, sent_length, stream, callback)
 
         except socket.error as e:
-            logger.error("Socket %s send error: %s", self.sock, e)
+            logger.debug("Socket %s send error: %s", self.sock, e)
+            watcher.stop()
+            self.send_watcher = None
+            self.close()
+
+        except SystemError as e:
+            logger.debug("System error: %s", e)
             watcher.stop()
             self.send_watcher = None
             self.close()
 
         except Exception:
             logger.exception("Unknow error")
+            watcher.stop()
+            self.send_watcher = None
+            self.close()
 
     def begin_send(self, stream, length, complete_callback):
         if length > 0:

@@ -12,6 +12,10 @@ __ts_time = []
 _storage = Storage("security", "private")
 
 
+def hash_password(salt, paragraph):
+    return HMAC(salt, paragraph, sha1).digest()
+
+
 def has_password():
     return _storage.exists("password")
 

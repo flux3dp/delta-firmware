@@ -6,7 +6,7 @@ import os
 
 from fluxmonitor.config import CAMERA_ENDPOINT
 
-from .tcp import TcpInterface, TcpConnectionHandler
+from .tcp_ssl import SSLInterface, SSLConnectionHandler
 from .unixsocket import UnixStreamInterface, UnixStreamHandler
 
 __all__ = ["CameraTcpInterface", "CameraTcpHandler",
@@ -17,7 +17,7 @@ BYTE_PACKER = Struct("@B")
 logger = logging.getLogger(__name__)
 
 
-class CameraTcpInterface(TcpInterface):
+class CameraTcpInterface(SSLInterface):
     _empty = True
 
     def __init__(self, kernel, endpoint=("", 23812)):
@@ -30,14 +30,15 @@ class CameraTcpInterface(TcpInterface):
             self.kernel.on_client_gone()
 
     def create_handler(self, sock, endpoint):
-        h = CameraTcpHandler(self.kernel, sock, endpoint, self.privatekey)
+        h = CameraTcpHandler(self.kernel, sock, endpoint,
+                             self.certfile, self.keyfile)
         if self._empty is True:
             self._empty = False
             self.kernel.on_client_connected()
         return h
 
 
-class CameraTcpHandler(TcpConnectionHandler):
+class CameraTcpHandler(SSLConnectionHandler):
     def on_ready(self):
         self.delegate = proxy(self)
         self.ts = 0
