@@ -9,7 +9,7 @@ except NameError:
 # Config basic struct:
 # {
 #     "ifname": "wlan0",            # A valied linux NIC name
-#     "mode": "dhcp"|"static",      #
+#     "method": "dhcp"|"static",    #
 #
 #     # Required only if mode set to static
 #     "ipaddr": "192.168.1.2",      # A valid ipv4 address for interface
