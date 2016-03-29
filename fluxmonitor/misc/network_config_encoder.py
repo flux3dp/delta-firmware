@@ -5,6 +5,34 @@ try:
 except NameError:
     unicode = str
 
+# """
+# Config basic struct:
+# {
+#     "ifname": "wlan0",            # A valied linux NIC name
+#     "mode": "dhcp"|"static",      #
+#
+#     # Required only if mode set to static
+#     "ipaddr": "192.168.1.2",      # A valid ipv4 address for interface
+#     "mask": 24,                   # Network mask, only accept INT
+#     "route": "192.168.1.1",       # Gateway ip address
+#     "ns": "168.95.1.1",           # A valid DNS ipaddress (ipv4)
+#
+#     # Required only if NIC is a wireless device
+#     "wifi_mode": "host"|"client"  # host is AP mode
+#     "ssid": "YOUR_SSID",          #
+#
+#     # Required only if wifi has a security configuration
+#     "security": "WEP"|"WPA-PSK"|"WPA2-PSK",
+#
+#     # Required only if wifi security set to "WEP"
+#     "wepkey": "WEP_PASSWORD_HERE",
+#
+#     # Required only if wifi security set to "WPA-PSK" or "WPA2-PSK"
+#     "psk": "WPA_PASSWORD_HERE"    # Password should not match to
+#                                   # /^[0-9a-f]{64}$/
+# }
+# """
+
 
 def parse_bytes(buf):
     raw_options = dict([i.split(b"=", 1) for i in buf.split(b"\x00")])
