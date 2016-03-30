@@ -37,17 +37,10 @@ class Camera(object):
         self._img_file = None
 
     def live(self, ts):
-        if self.ts - ts > 0.1:
-            return self.ts
-        ttl = 4
-        while not self.obj.grab() and ttl > 0:
-            ttl -= 1
 
-        ret, self.img_buf = self.obj.read(self.img_buf)
-        if not ret:
-            raise RuntimeError(HARDWARE_ERROR, "CAMERA", str(self.camera_id))
-        self.ts = systime()
-        self._img_file = None
+        if systime() - ts > 0.1:
+            self.fetch()
+
         return self.ts
 
     def fetch(self):
@@ -55,10 +48,12 @@ class Camera(object):
         if not self.obj:
             self.attach()
 
-        for i in range(4):
-            ttl = 4
-            while not self.obj.grab() and ttl > 0:
-                ttl -= 1
+        success_count = 0
+        for i in range(16):  # try at most 16 times
+            if self.obj.grab():
+                success_count += 1
+            if success_count == 4:  # 4 success is enough
+                break
 
         ret, self.img_buf = self.obj.read(self.img_buf)
         if not ret:
