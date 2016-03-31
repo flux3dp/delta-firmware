@@ -26,6 +26,7 @@ class RobotTcpConnectionHandler(TcpConnectionHandler):
 class ServiceStack(object):
     def __init__(self, kernel):
         self.kernel = kernel
+        self.loop = kernel.loop
         self.task_callstack = []
         self.this_task = None
 
