@@ -5,6 +5,10 @@ from libc.string cimport strncmp
 cdef extern from "../systime/systime.h":
     float monotonic_time()
 
+cdef extern from "misc.c":
+    object create_cmd(int, const char*)
+
+
 from collections import deque
 import logging
 
@@ -18,6 +22,10 @@ cdef object L = logging.getLogger(__name__)
 cdef int FLAG_READY = 1
 cdef int FLAG_ERROR = 2
 cdef int FLAG_CLOSED = 4
+
+
+cdef inline object send_cmd(object executor, int lineno, const char* cmd):
+    executor.send_mainboard(create_cmd(lineno, cmd))
 
 
 cdef class MainController:
@@ -111,7 +119,7 @@ cdef class MainController:
             L.error("Mainboard linecheck already enabled")
             # Try re-enbale line check
             if sscanf(msg + 22, "%d", &ln) == 1:
-                self._send_cmd(executor, ln, "C1F")
+                send_cmd(executor, ln, "C1F")
         elif strncmp("CTRL LINECHECK_DISABLED", msg, 24) == 0:
             executor.send_mainboard("C1O\n")
         else:
@@ -199,25 +207,7 @@ cdef class MainController:
             self._process_init(msg, executor)
 
     cpdef object create_cmd(self, int lineno, const char* cmd):
-        cdef int i, size
-        cdef int offset = 0
-        cdef int sumcheck = 0
-        cdef char[256] buf
-        cdef char byte = cmd[0]
-
-        while offset < 256 and byte != 0:
-            buf[offset] = byte
-            sumcheck ^= byte
-            offset += 1
-            byte = cmd[offset]
-
-        size = snprintf(<char *>buf + offset, 256 - offset, " N%i", lineno)
-        for i in range(offset, offset + size):
-            sumcheck ^= buf[offset]
-            offset += 1
-
-        size = snprintf(<char *>buf + offset, 256 - offset, "*%i\n", sumcheck)
-        return buf[:offset + size]
+        return create_cmd(lineno, cmd)
 
     def _resend_cmd_from(self, lineno, executor, ttl_offset):
         if lineno < self._ln_ack:
@@ -242,7 +232,7 @@ cdef class MainController:
                 ttl = ttl_offset
 
                 for cmdline in self._cmd_sent:
-                    self._send_cmd(executor, *cmdline)
+                    send_cmd(executor, cmdline[0], cmdline[1])
                     ttl += 1
 
                 if ttl > 0:
@@ -257,7 +247,7 @@ cdef class MainController:
         if self._flags & FLAG_READY:
             if self.buffered_cmd_size < self._bufsize or force:
                 self._ln += 1
-                self._send_cmd(executor, self._ln, cmd)
+                send_cmd(executor, self._ln, cmd)
                 if not self._cmd_sent:
                     self._last_recv_ts = monotonic_time()
                 self._cmd_sent.append((self._ln, cmd))
@@ -265,9 +255,6 @@ cdef class MainController:
                 raise RuntimeError(EXEC_OPERATION_ERROR, "BUF_FULL")
         else:
             raise RuntimeError(EXEC_OPERATION_ERROR, "NOT_READY")
-
-    def _send_cmd(self, executor, lineno, cmd):
-        executor.send_mainboard(self.create_cmd(lineno, cmd))
 
     def on_mainboard_dead(self):
         self._flags &= ~FLAG_READY
