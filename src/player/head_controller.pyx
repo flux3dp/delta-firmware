@@ -108,7 +108,7 @@ cdef class HeadController:
 
     @property
     def allset(self):
-        return self._ext.all_set()
+        return self._ext.all_set() if self._ext else (self._ready == 8)
 
     def info(self):
         if self._ready == 8 and self._ext:

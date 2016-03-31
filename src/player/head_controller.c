@@ -2523,7 +2523,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  * 
  *     @property
  *     def allset(self):             # <<<<<<<<<<<<<<
- *         return self._ext.all_set()
+ *         return self._ext.all_set() if self._ext else (self._ready == 8)
  * 
  */
 
@@ -2544,8 +2544,10 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
-  PyObject *__pyx_t_2 = NULL;
+  int __pyx_t_2;
   PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
+  PyObject *__pyx_t_5 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -2554,31 +2556,41 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   /* "src/player/head_controller.pyx":111
  *     @property
  *     def allset(self):
- *         return self._ext.all_set()             # <<<<<<<<<<<<<<
+ *         return self._ext.all_set() if self._ext else (self._ready == 8)             # <<<<<<<<<<<<<<
  * 
  *     def info(self):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->_ext, __pyx_n_s_all_set); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = NULL;
-  if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
-    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
-    if (likely(__pyx_t_3)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-      __Pyx_INCREF(__pyx_t_3);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_2, function);
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_self->_ext); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__pyx_t_2) {
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->_ext, __pyx_n_s_all_set); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_4);
+    __pyx_t_5 = NULL;
+    if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_4))) {
+      __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_4);
+      if (likely(__pyx_t_5)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
+        __Pyx_INCREF(__pyx_t_5);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_4, function);
+      }
     }
-  }
-  if (__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    if (__pyx_t_5) {
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    } else {
+      __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    }
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __pyx_t_1 = __pyx_t_3;
+    __pyx_t_3 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyBool_FromLong((__pyx_v_self->_ready == 8)); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_1 = __pyx_t_3;
+    __pyx_t_3 = 0;
   }
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
@@ -2587,15 +2599,16 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  * 
  *     @property
  *     def allset(self):             # <<<<<<<<<<<<<<
- *         return self._ext.all_set()
+ *         return self._ext.all_set() if self._ext else (self._ready == 8)
  * 
  */
 
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_5);
   __Pyx_AddTraceback("fluxmonitor.player._head_controller.HeadController.allset", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
@@ -2605,7 +2618,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
 }
 
 /* "src/player/head_controller.pyx":113
- *         return self._ext.all_set()
+ *         return self._ext.all_set() if self._ext else (self._ready == 8)
  * 
  *     def info(self):             # <<<<<<<<<<<<<<
  *         if self._ready == 8 and self._ext:
@@ -2706,7 +2719,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   }
 
   /* "src/player/head_controller.pyx":113
- *         return self._ext.all_set()
+ *         return self._ext.all_set() if self._ext else (self._ready == 8)
  * 
  *     def info(self):             # <<<<<<<<<<<<<<
  *         if self._ready == 8 and self._ext:
@@ -13683,7 +13696,7 @@ PyMODINIT_FUNC PyInit__head_controller(void)
  * 
  *     @property
  *     def allset(self):             # <<<<<<<<<<<<<<
- *         return self._ext.all_set()
+ *         return self._ext.all_set() if self._ext else (self._ready == 8)
  * 
  */
   __pyx_t_1 = __Pyx_GetNameInClass((PyObject *)__pyx_ptype_11fluxmonitor_6player_16_head_controller_HeadController, __pyx_n_s_allset); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -13694,7 +13707,7 @@ PyMODINIT_FUNC PyInit__head_controller(void)
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def allset(self):
- *         return self._ext.all_set()
+ *         return self._ext.all_set() if self._ext else (self._ready == 8)
  */
   __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
