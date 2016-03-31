@@ -220,6 +220,7 @@ class FcodeExecutor(BaseExecutor):
     def abort(self, symbol=None):
         if BaseExecutor.abort(self, symbol):
             self.main_ctrl.close(self)
+            self.head_ctrl.close(self)
             return True
         else:
             return False
@@ -292,10 +293,12 @@ class FcodeExecutor(BaseExecutor):
             else:
                 self.status_id = ST_COMPLETED
                 self.main_ctrl.close(self)
+                self.head_ctrl.close(self)
 
         elif self.status_id == ST_COMPLETING:
             self.status_id = ST_COMPLETED
             self.main_ctrl.close(self)
+            self.head_ctrl.close(self)
         else:
             self.fire()
 
