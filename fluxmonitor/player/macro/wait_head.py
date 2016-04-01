@@ -17,8 +17,9 @@ class WaitHeadMacro(object):
             executor.head_ctrl.wait_allset(self.allset)
 
     def allset(self, *args):
-        self._ex.main_ctrl.send_cmd("X5S0", self._ex)
-        self._on_success_cb()
+        if self._ex.main_ctrl.ready:
+            self._ex.main_ctrl.send_cmd("X5S0", self._ex)
+            self._on_success_cb()
 
     def giveup(self):
         pass
