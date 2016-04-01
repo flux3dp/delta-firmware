@@ -1,5 +1,7 @@
 
+from pkg_resources import resource_stream
 from multiprocessing import Process
+from shutil import copyfileobj
 from time import time, sleep
 from select import select
 import logging
@@ -12,7 +14,7 @@ from RPi import GPIO
 import pyev
 
 from fluxmonitor.halprofile import MODEL_D1
-from fluxmonitor.storage import Storage, CommonMetadata
+from fluxmonitor.storage import Storage, Metadata
 from fluxmonitor.config import LENGTH_OF_LONG_PRESS_TIME as LLPT, \
     GAP_BETWEEN_DOUBLE_CLICK as GBDC, HEAD_POWER_TIMEOUT
 from fluxmonitor.err_codes import NO_RESPONSE, UNKNOWN_ERROR, \
@@ -182,7 +184,7 @@ class GPIOControl(object):
         GPIO.output(GPIO_MAINBOARD_POW_PIN, MAINBOARD_ON)
         sleep(1.5)
         self.mainboard_connect(loop)
-        self._init_mainboard_status()
+        self._init_mainboard_status(loop)
 
     def update_ama0_routing(self):
         if len(self.headboard_watchers) > 0:
@@ -364,10 +366,10 @@ class GPIOControl(object):
             GPIO.output(GPIO_MAINBOARD_POW_PIN, MAINBOARD_OFF)
             sleep(0.5)
             GPIO.output(GPIO_MAINBOARD_POW_PIN, MAINBOARD_ON)
-            sleep(1.0)
+            sleep(3.0)
 
             self.mainboard_connect(loop)
-            self._init_mainboard_status()
+            self._init_mainboard_status(loop)
 
         except Exception:
             L.exception("Error while update firmware")
@@ -382,7 +384,7 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOControl):
 
     def __init__(self, kernel):
         super(UartHal, self).__init__(kernel)
-        self.sm = CommonMetadata()
+        self.sm = Metadata()
 
         self.init_gpio_control()
 
@@ -391,20 +393,26 @@ class UartHal(UartHalBase, BaseOnSerial, GPIOControl):
 
         self._rasp_connect(kernel.loop)
         self.mainboard_connect(kernel.loop)
-        self._init_mainboard_status()
+        self._init_mainboard_status(kernel.loop)
 
         self.loop_watcher = kernel.loop.timer(5, 5, self.on_loop)
         self.loop_watcher.start()
 
-    def _init_mainboard_status(self):
+    def _init_mainboard_status(self, loop):
         corr_str = "M666 X%(X).4f Y%(Y).4f Z%(Z).4f H%(H).4f\n" % \
                    self.sm.plate_correction
         L.debug("Init with corr: %s", corr_str)
 
         self.sendto_mainboard(corr_str)
-        buf = self.storage.readall("on_boot")
-        if buf:
-            self.sendto_mainboard(buf)
+
+        rl = select((self.mainboard_uart, ), (), (), 0.1)[0]
+        if not rl:
+            L.error("Mainboard not response, burn firmware")
+            fsrc = resource_stream("fluxmonitor", "data/mainboard.bin")
+            storage = Storage("update_fw")
+            with storage.open("mainboard.bin", "wb") as fdst:
+                copyfileobj(fsrc, fdst)
+            self.update_fw(loop)
 
     def on_recvfrom_raspi_io(self, watcher, revent):
         if self.head_enabled:
