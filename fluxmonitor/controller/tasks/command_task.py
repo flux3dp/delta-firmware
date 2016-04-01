@@ -13,7 +13,8 @@ import os
 from fluxmonitor.player.fcode_parser import fast_read_meta
 from fluxmonitor.err_codes import (UNKNOWN_COMMAND, NOT_EXIST, TOO_LARGE,
                                    NO_TASK, BAD_PARAMS, BAD_FILE_FORMAT,
-                                   RESOURCE_BUSY)
+                                   RESOURCE_BUSY, SUBSYSTEM_ERROR,
+                                   HARDWARE_FAILURE)
 from fluxmonitor.storage import Storage, Metadata, UserSpace
 from fluxmonitor.diagnosis.god_mode import allow_god_mode
 from fluxmonitor.misc import mimetypes
@@ -220,9 +221,13 @@ class PlayManagerMixIn(object):
             if kernel.is_exclusived():
                 raise RuntimeError(RESOURCE_BUSY)
             else:
-                pm = PlayerManager(
-                    self.stack.loop, self._task_file.name,
-                    terminated_callback=kernel.release_exclusive)
+                try:
+                    pm = PlayerManager(
+                        self.stack.loop, self._task_file.name,
+                        terminated_callback=kernel.release_exclusive)
+                except Exception:
+                    logger.exception("Launch playmanager failed")
+                    raise RuntimeError(SUBSYSTEM_ERROR, HARDWARE_FAILURE)
                 kernel.exclusive(pm)
             handler.send_text("ok")
         else:
