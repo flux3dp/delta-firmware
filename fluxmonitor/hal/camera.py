@@ -39,21 +39,21 @@ class Camera(object):
     def live(self, ts):
 
         if systime() - ts > 0.1:
-            self.fetch()
+            self.fetch(0)
 
         return self.ts
 
-    def fetch(self):
+    def fetch(self, clear_cache=4):
         # Take a new photo immediately
         if not self.obj:
             self.attach()
 
         success_count = 0
         for i in range(16):  # try at most 16 times
+            if success_count >= clear_cache:  # 4 success is enough
+                break
             if self.obj.grab():
                 success_count += 1
-            if success_count == 4:  # 4 success is enough
-                break
 
         ret, self.img_buf = self.obj.read(self.img_buf)
         if not ret:
