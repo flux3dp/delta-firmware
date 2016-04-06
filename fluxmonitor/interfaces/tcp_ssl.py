@@ -1,7 +1,5 @@
 
-from binascii import (b2a_hex as to_hex, a2b_hex as from_hex,
-                      b2a_base64 as to_base64)
-from OpenSSL import crypto
+from binascii import b2a_hex as to_hex, a2b_hex as from_hex
 from struct import Struct
 import logging
 import socket
@@ -11,8 +9,7 @@ import ssl
 import pyev
 
 from fluxmonitor.security import (is_trusted_remote, get_uuid, get_keyobj,
-                                  randbytes, hash_password)
-from fluxmonitor.storage import Storage
+                                  randbytes, hash_password, SSL_CERT, SSL_KEY)
 from .base import InterfaceBase, HandlerBase
 
 MESSAGE_OK = b"OK              "
@@ -26,41 +23,9 @@ __all__ = ["SSLInterface", "SSLConnectionHandler"]
 logger = logging.getLogger(__name__)
 
 
-def prepare_cert():
-    from fluxmonitor.security import (get_private_key, get_serial,
-                                      get_identify)
-
-    s = Storage("security", "private")
-    pkey = get_private_key()
-    if not s.exists("sslkey.pem"):
-        s["sslkey.pem"] = pkey.export_pem()
-
-    if not s.exists("cert.pem"):
-        key = crypto.load_privatekey(crypto.FILETYPE_PEM, pkey.export_pem())
-        cert = crypto.X509()
-        subj = cert.get_subject()
-        subj.C = subj.ST = subj.L = "XX"
-        subj.O = "FLUX3dp"
-        subj.CN = (get_uuid() + ":" + get_serial() + ":")
-
-        ext = crypto.X509Extension("nsComment", True,
-                                   to_base64(get_identify()))
-        cert.add_extensions((ext, ))
-
-        cert.set_serial_number(1000)
-        cert.gmtime_adj_notBefore(0)
-        cert.gmtime_adj_notAfter(10 * 365 * 24 * 60 * 60)
-        cert.set_issuer(cert.get_subject())
-        cert.set_pubkey(key)
-        cert.sign(key, 'sha1')
-        s["cert.pem"] = crypto.dump_certificate(crypto.FILETYPE_PEM, cert)
-
-    return s.get_path("cert.pem"), s.get_path("sslkey.pem")
-
-
 class SSLInterface(InterfaceBase):
     def create_socket(self, endpoint):
-        self.certfile, self.keyfile = prepare_cert()
+        self.certfile, self.keyfile = SSL_CERT, SSL_KEY
 
         logger.info("Listen on %s:%i", *endpoint)
         s = socket.socket()

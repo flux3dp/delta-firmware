@@ -55,7 +55,8 @@ def main(params=None):
     parser = argparse.ArgumentParser(description='flux launcher')
     options = parser.parse_args(params)
 
-    from fluxmonitor.halprofile import CURRENT_MODEL
+    from fluxmonitor.halprofile import CURRENT_MODEL # noqa
+    from fluxmonitor import security  # noqa # init security property
 
     try:
         if CURRENT_MODEL == 'delta-1':
