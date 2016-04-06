@@ -1,5 +1,6 @@
 
-from binascii import b2a_hex as to_hex, a2b_hex as from_hex
+from binascii import (b2a_hex as to_hex, a2b_hex as from_hex,
+                      b2a_base64 as to_base64)
 from OpenSSL import crypto
 from struct import Struct
 import logging
@@ -42,7 +43,8 @@ def prepare_cert():
         subj.O = "FLUX3dp"
         subj.CN = (get_uuid() + ":" + get_serial() + ":")
 
-        ext = crypto.X509Extension("nsComment", True, get_identify())
+        ext = crypto.X509Extension("nsComment", True,
+                                   to_base64(get_identify()))
         cert.add_extensions((ext, ))
 
         cert.set_serial_number(1000)
