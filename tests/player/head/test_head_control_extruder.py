@@ -138,3 +138,13 @@ class ExtruderHeadControlTest(ControlTestBase):
         with self.assertSendHeadboard() as executor:
             self.ec._lastupdate = 0
             self.ec.patrol(executor)
+
+    def test_close(self):
+        self.assertTrue(self.ec.ready)
+        with self.assertSendHeadboard(b"1 H:0 T:200.0 *17\n") as executor:
+            self.ec.send_cmd("H0200", executor)
+            self.ec.on_message("1 OK HEATER *26", executor)
+
+        with self.assertSendHeadboard(b"1 H:0 T:0.0 *19\n") as executor:
+            self.ec.close(executor)
+            # self.ec.on_message("1 OK HEATER *26", executor)

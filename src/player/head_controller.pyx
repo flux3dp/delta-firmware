@@ -108,7 +108,7 @@ cdef class HeadController:
 
     @property
     def allset(self):
-        return self._ext.all_set()
+        return self._ext.all_set() if self._ext else (self._ready == 8)
 
     def info(self):
         if self._ready == 8 and self._ext:
@@ -196,13 +196,14 @@ cdef class HeadController:
                 pass
             else:
                 L.info("RECV_UH: '%s'", msg)
-        elif self._ready == 4:
+        elif self._ready == 4 or self._ready == 16:
             if self._parse_cmd_response(msg, executor):
                 if self._recover_queue:
                     self._padding_cmd = self._recover_queue.pop(0)
                     self._send_cmd(executor)
                 else:
-                    self._on_ready()
+                    if self._ready == 4:
+                        self._on_ready()
             else:
                 L.info("GOT: '%s' (ready=%i)", msg, self._ready)
         elif self._ready == 2:
@@ -244,7 +245,7 @@ cdef class HeadController:
             L.info("GOT: '%s' (ready=%i)", msg, self._ready)
 
     cpdef send_cmd(self, const char* cmd, executor, complete_callback=None,
-                 allset_callback=None):
+                   allset_callback=None):
         if self.is_busy:
             self._raise_error(EXEC_OPERATION_ERROR,
                               "BUSY: %s" % self._padding_cmd)
@@ -368,6 +369,16 @@ cdef class HeadController:
                     else:
                         SystemError("Bad logic")
 
+    def close(self, executor):
+        if self._ext:
+            q = self._ext.close()
+            if self._padding_cmd:
+                self._recover_queue = q
+            else:
+                self._padding_cmd = q.pop(0)
+                self._recover_queue = q
+                self._send_cmd(executor)
+
     def _raise_error(self, *args):
         raise RuntimeError(*args)
 
@@ -403,6 +414,9 @@ cdef class BaseExt:
 
     def all_set(self):
         return True
+
+    def close(self):
+        return []
 
 
 cdef class ExtruderExt(BaseExt):
@@ -447,7 +461,7 @@ cdef class ExtruderExt(BaseExt):
             "tf": (self._fanspeed, )
         }
 
-    def set_heater(self, int heater_id, float temperature):
+    cpdef set_heater(self, int heater_id, float temperature):
         if temperature < 0:
             raise RuntimeError(EXEC_OPERATION_ERROR, "BAD TEMP")
         elif temperature > 280:
@@ -456,7 +470,7 @@ cdef class ExtruderExt(BaseExt):
         self._temperatures[0] = temperature
         return create_chksum_cmd("1 H:%i T:%.1f", heater_id, temperature)
 
-    def set_fanspeed(self, int fan_id, float fan_speed):
+    cpdef set_fanspeed(self, int fan_id, float fan_speed):
         self._fanspeed = f = max(min(1.0, fan_speed), 0)
         return create_chksum_cmd("1 F:%i S:%i", fan_id, f * 255)
 
@@ -485,6 +499,9 @@ cdef class ExtruderExt(BaseExt):
             else:
                 return False
         return True
+
+    def close(self):
+        return [self.set_heater(0, 0)]
 
 
 cdef class LaserExt(BaseExt):
