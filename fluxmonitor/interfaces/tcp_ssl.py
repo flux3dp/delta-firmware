@@ -40,8 +40,10 @@ def prepare_cert():
         subj = cert.get_subject()
         subj.C = subj.ST = subj.L = "XX"
         subj.O = "FLUX3dp"
-        subj.CN = (get_uuid() + ":" + get_serial() + ":" +
-                   to_hex(get_identify()))
+        subj.CN = (get_uuid() + ":" + get_serial() + ":")
+
+        ext = crypto.X509Extension("nsComment", True, get_identify())
+        cert.add_extensions((ext, ))
 
         cert.set_serial_number(1000)
         cert.gmtime_adj_notBefore(0)
