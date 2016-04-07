@@ -8,13 +8,20 @@ except ImportError:
 
 from fluxmonitor.err_codes import HARDWARE_ERROR
 from fluxmonitor.misc.systime import systime
+from fluxmonitor.misc.v4l2_camera import V4l2_Camera
+from fluxmonitor import halprofile
+
+halprofile.PLATFORM
 
 IMAGE_QUALITY = 80
 
 
 class Cameras(object):
     def __init__(self):
-        self._camera = Camera(0)
+        if halprofile.PLATFORM == halprofile.LINUX_PLATFORM:
+            self._camera = V4l2_Camera(0)
+        else:
+            self._camera = Camera(0)
 
     def __getitem__(self, camera_id):
         return self._camera
