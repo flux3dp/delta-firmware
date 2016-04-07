@@ -57,14 +57,17 @@ def find_security(chunk, has_enctype):
 
 
 def parse_iwlist_chunk_result(chunk):
-    ssid = find_ssid(chunk)
-    encrypt = find_encrypt(chunk)
-    security = find_security(chunk, encrypt)
+    try:
+        ssid = find_ssid(chunk)
+        encrypt = find_encrypt(chunk)
+        security = find_security(chunk, encrypt)
 
-    if ssid and security != "ERROR":
-        return {"ssid": ssid, "bssid": find_bssid(chunk),
-                "rssi": find_rssi(chunk), "encrypt": encrypt,
-                "security": security}
+        if ssid and security != "ERROR":
+            return {"ssid": ssid, "bssid": find_bssid(chunk),
+                    "rssi": find_rssi(chunk), "encrypt": encrypt,
+                    "security": security}
+    except Exception:
+        return None
 
 
 def scan():
@@ -91,5 +94,11 @@ def scan():
                 results.append(cell)
 
         last_anchor = match.end()
+
+    if last_anchor > 0:
+        chunk = raw[last_anchor:]
+        cell = parse_iwlist_chunk_result(chunk)
+        if cell:
+            results.append(cell)
 
     return results
