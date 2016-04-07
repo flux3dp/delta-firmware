@@ -1,3 +1,5 @@
+from io import BytesIO
+
 from libc.stdlib cimport free
 import cython
 
@@ -36,7 +38,10 @@ cdef extern from "v4l2_camera_module.h":
 #         return self.arr[ind]
 
 cdef class V4l2_Camera:
+    cdef object py_buffer
+
     cdef unsigned char * _buf
+    cdef int buf_length
     cdef int camera_port
     cdef int fd
     cdef float ts
@@ -46,6 +51,7 @@ cdef class V4l2_Camera:
         self.camera_port = camera_id
         self.fd = -1
         self.ts = time()
+        self.py_buffer = None
 
     def live(self, ts):
 
@@ -54,12 +60,12 @@ cdef class V4l2_Camera:
 
         return self.ts
 
-    def fetch(self, clear_cache=4):
+    def fetch(self, clear_cache=4, return_cv=False):
         # Take a new photo immediately
         if self.fd < 0:
             self.attach()
 
-        k = capture_image(self.fd, self._buf)
+        self.buf_length = capture_image(self.fd, self._buf)
         # success_count = 0
         # for i in range(16):  # try at most 16 times
         #     if success_count >= clear_cache:  # 4 success is enough
@@ -68,8 +74,17 @@ cdef class V4l2_Camera:
         #         success_count += 1
 
         self.ts = time()
-        # self._img_file = None
+        if return_cv:
+            pass  # todo
+        self.py_buffer = None
         # return self.img_buf
+
+    @property
+    def imagefile(self):
+        if self.py_buffer is None:
+            self.py_buffer = BytesIO(self._buf[:self.buf_length])
+
+        return ("image/jpeg", self.buf_length, self.py_buffer)
 
     cpdef attach(self):
         if self.fd > 0:
