@@ -87,6 +87,7 @@ def scan():
 
     last_anchor = -1
     for match in re.finditer("Cell [0-9]{2} - Address: ", raw):
+        # Output from 0 to first match result is iwlist header, ignore it
         if last_anchor > 0:
             chunk = raw[last_anchor:match.start()]
             cell = parse_iwlist_chunk_result(chunk)
@@ -96,6 +97,7 @@ def scan():
         last_anchor = match.end()
 
     if last_anchor > 0:
+        # Handle last match result to end of raw
         chunk = raw[last_anchor:]
         cell = parse_iwlist_chunk_result(chunk)
         if cell:
