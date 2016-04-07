@@ -39,7 +39,7 @@ cdef class V4l2_Camera:
             self.fetch(0)
         return self.ts
 
-    def fetch(self, clear_cache=4, return_cv=False):
+    def fetch(self, clear_cache=4):
         # Take a new photo immediately
         if self.fd < 0:
             self.attach()
@@ -54,10 +54,7 @@ cdef class V4l2_Camera:
         #         success_count += 1
 
         self.ts = time()
-        if return_cv:
-            pass  # todo: return a cv2 image
         self.py_buffer = None
-        # return self.img_buf
 
     @property
     def imagefile(self):
