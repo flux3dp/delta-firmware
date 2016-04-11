@@ -167,6 +167,14 @@ class CommonMetadata(object):
         self._cache_nickname(val)
 
     @property
+    def broadcast(self):
+        return self.storage["broadcast"]
+
+    @broadcast.setter
+    def broadcast(self, val):
+        self.storage["broadcast"] = val
+
+    @property
     def shared_der_rsakey(self):
         buf = self.shm.read(1024, 1024)
         bit, ts, l = struct.unpack("<BfH", buf[:7])

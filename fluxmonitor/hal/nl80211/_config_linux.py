@@ -64,7 +64,7 @@ def _write_wpa_config(filepath, config):
                 ssid="%(ssid)s"
                 mode=0
                 psk="%(psk)s"
-                proto=RSN
+                proto=WPA RSN
                 key_mgmt=WPA-PSK
 }""" % config
         else:
@@ -72,7 +72,7 @@ def _write_wpa_config(filepath, config):
                 ssid="%(ssid)s"
                 mode=0
                 psk=%(psk)s
-                proto=RSN
+                proto=WPA RSN
                 key_mgmt=WPA-PSK
 }""" % config
 

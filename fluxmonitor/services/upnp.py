@@ -8,34 +8,32 @@ import struct
 import socket
 import json
 
-logger = logging.getLogger(__name__)
-
 import pyev
 
-from fluxmonitor.misc import network_config_encoder as NCE  # noqa
-from fluxmonitor.halprofile import get_model_id
 from fluxmonitor.hal.net.monitor import Monitor as NetworkMonitor
-from fluxmonitor.storage import CommonMetadata
+from fluxmonitor.halprofile import get_model_id
 from fluxmonitor.err_codes import BAD_PASSWORD, AUTH_ERROR
+from fluxmonitor.storage import CommonMetadata
 from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT
+from fluxmonitor.misc import network_config_encoder as NCE  # noqa
 
 from fluxmonitor import __version__ as VERSION  # noqa
 from fluxmonitor import security
 from .base import ServiceBase
+
+logger = logging.getLogger(__name__)
 
 
 SERIAL_HEX = security.get_uuid()
 SERIAL_BIN = binascii.a2b_hex(SERIAL_HEX)
 SERIAL_NUMBER = security.get_serial()
 UUID_BYTES = SERIAL_BIN
-MULTICAST_VERSION = 1
 MODEL_ID = get_model_id()
 
 
 CODE_NOPWD_ACCESS = 0x04
 CODE_PWD_ACCESS = 0x06
 
-CODE_REQUEST_ROBOT = 0x84
 CODE_CHANGE_PWD = 0xa0
 CODE_SET_NETWORK = 0xa2
 
@@ -94,80 +92,61 @@ def parse_signed_request(payload, secretkey):
     return True, access_id, body[32:]
 
 
-class MulticastInterface(object):
-    temp_rsakey = None
-    timer = 0
+class InterfaceBaseV1(object):
+    __notify_payload = None
+    __touch_payload = None
 
-    def __init__(self, server, pkey, meta, addr='239.255.255.250', port=1901):
+    def __init__(self, server):
         self.server = server
-        self.master_key = pkey
-        self.meta = meta
-        self.poke_counter = {}
-
+        self.meta = server.meta
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM,
                                   socket.IPPROTO_UDP)
-        self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
-        self.sock.bind(('', port))
-        self.mcst_addr = (addr, port)
 
-        self._generate_discover_info()
+    def fileno(self):
+        return self.sock.fileno()
 
-    def _generate_discover_info(self):
-        temp_ts = time()
-        temp_pkey_der = self.server.slave_pkey.export_pubkey_der()
+    @property
+    def _notify_payload(self):
+        if not self.__notify_payload:
+            slave_pkey_ts = self.server.slave_pkey_ts
+            main_pubder = self.server.master_key.export_pubkey_der()
+            identify = security.get_identify()
 
-        temp_pkey_sign = self.master_key.sign(
-            struct.pack("<f", temp_ts) + temp_pkey_der)
+            self.__notify_payload = struct.pack(
+                "<4sBB16s10sfHH",
+                "FLUX",             # Magic String
+                1,                  # Protocol Version
+                0,                  # Discover Code
+                UUID_BYTES,         # Device UUID
+                SERIAL_NUMBER,      # Device Serial Number
+                slave_pkey_ts,      # TEMP TS
+                len(main_pubder),   # Public Key length
+                len(identify),      # Identify length
+            ) + main_pubder + identify
+        return self.__notify_payload + self.meta.device_status
 
-        self.meta.shared_der_rsakey = self.server.slave_pkey.export_der()
+    @property
+    def _touch_payload(self):
+        if not self.__touch_payload:
+            temp_ts = self.server.slave_pkey_ts
+            temp_pkey_der = self.server.slave_pkey.export_pubkey_der()
+            temp_pkey_sign = self.server.master_key.sign(
+                struct.pack("<f", temp_ts) + temp_pkey_der)
 
-        main_pubder = self.master_key.export_pubkey_der()
-        identify = security.get_identify()
+            self.__touch_payload = struct.pack(
+                "<4sBB16sfHH",
+                "FLUX",              # Magic String
+                1,                   # Protocol Version
+                3,                   # Tocuh Code
+                UUID_BYTES,          # Device UUID
+                temp_ts,
+                len(temp_pkey_der),  # Temp pkey length
+                len(temp_pkey_sign)  # Temp pkey sign
+            ) + temp_pkey_der + temp_pkey_sign
+        return self.__touch_payload
 
-        self._discover_payload = struct.pack(
-            "<4sBB16s10sfHH",
-            "FLUX",             # Magic String
-            MULTICAST_VERSION,  # Protocol Version
-            0,                  # Discover Code
-            UUID_BYTES,         # Device UUID
-            SERIAL_NUMBER,      # Device Serial Number
-            temp_ts,            # TEMP TS
-            len(main_pubder),   # Public Key length
-            len(identify),      # Identify length
-        ) + main_pubder + identify
-
-        self._touch_payload = struct.pack(
-            "<4sBB16sfHH",
-            "FLUX",              # Magic String
-            MULTICAST_VERSION,   # Protocol Version
-            3,                   # Tocuh Code
-            UUID_BYTES,          # Device UUID
-            temp_ts,
-            len(temp_pkey_der),  # Temp pkey length
-            len(temp_pkey_sign)  # Temp pkey sign
-        ) + temp_pkey_der + temp_pkey_sign
-
-    def reduce_drop_request(self):
-        for key in self.poke_counter.keys():
-            val = self.poke_counter[key]
-            if val > 1:
-                self.poke_counter[key] = val - 1
-            else:
-                self.poke_counter.pop(key)
-
-    def drop_request(self, endpoint, action_id):
-        key = "%s+%i" % (endpoint[0], action_id)
-
-        val = self.poke_counter.get(key, 0)
-        if val > 60:
-            return True
-        else:
-            self.poke_counter[key] = val + 3
-            return False
-
-    def on_discover(self, endpoint):
-        self.sock.sendto(self._discover_payload + self.meta.device_status,
-                         endpoint)
+    def send_notify_to(self, endpoint):
+        self.sock.sendto(self._notify_payload, endpoint)
 
     def on_touch(self, endpoint):
         info = "ver=%s\x00model=%s\x00name=%s\x00pwd=%s\x00time=%i" % (
@@ -180,9 +159,6 @@ class MulticastInterface(object):
             self.server.slave_pkey.sign(info)
 
         self.sock.sendto(payload, endpoint)
-
-    def fileno(self):
-        return self.sock.fileno()
 
     def on_message(self, watcher, revent):
         """Payload struct:
@@ -207,9 +183,6 @@ class MulticastInterface(object):
 
         magic_num, proto_ver, action_id, buuid = struct.unpack("<4sBB16s",
                                                                buf[:22])
-        if self.drop_request(endpoint, action_id):
-            logger.debug("Drop %s request %i", endpoint[0], action_id)
-            return
 
         if magic_num != b"FLUX":
             return
@@ -223,7 +196,7 @@ class MulticastInterface(object):
                 endpoint[0], action_id, time() - t1))
         else:
             if action_id == 0 and buuid == GLOBAL_SERIAL.bytes:
-                self.on_discover(endpoint)
+                self.send_notify_to(endpoint)
 
     def send_response(self, endpoint, action_id, message):
         payload = struct.pack("<4sBB16sH", b"FLUX", 1, action_id + 1,
@@ -231,15 +204,62 @@ class MulticastInterface(object):
         signature = self.server.slave_pkey.sign(message)
         self.sock.sendto(payload + message + signature, endpoint)
 
-    def send_discover(self):
-        if time() - self.timer > 2.5:
-            self.reduce_drop_request()
-            self.sock.sendto(self._discover_payload + self.meta.device_status,
-                             self.mcst_addr)
-            self.timer = time()
+    def close(self):
+        self.sock.close()
+
+
+class InterfaceBaseV2(InterfaceBaseV1):
+    __notify_payload = None
+
+    @property
+    def _notify_payload(self):
+        if not self.__notify_payload:
+            self.__notify_payload = struct.pack(
+                "<4sBB16s",
+                "FLUX",             # Magic String
+                2,                  # Protocol Version
+                0,                  # Discover Code
+                UUID_BYTES)         # Device UUID
+        return self.__notify_payload + self.meta.device_status
+
+
+class BroadcaseNotifyInterface(InterfaceBaseV2):
+    def __init__(self, server, sendto=("255.255.255.255", 1902)):
+        super(BroadcaseNotifyInterface, self).__init__(server)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        self.endpoint = sendto
+
+    def send_notify(self):
+        self.sock.sendto(self._notify_payload, self.endpoint)
 
     def close(self):
         self.sock.close()
+
+
+class MulticaseNotifyInterface(InterfaceBaseV1):
+    def __init__(self, server, sendto=("239.255.255.250", 1901)):
+        super(MulticaseNotifyInterface, self).__init__(server)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.endpoint = sendto
+
+    def send_notify(self):
+        self.sock.sendto(self._notify_payload, self.endpoint)
+
+    def send_notify_to(self, endpoint):
+        self.sock.sendto(self._notify_payload + self.meta.device_status,
+                         endpoint)
+
+
+class UnicasetInterface(InterfaceBaseV1):
+    def __init__(self, server, ipaddr="", port=1901):
+        super(UnicasetInterface, self).__init__(server)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # mreq = struct.pack("4sl", socket.inet_aton(addr),
+        #                    socket.INADDR_ANY)
+        # self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP,
+        #                      mreq)
+        self.sock.bind((ipaddr, port))
 
 
 class UpnpServiceMixIn(object):
@@ -349,26 +369,24 @@ class UpnpServiceMixIn(object):
 
         return {"timestemp": time()}
 
-    @json_payload_wrapper
-    def cmd_require_robot(self, access_id, message):
-        # TODO: to be delete
-        return {"status": "launched"}
-
 
 class UpnpService(ServiceBase, UpnpServiceMixIn):
-    ipaddress = None
+    bcst = None
     mcst = None
-    mcst_watcher = None
+    ucst = None
+    ucst_watcher = None
     cron_watcher = None
-    # button_control = None
+    ipaddress = None
 
     def __init__(self, options):
         # Create RSA key if not exist. This will prevent upnp create key during
         # upnp is running (Its takes times and will cause timeout)
         self.master_key = security.get_private_key()
         self.slave_pkey = security.RSAObject(keylength=1024)
+        self.slave_pkey_ts = time()
 
         self.meta = CommonMetadata()
+        self.meta.shared_der_rsakey = self.slave_pkey.export_der()
         self.meta.update_device_status(0, 0, "OFFLINE", "")
 
         self._callback = {
@@ -376,10 +394,6 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
             CODE_PWD_ACCESS: self.cmd_pwd_access,
             CODE_CHANGE_PWD: self.cmd_change_pwd,
             CODE_SET_NETWORK: self.cmd_set_network,
-
-            # CODE_CONTROL_STATUS: self.cmd_control_status,
-            # CODE_RESET_CONTROL: self.cmd_reset_control,
-            CODE_REQUEST_ROBOT: self.cmd_require_robot
         }
 
         super(UpnpService, self).__init__(logger)
@@ -403,41 +417,71 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
 
             if self.ipaddress != ipaddress:
                 self.ipaddress = ipaddress
-                self._replace_upnp_sock()
+                if watcher:
+                    self._replace_upnp_sock()
+                else:
+                    self._try_open_upnp_sock()
 
     def _replace_upnp_sock(self):
         self._try_close_upnp_sock()
+        self._try_open_upnp_sock()
 
+    def _try_open_upnp_sock(self):
         try:
-            self.mcst = MulticastInterface(self, self.master_key, self.meta)
-            self.mcst_watcher = self.loop.io(self.mcst, pyev.EV_READ,
-                                             self.mcst.on_message)
-            self.mcst_watcher.start()
-            self.logger.info("Upnp going UP")
+            self.logger.debug("Upnp going UP")
 
+            mcst_if = MulticaseNotifyInterface(self)
+            mcst_watcher = self.loop.io(mcst_if, pyev.EV_READ,
+                                        mcst_if.on_message)
+            mcst_watcher.start()
+            self.mcst = (mcst_if, mcst_watcher)
+
+            ucst_if = UnicasetInterface(self)
+            ucst_watcher = self.loop.io(ucst_if, pyev.EV_READ,
+                                        ucst_if.on_message)
+            ucst_watcher.start()
+            self.ucst = (ucst_if, ucst_watcher)
+
+            if self.meta.broadcast == "on":
+                bcst_if = BroadcaseNotifyInterface(self)
+                bcst_watcher = self.loop.io(bcst_if, pyev.EV_READ,
+                                            bcst_if.on_message)
+                self.bcst = (bcst_if, bcst_watcher)
         except socket.error:
-            self.logger.exception("")
+            self.logger.exception("Error while upnp going UP")
             self._try_close_upnp_sock()
 
     def _try_close_upnp_sock(self):
-        if self.mcst_watcher:
-            self.mcst_watcher.stop()
-            self.mcst_watcher = None
+        self.logger.debug("Upnp going DOWN")
+        if self.ucst:
+            ifce, watcher = self.ucst
+            watcher.stop()
+            ifce.close()
+            self.ucst = None
+
         if self.mcst:
-            self.logger.info("Upnp going DOWN")
-            self.mcst.close()
+            ifce, watcher = self.mcst
+            watcher.stop()
+            ifce.close()
             self.mcst = None
+
+        if self.bcst:
+            ifce, watcher = self.bcst
+            watcher.stop()
+            ifce.close()
+            self.bcst = None
 
     def on_start(self):
         self.on_network_changed(None, None)
 
     def on_shutdown(self):
         self._try_close_upnp_sock()
-        # if self.button_control:
-        #     self.button_control.close()
 
     def on_cron(self, watcher, revent):
-        self.mcst.send_discover()
+        if self.mcst:
+            self.mcst[0].send_notify()
+        if self.bcst:
+            self.bcst[0].send_notify()
 
     def on_request(self, remote, request_code, payload, interface):
         callback = self._callback.get(request_code)
