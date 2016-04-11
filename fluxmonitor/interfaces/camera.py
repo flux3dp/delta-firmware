@@ -104,7 +104,7 @@ class CameraUnixStreamHandler(UnixStreamHandler):
                     self.begin_send(stream, length, lambda _: None)
 
                 elif cmd_id == 1:
-                    ret = self.kernel.scan_checking()
+                    ret = self.kernel.scan_checking(camera_id)
                     self.send_text("ok %s" % ret)
 
                 elif cmd_id == 2:
