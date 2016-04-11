@@ -24,7 +24,7 @@ cdef class V4l2_Camera:
     cdef height
 
     # cdef unsigned char ** _buf_pointer = cython.address(self._buf);
-    def __init__(self, camera_id, width=800, height=600):
+    def __init__(self, camera_id, width=640, height=480):
         self.camera_port = camera_id
         self.fd = -1
         self.ts = time()

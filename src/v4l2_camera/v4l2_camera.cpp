@@ -727,8 +727,8 @@ static PyObject *__pyx_tp_new_11v4l2_camera_V4l2_Camera(PyTypeObject *t, PyObjec
 static PyObject *__pyx_float_0_1;
 static PyObject *__pyx_int_0;
 static PyObject *__pyx_int_4;
-static PyObject *__pyx_int_600;
-static PyObject *__pyx_int_800;
+static PyObject *__pyx_int_480;
+static PyObject *__pyx_int_640;
 static PyObject *__pyx_tuple_;
 static PyObject *__pyx_tuple__2;
 static PyObject *__pyx_tuple__3;
@@ -736,7 +736,7 @@ static PyObject *__pyx_tuple__3;
 /* "v4l2_camera.pyx":27
  * 
  *     # cdef unsigned char ** _buf_pointer = cython.address(self._buf);
- *     def __init__(self, camera_id, width=800, height=600):             # <<<<<<<<<<<<<<
+ *     def __init__(self, camera_id, width=640, height=480):             # <<<<<<<<<<<<<<
  *         self.camera_port = camera_id
  *         self.fd = -1
  */
@@ -756,8 +756,8 @@ static int __pyx_pw_11v4l2_camera_11V4l2_Camera_1__init__(PyObject *__pyx_v_self
   {
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_camera_id,&__pyx_n_s_width,&__pyx_n_s_height,0};
     PyObject* values[3] = {0,0,0};
-    values[1] = ((PyObject *)__pyx_int_800);
-    values[2] = ((PyObject *)__pyx_int_600);
+    values[1] = ((PyObject *)__pyx_int_640);
+    values[2] = ((PyObject *)__pyx_int_480);
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
@@ -830,7 +830,7 @@ static int __pyx_pf_11v4l2_camera_11V4l2_Camera___init__(struct __pyx_obj_11v4l2
 
   /* "v4l2_camera.pyx":28
  *     # cdef unsigned char ** _buf_pointer = cython.address(self._buf);
- *     def __init__(self, camera_id, width=800, height=600):
+ *     def __init__(self, camera_id, width=640, height=480):
  *         self.camera_port = camera_id             # <<<<<<<<<<<<<<
  *         self.fd = -1
  *         self.ts = time()
@@ -839,7 +839,7 @@ static int __pyx_pf_11v4l2_camera_11V4l2_Camera___init__(struct __pyx_obj_11v4l2
   __pyx_v_self->camera_port = __pyx_t_1;
 
   /* "v4l2_camera.pyx":29
- *     def __init__(self, camera_id, width=800, height=600):
+ *     def __init__(self, camera_id, width=640, height=480):
  *         self.camera_port = camera_id
  *         self.fd = -1             # <<<<<<<<<<<<<<
  *         self.ts = time()
@@ -920,7 +920,7 @@ static int __pyx_pf_11v4l2_camera_11V4l2_Camera___init__(struct __pyx_obj_11v4l2
   /* "v4l2_camera.pyx":27
  * 
  *     # cdef unsigned char ** _buf_pointer = cython.address(self._buf);
- *     def __init__(self, camera_id, width=800, height=600):             # <<<<<<<<<<<<<<
+ *     def __init__(self, camera_id, width=640, height=480):             # <<<<<<<<<<<<<<
  *         self.camera_port = camera_id
  *         self.fd = -1
  */
@@ -2030,8 +2030,8 @@ static int __Pyx_InitGlobals(void) {
   __pyx_float_0_1 = PyFloat_FromDouble(0.1); if (unlikely(!__pyx_float_0_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_int_0 = PyInt_FromLong(0); if (unlikely(!__pyx_int_0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_int_4 = PyInt_FromLong(4); if (unlikely(!__pyx_int_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_int_600 = PyInt_FromLong(600); if (unlikely(!__pyx_int_600)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_int_800 = PyInt_FromLong(800); if (unlikely(!__pyx_int_800)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_int_480 = PyInt_FromLong(480); if (unlikely(!__pyx_int_480)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_int_640 = PyInt_FromLong(640); if (unlikely(!__pyx_int_640)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   return 0;
   __pyx_L1_error:;
   return -1;
