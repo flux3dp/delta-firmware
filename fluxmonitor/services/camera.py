@@ -71,13 +71,6 @@ class CameraService(ServiceBase):
         cv2.imwrite('/home/pi/tmp1.jpg', img)
 
         if flag:
-            ################################
-            tmp = np.copy(camera.img_buf)
-            cv2.drawChessboardCorners(tmp, ScanChecking.corner, points, flag)
-            cv2.imwrite('/home/pi/tmp.jpg', tmp)
-            ################################
-
-        if flag:
             return ScanChecking.get_bias(points)
         else:
             return 'nan'
@@ -88,7 +81,8 @@ class CameraService(ServiceBase):
 
         if cmd == 3:
             # no need to take photo again, just retrieve the img buffer
-            self.img_o = np.copy(camera.img_buf)
+            camera.fetch()
+            self.img_o = cv2.imdecode(np.fromstring(camera.imagefile[2].getvalue(), np.uint8), cv2.CV_LOAD_IMAGE_COLOR)
             _, points = ScanChecking.find_board(self.img_o)
             self.s = 0
             for i in xrange(16):
