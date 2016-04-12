@@ -44,7 +44,6 @@ def usb2mainboard(usb_serial, mainboard_unixsocket_endpoint):
 
 def usb2camera(usb_serial, ttl=100):
     try:
-        from fluxmonitor.hal.camera import get_scan_camera
         import cv2
 
         camera = get_scan_camera(0)

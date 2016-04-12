@@ -8,7 +8,7 @@ import pyev
 import ssl
 
 from fluxmonitor.interfaces import tcp_ssl
-from fluxmonitor.security import RSAObject, hash_password
+from fluxmonitor.security import RSAObject, hash_password, _prepare_cert
 from fluxmonitor.storage import Storage
 from tests.fixtures import Fixtures
 
@@ -38,7 +38,7 @@ class SSLHandlerTest(unittest.TestCase):
         host.close()
 
         self.loop = pyev.Loop()
-        tcp_ssl.prepare_cert()
+        _prepare_cert()
         s = Storage("security", "private")
         self.certfile = s.get_path("cert.pem")
         self.keyfile = s.get_path("sslkey.pem")
@@ -75,11 +75,11 @@ class SSLHandlerTest(unittest.TestCase):
                        self.certfile, self.keyfile)
 
         self.assertEqual(self.client_sock.recv(8), b"FLUX0003")
-        randbytes = self.client_sock.recv(64)
 
         c_sock = ssl.SSLSocket(self.client_sock, do_handshake_on_connect=False)
 
         self.complete_ssl_handshake(h, c_sock)
+        randbytes = c_sock.recv(64)
 
         # Client send identify
         document = hash_password(tcp_ssl.UUID_BIN, randbytes)
@@ -112,11 +112,11 @@ class SSLHandlerTest(unittest.TestCase):
                        self.certfile, self.keyfile)
 
         self.assertEqual(self.client_sock.recv(8), b"FLUX0003")
-        randbytes = self.client_sock.recv(64)
 
         c_sock = ssl.SSLSocket(self.client_sock, do_handshake_on_connect=False)
 
         self.complete_ssl_handshake(h, c_sock)
+        randbytes = c_sock.recv(64)
 
         # Client send identify
         document = hash_password(tcp_ssl.UUID_BIN, randbytes)
@@ -134,12 +134,3 @@ class SSLHandlerTest(unittest.TestCase):
 
         select((c_sock, ), (), (), 0.1)
         self.assertEqual(c_sock.recv(16), tcp_ssl.MESSAGE_UNKNOWN_HOST)
-
-        while True:
-            while select((c_sock, ), (), (), 0.1)[0]:
-                try:
-                    b = c_sock.recv(4096)
-                    self.assertEqual(b, b"")
-                    return
-                except ssl.SSLWantReadError:
-                    pass
