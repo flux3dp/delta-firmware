@@ -68,7 +68,7 @@ class CorrectionMacro(object):
                 self.round += 1
                 self.on_command_empty(executor)
             elif dd < self.threshold:
-                logger.error("Correction completed: %s", data)
+                logger.info("Correction completed: %s", data)
                 self.convergence = True
                 executor.main_ctrl.send_cmd("G1F9000X0Y0Z30", executor)
 
