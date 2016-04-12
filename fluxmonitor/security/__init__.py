@@ -20,14 +20,14 @@ def _prepare_cert():
 
     try:
         key = crypto.load_privatekey(crypto.FILETYPE_PEM, s["sslkey.pem"])
-    except crypto.Error:
+    except (crypto.Error, TypeError):
         pkey = get_private_key()
         s["sslkey.pem"] = pem = pkey.export_pem()
         key = crypto.load_privatekey(crypto.FILETYPE_PEM, pem)
 
     try:
         cert = crypto.load_certificate(crypto.FILETYPE_PEM, s["cert.pem"])
-    except crypto.Error:
+    except (crypto.Error, TypeError):
         key = crypto.load_privatekey(crypto.FILETYPE_PEM, pkey.export_pem())
         cert = crypto.X509()
         subj = cert.get_subject()
