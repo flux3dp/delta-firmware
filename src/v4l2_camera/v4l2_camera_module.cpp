@@ -1,3 +1,8 @@
+
+#include "v4l2_camera_module.h"
+
+#ifdef __linux__
+
 #include <errno.h>
 #include <fcntl.h>
 #include <linux/videodev2.h>
@@ -10,7 +15,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <typeinfo>
-#include "v4l2_camera_module.h"
 
 static int xioctl(int fd, int request, void *arg)
 {
@@ -180,3 +184,5 @@ int main(int argc, char* argv[]){
 
     return 0;
 }
+
+#endif

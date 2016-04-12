@@ -12,7 +12,7 @@ cdef extern from "v4l2_camera_module.h":
     int capture_image(int fd, unsigned char* &buffer)
 
 
-cdef class V4l2_Camera:
+cdef class V4l2Camera:
     cdef object py_buffer
 
     cdef unsigned char * _buf
@@ -23,7 +23,6 @@ cdef class V4l2_Camera:
     cdef width
     cdef height
 
-    # cdef unsigned char ** _buf_pointer = cython.address(self._buf);
     def __init__(self, camera_id, width=640, height=480):
         self.camera_port = camera_id
         self.fd = -1
@@ -66,14 +65,11 @@ cdef class V4l2_Camera:
         return ("image/jpeg", self.buf_length, BytesIO(self._buf[:self.buf_length]))
 
     cpdef attach(self):
-        print('attach')
         if self.fd > 0:
             self.release()
         self.fd = attach_camera(self.camera_port, self._buf, self.width, self.height)
-        # print(self.fd)
 
     cpdef release(self):
-        print('release')
         if self.fd > 0:
             release_camera(self.fd, self._buf)
             self.fd = -1
