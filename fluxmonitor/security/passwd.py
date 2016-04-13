@@ -20,10 +20,11 @@ def has_password():
     return _storage.exists("password")
 
 
-def validate_and_set_password(password, old_password):
+def validate_and_set_password(password, old_password, reset_acl=True):
     if validate_password(old_password):
         set_password(password)
-        untrust_all()
+        if reset_acl:
+            untrust_all()
 
         return True
     else:
