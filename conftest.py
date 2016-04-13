@@ -4,6 +4,8 @@ import pytest
 import shutil
 import os
 
+from tests.fixtures import Fixtures
+
 
 def setup_logger():
     import logging.config
@@ -85,3 +87,10 @@ def clean_db():
 def empty_security():
     os.makedirs(os.path.join(dbroot, "security", "private"))
     os.makedirs(os.path.join(dbroot, "security", "pub"))
+
+
+@pytest.fixture
+def default_db():
+    if os.path.exists(dbroot):
+        shutil.rmtree(dbroot)
+    Fixtures.apply_skel(dbroot, label="default")

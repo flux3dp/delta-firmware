@@ -5,6 +5,15 @@ import socket
 import os
 
 
+def get_scan_camera(camera_id=None):
+    from cv2 import VideoCapture
+
+    if camera_id is not None:
+        return VideoCapture(int(camera_id))
+    else:
+        raise RuntimeError("NOT_SUPPORT", "can not find scan camera")
+
+
 def usb2mainboard(usb_serial, mainboard_unixsocket_endpoint):
     mb_serial = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     mb_serial.connect(mainboard_unixsocket_endpoint)
@@ -35,7 +44,6 @@ def usb2mainboard(usb_serial, mainboard_unixsocket_endpoint):
 
 def usb2camera(usb_serial, ttl=100):
     try:
-        from fluxmonitor.hal.camera import get_scan_camera
         import cv2
 
         camera = get_scan_camera(0)

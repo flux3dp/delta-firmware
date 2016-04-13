@@ -97,5 +97,8 @@ setup(
             define_macros=DEFAULT_MACROS,
             libraries=LD_TIME, extra_objects=[], include_dirs=["src"]
         ),
+        Extension("fluxmonitor.hal.camera._v4l2_camera", sources=[
+            "src/v4l2_camera/v4l2_camera_module.cpp",
+            "src/v4l2_camera/v4l2_camera.cpp"], language="c++")
     ]
 )
