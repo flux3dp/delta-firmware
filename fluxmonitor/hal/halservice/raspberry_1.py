@@ -164,8 +164,6 @@ class GPIOControl(object):
 
         if wifi_flag & 64 > 0:
             GPIO.output(GPIO_WIFI_ST_PIN, GPIO.HIGH)
-        elif wifi_flag & 128 > 0:
-            GPIO.output(GPIO_WIFI_ST_PIN, GPIO.LOW)
         else:
             GPIO.output(GPIO_WIFI_ST_PIN, GPIO_TOGGLE[_1])
 
