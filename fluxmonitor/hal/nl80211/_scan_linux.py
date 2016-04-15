@@ -70,8 +70,8 @@ def parse_iwlist_chunk_result(chunk):
         return None
 
 
-def scan():
-    proc = Popen(["sudo", "-n", "iwlist", "scanning"],
+def scan(ifname="wlan0"):
+    proc = Popen(["sudo", "-n", "iwlist", ifname, "scanning"],
                  stdout=PIPE, stderr=PIPE)
 
     strbuffer = StringIO()
@@ -102,5 +102,8 @@ def scan():
         cell = parse_iwlist_chunk_result(chunk)
         if cell:
             results.append(cell)
+
+    if proc.poll() != 0:
+        raise RuntimeError("HARDWARE_FAILURE")
 
     return results

@@ -315,6 +315,9 @@ class UsbIO(object):
         try:
             result = wifiscan()
             self.send_response(REQ_LIST_SSID, True, json.dumps(result))
+        except RuntimeError as e:
+            logger.exception("Error while list ssid %s" % "wlan0")
+            self.send_response(REQ_LIST_SSID, False, e.args[0])
         except Exception:
             logger.exception("Error while list ssid %s" % "wlan0")
             self.send_response(REQ_LIST_SSID, False, UNKNOWN_ERROR)
