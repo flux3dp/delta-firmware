@@ -81,6 +81,8 @@ class SSLConnectionHandler(HandlerBase):
         except ssl.SSLWantWriteError:
             self.send_watcher = self.kernel.loop.io(
                 self.sock, pyev.EV_WRITE, self._do_ssl_handshake)
+        except ssl.SSLEOFError:
+            self.close()
         except Exception:
             logger.exception("SSL handshake failed")
             self.close()
@@ -133,8 +135,12 @@ class SSLConnectionHandler(HandlerBase):
                     l = self.sock.recv_into(self._bufview[self._buffered:])
                 except ssl.SSLWantReadError:
                     return
+                except ssl.SSLError as e:
+                    logger.warn("SSLError: %s", e)
+                    self.close()
+                    return
                 except Exception as e:
-                    logger.error("SSL Socket recv error: %s", e)
+                    logger.exception("SSL Socket recv error")
                     self.close()
                     return
 
@@ -146,11 +152,10 @@ class SSLConnectionHandler(HandlerBase):
                         else:
                             self._on_identify_handshake()
 
+                        if self.sock.pending() == 0:
+                            return
                     else:
                         self.close("CONNECTION_GONE")
-
-                    if self.sock.pending() == 0:
-                        return
 
                 except Exception:
                     logger.exception("Unhandle error on recv interface, "
@@ -174,12 +179,12 @@ class SSLConnectionHandler(HandlerBase):
         else:
             while self._buffered > 2:
                 # Try unpack
-                l = SHORT_PACKER.unpack_from(self._bufview[:2].tobytes())[0]
+                l = SHORT_PACKER.unpack_from(self._buf)[0]
                 if l > 4094:
                     self.close("Text payload too large, disconnect.")
                 if self._buffered > l:
                     payload = self._bufview[2:l].tobytes()
-                    self._bufview[:l - self._buffered] = \
+                    self._bufview[:self._buffered - l] = \
                         self._bufview[l:self._buffered]
                     self._buffered -= l
                     self.delegate.on_text(payload.decode("utf8", "ignore"),
@@ -228,7 +233,7 @@ class SSLConnectionHandler(HandlerBase):
         self.ready = -1
         if message:
             self.logger.info("Client disconnected (reason=%s)", message)
+        super(SSLConnectionHandler, self).close()
         if self.delegate:
             self.delegate.on_close(self)
             self.delegate = None
-        super(SSLConnectionHandler, self).close()

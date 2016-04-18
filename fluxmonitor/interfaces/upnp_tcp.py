@@ -1,17 +1,22 @@
 
+from binascii import a2b_hex as from_hex
 from weakref import proxy
 import logging
+import json
 import ssl
 
 import pyev
 
+from fluxmonitor.hal.nl80211.scan import scan as scan_wifi
 from fluxmonitor.err_codes import (UNKNOWN_ERROR, BAD_PARAMS, AUTH_ERROR,
                                    UNKNOWN_COMMAND)
-from fluxmonitor.security import RSAObject, is_trusted_remote
+from fluxmonitor.security import (RSAObject, is_trusted_remote, hash_password,
+                                  get_uuid)
 from .tcp_ssl import SSLInterface, SSLConnectionHandler
 
 __all__ = ["UpnpTcpInterface", "UpnpTcpHandler"]
 logger = logging.getLogger(__name__)
+UUID_BIN = from_hex(get_uuid())
 
 
 class UpnpTcpInterface(SSLInterface):
@@ -21,11 +26,8 @@ class UpnpTcpInterface(SSLInterface):
         super(UpnpTcpInterface, self).__init__(kernel, endpoint)
 
     def create_handler(self, sock, endpoint):
-        h = UpnpTcpInterface(self.kernel, sock, endpoint,
-                             self.certfile, self.keyfile)
-        if self._empty is True:
-            self._empty = False
-            self.kernel.on_client_connected()
+        h = UpnpTcpHandler(self.kernel, sock, endpoint, self.certfile,
+                           self.keyfile)
         return h
 
 
@@ -40,6 +42,7 @@ class UpnpTcpHandler(SSLConnectionHandler):
 
         try:
             self.sock.do_handshake()
+            self.logger.debug("SSL READY")
             self.sock.send(self.randbytes)
 
             # SSL Handshake ready, prepare buffer
@@ -60,42 +63,73 @@ class UpnpTcpHandler(SSLConnectionHandler):
     def on_ready(self):
         self.delegate = proxy(self)
 
-    def on_text(self, message):
+    def on_close(self, _):
+        pass
+
+    def on_text(self, message, _):
         if self.authorized:
             args = message.split("\x00")
             cmd = args.pop(0)
 
-            if cmd == "passwd":
-                self.on_passwd(*args)
-            elif cmd == "network":
-                self.on_network(*args)
-            elif cmd == "rename":
-                self.on_rename(*args)
-            else:
-                self.send_text("error " + UNKNOWN_COMMAND)
+            try:
+                if cmd == "passwd":
+                    self.on_passwd(*args)
+                elif cmd == "network":
+                    self.on_network(*args)
+                elif cmd == "rename":
+                    self.on_rename(*args)
+                elif cmd == "scan_wifi":
+                    self.on_scan_wifi(*args)
+                else:
+                    self.send_text("error " + UNKNOWN_COMMAND)
+            except RuntimeError as e:
+                self.send_text("error " + " ".join(e.args))
+            except Exception:
+                logger.exception("Unknown error during process command")
+                self.send_text("UNKNOWN_ERROR")
+                self.close()
 
         elif self.client_key:
             try:
-                access_id = self.kernel.on_auth(self.client_key, message)
-                if access_id:
-                    self.send_text("ok " + access_id)
-                    self.authorized = True
+                if is_trusted_remote(keyobj=self.client_key):
+                    document = hash_password(UUID_BIN, self.randbytes)
+                    if self.client_key.verify(document, from_hex(message)):
+                        logger.debug("Remote sign ok")
+                        self.send_text("ok")
+                        self.authorized = True
+                    else:
+                        logger.debug("Remote sign error")
+                        self.send_text("error " + AUTH_ERROR)
+                        self.close()
                 else:
-                    self.send_text("error " + AUTH_ERROR)
+                    if self.kernel.on_auth(self.client_key, message):
+                        logger.debug("Remote password ok")
+                        self.send_text("ok")
+                        self.authorized = True
+                    else:
+                        logger.debug("Remote password error")
+                        self.send_text("error " + AUTH_ERROR)
+                        self.close()
             except Exception:
                 self.send_text("error " + UNKNOWN_ERROR)
+                self.close()
                 logger.exception("Error while parse rsa key")
+
         else:
             try:
                 self.client_key = k = RSAObject(pem=message)
                 if is_trusted_remote(keyobj=k):
-                    self.send_text("ok")
+                    logger.debug("Remote need sign")
+                    self.send_text("sign")
                 else:
-                    self.send_text("accept")
+                    logger.debug("Remote need password")
+                    self.send_text("password")
             except TypeError:
                 self.send_text("error " + BAD_PARAMS)
+                self.close()
             except Exception:
                 self.send_text("error " + UNKNOWN_ERROR)
+                self.close()
                 logger.exception("Error while parse rsa key")
 
     def on_passwd(self, old_password, new_password, clean_acl="Y"):
@@ -140,3 +174,9 @@ class UpnpTcpHandler(SSLConnectionHandler):
             self.kernel.on_rename_device(new_name)
         else:
             self.send_text("error " + BAD_PARAMS)
+
+    def on_scan_wifi(self):
+        for r in scan_wifi():
+            self.send_text("data " + json.dumps(r))
+
+        self.send_text("ok")
