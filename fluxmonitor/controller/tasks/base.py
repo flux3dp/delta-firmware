@@ -130,6 +130,7 @@ class DeviceOperationMixIn(object):
 
     def on_dead(self, reason=None):
         if self.stack.this_task == self:
+            self.handler.send_text("error KICKED")
             logger.info("%s dead (reason=%s)", self.__class__.__name__, reason)
             self.stack.exit_task(self)
         self.handler.close()
