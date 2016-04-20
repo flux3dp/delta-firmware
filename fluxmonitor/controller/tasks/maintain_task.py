@@ -65,11 +65,6 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         self.timer_watcher = stack.loop.timer(1, 1, self.on_timer)
         self.timer_watcher.start()
 
-    def on_exit(self):
-        self.send_mainboard("@HOME_BUTTON_TRIGGER\n")
-        self.close()
-        super(MaintainTask, self).on_exit()
-
     def send_mainboard(self, msg):
         if self._uart_mb.send(msg) != len(msg):
             raise Exception("DIE")
@@ -173,6 +168,13 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         else:
             logger.debug("Can not handle: '%s'" % cmd)
             raise RuntimeError(UNKNOWN_COMMAND)
+
+    def do_x78(self, handler):
+        self._macro = macro.CommandMacro(on_success_cb, ["X78"])
+        self._on_macro_error = on_macro_error
+        self._on_macro_running = on_macro_running
+        self._busy = True
+        self._macro.start(self)
 
     def do_change_extruder_temperature(self, handler, sindex, stemp):
         if not self.head_ctrl.ready:
@@ -407,7 +409,9 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             logger.exception("Unhandle error")
             self.handler.close()
 
-    def close(self):
+    def clean(self):
+        self.send_mainboard("@HOME_BUTTON_TRIGGER\n")
+
         if self.timer_watcher:
             self.timer_watcher.stop()
             self.timer_watcher = None

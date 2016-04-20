@@ -14,8 +14,7 @@ class RawTask(DeviceOperationMixIn):
         self.meta = Metadata()
         self.meta.update_device_status(self.st_id, 0, "N/A", handler.address)
 
-    def on_exit(self):
-        super(RawTask, self).on_exit()
+    def clean(self):
         self.meta.update_device_status(0, 0, "N/A", "")
 
     def on_mainboard_message(self, watcher, revent):

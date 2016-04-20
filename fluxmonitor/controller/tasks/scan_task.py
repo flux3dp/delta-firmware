@@ -101,7 +101,7 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
         self.step_length = 0.45
         self.init_device()
 
-    def on_exit(self):
+    def clean(self):
         if self.timer_watcher:
             self.timer_watcher.stop()
             self.timer_watcher = None
@@ -109,7 +109,6 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
             self.camera.close()
             self.camera = None
         self.meta.update_device_status(0, 0, "N/A", "")
-        super(ScanTask, self).on_exit()
 
     def init_device(self):
         try:
