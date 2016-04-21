@@ -1,4 +1,5 @@
 
+from binascii import b2a_hex as to_hex
 from time import sleep
 import logging
 import socket
@@ -10,10 +11,12 @@ import pyev
 from fluxmonitor.security._security import get_wpa_psk
 from fluxmonitor.hal.nl80211 import config as nl80211_config
 from fluxmonitor.hal.net.monitor import Monitor as NetworkMonitor
+from fluxmonitor.halprofile import get_model_id
+from fluxmonitor.security import get_serial, hash_password
 from fluxmonitor.storage import Storage, CommonMetadata
 from fluxmonitor.hal.net import config as net_cfg
 from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT
-from fluxmonitor.misc import network_config_encoder as NCE
+from fluxmonitor.misc import network_config_encoder as NCE  # noqa
 
 from .base import ServiceBase
 
@@ -167,6 +170,26 @@ class NetworkService(ServiceBase, NetworkConfigMixIn, NetworkMonitorMixIn):
         else:
             self.cm.wifi_status |= 128
 
+    def _create_default_config(self, ifname):
+        if self.is_wireless(ifname):
+            sn = get_serial()
+            model_id = get_model_id()
+
+            if model_id.startswith("delta"):
+                model_id = "Delta"
+            h = to_hex(hash_password("FLUX", sn)[:2])
+            ssid = "FLUX %s [%s]" % (model_id, h)
+
+            return {
+                "method": "internal",
+                "wifi_mode": "host",
+                "ssid": ssid,
+                "security": "WPA2-PSK",
+                "psk": sn,
+            }
+        else:
+            return {"method": "dhcp"}
+
     def bootstrap(self, ifname, rebootstrap=False):
         """start network interface and apply its configurations"""
 
@@ -179,8 +202,7 @@ class NetworkService(ServiceBase, NetworkConfigMixIn, NetworkMonitorMixIn):
         if config:
             self.config_device(ifname, config)
         else:
-            if not self.is_wireless(ifname):
-                self.config_device(ifname, {"method": "dhcp"})
+            self.config_device(ifname, self._create_default_config(ifname))
 
     def bootstrap_nic(self, ifname, delay=0.5, forcus_restart=False):
         """Startup nic, this method will get device information from
