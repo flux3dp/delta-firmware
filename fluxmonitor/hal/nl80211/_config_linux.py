@@ -1,12 +1,12 @@
 
 import tempfile
 import logging
-
-logger = logging.getLogger(__name__)
+import os
 
 from fluxmonitor.misc import Process
 from fluxmonitor.config import network_services
 
+logger = logging.getLogger(__name__)
 WPA_SUPPLICANT = network_services['wpa_supplicant']
 HOSTAPD = network_services['hostapd']
 
@@ -35,6 +35,10 @@ def wlan_ap_daemon(manager, ifname, config):
 
 def get_wlan_ssid(ifname="wlan0"):
     return Process.call_with_output("iwgetid", "-r", ifname).strip()
+
+
+def check_associate(ifname="wlan0"):
+    return os.system("iwgetid -a " + ifname) == 0
 
 
 def _write_wpa_config(filepath, config):
@@ -93,7 +97,6 @@ hw_mode=g
 channel=11""" % {"ifname": ifname,
                  "ssid": config.get("ssid", "FLUX-3D-Printer")}
 
-
     elif security == "WPA2-PSK":
         buf = """# Create by fluxmonitord
 interface=%(ifname)s
@@ -104,7 +107,7 @@ country_code=FX
 ieee80211n=1
 auth_algs=1
 wpa=2
-wpa_key_mgmt=WPA-PSK  
+wpa_key_mgmt=WPA-PSK
 rsn_pairwise=CCMP
 wpa_passphrase=%(psk)s""" % {"ifname": ifname,
                              "ssid": config.get("ssid", "FLUX-3D-Printer"),

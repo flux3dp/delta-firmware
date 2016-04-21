@@ -13,7 +13,7 @@ from fluxmonitor.hal.nl80211 import config as nl80211_config
 from fluxmonitor.hal.net.monitor import Monitor as NetworkMonitor
 from fluxmonitor.halprofile import get_model_id
 from fluxmonitor.security import get_serial, hash_password
-from fluxmonitor.storage import Storage, CommonMetadata
+from fluxmonitor.storage import Storage, Metadata
 from fluxmonitor.hal.net import config as net_cfg
 from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT
 from fluxmonitor.misc import network_config_encoder as NCE  # noqa
@@ -107,7 +107,7 @@ class NetworkMonitorMixIn(object):
 class NetworkService(ServiceBase, NetworkConfigMixIn, NetworkMonitorMixIn):
     def __init__(self, options):
         super(NetworkService, self).__init__(logger)
-        self.cm = CommonMetadata()
+        self.cm = Metadata()
         self.nic_status = {}
         self.daemons = {}
 
@@ -132,6 +132,8 @@ class NetworkService(ServiceBase, NetworkConfigMixIn, NetworkMonitorMixIn):
         self.nms_watcher = None
         self.nms.close()
         self.nms = None
+        self.timer_watcher.stop()
+        self.timer_watcher = None
         self.shutdown_network_notifier()
 
         for ifname, daemons in self.daemons.items():
@@ -223,6 +225,12 @@ class NetworkService(ServiceBase, NetworkConfigMixIn, NetworkMonitorMixIn):
 
     def is_wireless(self, ifname):
         return ifname.startswith("wlan")
+
+    def apply_config(self, ifname, config):
+        config = self.set_config(ifname, config)
+        self.master.logger.debug(
+            "Update '%s' config with %s" % (ifname, config))
+        self.master.bootstrap(ifname, rebootstrap=True)
 
     def config_device(self, ifname, config):
         """config network device (like ip/routing/dhcp/wifi access)"""
@@ -343,7 +351,4 @@ class NetworkManageSocket(socket.socket):
 
     def config_network(self, payload):
         ifname = payload.pop("ifname")
-        config = self.master.set_config(ifname, payload)
-        self.master.logger.info(
-            "Update '%s' config with %s" % (ifname, config))
-        self.master.bootstrap(ifname, rebootstrap=True)
+        self.master.apply_config(ifname, payload)

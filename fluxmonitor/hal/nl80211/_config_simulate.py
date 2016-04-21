@@ -20,3 +20,7 @@ def wlan_ap_daemon(manager, ifname):
 
 def get_wlan_ssid(ifname):
     return "FLUX AP"
+
+
+def check_associate(ifname="wlan0"):
+    return True
