@@ -11,7 +11,7 @@ from fluxmonitor.hal.nl80211.scan import scan as scan_wifi
 from fluxmonitor.err_codes import (UNKNOWN_ERROR, BAD_PARAMS, AUTH_ERROR,
                                    UNKNOWN_COMMAND)
 from fluxmonitor.security import (RSAObject, is_trusted_remote, hash_password,
-                                  get_uuid)
+                                  add_trusted_keyobj, get_uuid)
 from .tcp_ssl import SSLInterface, SSLConnectionHandler
 
 __all__ = ["UpnpTcpInterface", "UpnpTcpHandler"]
@@ -74,6 +74,8 @@ class UpnpTcpHandler(SSLConnectionHandler):
             try:
                 if cmd == "passwd":
                     self.on_passwd(*args)
+                elif cmd == "add_trust":
+                    self.on_add_trust(*args)
                 elif cmd == "network":
                     self.on_network(*args)
                 elif cmd == "rename":
@@ -131,6 +133,10 @@ class UpnpTcpHandler(SSLConnectionHandler):
                 self.send_text("error " + UNKNOWN_ERROR)
                 self.close()
                 logger.exception("Error while parse rsa key")
+
+    def on_add_trust(self):
+        add_trusted_keyobj(self.client_key)
+        self.send_text("ok")
 
     def on_passwd(self, old_password, new_password, clean_acl="Y"):
         try:
