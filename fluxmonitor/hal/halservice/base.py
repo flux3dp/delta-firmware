@@ -74,8 +74,11 @@ class UartHalBase(object):
             if cmd == "reconnect":
                 self.reconnect()
                 watcher.data.send("ok")
-            elif cmd == "reset mb":
+            elif cmd == "reset_mb":
                 self.reset_mainboard(watcher.loop)
+                watcher.data.send("ok")
+            elif cmd == "reset_hb":
+                self.reset_headboard(watcher.loop)
                 watcher.data.send("ok")
             elif cmd == "update_head_fw":
                 def cb(message):

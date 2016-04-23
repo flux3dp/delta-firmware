@@ -155,7 +155,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         elif cmd == "reset_mb":
             s = socket.socket(socket.AF_UNIX)
             s.connect(HALCONTROL_ENDPOINT)
-            s.send(b"reset mb")
+            s.send(b"reset_mb")
             s.recv(4096)
             s.close()
             self.stack.exit_task(self)
