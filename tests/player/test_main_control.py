@@ -207,7 +207,7 @@ class MainboardControlTest(ControlTestBase):
             self.assertRaises(SystemError, self.mc.patrol, executor)
 
         # Check if reset send
-        # self.assertEqual(uart_ctrl.accept()[0].recv(4096), b"reset mb")
+        # self.assertEqual(uart_ctrl.accept()[0].recv(4096), b"reset_mb")
 
         self.assertFalse(self.mc.ready)
 

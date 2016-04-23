@@ -2,7 +2,7 @@
 from pkg_resources import resource_stream
 from multiprocessing import Process
 from shutil import copyfileobj
-from time import time, sleep
+from time import sleep
 from select import select
 import logging
 import struct
@@ -13,6 +13,7 @@ from serial import Serial, PARITY_EVEN, PARITY_NONE, SerialException
 from RPi import GPIO
 import pyev
 
+from fluxmonitor.misc.systime import systime as time
 from fluxmonitor.halprofile import MODEL_D1
 from fluxmonitor.storage import Storage, Metadata
 from fluxmonitor.config import LENGTH_OF_LONG_PRESS_TIME as LLPT, \
@@ -185,6 +186,13 @@ class GPIOControl(object):
         sleep(1.5)
         self.mainboard_connect(loop)
         self._init_mainboard_status(loop)
+
+    def reset_headboard(self, loop):
+        if self._head_power_stat == HEAD_POWER_ON:
+            L.debug("Reset head power")
+            GPIO.output(GPIO_HEAD_POW_PIN, HEAD_POWER_OFF)
+            sleep(0.4)
+            GPIO.output(GPIO_HEAD_POW_PIN, HEAD_POWER_ON)
 
     def update_ama0_routing(self):
         if len(self.headboard_watchers) > 0:

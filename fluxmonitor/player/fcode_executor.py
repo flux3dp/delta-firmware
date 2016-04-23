@@ -5,6 +5,7 @@ import logging
 from fluxmonitor.config import MAINBOARD_RETRY_TTL
 from fluxmonitor.err_codes import UNKNOWN_ERROR, EXEC_BAD_COMMAND
 from fluxmonitor.diagnosis.god_mode import allow_god_mode
+from fluxmonitor.hal.tools import reset_hb
 
 from .base import BaseExecutor
 from .base import ST_STARTING, ST_RUNNING, ST_COMPLETED, ST_ABORTED  # noqa
@@ -337,6 +338,10 @@ class FcodeExecutor(BaseExecutor):
             self.head_ctrl.on_message(msg, self)
             self.fire()
         except RuntimeError as err:
+            # TODO: cut toolhead 5v because pwm issue
+            if err.args == ('HEAD_ERROR', 'HARDWARE_FAILURE'):
+                reset_hb()
+
             if not self.pause(err):
                 logger.warn("Error occour: %s" % repr(err.args))
         except SystemError as err:
