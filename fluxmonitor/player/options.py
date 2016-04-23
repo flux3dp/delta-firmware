@@ -2,7 +2,7 @@
 from fluxmonitor.storage import Storage
 from fluxmonitor.config import DEVICE_POSITION_LIMIT
 
-inf =  float("INF")
+inf = float("INF")
 
 
 def __ensure_value__(val, default):
@@ -63,6 +63,8 @@ class Options(object):
             self.head_error_level = __parse_int__(
                 storage.readall("head_error_level"), 4095)
 
+        # TODO: enable hardware error for toolhead pwm issue
+        self.head_error_level |= 64
         self.max_x = min(self.max_x, DEVICE_POSITION_LIMIT[0])
         self.max_y = min(self.max_y, DEVICE_POSITION_LIMIT[1])
         self.max_z = min(self.max_z, DEVICE_POSITION_LIMIT[2])

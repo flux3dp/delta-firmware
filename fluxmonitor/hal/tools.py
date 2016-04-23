@@ -6,8 +6,11 @@ from fluxmonitor.config import uart_config
 
 def reset_mb():
     s = socket.socket(socket.AF_UNIX)
-    try:
-        s.connect(uart_config["control"])
-        s.send(b"reset mb")
-    except Exception:
-        L.exception("Error while send resset mb signal")
+    s.connect(uart_config["control"])
+    s.send(b"reset_mb")
+
+
+def reset_hb():
+    s = socket.socket(socket.AF_UNIX)
+    s.connect(uart_config["control"])
+    s.send(b"reset_hb")
