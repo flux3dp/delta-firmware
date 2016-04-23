@@ -10,7 +10,8 @@ logger = logging.getLogger(__name__)
 WPA_SUPPLICANT = network_services['wpa_supplicant']
 HOSTAPD = network_services['hostapd']
 
-__all__ = ["wlan_managed_daemon", "wlan_ap_daemon", "get_wlan_ssid"]
+__all__ = ["wlan_managed_daemon", "wlan_ap_daemon", "get_wlan_ssid",
+           "check_associate"]
 
 
 def wlan_managed_daemon(manager, ifname, wlan_config):

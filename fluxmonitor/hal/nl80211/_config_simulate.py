@@ -5,7 +5,8 @@ from fluxmonitor.misc import Process
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["wlan_managed_daemon", "wlan_ap_daemon", "get_wlan_ssid"]
+__all__ = ["wlan_managed_daemon", "wlan_ap_daemon", "get_wlan_ssid",
+           "check_associate"]
 
 
 def wlan_managed_daemon(manager, ifname, wlan_config):
