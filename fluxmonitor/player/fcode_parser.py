@@ -42,5 +42,7 @@ def fast_read_meta(filename):
                     break
             return metadata, images
 
+        except struct.error as e:
+            raise RuntimeError(FILE_BROKEN)
         except AssertionError as e:
             raise RuntimeError(FILE_BROKEN, e.args[0] if e.args else "#")
