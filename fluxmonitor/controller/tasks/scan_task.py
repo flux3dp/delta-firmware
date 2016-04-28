@@ -239,9 +239,9 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
         elif flag == 11:
             handler.send_text('ok fail chess')
         elif flag == 12:
-            handler.send_text('ok fail laser %d'.format(flag))
+            handler.send_text('ok fail laser {}'.format(flag))
         else:
-            handler.send_text('ok fail laser %d'.format(flag))
+            handler.send_text('ok fail laser {}'.format(flag))
 
     def get_cab(self, handler):
         s = Storage('camera')
