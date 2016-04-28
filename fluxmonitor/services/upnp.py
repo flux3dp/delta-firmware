@@ -411,12 +411,13 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
         self.cron_watcher = self.loop.timer(3.0, 3.0, self.on_cron)
         self.cron_watcher.start()
 
-    def on_auth(self, keyobj, passwd):
+    def on_auth(self, keyobj, passwd, add_key=True):
         passwd = passwd.decode("utf8")
         access_id = security.get_access_id(keyobj=keyobj)
 
         if security.validate_password(passwd):
-            security.add_trusted_keyobj(keyobj)
+            if add_key:
+                security.add_trusted_keyobj(keyobj)
             return access_id
         else:
             return None

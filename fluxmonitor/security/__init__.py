@@ -2,7 +2,7 @@
 from .identify import get_uuid, get_serial, get_private_key, get_identify
 
 from .access_control import get_keyobj, get_access_id, is_trusted_remote, \
-    add_trusted_keyobj, is_rsakey
+    add_trusted_keyobj, is_rsakey, AccessControl
 
 from .passwd import has_password, set_password, validate_and_set_password, \
     validate_password, validate_timestemp, hash_password
@@ -57,4 +57,4 @@ __all__ = ["SSL_CERT", "SSL_KEY", "get_uuid", "get_serial", "get_private_key",
            "add_trusted_keyobj", "is_rsakey", "has_password", "set_password",
            "validate_and_set_password", "validate_password",
            "validate_timestemp", "hash_password", "randstr", "randbytes",
-           "RSAObject", "AESObject"]
+           "RSAObject", "AESObject", "AccessControl"]

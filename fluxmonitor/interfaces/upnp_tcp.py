@@ -10,8 +10,8 @@ import pyev
 from fluxmonitor.hal.nl80211.scan import scan as scan_wifi
 from fluxmonitor.err_codes import (UNKNOWN_ERROR, BAD_PARAMS, AUTH_ERROR,
                                    UNKNOWN_COMMAND)
-from fluxmonitor.security import (RSAObject, is_trusted_remote, hash_password,
-                                  add_trusted_keyobj, get_uuid)
+from fluxmonitor.security import (RSAObject, AccessControl, hash_password,
+                                  get_uuid)
 from .tcp_ssl import SSLInterface, SSLConnectionHandler
 
 __all__ = ["UpnpTcpInterface", "UpnpTcpHandler"]
@@ -34,6 +34,10 @@ class UpnpTcpInterface(SSLInterface):
 class UpnpTcpHandler(SSLConnectionHandler):
     client_key = None
     authorized = False
+
+    @property
+    def access_control(self):
+        return AccessControl.instance()
 
     def _on_ssl_handshake(self, watcher=None, revent=None):
         if self.send_watcher:
@@ -76,6 +80,10 @@ class UpnpTcpHandler(SSLConnectionHandler):
                     self.on_passwd(*args)
                 elif cmd == "add_trust":
                     self.on_add_trust(*args)
+                elif cmd == "list_trust":
+                    self.on_list_trust(*args)
+                elif cmd == "remove_trust":
+                    self.on_remove_trust(*args)
                 elif cmd == "network":
                     self.on_network(*args)
                 elif cmd == "rename":
@@ -83,9 +91,10 @@ class UpnpTcpHandler(SSLConnectionHandler):
                 elif cmd == "scan_wifi":
                     self.on_scan_wifi(*args)
                 else:
-                    self.send_text("error " + UNKNOWN_COMMAND)
+                    print(">>", cmd)
+                    self.send_text("er " + UNKNOWN_COMMAND)
             except RuntimeError as e:
-                self.send_text("error " + " ".join(e.args))
+                self.send_text("er " + " ".join(e.args))
             except Exception:
                 logger.exception("Unknown error during process command")
                 self.send_text("UNKNOWN_ERROR")
@@ -93,7 +102,7 @@ class UpnpTcpHandler(SSLConnectionHandler):
 
         elif self.client_key:
             try:
-                if is_trusted_remote(keyobj=self.client_key):
+                if self.access_control.is_trusted(keyobj=self.client_key):
                     document = hash_password(UUID_BIN, self.randbytes)
                     if self.client_key.verify(document, from_hex(message)):
                         logger.debug("Remote sign ok")
@@ -104,7 +113,8 @@ class UpnpTcpHandler(SSLConnectionHandler):
                         self.send_text("error " + AUTH_ERROR)
                         self.close()
                 else:
-                    if self.kernel.on_auth(self.client_key, message):
+                    if self.kernel.on_auth(self.client_key, message,
+                                           add_key=False):
                         logger.debug("Remote password ok")
                         self.send_text("ok")
                         self.authorized = True
@@ -120,7 +130,7 @@ class UpnpTcpHandler(SSLConnectionHandler):
         else:
             try:
                 self.client_key = k = RSAObject(pem=message)
-                if is_trusted_remote(keyobj=k):
+                if self.access_control.is_trusted(keyobj=k):
                     logger.debug("Remote need sign")
                     self.send_text("sign")
                 else:
@@ -134,9 +144,31 @@ class UpnpTcpHandler(SSLConnectionHandler):
                 self.close()
                 logger.exception("Error while parse rsa key")
 
-    def on_add_trust(self):
-        add_trusted_keyobj(self.client_key)
+    def on_add_trust(self, label, pem):
+        try:
+            keyobj = RSAObject(pem=pem)
+        except TypeError:
+            self.send_text("error BAD_PARAMS")
+            return
+
+        if self.access_control.is_trusted(keyobj=keyobj):
+            self.send_text("error OPERATION_ERROR")
+            return
+
+        self.access_control.add(keyobj, label=label)
         self.send_text("ok")
+
+    def on_list_trust(self):
+        for record in self.access_control.list():
+            payload = "\x00".join(("%s=%s" % pair for pair in record.items()))
+            self.send_text("data " + payload)
+        self.send_text("ok")
+
+    def on_remove_trust(self, access_id):
+        if self.access_control.remove(access_id):
+            self.send_text("ok")
+        else:
+            self.send_text("error NOT_FOUND")
 
     def on_passwd(self, old_password, new_password, clean_acl="Y"):
         try:
