@@ -71,7 +71,7 @@ def parse_iwlist_chunk_result(chunk):
 
 
 def scan(ifname="wlan0"):
-    proc = Popen(["sudo", "-n", "iwlist", ifname, "scanning"],
+    proc = Popen(["iwlist", ifname, "scanning"],
                  stdout=PIPE, stderr=PIPE)
 
     strbuffer = StringIO()
