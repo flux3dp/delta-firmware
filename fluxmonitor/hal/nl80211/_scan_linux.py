@@ -1,5 +1,6 @@
 
 from subprocess import Popen, PIPE
+from time import sleep
 import re
 
 try:
@@ -103,7 +104,18 @@ def scan(ifname="wlan0"):
         if cell:
             results.append(cell)
 
-    if proc.poll() != 0:
-        raise RuntimeError("HARDWARE_FAILURE")
+    for i in range(6):
+        ret = proc.poll()
+        if ret is None:
+            sleep(0.05)
+        elif ret == 0:
+            return results
+        else:
+            raise RuntimeError("HARDWARE_FAILURE")
 
-    return results
+    try:
+        proc.kill()
+    except Exception:
+        pass
+
+    raise RuntimeError("HARDWARE_FAILURE", "NO_RESPONSE")
