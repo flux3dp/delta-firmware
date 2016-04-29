@@ -91,7 +91,6 @@ class UpnpTcpHandler(SSLConnectionHandler):
                 elif cmd == "scan_wifi":
                     self.on_scan_wifi(*args)
                 else:
-                    print(">>", cmd)
                     self.send_text("er " + UNKNOWN_COMMAND)
             except RuntimeError as e:
                 self.send_text("er " + " ".join(e.args))
@@ -210,6 +209,7 @@ class UpnpTcpHandler(SSLConnectionHandler):
     def on_rename(self, new_name):
         if new_name:
             self.kernel.on_rename_device(new_name)
+            self.send_text("ok")
         else:
             self.send_text("error " + BAD_PARAMS)
 
