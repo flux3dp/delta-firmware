@@ -4,6 +4,7 @@ from struct import Struct
 import logging
 import os
 
+from fluxmonitor.misc.systime import systime
 from fluxmonitor.config import CAMERA_ENDPOINT
 
 from .tcp_ssl import SSLInterface, SSLConnectionHandler
@@ -45,11 +46,17 @@ class CameraTcpHandler(SSLConnectionHandler):
 
         self.next_frame()
 
-    def next_frame(self, _=None):
-        self.ts, imageobj = self.kernel.live(0, self.ts)
+    def on_frame_sent(self, _=None):
+        if systime() - self.ts <= self.kernel.SPF:
+            self.kernel.add_to_live_queue(self)
+        else:
+            self.next_frame()
+
+    def next_frame(self):
+        self.ts, imageobj = self.kernel.live(0)
         mimetype, length, stream = imageobj
         self.send(UINT_PACKER.pack(length))
-        self.begin_send(stream, length, self.next_frame)
+        self.begin_send(stream, length, self.on_frame_sent)
 
     def on_close(self, handler):
         pass

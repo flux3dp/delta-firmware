@@ -1,4 +1,5 @@
 
+from collections import deque
 import logging
 
 try:
@@ -19,6 +20,8 @@ logger = logging.getLogger(__name__)
 
 
 class CameraService(ServiceBase):
+    FPS = 4.0
+    SPF = 1.0 / FPS
     cameras = None
 
     def __init__(self, options):
@@ -27,6 +30,9 @@ class CameraService(ServiceBase):
 
         self.public_ifce = CameraTcpInterface(self)
         self.internal_ifce = CameraUnixStreamInterface(self)
+
+        self.live_queue = deque()
+        self.live_timer = self.loop.timer(self.SPF, self.SPF, self.on_live)
 
     def on_start(self):
         logger.info("Camera service started")
@@ -37,15 +43,30 @@ class CameraService(ServiceBase):
 
     def on_client_connected(self):
         self.cameras.attach()
+        if not self.live_timer.active:
+            self.live_timer.start()
 
     def on_client_gone(self):
         if not self.internal_ifce.clients and not self.public_ifce.clients:
             self.cameras.release()
+            if self.live_timer.active:
+                self.live_timer.stop()
 
-    def live(self, camera_id, ts):
+    def on_live(self, watcher=None, revent=None):
+        while self.live_queue:
+            h = self.live_queue.popleft()
+            try:
+                h.next_frame()
+            except Exception:
+                logger.exception("Error at next frame in timer")
+
+    def add_to_live_queue(self, handler):
+        self.live_queue.append(handler)
+
+    def live(self, camera_id):
         # API for client
         camera = self.cameras[camera_id]
-        ts = camera.live(ts)
+        ts = camera.live()
         return ts, camera.imagefile
 
     def makeshot(self, camera_id):
@@ -59,14 +80,18 @@ class CameraService(ServiceBase):
         camera = self.cameras[camera_id]
         sc = ScanChecking()
         camera.fetch()
-        img = cv2.imdecode(np.fromstring(camera.imagefile[2].getvalue(), np.uint8), cv2.CV_LOAD_IMAGE_COLOR)
+        img = cv2.imdecode(np.fromstring(camera.imagefile[2].getvalue(),
+                                         np.uint8),
+                           cv2.CV_LOAD_IMAGE_COLOR)
         return sc.check(img)
 
     def get_bias(self, camera_id):
         # API for client
         camera = self.cameras[camera_id]
         camera.fetch()
-        img = cv2.imdecode(np.fromstring(camera.imagefile[2].getvalue(), np.uint8), cv2.CV_LOAD_IMAGE_COLOR)
+        img = cv2.imdecode(np.fromstring(camera.imagefile[2].getvalue(),
+                                         np.uint8),
+                           cv2.CV_LOAD_IMAGE_COLOR)
         flag, points = ScanChecking.find_board(img)
         cv2.imwrite('/home/pi/tmp1.jpg', img)
 
@@ -82,7 +107,9 @@ class CameraService(ServiceBase):
         if cmd == 3:
             # no need to take photo again, just retrieve the img buffer
             camera.fetch()
-            self.img_o = cv2.imdecode(np.fromstring(camera.imagefile[2].getvalue(), np.uint8), cv2.CV_LOAD_IMAGE_COLOR)
+            self.img_o = cv2.imdecode(
+                np.fromstring(camera.imagefile[2].getvalue(), np.uint8),
+                cv2.CV_LOAD_IMAGE_COLOR)
             _, points = ScanChecking.find_board(self.img_o)
             self.s = 0
             for i in xrange(16):
@@ -94,7 +121,9 @@ class CameraService(ServiceBase):
             return self.s
         else:
             camera.fetch()
-            img_r = cv2.imdecode(np.fromstring(camera.imagefile[2].getvalue(), np.uint8), cv2.CV_LOAD_IMAGE_COLOR)
+            img_r = cv2.imdecode(np.fromstring(camera.imagefile[2].getvalue(),
+                                               np.uint8),
+                                 cv2.CV_LOAD_IMAGE_COLOR)
 
             result = ScanChecking.find_red(self.img_o, img_r)
             logger.info('{}:red at {}'.format(cmd, result))

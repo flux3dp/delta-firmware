@@ -22,11 +22,9 @@ class CV2Camera(object):
         self.img_buf = None
         self._img_file = None
 
-    def live(self, ts):
-
-        if systime() - ts > 0.1:
+    def live(self):
+        if systime() - self.ts > 0.1:
             self.fetch(0)
-
         return self.ts
 
     def fetch(self, clear_cache=4):

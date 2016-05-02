@@ -31,10 +31,8 @@ cdef class V4l2Camera:
         self.width = width
         self.height = height
 
-    def live(self, ts):
-        if time() - ts > 0.1:
-            self.fetch(0)
-        else:
+    def live(self):
+        if time() - self.ts > 0.1:
             self.fetch(0)
         return self.ts
 
