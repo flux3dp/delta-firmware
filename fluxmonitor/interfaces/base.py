@@ -45,6 +45,7 @@ class InterfaceBase(object):
     def on_accept(self, watcher, revent):
         sock, endpoint = watcher.data.accept()
         try:
+            sock.settimeout(3)
             handler = self.create_handler(sock, endpoint)
             self.clients.add(handler)
         except Exception:
