@@ -316,19 +316,20 @@ cdef class HeadController:
                     self._on_head_offline(HeadResetError)
                 elif self._ready >= 4 and er & self._error_level & ~7:
                     self._ready = 0
+                    strer = str(er)
                     if er & 8:
-                        raise HeadCalibratingError()
+                        raise HeadCalibratingError(strer)
                     if er & 16:
-                        raise HeadShakeError()
+                        raise HeadShakeError(strer)
                     if er & 32:
-                        raise HeadTiltError()
-                    if er & 64:
-                        raise HeadHardwareError()
+                        raise HeadTiltError(strer)
+                    if er & 576:
+                        raise HeadHardwareError(strer)
                     if er & 128:
-                        raise HeadFanError()
+                        raise HeadFanError(strer)
                     if er & 256:
-                        raise HeadInterlockTriggered()
-                    raise HeadError(EXEC_HEAD_ERROR, "?", str(er))
+                        raise HeadInterlockTriggered(strer)
+                    raise HeadError(EXEC_HEAD_ERROR, "?", strer)
 
             else:
                 self._ext.update_status(*status)
@@ -546,39 +547,42 @@ class HeadTypeError(HeadError):
 
 
 class HeadCalibratingError(HeadError):
-    def __init__(self):
-        RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_CALIBRATING)
+    def __init__(self, errno):
+        RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_CALIBRATING,
+                              errno)
 
 
 class HeadShakeError(HeadError):
     hw_error_code = 50
 
-    def __init__(self):
-        RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_SHAKE)
+    def __init__(self, errno):
+        RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_SHAKE, errno)
 
 
 class HeadTiltError(HeadError):
     hw_error_code = 50
 
-    def __init__(self):
-        RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_TILT)
+    def __init__(self, errno):
+        RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_TILT, errno)
 
 
 class HeadHardwareError(HeadError):
-    def __init__(self):
-        RuntimeError.__init__(self, EXEC_HEAD_ERROR, HARDWARE_FAILURE)
+    def __init__(self, errno):
+        RuntimeError.__init__(self, EXEC_HEAD_ERROR, HARDWARE_FAILURE, errno)
 
 
 class HeadFanError(HeadError):
     hw_error_code = 52
 
-    def __init__(self):
-        RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_FAN_FAILURE)
+    def __init__(self, errno):
+        RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_FAN_FAILURE,
+                              errno)
 
 
 class HeadInterlockTriggered(HeadError):
     hw_error_code = 49
 
-    def __init__(self):
+    def __init__(self, errno):
         RuntimeError.__init__(self, EXEC_HEAD_ERROR,
-                              EXEC_HEAD_INTERLOCK_TRIGGERED)
+                              EXEC_HEAD_INTERLOCK_TRIGGERED,
+                              errno)
