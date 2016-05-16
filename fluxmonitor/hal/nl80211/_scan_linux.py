@@ -1,5 +1,6 @@
 
 from subprocess import Popen, PIPE
+from time import sleep
 import re
 
 try:
@@ -70,8 +71,8 @@ def parse_iwlist_chunk_result(chunk):
         return None
 
 
-def scan():
-    proc = Popen(["sudo", "-n", "iwlist", "scanning"],
+def scan(ifname="wlan0"):
+    proc = Popen(["iwlist", ifname, "scanning"],
                  stdout=PIPE, stderr=PIPE)
 
     strbuffer = StringIO()
@@ -103,4 +104,18 @@ def scan():
         if cell:
             results.append(cell)
 
-    return results
+    for i in range(6):
+        ret = proc.poll()
+        if ret is None:
+            sleep(0.05)
+        elif ret == 0:
+            return results
+        else:
+            raise RuntimeError("HARDWARE_FAILURE")
+
+    try:
+        proc.kill()
+    except Exception:
+        pass
+
+    raise RuntimeError("HARDWARE_FAILURE", "NO_RESPONSE")

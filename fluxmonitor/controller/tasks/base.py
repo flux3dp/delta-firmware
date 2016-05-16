@@ -7,10 +7,10 @@ import re
 
 import pyev
 
-logger = logging.getLogger(__name__)
-
 from fluxmonitor.config import uart_config, DEBUG
 from fluxmonitor.err_codes import SUBSYSTEM_ERROR, NO_RESPONSE, UNKNOWN_ERROR
+
+logger = logging.getLogger(__name__)
 
 
 class CommandMixIn(object):
@@ -48,7 +48,9 @@ class DeviceOperationMixIn(object):
     DeviceOperationMixIn require implement methods:
         on_mainboard_message(self, watcher, revent)
         on_headboard_message(self, watcher, revent)
-    And require `self.server` property
+        clean(self)
+
+    the 'clean' method will be invoked before mainboard/headboard be closed.
     """
 
     _uart_mb = _uart_hb = None
@@ -65,7 +67,14 @@ class DeviceOperationMixIn(object):
     def label(self):
         return "%s@%s" % (self.handler.address, self.__class__.__name__)
 
+    def _clean(self):
+        try:
+            self.clean()
+        except Exception:
+            logger.exception("Error while clean task '%s'", self.__class__)
+
     def on_exit(self):
+        self._clean()
         kernel = self.stack.loop.data
         kernel.release_exclusive(self)
         self._disconnect()
@@ -129,9 +138,9 @@ class DeviceOperationMixIn(object):
             self._uart_hb = None
 
     def on_dead(self, reason=None):
-        if self.stack.this_task == self:
-            logger.info("%s dead (reason=%s)", self.__class__.__name__, reason)
-            self.stack.exit_task(self)
+        self._clean()
+        self.handler.send_text("error KICKED")
+        logger.info("%s dead (reason=%s)", self.__class__.__name__, reason)
         self.handler.close()
 
 

@@ -437,6 +437,9 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
         elif cmd == "maintain":
             # TODO: going tobe removed
             self.dispatch_task_cmd(handler, "maintain")
+        elif cmd == "oracle":
+            s = Storage("general", "meta")
+            s["debug"] = args[0]
         elif cmd == "raw":
             # TODO: going tobe removed
             self.dispatch_task_cmd(handler, "raw")
