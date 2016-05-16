@@ -90,25 +90,27 @@ class PlayerManager(object):
     @property
     def sock(self):
         if not self._sock:
-            if not os.path.exists(PLAY_ENDPOINT):
-                st = self.meta.format_device_status
-                if st["st_id"] == 1 and time() - st["timestemp"] < 30:
+            st = self.meta.format_device_status
+
+            if st["st_id"] == 1:
+                if time() - st["timestemp"] < 30:
                     raise RuntimeError(RESOURCE_BUSY)
                 else:
                     self.on_fatal_error(log="Player control socket missing")
                     raise SystemError()
+
             try:
                 self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
                 self._sock.bind(mktemp())
                 self._sock.connect(PLAY_ENDPOINT)
                 self._sock.settimeout(1.5)
             except socket.error:
-                st = self.meta.format_device_status
-                if st["st_id"] == 1 and time() - st["timestemp"] < 30:
+                if time() - st["timestemp"] < 30:
                     raise RuntimeError("RESOURCE_BUSY")
                 else:
                     self.on_fatal_error(log="Can not connect to Player socket")
-                    raise SystemError("")
+                    raise SystemError()
+
         return self._sock
 
     def on_process_dead(self, watcher, revent):
@@ -169,7 +171,13 @@ class PlayerManager(object):
             self.sock.send("REPORT")
             return self.sock.recv(4096)
         except RuntimeError:
-            return '{"st_label": "INIT", "st_id": 1}'
+            st = self.meta.format_device_status
+            if st["st_id"] == 1:
+                return '{"st_label": "INIT", "st_id": 1}'
+            elif st["st_id"] in (64, 128):
+                return '{"st_label": "IDLE", "st_id": 0}'
+        except SystemError:
+            raise RuntimeError(RESOURCE_BUSY)
 
     def quit(self):
         if self.proc.poll() is None:

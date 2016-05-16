@@ -45,6 +45,7 @@ class InterfaceBase(object):
     def on_accept(self, watcher, revent):
         sock, endpoint = watcher.data.accept()
         try:
+            sock.settimeout(3)
             handler = self.create_handler(sock, endpoint)
             self.clients.add(handler)
         except Exception:
@@ -133,13 +134,22 @@ class HandlerBase(object):
                 watcher.data = (length, sent_length, stream, callback)
 
         except socket.error as e:
-            logger.error("Socket %s send error: %s", self.sock, e)
+            logger.debug("Socket %s send error: %s", self.sock, e)
+            watcher.stop()
+            self.send_watcher = None
+            self.close()
+
+        except SystemError as e:
+            logger.debug("System error: %s", e)
             watcher.stop()
             self.send_watcher = None
             self.close()
 
         except Exception:
             logger.exception("Unknow error")
+            watcher.stop()
+            self.send_watcher = None
+            self.close()
 
     def begin_send(self, stream, length, complete_callback):
         if length > 0:

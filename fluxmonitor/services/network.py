@@ -1,4 +1,5 @@
 
+from binascii import b2a_hex as to_hex
 from time import sleep
 import logging
 import socket
@@ -7,13 +8,17 @@ import os
 
 import pyev
 
+from fluxmonitor.hal.nl80211.config import check_associate
 from fluxmonitor.security._security import get_wpa_psk
-from fluxmonitor.hal.nl80211 import config as nl80211_config
 from fluxmonitor.hal.net.monitor import Monitor as NetworkMonitor
-from fluxmonitor.storage import Storage, CommonMetadata
+from fluxmonitor.misc.systime import systime as time
+from fluxmonitor.hal.nl80211 import config as nl80211_config
+from fluxmonitor.halprofile import get_model_id
+from fluxmonitor.security import get_serial, hash_password
+from fluxmonitor.storage import Storage, Metadata
 from fluxmonitor.hal.net import config as net_cfg
 from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT
-from fluxmonitor.misc import network_config_encoder as NCE
+from fluxmonitor.misc import network_config_encoder as NCE  # noqa
 
 from .base import ServiceBase
 
@@ -29,39 +34,67 @@ def is_network_ready(nic_status):
     return True if len(addrs) > 0 else False
 
 
-class NetworkConfigMixIn(object):
-    """Part of NetworkService
+def is_wireless(ifname):
+    return ifname.startswith("wlan")
 
-    Provide get and set network config functions"""
 
-    @property
-    def storage(self):
-        return Storage("net")
+def create_default_config(ifname):
+    if is_wireless(ifname):
+        sn = get_serial()
+        model_id = get_model_id()
 
-    def set_config(self, ifname, config):
-        config = NCE.validate_options(config)
+        if model_id.startswith("delta"):
+            model_id = "Delta"
+        h = to_hex(hash_password("FLUX", sn)[:2])
+        ssid = "FLUX %s [%s]" % (model_id, h)
 
-        # Encrypt password in client mode
-        if "psk" in config and "ssid" in config:
-            if config.get("wifi_mode") == "client":
-                plain_passwd = config["psk"]
-                config["psk"] = get_wpa_psk(config["ssid"], plain_passwd)
+        return {
+            "method": "internal",
+            "wifi_mode": "host",
+            "ssid": ssid,
+            "security": "WPA2-PSK",
+            "psk": sn,
+        }
+    else:
+        return {"method": "dhcp"}
 
-        try:
-            with self.storage.open(ifname, "w") as f:
-                json.dump(config, f)
-        except Exception:
-            logger.exception("Write network config error")
-        return config
 
-    def get_config(self, ifname):
-        if self.storage.exists(ifname):
-            try:
-                with self.storage.open(ifname, "r") as f:
-                    return json.load(f)
-            except Exception:
-                logger.exception("Read network config error")
-        return None
+class WirelessNetworkReviewer(object):
+    workers = set()
+
+    @classmethod
+    def add_reviewer(cls, ifname, old_config, service):
+        logger.info("Trace %s config status", ifname)
+        data = (ifname, time(), old_config, service)
+
+        if check_associate(ifname):
+            b = 6.0
+        else:
+            b = 3.0
+
+        watcher = service.loop.timer(b, 1.5, cls.reviewer, data)
+        cls.workers.add(watcher)
+        watcher.start()
+
+    @classmethod
+    def reviewer(cls, watcher, revent):
+        ifname = watcher.data[0]
+        if check_associate(ifname):
+            watcher.stop()
+            cls.workers.remove(watcher)
+            logger.info("%s config accepted", ifname)
+        else:
+            start_at = watcher.data[1]
+
+            if time() - start_at > 8.0:
+                old_config = watcher.data[2]
+                service = watcher.data[3]
+
+                service.apply_config(ifname, old_config, recoverable=False)
+
+                watcher.stop()
+                cls.workers.remove(watcher)
+                logger.info("%s config rejected", ifname)
 
 
 class NetworkMonitorMixIn(object):
@@ -101,10 +134,10 @@ class NetworkMonitorMixIn(object):
         self.logger.debug("Status Changed: " + nic_status)
 
 
-class NetworkService(ServiceBase, NetworkConfigMixIn, NetworkMonitorMixIn):
+class NetworkService(ServiceBase, NetworkMonitorMixIn):
     def __init__(self, options):
         super(NetworkService, self).__init__(logger)
-        self.cm = CommonMetadata()
+        self.cm = Metadata()
         self.nic_status = {}
         self.daemons = {}
 
@@ -129,6 +162,8 @@ class NetworkService(ServiceBase, NetworkConfigMixIn, NetworkMonitorMixIn):
         self.nms_watcher = None
         self.nms.close()
         self.nms = None
+        self.timer_watcher.stop()
+        self.timer_watcher = None
         self.shutdown_network_notifier()
 
         for ifname, daemons in self.daemons.items():
@@ -154,6 +189,38 @@ class NetworkService(ServiceBase, NetworkConfigMixIn, NetworkMonitorMixIn):
             watcher.data = (5, st)
             watcher.start()
 
+    @property
+    def storage(self):
+        return Storage("net")
+
+    def set_config(self, ifname, config):
+        config = NCE.validate_options(config)
+
+        # Encrypt password in client mode
+        if "psk" in config and "ssid" in config:
+            if config.get("wifi_mode") == "client":
+                plain_passwd = config["psk"]
+                config["psk"] = get_wpa_psk(config["ssid"], plain_passwd)
+
+        try:
+            with self.storage.open(ifname, "w") as f:
+                json.dump(config, f)
+        except Exception:
+            logger.exception("Write network config error")
+        return config
+
+    def get_config(self, ifname):
+        if self.storage.exists(ifname):
+            try:
+                with self.storage.open(ifname, "r") as f:
+                    return json.load(f)
+            except Exception:
+                logger.exception("Read network config error")
+        else:
+            c = create_default_config(ifname)
+            self.set_config(ifname, c)
+        return None
+
     def update_network_led(self):
         """Return True if network is read"""
         if is_nic_ready(self.nic_status):
@@ -176,11 +243,11 @@ class NetworkService(ServiceBase, NetworkConfigMixIn, NetworkMonitorMixIn):
         self.bootstrap_nic(ifname, forcus_restart=True)
 
         config = self.get_config(ifname)
+
         if config:
             self.config_device(ifname, config)
         else:
-            if not self.is_wireless(ifname):
-                self.config_device(ifname, {"method": "dhcp"})
+            self.config_device(ifname, self._create_default_config(ifname))
 
     def bootstrap_nic(self, ifname, delay=0.5, forcus_restart=False):
         """Startup nic, this method will get device information from
@@ -199,14 +266,23 @@ class NetworkService(ServiceBase, NetworkConfigMixIn, NetworkMonitorMixIn):
 
         net_cfg.ifup(ifname)
 
-    def is_wireless(self, ifname):
-        return ifname.startswith("wlan")
+    def apply_config(self, ifname, config, recoverable=False):
+        if is_wireless(ifname) and recoverable:
+            WirelessNetworkReviewer.add_reviewer(
+                ifname,
+                self.get_config(ifname),
+                self)
+
+        config = self.set_config(ifname, config)
+        logger.debug(
+            "Update '%s' config with %s" % (ifname, config))
+        self.bootstrap(ifname, rebootstrap=True)
 
     def config_device(self, ifname, config):
         """config network device (like ip/routing/dhcp/wifi access)"""
         daemon = self.daemons.get(ifname, {})
 
-        if self.is_wireless(ifname):
+        if is_wireless(ifname):
             mode = config.get('wifi_mode')
             if mode == 'client':
                 daemon['wpa'] = nl80211_config.wlan_managed_daemon(
@@ -321,7 +397,4 @@ class NetworkManageSocket(socket.socket):
 
     def config_network(self, payload):
         ifname = payload.pop("ifname")
-        config = self.master.set_config(ifname, payload)
-        self.master.logger.info(
-            "Update '%s' config with %s" % (ifname, config))
-        self.master.bootstrap(ifname, rebootstrap=True)
+        self.master.apply_config(ifname, payload, recoverable=True)

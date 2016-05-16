@@ -39,8 +39,14 @@ class Storage(object):
     def get_mtime(self, filename):
         return os.path.getmtime(self.get_path(filename))
 
+    def list(self):
+        return os.listdir(self.path)
+
     def exists(self, filename):
         return os.path.exists(self.get_path(filename))
+
+    def remove(self, filename):
+        os.remove(self.get_path(filename))
 
     def rmtree(self, path):
         p = self.get_path(path)

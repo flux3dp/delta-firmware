@@ -28,6 +28,7 @@ from .raw_task import RawTask
 from .maintain_task import MaintainTask
 from .update_fw_task import UpdateFwTask
 from .play_manager import PlayerManager
+from .icontrol import IControlTask
 from .update_mbfw_task import UpdateMbFwTask
 
 logger = logging.getLogger(__name__)
@@ -376,6 +377,8 @@ class TasksMixIn(object):
             self.__maintain(handler)
         elif cmd == "scan":
             self.__scan(handler)
+        elif cmd == "icontrol":
+            self.__icontrol(handler)
         elif cmd == "raw" and allow_god_mode():
             self.__raw_access(handler)
 
@@ -391,6 +394,10 @@ class TasksMixIn(object):
 
     def __maintain(self, handler):
         task = MaintainTask(self.stack, handler)
+        self.stack.enter_task(task, empty_callback)
+
+    def __icontrol(self, handler):
+        task = IControlTask(self.stack, handler)
         self.stack.enter_task(task, empty_callback)
 
 
@@ -437,6 +444,9 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
         elif cmd == "maintain":
             # TODO: going tobe removed
             self.dispatch_task_cmd(handler, "maintain")
+        elif cmd == "oracle":
+            s = Storage("general", "meta")
+            s["debug"] = args[0]
         elif cmd == "raw":
             # TODO: going tobe removed
             self.dispatch_task_cmd(handler, "raw")

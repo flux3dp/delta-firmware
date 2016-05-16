@@ -32,7 +32,8 @@ class Monitor(object):
         # message, we will query full information and collect it instead.
 
         for item in self.ipr.get():
-            if item.get('event') != "RTM_NEWNEIGH":
+            if item.get('event') not in ["RTM_NEWNEIGH", "RTM_NEWROUTE",
+                                         "RTM_DELROUTE", "RTM_GETROUTE", ]:
                 # Update status only if event is not RTM_NEWNEIGH or we will
                 # get many dummy messages.
                 status = self.full_status()
@@ -41,7 +42,8 @@ class Monitor(object):
 
     def read(self):
         for change in self.ipr.get():
-            if change["event"] != "RTM_NEWNEIGH":
+            if change.get('event') not in ["RTM_NEWNEIGH", "RTM_NEWROUTE",
+                                           "RTM_DELROUTE", "RTM_GETROUTE", ]:
                 logger.debug("NW EVENT: %s", change["event"])
                 logger.debug("%s", change)
                 return False

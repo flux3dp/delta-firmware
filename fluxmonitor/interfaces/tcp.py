@@ -140,7 +140,6 @@ class TcpConnectionHandler(HandlerBase):
             message = message[:16]
 
         if success:
-            self._on_ready()
             self.logger.info("Connected (access_id=%s)", self.access_id)
             self.sock.send(message)
 
@@ -148,6 +147,7 @@ class TcpConnectionHandler(HandlerBase):
             self.aes = security.AESObject(aes_key, aes_iv)
             self.sock.send(self.keyobj.encrypt(aes_key + aes_iv))
             self._buffered = 0
+            self._on_ready()
         else:
             self.logger.info("Handshake fail (%s)", log_message)
             self.sock.send(message)

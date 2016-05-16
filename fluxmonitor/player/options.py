@@ -2,14 +2,15 @@
 from fluxmonitor.storage import Storage
 from fluxmonitor.config import DEVICE_POSITION_LIMIT
 
+__all__ = ["Options"]
 inf = float("INF")
 
 
-def __ensure_value__(val, default):
+def ensure_value(val, default):
     return val if val else default
 
 
-def __parse_int__(val, default):
+def parse_int(val, default):
     if val:
         try:
             return int(val, 10)
@@ -40,28 +41,34 @@ class Options(object):
         self.correction = metadata.get("CORRECTION")
         self.filament_detect = metadata.get("FILAMENT_DETECT")
 
-        self.head_error_level = __parse_int__(
+        self.head_error_level = parse_int(
             metadata.get("HEAD_ERROR_LEVEL"), None)
 
-        self.max_x = __parse_int__(metadata.get("MAX_X"), inf)
-        self.max_y = __parse_int__(metadata.get("MAX_Y"), inf)
-        self.max_z = __parse_int__(metadata.get("MAX_Z"), inf)
+        self.max_x = parse_int(metadata.get("MAX_X"), inf)
+        self.max_y = parse_int(metadata.get("MAX_Y"), inf)
+        self.max_z = parse_int(metadata.get("MAX_Z"), inf)
 
     def __load_form_local__(self):
         self.play_bufsize = 10
 
         storage = Storage("general", "meta")
         if self.correction is None:
-            self.correction = __ensure_value__(
+            self.correction = ensure_value(
                 storage.readall("auto_correction"), "H")
 
         if self.filament_detect is None:
-            self.filament_detect = __ensure_value__(
+            self.filament_detect = ensure_value(
                 storage.readall("filament_detect"), "Y")
 
         if self.head_error_level is None:
-            self.head_error_level = __parse_int__(
+            self.head_error_level = parse_int(
                 storage.readall("head_error_level"), 4095)
+
+        if self.head != "EXTRUDER":
+            # Only EXTRUDER need filament detect
+            self.filament_detect = "N"
+            # Only EXTRUDER allowed correction
+            self.correction = "N"
 
         # TODO: enable hardware error for toolhead pwm issue
         self.head_error_level |= 64

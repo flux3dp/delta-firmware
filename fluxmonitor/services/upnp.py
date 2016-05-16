@@ -11,9 +11,10 @@ import json
 import pyev
 
 from fluxmonitor.hal.net.monitor import Monitor as NetworkMonitor
+from fluxmonitor.interfaces.upnp_tcp import UpnpTcpInterface
 from fluxmonitor.halprofile import get_model_id
 from fluxmonitor.err_codes import BAD_PASSWORD, AUTH_ERROR
-from fluxmonitor.storage import CommonMetadata
+from fluxmonitor.storage import Metadata
 from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT
 from fluxmonitor.misc import network_config_encoder as NCE  # noqa
 
@@ -385,7 +386,7 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
         self.slave_pkey = security.RSAObject(keylength=1024)
         self.slave_pkey_ts = time()
 
-        self.meta = CommonMetadata()
+        self.meta = Metadata()
         self.meta.shared_der_rsakey = self.slave_pkey.export_der()
         self.meta.update_device_status(0, 0, "OFFLINE", "")
 
@@ -398,6 +399,8 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
 
         super(UpnpService, self).__init__(logger)
 
+        self.upnp_tcp = UpnpTcpInterface(self)
+
         self.task_signal = self.loop.async(self.on_delay_task)
         self.task_signal.start()
 
@@ -407,6 +410,33 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
         self.nw_monitor_watcher.start()
         self.cron_watcher = self.loop.timer(3.0, 3.0, self.on_cron)
         self.cron_watcher.start()
+
+    def on_auth(self, keyobj, passwd, add_key=True):
+        passwd = passwd.decode("utf8")
+        access_id = security.get_access_id(keyobj=keyobj)
+
+        if security.validate_password(passwd):
+            if add_key:
+                security.add_trusted_keyobj(keyobj)
+            return access_id
+        else:
+            return None
+
+    def on_modify_passwd(self, keyobj, old_passwd, new_passwd, reset_acl):
+        ret = security.validate_and_set_password(new_passwd, old_passwd,
+                                                 reset_acl)
+        if ret:
+            security.add_trusted_keyobj(keyobj)
+
+        return ret
+
+    def on_modify_network(self, raw_config):
+        config = NCE.validate_options(raw_config)
+        nw_config = ("config_network" + "\x00" +
+                     NCE.to_bytes(config)).encode()
+
+        self.task_signal.data = DelayNetworkConfigure(nw_config)
+        self.task_signal.send()
 
     def on_network_changed(self, watcher, revent):
         if self.nw_monitor.read():
@@ -421,6 +451,9 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
                     self._replace_upnp_sock()
                 else:
                     self._try_open_upnp_sock()
+
+    def on_rename_device(self, new_name):
+        self.meta.nickname = new_name
 
     def _replace_upnp_sock(self):
         self._try_close_upnp_sock()
