@@ -56,12 +56,13 @@ class DeviceOperationMixIn(object):
     _uart_mb = _uart_hb = None
     _mb_watcher = _hb_watcher = None
 
-    def __init__(self, stack, handler, enable_watcher=True):
+    def __init__(self, stack, handler, enable_watcher=True, mb_sock=None,
+                 th_sock=None):
         kernel = stack.loop.data
         kernel.exclusive(self)
         self.stack = stack
         self.handler = handler
-        self._connect(enable_watcher)
+        self._connect(enable_watcher, mb_sock, th_sock)
 
     @property
     def label(self):
@@ -79,18 +80,21 @@ class DeviceOperationMixIn(object):
         kernel.release_exclusive(self)
         self._disconnect()
 
-    def _connect(self, enable_watcher):
+    def _connect(self, enable_watcher, mb, hb):
         try:
-            self._uart_mb = mb = socket.socket(socket.AF_UNIX,
-                                               socket.SOCK_STREAM)
-            logger.info("Connect to mainboard %s" % uart_config["mainboard"])
-            mb.connect(uart_config["mainboard"])
+            if not mb:
+                mb = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                logger.info("Connect to mainboard %s",
+                            uart_config["mainboard"])
+                mb.connect(uart_config["mainboard"])
+            self._uart_mb = mb
 
-            self._uart_hb = hb = socket.socket(socket.AF_UNIX,
-                                               socket.SOCK_STREAM)
-            logger.info("Connect to headboard %s" %
-                        uart_config["headboard"])
-            hb.connect(uart_config["headboard"])
+            if not hb:
+                hb = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                logger.info("Connect to headboard %s",
+                            uart_config["headboard"])
+                hb.connect(uart_config["headboard"])
+            self._uart_hb = hb
 
             if enable_watcher:
                 self._mb_watcher = self.stack.loop.io(
@@ -139,6 +143,7 @@ class DeviceOperationMixIn(object):
 
     def on_dead(self, reason=None):
         self._clean()
+        self._disconnect()
         self.handler.send_text("error KICKED")
         logger.info("%s dead (reason=%s)", self.__class__.__name__, reason)
         self.handler.close()

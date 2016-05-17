@@ -102,7 +102,7 @@ elif is_linux():
 
 def get_install_requires():
     packages = ['setuptools', 'psutil', 'setproctitle', 'sysv_ipc', 'pyserial',
-                'numpy']
+                'numpy', 'msgpack-python']
 
     if is_linux():
         packages += ['pyroute2']
