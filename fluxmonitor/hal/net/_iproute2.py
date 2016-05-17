@@ -1,9 +1,4 @@
 
-__doc__ = """
-This is a fake implement for iproute2 module to debug under macos.
-Note: iproute2 is using netlink tech and it is available on linux only.
-"""
-
 from errno import EAGAIN
 from time import sleep
 import threading
@@ -11,6 +6,11 @@ import socket
 import struct
 
 import netifaces
+
+__doc__ = """
+This is a fake implement for iproute2 module to debug under macos.
+Note: iproute2 is using netlink tech and it is available on linux only.
+"""
 
 
 def singleton(class_):
@@ -69,7 +69,7 @@ class IPRoute(object):
             sleep(60.)
             self.trigger_status_changed()
 
-    def bind(self):
+    def bind(self, groups=None):
         pass
 
     def fileno(self):
