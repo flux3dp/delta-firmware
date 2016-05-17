@@ -397,7 +397,7 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
             CODE_SET_NETWORK: self.cmd_set_network,
         }
 
-        super(UpnpService, self).__init__(logger)
+        ServiceBase.__init__(self, logger, options)
 
         self.upnp_tcp = UpnpTcpInterface(self)
 

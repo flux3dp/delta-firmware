@@ -21,7 +21,7 @@ class Robot(ServiceBase):
     _exclusive_component = None
 
     def __init__(self, options):
-        ServiceBase.__init__(self, logger)
+        ServiceBase.__init__(self, logger, options)
 
         self.local_control = RobotTcpInterface(self)
         self._connect_button_service()
