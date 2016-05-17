@@ -397,14 +397,14 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
             CODE_SET_NETWORK: self.cmd_set_network,
         }
 
-        super(UpnpService, self).__init__(logger)
+        ServiceBase.__init__(self, logger, options)
 
         self.upnp_tcp = UpnpTcpInterface(self)
 
         self.task_signal = self.loop.async(self.on_delay_task)
         self.task_signal.start()
 
-        self.nw_monitor = NetworkMonitor(None)
+        self.nw_monitor = NetworkMonitor()
         self.nw_monitor_watcher = self.loop.io(self.nw_monitor, pyev.EV_READ,
                                                self.on_network_changed)
         self.nw_monitor_watcher.start()
