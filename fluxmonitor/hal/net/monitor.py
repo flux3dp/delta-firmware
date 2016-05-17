@@ -51,9 +51,8 @@ class Monitor(object):
             if change.get('event') not in ["RTM_NEWNEIGH", "RTM_NEWROUTE",
                                            "RTM_DELROUTE", "RTM_GETROUTE", ]:
                 logger.debug("NW EVENT: %s", change["event"])
-                logger.debug("%s", change)
-                return False
-        return True
+                return True
+        return False
 
     # Query full network information and collect it to flux internal pattern.
     def full_status(self):

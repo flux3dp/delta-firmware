@@ -404,7 +404,7 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
         self.task_signal = self.loop.async(self.on_delay_task)
         self.task_signal.start()
 
-        self.nw_monitor = NetworkMonitor(None)
+        self.nw_monitor = NetworkMonitor()
         self.nw_monitor_watcher = self.loop.io(self.nw_monitor, pyev.EV_READ,
                                                self.on_network_changed)
         self.nw_monitor_watcher.start()
