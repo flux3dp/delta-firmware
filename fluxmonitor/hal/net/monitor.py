@@ -4,8 +4,14 @@ import logging
 
 if platform.system().lower().startswith("linux"):
     from pyroute2 import IPRoute
+    from pyroute2.netlink.rtnl import (
+        RTNLGRP_IPV4_IFADDR,
+        RTNLGRP_LINK, )
+
+    BIND_GROUPS = RTNLGRP_IPV4_IFADDR | RTNLGRP_LINK
 else:
     from ._iproute2 import IPRoute
+    BIND_GROUPS = 0
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +27,7 @@ class Monitor(object):
         self.callback = cb
 
         self.ipr = IPRoute()
-        self.ipr.bind()
+        self.ipr.bind(groups=BIND_GROUPS)
 
     def fileno(self):
         return self.ipr.fileno()
@@ -45,9 +51,8 @@ class Monitor(object):
             if change.get('event') not in ["RTM_NEWNEIGH", "RTM_NEWROUTE",
                                            "RTM_DELROUTE", "RTM_GETROUTE", ]:
                 logger.debug("NW EVENT: %s", change["event"])
-                logger.debug("%s", change)
-                return False
-        return True
+                return True
+        return False
 
     # Query full network information and collect it to flux internal pattern.
     def full_status(self):
