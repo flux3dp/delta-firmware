@@ -411,6 +411,18 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
         self.cron_watcher = self.loop.timer(3.0, 3.0, self.on_cron)
         self.cron_watcher.start()
 
+    def update_network_status(self, closeorig=False):
+        status = self.nw_monitor.full_status()
+        nested = [st.get('ipaddr', [])
+                  for _, st in status.items()]
+        ipaddress = list(chain(*nested))
+
+        if self.ipaddress != ipaddress:
+            self.ipaddress = ipaddress
+            if closeorig:
+                self._try_close_upnp_sock()
+            self._try_open_upnp_sock()
+
     def on_auth(self, keyobj, passwd, add_key=True):
         passwd = passwd.decode("utf8")
         access_id = security.get_access_id(keyobj=keyobj)
@@ -440,24 +452,10 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
 
     def on_network_changed(self, watcher, revent):
         if self.nw_monitor.read():
-            status = self.nw_monitor.full_status()
-            nested = [st.get('ipaddr', [])
-                      for _, st in status.items()]
-            ipaddress = list(chain(*nested))
-
-            if self.ipaddress != ipaddress:
-                self.ipaddress = ipaddress
-                if watcher:
-                    self._replace_upnp_sock()
-                else:
-                    self._try_open_upnp_sock()
+            self.update_network_status(closeorig=True)
 
     def on_rename_device(self, new_name):
         self.meta.nickname = new_name
-
-    def _replace_upnp_sock(self):
-        self._try_close_upnp_sock()
-        self._try_open_upnp_sock()
 
     def _try_open_upnp_sock(self):
         try:
@@ -505,7 +503,7 @@ class UpnpService(ServiceBase, UpnpServiceMixIn):
             self.bcst = None
 
     def on_start(self):
-        self.on_network_changed(None, None)
+        self.update_network_status()
 
     def on_shutdown(self):
         self._try_close_upnp_sock()
