@@ -440,11 +440,11 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
         else:
             raise InternalError(CMD_G001, MSG_OPERATION_ERROR)
 
-    def on_sleep(self, secondes):
+    def on_sleep(self, handler, secondes):
         cmd = "G4S%.4f" % secondes
         self.append_cmd(TARGET_MAINBOARD, cmd)
 
-    def on_scan_lasr(self, flags):
+    def on_scan_lasr(self, handler, flags):
         cmd = "X1E%i" % flags
         self.append_cmd(TARGET_MAINBOARD, cmd)
 
