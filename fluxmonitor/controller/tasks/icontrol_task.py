@@ -456,7 +456,7 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
         self.append_cmd(TARGET_MAINBOARD, "M17")
 
     def on_release_motors(self, handler):
-        self.append_cmd(TARGET_MAINBOARD, "M18")
+        self.append_cmd(TARGET_MAINBOARD, "M84")
         self.known_position = None
 
     def on_z_probe(self, handler, x, y):
