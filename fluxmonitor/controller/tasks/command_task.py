@@ -381,6 +381,8 @@ class TasksMixIn(object):
             self.__icontrol(handler)
         elif cmd == "raw" and allow_god_mode():
             self.__raw_access(handler)
+        else:
+            raise RuntimeError(UNKNOWN_COMMAND)
 
     def __raw_access(self, handler):
         task = RawTask(self.stack, handler)
@@ -446,10 +448,8 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
             self.dispatch_task_cmd(handler, "maintain")
         elif cmd == "oracle":
             s = Storage("general", "meta")
-            s["debug"] = args[0]
-        elif cmd == "raw":
-            # TODO: going tobe removed
-            self.dispatch_task_cmd(handler, "raw")
+            s["debug"] = args[0].encode("utf8")
+            handler.send_text("oracle")
         else:
             logger.debug("Can not handle: %s" % repr(cmd))
             raise RuntimeError(UNKNOWN_COMMAND)
