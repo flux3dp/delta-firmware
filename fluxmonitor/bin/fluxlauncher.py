@@ -24,6 +24,112 @@ SERVICE_LIST = (
 )
 
 
+def anti_garbage_usb_mass_storage():
+    try:
+        if os.path.ismount(os.path.realpath("/media/usb")):
+            return 0
+
+        entry = "/sys/devices/platform/soc/20980000.usb/usb1/1-1/1-1.2"
+        if not os.path.exists(entry):
+            return 1
+
+        filename = os.path.join(entry, "bDeviceClass")
+        if not os.path.exists(filename):
+            return 2
+        with open(filename, "r") as f:
+            if f.read().strip() != "00":
+                return 2
+
+        filename = os.path.join(entry, "1-1.2:1.0/bInterfaceClass")
+        if not os.path.exists(filename):
+            return 3
+        with open(filename, "r") as f:
+            if f.read().strip() != "08":
+                return 3
+
+        ttl = 0
+        while not os.path.ismount(os.path.realpath("/media/usb")):
+            sleep(0.1)
+            if ttl > 200:
+                return 4
+            else:
+                ttl += 1
+        return 0
+    except Exception as e:
+        print(e)
+        return -1
+
+
+def try_config_network(dryrun=False):
+    anti_garbage_usb_mass_storage()
+    if os.path.exists("/media/usb/config_flux.txt"):
+        print("USB Disk found")
+
+        from ConfigParser import RawConfigParser
+        from fluxmonitor.security import get_serial
+        from fluxmonitor.storage import Storage
+        from hashlib import md5
+
+        storage = Storage("general", "meta")
+        with open("/media/usb/config_flux.txt") as f:
+            h = md5(f.read()).hexdigest()
+            print("Fingerprint local=%s, disk=%s" %
+                  (storage["flashconfig_history"], h))
+
+            if storage["flashconfig_history"] == h:
+                print("This config file is already done, ignore")
+                return
+
+        c = RawConfigParser()
+        c.read("/media/usb/config_flux.txt")
+
+        if "device" in c.sections():
+            device = dict(c.items("device"))
+            s = device.get("serial")
+            if get_serial() != s:
+                print("Device serial not match")
+                return
+        else:
+            print("Device section not found")
+            return
+
+        if "general" in c.sections():
+            general_config = dict(c.items("general"))
+
+            name = general_config.get("name")
+            if name:
+                if dryrun:
+                    print("[Dryrun] Config name to: %s" % name)
+                else:
+                    from fluxmonitor.storage import Metadata
+                    m = Metadata()
+                    m.nickname = general_config["name"]
+
+            password = general_config.get("password")
+            if password:
+                if dryrun:
+                    print("[Dryrun] Set password to: ***")
+                else:
+                    from fluxmonitor.security import set_password
+                    set_password(general_config["password"])
+
+        if "network" in c.sections():
+            network_config = dict(c.items("network"))
+
+            if dryrun:
+                print("[Dryrun] Config network: %s" % network_config)
+            else:
+                from fluxmonitor.misc import network_config_encoder as NCE  # noqa
+                from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT
+                import socket
+                s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+                s.connect(NETWORK_MANAGE_ENDPOINT)
+                s.send(b"%s\x00%s" % (b"config_network",
+                                      NCE.to_bytes(network_config)))
+
+        storage["flashconfig_history"] = h
+
+
 def init_rapi():
     if not os.path.exists("/var/gcode/userspace"):
         os.mkdir("/var/gcode/userspace")
@@ -53,6 +159,8 @@ def check_running(service):
 
 def main(params=None):
     parser = argparse.ArgumentParser(description='flux launcher')
+    parser.add_argument('--dryrun', dest='dryrun', action='store_const',
+                        const=True, default=False, help='Connect to smoothie')
     options = parser.parse_args(params)
 
     from fluxmonitor.halprofile import CURRENT_MODEL # noqa
@@ -69,16 +177,11 @@ def main(params=None):
         if ret:
             print('%s is already running\n' % service)
             continue
-        # if force and ret:
-        #     print >> sys.stderr, (service, 'is running, need to be killed')
-        #     print >> sys.stderr, ('killing ' + service)
-        #     os.kill(int(ret), SIGTERM)
-        #
-        #     while check_running(service):
-        #         print >> sys.stderr, ('wait %s to shutdown' % service)
-        #         sleep(1)
-        #
-        #     print >> sys.stderr, (service, 'really shutdown')
+
+        if options.dryrun:
+            print('[Dryrun] Start service: %s (%s)' % (service,
+                                                       startup_params))
+            continue
 
         pid = os.fork()
         if pid == 0:
@@ -102,6 +205,7 @@ def main(params=None):
                     success = False
                     break
 
+    try_config_network(dryrun=options.dryrun)
 
 if __name__ == "__main__":
     main()
