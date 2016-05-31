@@ -180,11 +180,14 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             raise RuntimeError(UNKNOWN_COMMAND)
 
     def do_x78(self, handler):
+        dataset = []
+
         def on_message_cb(msg):
             if not msg.startswith("LN "):
-                handler.send_text("DATA %s" % msg)
+                dataset.append(msg)
 
         def on_success_cb():
+            handler.send_text("\n".join(dataset))
             handler.send_text("ok")
             self._macro = self._on_macro_error = self._on_macro_running = None
             self._busy = False
