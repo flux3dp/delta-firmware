@@ -23,10 +23,12 @@ def do_correction(meta, x, y, z):
 class CorrectionMacro(object):
     name = "CORRECTING"
 
-    def __init__(self, on_success_cb, clean=False, ttl=6, threshold=0.05):
+    def __init__(self, on_success_cb, clean=False, ttl=6, threshold=0.05,
+                 correct_at_final=False):
         self._on_success_cb = on_success_cb
         self._clean = clean
         self._running = False
+        self.correct_at_final = correct_at_final
         self.threshold = threshold
         self.meta = Metadata()
         self.history = []
@@ -70,6 +72,10 @@ class CorrectionMacro(object):
             elif dd < self.threshold:
                 logger.info("Correction completed: %s", data)
                 self.convergence = True
+
+                if self.correct_at_final:
+                    corr_str = do_correction(self.meta, *data)
+                    executor.main_ctrl.send_cmd(corr_str, executor)
                 executor.main_ctrl.send_cmd("G1F9000X0Y0Z30", executor)
 
             else:
