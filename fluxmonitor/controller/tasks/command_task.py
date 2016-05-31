@@ -378,6 +378,8 @@ class TasksMixIn(object):
             self.__scan(handler)
         elif cmd == "raw" and allow_god_mode():
             self.__raw_access(handler)
+        else:
+            raise RuntimeError(UNKNOWN_COMMAND)
 
     def __raw_access(self, handler):
         task = RawTask(self.stack, handler)
