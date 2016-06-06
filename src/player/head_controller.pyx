@@ -385,24 +385,20 @@ cdef class HeadController:
 
 
 cdef class BaseExt:
-    cdef public object id
-    cdef public object vendor
-    cdef public object version
+    cdef public object required_spec
     cdef public object spec
 
     def __init__(self, **spec):
-        self.spec = spec
+        self.required_spec = spec
 
     def bootstrap_commands(self):
         return []
 
     def hello(self, **kw):
-        self.id = kw.get("ID")
-        self.vendor = kw.get("VENDOR")
-        self.version = kw.get("VERSION")
+        self.spec = kw
 
     def info(self):
-        return {"id": self.id, "vendor": self.vendor, "version": self.version}
+        return self.spec
 
     def generate_command(self, cmd):
         pass
