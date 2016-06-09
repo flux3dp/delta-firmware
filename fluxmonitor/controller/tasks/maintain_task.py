@@ -1,7 +1,7 @@
 
+from json import dumps
 import logging
 import socket
-import json
 import re
 
 from fluxmonitor.player.main_controller import MainController
@@ -128,8 +128,15 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             self.do_home(handler)
 
         elif cmd == "calibration":
+            try:
+                threshold = float(args[0])
+                if threshold < 0.01:
+                    threshold = 0.01
+            except (ValueError, IndexError):
+                threshold = float("inf")
+
             clean = "clean" in args
-            self.do_calibration(handler, clean=clean)
+            self.do_calibration(handler, threshold, clean=clean)
 
         elif cmd == "zprobe":
             if len(args) > 0:
@@ -145,7 +152,10 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             self.do_unload_filament(handler, int(args[0]), float(args[1]))
 
         elif cmd == "headinfo":
-            self.headinfo(handler)
+            self.head_info(handler)
+
+        elif cmd == "headstatus":
+            self.head_status(handler)
 
         elif cmd == "reset_mb":
             s = socket.socket(socket.AF_UNIX)
@@ -159,6 +169,9 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         elif cmd == "extruder_temp":
             self.do_change_extruder_temperature(handler, *args)
 
+        elif cmd == "x78":
+            self.do_x78(handler)
+
         elif cmd == "update_head":
             self.update_head(handler, *args)
 
@@ -170,9 +183,26 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             raise RuntimeError(UNKNOWN_COMMAND)
 
     def do_x78(self, handler):
-        self._macro = macro.CommandMacro(on_success_cb, ["X78"])
+        dataset = []
+
+        def on_message_cb(msg):
+            if not msg.startswith("LN "):
+                dataset.append(msg)
+
+        def on_success_cb():
+            handler.send_text("\n".join(dataset))
+            handler.send_text("ok")
+            self._macro = self._on_macro_error = self._on_macro_running = None
+            self._busy = False
+
+        def on_macro_error(error):
+            self._macro.giveup()
+            self._macro = self._on_macro_error = self._on_macro_running = None
+            handler.send_text("error %s" % " ".join(error.args))
+            self._busy = False
+
+        self._macro = macro.CommandMacro(on_success_cb, ["X78"], on_message_cb)
         self._on_macro_error = on_macro_error
-        self._on_macro_running = on_macro_running
         self._busy = True
         self._macro.start(self)
 
@@ -296,9 +326,9 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         self._busy = True
         self._macro.start(self)
 
-    def do_calibration(self, handler, clean=False):
+    def do_calibration(self, handler, threshold, clean=False):
         def on_success_cb():
-            p1, p2, p3 = self._macro.history[0]
+            p1, p2, p3 = self._macro.history[-1]
             handler.send_text("ok %.4f %.4f %.4f" % (p1, p2, p3))
             self._macro = self._on_macro_error = self._on_macro_running = None
             self._busy = False
@@ -312,8 +342,10 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         def on_macro_running():
             handler.send_text("DEBUG: Point:%i/3" % len(self._macro.data))
 
+        correct_at_final = True if threshold == float("inf") else False
         self._macro = macro.CorrectionMacro(on_success_cb, clean=clean,
-                                            threshold=float("inf"))
+                                            threshold=threshold,
+                                            correct_at_final=correct_at_final)
         self._on_macro_error = on_macro_error
         self._on_macro_running = on_macro_running
         self._on_macro_error = on_macro_error
@@ -357,11 +389,11 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         self._macro.start(self)
         handler.send_text("continue")
 
-    def headinfo(self, handler):
-        dataset = self.head_ctrl.status()
-        dataset.update(self.head_ctrl.info())
-        payload = json.dumps(dataset)
-        handler.send_text("ok %s" % payload)
+    def head_info(self, handler):
+        handler.send_text("ok " + dumps(self.head_ctrl.info()))
+
+    def head_status(self, handler):
+        handler.send_text("ok " + dumps(self.head_ctrl.status()))
 
     def update_head(self, handler, mimetype, sfilesize):
         filesize = int(sfilesize)
