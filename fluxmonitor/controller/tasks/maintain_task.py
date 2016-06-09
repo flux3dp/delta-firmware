@@ -390,7 +390,10 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         handler.send_text("continue")
 
     def head_info(self, handler):
-        handler.send_text("ok " + dumps(self.head_ctrl.info()))
+        dataset = self.head_ctrl.info().copy()
+        dataset["version"] = dataset.get("VERSION")
+        dataset["module"] = dataset.get("TYPE")
+        handler.send_text("ok " + dumps(dataset))
 
     def head_status(self, handler):
         handler.send_text("ok " + dumps(self.head_ctrl.status()))
@@ -450,4 +453,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         if self.main_ctrl:
             self.main_ctrl.close(self)
             self.main_ctrl = None
+        if self.head_ctrl:
+            self.head_ctrl.close(self)
+            self.head_ctrl = None
         self.meta.update_device_status(0, 0, "N/A", "")
