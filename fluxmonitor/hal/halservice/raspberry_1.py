@@ -371,10 +371,11 @@ class GPIOControl(object):
 
             os.rename(fw_path, fw_path + ".updated")
 
+            sleep(0.75)
             GPIO.output(GPIO_MAINBOARD_POW_PIN, MAINBOARD_OFF)
-            sleep(0.5)
+            sleep(0.75)
             GPIO.output(GPIO_MAINBOARD_POW_PIN, MAINBOARD_ON)
-            sleep(3.0)
+            sleep(3.75)
 
             self.mainboard_connect(loop)
             self._init_mainboard_status(loop)

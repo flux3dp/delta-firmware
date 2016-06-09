@@ -1,7 +1,7 @@
 
+from json import dumps
 import logging
 import socket
-import json
 import re
 
 from fluxmonitor.player.main_controller import MainController
@@ -152,7 +152,10 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             self.do_unload_filament(handler, int(args[0]), float(args[1]))
 
         elif cmd == "headinfo":
-            self.headinfo(handler)
+            self.head_info(handler)
+
+        elif cmd == "headstatus":
+            self.head_status(handler)
 
         elif cmd == "reset_mb":
             s = socket.socket(socket.AF_UNIX)
@@ -386,11 +389,14 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         self._macro.start(self)
         handler.send_text("continue")
 
-    def headinfo(self, handler):
-        dataset = self.head_ctrl.status()
-        dataset.update(self.head_ctrl.info())
-        payload = json.dumps(dataset)
-        handler.send_text("ok %s" % payload)
+    def head_info(self, handler):
+        dataset = self.head_ctrl.info().copy()
+        dataset["version"] = dataset.get("VERSION")
+        dataset["module"] = dataset.get("TYPE")
+        handler.send_text("ok " + dumps(dataset))
+
+    def head_status(self, handler):
+        handler.send_text("ok " + dumps(self.head_ctrl.status()))
 
     def update_head(self, handler, mimetype, sfilesize):
         filesize = int(sfilesize)
@@ -447,4 +453,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         if self.main_ctrl:
             self.main_ctrl.close(self)
             self.main_ctrl = None
+        if self.head_ctrl:
+            self.head_ctrl.close(self)
+            self.head_ctrl = None
         self.meta.update_device_status(0, 0, "N/A", "")

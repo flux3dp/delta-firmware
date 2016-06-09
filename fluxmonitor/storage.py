@@ -169,6 +169,8 @@ class CommonMetadata(object):
     @nickname.setter
     def nickname(self, val):
         with self.storage.open("nickname", "wb") as f:
+            if isinstance(val, unicode):
+                val = val.encode("utf8")
             f.write(val)
         self._cache_nickname(val)
 
