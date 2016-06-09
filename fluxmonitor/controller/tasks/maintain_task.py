@@ -450,4 +450,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         if self.main_ctrl:
             self.main_ctrl.close(self)
             self.main_ctrl = None
+        if self.head_ctrl:
+            self.head_ctrl.close(self)
+            self.head_ctrl = None
         self.meta.update_device_status(0, 0, "N/A", "")

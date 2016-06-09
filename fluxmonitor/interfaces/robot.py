@@ -43,7 +43,7 @@ class ServiceStack(object):
         self.this_task.on_binary(buf, handler)
 
     def on_close(self, handler):
-        pass
+        self.terminate()
 
     def enter_task(self, invoke_task, return_callback):
         logger.debug("Enter %s" % invoke_task.__class__.__name__)
