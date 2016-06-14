@@ -114,7 +114,7 @@ cdef class HeadController:
         if self._ready == 8 and self._ext:
             return self._ext.info()
         else:
-            return {}
+            return {"module": "N/A"}
 
     def status(self):
         if self._ready == 8 and self._ext:
@@ -375,7 +375,7 @@ cdef class HeadController:
             q = self._ext.close()
             if self._padding_cmd:
                 self._recover_queue = q
-            else:
+            elif q:
                 self._padding_cmd = q.pop(0)
                 self._recover_queue = q
                 self._send_cmd(executor)

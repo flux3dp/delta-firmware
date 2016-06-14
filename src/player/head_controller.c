@@ -2780,7 +2780,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  *         if self._ready == 8 and self._ext:
  *             return self._ext.info()             # <<<<<<<<<<<<<<
  *         else:
- *             return {}
+ *             return {"module": "N/A"}
  */
     __Pyx_XDECREF(__pyx_r);
     __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->_ext, __pyx_n_s_info); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 115, __pyx_L1_error)
@@ -2819,7 +2819,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   /* "src/player/head_controller.pyx":117
  *             return self._ext.info()
  *         else:
- *             return {}             # <<<<<<<<<<<<<<
+ *             return {"module": "N/A"}             # <<<<<<<<<<<<<<
  * 
  *     def status(self):
  */
@@ -2827,6 +2827,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     __Pyx_XDECREF(__pyx_r);
     __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 117, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
+    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_module, __pyx_kp_s_N_A) < 0) __PYX_ERR(0, 117, __pyx_L1_error)
     __pyx_r = __pyx_t_3;
     __pyx_t_3 = 0;
     goto __pyx_L0;
@@ -2854,7 +2855,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
 }
 
 /* "src/player/head_controller.pyx":119
- *             return {}
+ *             return {"module": "N/A"}
  * 
  *     def status(self):             # <<<<<<<<<<<<<<
  *         if self._ready == 8 and self._ext:
@@ -2961,7 +2962,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   }
 
   /* "src/player/head_controller.pyx":119
- *             return {}
+ *             return {"module": "N/A"}
  * 
  *     def status(self):             # <<<<<<<<<<<<<<
  *         if self._ready == 8 and self._ext:
@@ -8442,7 +8443,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  *             q = self._ext.close()
  *             if self._padding_cmd:             # <<<<<<<<<<<<<<
  *                 self._recover_queue = q
- *             else:
+ *             elif q:
  */
     __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_self->_padding_cmd); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 376, __pyx_L1_error)
     if (__pyx_t_1) {
@@ -8451,7 +8452,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  *             q = self._ext.close()
  *             if self._padding_cmd:
  *                 self._recover_queue = q             # <<<<<<<<<<<<<<
- *             else:
+ *             elif q:
  *                 self._padding_cmd = q.pop(0)
  */
       __Pyx_INCREF(__pyx_v_q);
@@ -8465,19 +8466,28 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  *             q = self._ext.close()
  *             if self._padding_cmd:             # <<<<<<<<<<<<<<
  *                 self._recover_queue = q
- *             else:
+ *             elif q:
  */
       goto __pyx_L4;
     }
 
-    /* "src/player/head_controller.pyx":379
+    /* "src/player/head_controller.pyx":378
+ *             if self._padding_cmd:
  *                 self._recover_queue = q
- *             else:
+ *             elif q:             # <<<<<<<<<<<<<<
+ *                 self._padding_cmd = q.pop(0)
+ *                 self._recover_queue = q
+ */
+    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_q); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 378, __pyx_L1_error)
+    if (__pyx_t_1) {
+
+      /* "src/player/head_controller.pyx":379
+ *                 self._recover_queue = q
+ *             elif q:
  *                 self._padding_cmd = q.pop(0)             # <<<<<<<<<<<<<<
  *                 self._recover_queue = q
  *                 self._send_cmd(executor)
  */
-    /*else*/ {
       __pyx_t_2 = __Pyx_PyObject_PopIndex(__pyx_v_q, __pyx_int_0, 0, 1, Py_ssize_t, PyInt_FromSsize_t); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 379, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_GIVEREF(__pyx_t_2);
@@ -8487,7 +8497,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       __pyx_t_2 = 0;
 
       /* "src/player/head_controller.pyx":380
- *             else:
+ *             elif q:
  *                 self._padding_cmd = q.pop(0)
  *                 self._recover_queue = q             # <<<<<<<<<<<<<<
  *                 self._send_cmd(executor)
@@ -8534,6 +8544,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       }
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+      /* "src/player/head_controller.pyx":378
+ *             if self._padding_cmd:
+ *                 self._recover_queue = q
+ *             elif q:             # <<<<<<<<<<<<<<
+ *                 self._padding_cmd = q.pop(0)
+ *                 self._recover_queue = q
+ */
     }
     __pyx_L4:;
 
