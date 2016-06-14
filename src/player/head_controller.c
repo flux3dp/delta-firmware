@@ -2780,7 +2780,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  *         if self._ready == 8 and self._ext:
  *             return self._ext.info()             # <<<<<<<<<<<<<<
  *         else:
- *             return {}
+ *             return {"module": "N/A"}
  */
     __Pyx_XDECREF(__pyx_r);
     __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->_ext, __pyx_n_s_info); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 115, __pyx_L1_error)
@@ -2819,7 +2819,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   /* "src/player/head_controller.pyx":117
  *             return self._ext.info()
  *         else:
- *             return {}             # <<<<<<<<<<<<<<
+ *             return {"module": "N/A"}             # <<<<<<<<<<<<<<
  * 
  *     def status(self):
  */
@@ -2827,6 +2827,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
     __Pyx_XDECREF(__pyx_r);
     __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 117, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
+    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_module, __pyx_kp_s_N_A) < 0) __PYX_ERR(0, 117, __pyx_L1_error)
     __pyx_r = __pyx_t_3;
     __pyx_t_3 = 0;
     goto __pyx_L0;
@@ -2854,7 +2855,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
 }
 
 /* "src/player/head_controller.pyx":119
- *             return {}
+ *             return {"module": "N/A"}
  * 
  *     def status(self):             # <<<<<<<<<<<<<<
  *         if self._ready == 8 and self._ext:
@@ -2961,7 +2962,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   }
 
   /* "src/player/head_controller.pyx":119
- *             return {}
+ *             return {"module": "N/A"}
  * 
  *     def status(self):             # <<<<<<<<<<<<<<
  *         if self._ready == 8 and self._ext:

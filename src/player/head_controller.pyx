@@ -114,7 +114,7 @@ cdef class HeadController:
         if self._ready == 8 and self._ext:
             return self._ext.info()
         else:
-            return {}
+            return {"module": "N/A"}
 
     def status(self):
         if self._ready == 8 and self._ext:
