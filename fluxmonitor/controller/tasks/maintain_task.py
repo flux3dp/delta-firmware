@@ -450,10 +450,20 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         if self.timer_watcher:
             self.timer_watcher.stop()
             self.timer_watcher = None
-        if self.main_ctrl:
-            self.main_ctrl.close(self)
-            self.main_ctrl = None
-        if self.head_ctrl:
-            self.head_ctrl.close(self)
-            self.head_ctrl = None
+
+        try:
+            if self.main_ctrl:
+                self.main_ctrl.close(self)
+                self.main_ctrl = None
+        except Exception:
+            logger.exception("Mainboard error while quit")
+
+        try:
+            if self.head_ctrl:
+                self.head_ctrl.close(self)
+                self.head_ctrl = None
+        except Exception:
+            logger.exception("Toolhead error while quit")
+
         self.meta.update_device_status(0, 0, "N/A", "")
+

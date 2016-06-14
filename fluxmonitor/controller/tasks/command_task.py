@@ -443,6 +443,8 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
             s = Storage("general", "meta")
             s["debug"] = args[0].encode("utf8")
             handler.send_text("oracle")
+        elif cmd == "fetch_log" and allow_god_mode():
+            self.fetch_log(handler, *args)
         else:
             logger.debug("Can not handle: %s" % repr(cmd))
             raise RuntimeError(UNKNOWN_COMMAND)
@@ -474,3 +476,21 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
         handler.send_text("ok\nversion:%s\nmodel:%s" % (
             fluxmonitor.__version__,
             halprofile.get_model_id()))
+
+    def fetch_log(self, handler, path):
+        filename = os.path.abspath(os.path.join("/var/log", path))
+        if filename.startswith("/var/log"):
+            def cb(h):
+                handler.send_text("ok")
+
+            try:
+                mimetype = mimetypes.guess_type(filename)[0]
+                length = os.path.getsize(filename)
+                stream = open(filename, "rb")
+                handler.async_send_binary(mimetype or "binary", length, stream,
+                                          cb)
+            except OSError as e:
+                raise RuntimeError(
+                    "OSERR_" + errorcode.get(e.args[0], "UNKNOW"))
+        else:
+            raise RuntimeError(BAD_PARAMS)
