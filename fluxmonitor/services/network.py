@@ -221,16 +221,21 @@ class NetworkService(ServiceBase, NetworkMonitorMixIn):
             self.set_config(ifname, c)
         return None
 
-    def update_network_led(self):
+    def update_network_led(self, host_flag=None):
         """Return True if network is read"""
+        if host_flag is not None:
+            if host_flag:
+                self.cm.wifi_status |= 32
+            else:
+                self.cm.wifi_status &= ~32
+
         if is_nic_ready(self.nic_status):
             self.cm.wifi_status &= ~128
+
             if is_network_ready(self.nic_status):
                 self.cm.wifi_status |= 64
-                return True
             else:
                 self.cm.wifi_status &= ~64
-                return False
         else:
             self.cm.wifi_status |= 128
 
@@ -285,10 +290,14 @@ class NetworkService(ServiceBase, NetworkMonitorMixIn):
         if is_wireless(ifname):
             mode = config.get('wifi_mode')
             if mode == 'client':
+                if ifname == "wlan0":
+                    self.update_network_led(host_flag=False)
                 daemon['wpa'] = nl80211_config.wlan_managed_daemon(
                     self, ifname, config)
 
             elif mode == 'host':
+                if ifname == "wlan0":
+                    self.update_network_led(host_flag=True)
                 daemon['hostapd'] = nl80211_config.wlan_ap_daemon(
                     self, ifname, config)
                 net_cfg.config_ipaddr(ifname,
