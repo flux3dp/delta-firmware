@@ -55,7 +55,15 @@ logger = getLogger(__name__)
 #       * cmd_index: next command index should given
 #       * queued_size: command is waitting to be execute in system
 #
-#   (i:1, s:SALT, s:module_type, i:errno, )
+#   (i:1, s:SALT, i:timestemp, i:head_error_code, obj:headstatus)
+#       * First 1 means it is a head status message
+#       * SALT: not for use right now
+#       * timestemp: not for use right now
+#       * head_error_code:
+#           == -2: Head Offline
+#           == -1: Not ready
+#            == 0: Ready
+#             > 0: Follow toolhead error table
 
 
 CMD_G001 = 0x01
@@ -132,10 +140,10 @@ CMD_THPF = 0x51
 # ()
 #    => (0x51, {"module": "EXTRUDER", "vendor": "FLUX .inc", "id": "...", }, )
 
-CMD_THST = 0x52
-# Get toolhead status
-# ()
-#    => (0x52, {"tt": [210, ], "rt": [150, ], "tf": [0.9]})
+# CMD_THST = 0x52
+# # Get toolhead status
+# # ()
+# #    => (0x52, {"tt": [210, ], "rt": [150, ], "tf": [0.9]})
 
 CMD_M104 = 0x60
 # Set toolhead extruder temperature
@@ -147,8 +155,9 @@ CMD_M104 = 0x60
 
 CMD_M106 = 0x61
 # Set fandspeed
-# (f:speed)
+# (i:index, f:speed)
 #
+# index: toolhead index, 0 or 1
 # speed is a value from 0.0 to 1.0
 
 CMD_HLSR = 0x62
@@ -157,11 +166,22 @@ CMD_HLSR = 0x62
 #
 # pwm is a value from 0.0 to 1.0
 
-
 CMD_SYNC = 0xf0
 # Set sync endpoint
 # (s:ipv4address, i:port, s:salt)
 
+CMD_REQH = 0xf1
+# Set required toolhead type
+# (s:toolhead symbol)
+#
+# toolhead must be "EXTRUDER" or "LASER" or "N/A", default is "N/A"
+
+CMD_CLHE = 0xf2
+# Clear toolhead error code
+# ()
+#
+# When toolhead raise an error, this error will appear in UDP message frame
+# until this command send.
 
 CMD_QUIT = 0xfe
 # Quit iContrl
