@@ -225,12 +225,16 @@ inline int DeviceController::G1(command_cb_t callback, void* data,
     de = isnan(e) ? 0 : (e - fsm.e[fsm.t]);
 
     length =  sqrt(dx*dx + dy*dy + dz*dz);
-    fsm.traveled += length;
+    if(isnan(length)) {
+      fprintf(stderr, "length got nan\n");
+    } else {
+      fsm.traveled += length;
+    }
 
     tcost = length / f * 100;
     section = (int)(tcost / max_exec_time);
     if(section > 4096) {
-      printf("G1 split section over limit: %i, strict to 4096\n", section);
+      fprintf(stderr, "G1 split section over limit: %i, strict to 4096\n", section);
       section = 4096;
     }
 

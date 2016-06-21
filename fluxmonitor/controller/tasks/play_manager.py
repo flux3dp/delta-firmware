@@ -58,7 +58,8 @@ class PlayerManager(object):
             if logger.getEffectiveLevel() <= 10:
                 cmd += ["--debug"]
 
-            proc = Popen(cmd, stdin=PIPE)
+            f = open(storage.get_path("fluxplayerd.err.log"), "a")
+            proc = Popen(cmd, stdin=PIPE, stderr=f.fileno())
             child_watcher = loop.child(proc.pid, False, self.on_process_dead,
                                        terminated_callback)
             child_watcher.start()
