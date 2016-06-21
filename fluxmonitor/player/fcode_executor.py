@@ -274,6 +274,9 @@ class FcodeExecutor(BaseExecutor):
                 else:
                     raise SystemError(UNKNOWN_ERROR, "TARGET=%i" % target)
 
+            if self.main_ctrl.buffered_cmd_size is 0:
+                self._on_mainboard_empty(self.main_ctrl)
+
     def _cb_feed_command(self, *args):
         self._cmd_queue.append(args)
 
