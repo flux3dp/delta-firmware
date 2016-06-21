@@ -239,7 +239,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
                     self.send_mainboard("@HOME_BUTTON_TRIGGER\n")
                     raise
 
-            opt = Options()
+            opt = Options(head="EXTRUDER")
             cmds = (("T%i" % index),
                     ("C3" if opt.filament_detect == "N" else "C3+"))
             self._macro = macro.CommandMacro(on_load_done, cmds,
@@ -355,7 +355,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
 
     def do_h_correction(self, handler, h=None):
         if h is not None:
-            if h > 248 or h < 230:
+            if h > 245 or h < 238:
                 logger.error("H ERROR: %f" % h)
                 raise ValueError("INPUT_FAILED")
 
@@ -466,4 +466,3 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             logger.exception("Toolhead error while quit")
 
         self.meta.update_device_status(0, 0, "N/A", "")
-

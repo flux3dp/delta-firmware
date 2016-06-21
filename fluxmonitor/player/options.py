@@ -29,9 +29,11 @@ class Options(object):
     max_y = inf
     max_z = inf
 
-    def __init__(self, taskloader=None):
+    def __init__(self, taskloader=None, head=None):
         if taskloader:
             self.__load_from_metadata__(taskloader.metadata)
+        if head:
+            self.head = head
         self.__load_form_local__()
 
     def __load_from_metadata__(self, metadata):
