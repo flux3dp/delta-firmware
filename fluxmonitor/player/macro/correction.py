@@ -47,7 +47,7 @@ class CorrectionMacro(object):
                 self.meta.plate_correction = {"X": 0, "Y": 0, "Z": 0, "H": 242}
                 executor.main_ctrl.send_cmd("M666X0Y0Z0H242", executor)
                 executor.main_ctrl.send_cmd("G1F10000X0Y0Z230", executor)
-                executor.main_ctrl.send_cmd("G28", executor)
+                executor.main_ctrl.send_cmd("G28+", executor)
                 raise RuntimeError(HARDWARE_ERROR, EXEC_CONVERGENCE_FAILED)
 
             elif self.convergence:

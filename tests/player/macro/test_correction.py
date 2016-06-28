@@ -105,5 +105,6 @@ class CorrectionMacroTest(ControlTestBase):
 
         # # Calculate
         self.assertIsNone(self.callback_status)
-        with self.assertSendMainboard("G1F9000X0Y0Z230") as executor:
+        with self.assertSendMainboard("M666X0Y0Z0H242", "G1F10000X0Y0Z230",
+                                      "G28+") as executor:
             self.assertRaises(RuntimeError, self.cm.on_command_empty, executor)
