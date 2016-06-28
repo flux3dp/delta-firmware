@@ -140,11 +140,6 @@ CMD_THPF = 0x51
 # ()
 #    => (0x51, {"module": "EXTRUDER", "vendor": "FLUX .inc", "id": "...", }, )
 
-# CMD_THST = 0x52
-# # Get toolhead status
-# # ()
-# #    => (0x52, {"tt": [210, ], "rt": [150, ], "tf": [0.9]})
-
 CMD_M104 = 0x60
 # Set toolhead extruder temperature
 # (i:index, i:temperature)
@@ -174,9 +169,14 @@ CMD_REQH = 0xf1
 # Set required toolhead type
 # (s:toolhead symbol)
 #
-# toolhead must be "EXTRUDER" or "LASER" or "N/A", default is "N/A"
+# Toolhead must be "EXTRUDER" or "LASER" or "N/A", default is "N/A"
+# After CMD_REQH, A CMD_BSTH command is required to enable head, otherwise
+# toolhead will keep status at -2 (offline)
 
-CMD_CLHE = 0xf2
+CMD_BSTH = 0xf2
+# bootstrap toolhead if toolhead status is == -2 (offline)
+
+CMD_CLHE = 0xf3
 # Clear toolhead error code
 # ()
 #
@@ -230,6 +230,7 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
         self.main_ctrl = MainController(executor=self, bufsize=14,
                                         ready_callback=on_mainboard_ready)
         self.head_ctrl = HeadController(executor=self, error_level=0,
+                                        required_module="N/A",
                                         ready_callback=self.on_toolhead_ready)
         self.unpacker = Unpacker()
 
@@ -239,12 +240,12 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
         self.timer_watcher = stack.loop.timer(0.85, 0.85, self.on_timer)
         self.timer_watcher.start()
 
+    def on_toolhead_ready(self, ctrl):
+        self._ready |= 2
+
     @property
     def buflen(self):
         return len(self.cmd_queue) + self.main_ctrl.buffered_cmd_size
-
-    def on_toolhead_ready(self, caller):
-        pass
 
     def on_mainboard_empty(self, caller):
         self.fire()
@@ -310,6 +311,7 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
             if not buf:
                 logger.error("Mainboard connection broken")
                 self.stack.exit_task(self)
+                return
 
             for msg in self.recv_from_mainboard(buf):
                 if msg.startswith("DATA "):
@@ -317,8 +319,8 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
                 else:
                     self.main_ctrl.on_message(msg, self)
                     self.fire()
-        except (RuntimeError, SystemError) as e:
-            pass
+
+            self.send_udp0()
         except Exception:
             logger.exception("Unhandle Error")
 
@@ -328,19 +330,22 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
             if not buf:
                 logger.error("Headboard connection broken")
                 self.stack.exit_task(self)
+                return
+
+            h = self.head_ctrl
 
             for msg in self.recv_from_headboard(buf):
-                self.head_ctrl.on_message(msg, self)
+                h.on_message(msg, self)
+
+            self.send_udp1(h)
 
             self.fire()
-        except HeadResetError as e:
-            self.head_ctrl.bootstrap(self)
+        except (HeadResetError, HeadOfflineError, HeadTypeError):
+            self._ready &= ~2
 
         except HeadError as e:
             logger.info("Head Error: %s", e)
 
-        except SystemError as e:
-            logger.exception("Unhandle Error")
         except Exception:
             logger.exception("Unhandle Error")
 
@@ -370,7 +375,7 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
         if message.startswith("DATA ZPROBE "):
             self.handler.send(packb(CMD_G030, float(message[12:])))
 
-    def on_timer(self, watcher, revent):
+    def send_udp0(self):
         if self.udp_sock:
             try:
                 buf = packb((0, "", self.cmd_index, self.buflen))
@@ -378,37 +383,64 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
             except socket.error:
                 pass
 
+    def send_udp1(self, head_ctrl):
+        if self.udp_sock:
+            try:
+                if head_ctrl.ready:
+                    buf = packb((1, "", 0, head_ctrl.errcode,
+                                head_ctrl.status()))
+                    self.udp_sock.send(buf)
+                elif head_ctrl.ready_flag > 0:
+                    buf = packb((1, "", -1, head_ctrl.errcode, {}))
+                    self.udp_sock.send(buf)
+
+                else:
+                    buf = packb((1, "", -2, head_ctrl.errcode, {}))
+                    self.udp_sock.send(buf)
+
+            except socket.error:
+                pass
+
+    def send_udps(self, signal):
+        if self.udp_sock:
+            try:
+                self.udp_sock.send(packb((signal, )))
+            except socket.error:
+                pass
+
+    def on_timer(self, watcher, revent):
+        self.send_udp0()
+        if not self._ready & 2:
+            self.send_udp1(self.head_ctrl)
+
         try:
             self.main_ctrl.patrol(self)
-            self.head_ctrl.patrol(self)
-
-        except (HeadOfflineError, HeadResetError) as e:
+        except RuntimeError as e:
             logger.info("%s", e)
-            if self._macro:
-                self.on_macro_error(e)
-            self.head_ctrl.bootstrap(self)
+
+        except Exception:
+            logger.exception("Mainboard dead")
+            self.handler.send_text(packb(0xff, -1, 0xff, SUBSYSTEM_ERROR))
+            self.on_require_kill(self.handler)
+            return
+
+        try:
+            self.head_ctrl.patrol(self)
+        except (HeadOfflineError, HeadResetError) as e:
+            logger.debug("Head Offline/Reset: %s %s", e)
 
         except RuntimeError as e:
             logger.info("%s", e)
-            if self._macro:
-                self.on_macro_error(e)
-
-        except SystemError:
-            if self._ready:
-                logger.exception("Mainboard dead during maintain")
-                self.handler.send_text("error %s" % SUBSYSTEM_ERROR)
-                self.handler.close()
-            else:
-                self.handler.send_text("error %s" % SUBSYSTEM_ERROR)
-                self.stack.exit_task(self)
 
         except socket.error:
             logger.warn("Socket IO Error")
             self.handler.close()
 
         except Exception:
-            logger.exception("Unhandle error")
-            self.handler.close()
+            logger.exception("Toolhead dead")
+            self.handler.send_text(packb(0xff, -1, 0xff, SUBSYSTEM_ERROR))
+            self.on_require_kill(self.handler)
+            return
 
     def clean(self):
         self.send_mainboard("@HOME_BUTTON_TRIGGER\n")
@@ -492,17 +524,17 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
 
     def on_set_toolhead_temperature(self, handler, index, temperature):
         if index == 0 and temperature >= 0 and temperature <= 220:
-            cmd = "1 H:%i T:%.1f" % (index, temperature)
+            cmd = "H%i%.1f" % (index, temperature)
             self.append_cmd(TARGET_TOOLHEAD, cmd)
         else:
             raise InternalError(CMD_M104, MSG_OPERATION_ERROR)
 
     def on_set_toolhead_fan_speed(self, handler, index, speed):
         if index == 0 and speed >= 0 and speed <= 1:
-            cmd = "1 H:%i T:%.1f" % (index, speed)
+            cmd = "F%i%.3f" % (index, speed)
             self.append_cmd(TARGET_TOOLHEAD, cmd)
         else:
-            raise InternalError(CMD_M104, MSG_OPERATION_ERROR)
+            raise InternalError(CMD_M106, MSG_OPERATION_ERROR)
 
     def on_set_toolhead_pwm(self, handler, pwm):
         if pwm >= 0 and pwm <= 1:
@@ -515,10 +547,6 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
         self.append_cmd(TARGET_MAINBOARD, "X87F%i" % flags)
 
     def on_toolhead_profile(self, handler):
-        buf = packb((CMD_THPF, self.head_ctrl.status()))
-        self.handler.send(buf)
-
-    def on_toolhead_status(self, handler):
         buf = packb((CMD_THPF, self.head_ctrl.status()))
         self.handler.send(buf)
 
@@ -538,6 +566,17 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
         finally:
             self.udp_sock = s
 
+    def on_require_head(self, handler, head_type):
+        self.head_ctrl = HeadController(executor=self, error_level=0,
+                                        required_module=head_type,
+                                        ready_callback=self.on_toolhead_ready)
+
+    def on_bootstrap_toolhead(self, handler):
+        self.head_ctrl.bootstrap(self)
+
+    def on_clean_toolhead_error(self, handler):
+        self.head_ctrl.errcode = 0
+
     def on_require_quit(self, handler):
         if self.buflen:
             raise InternalError(CMD_QUIT, MSG_OPERATION_ERROR)
@@ -547,6 +586,7 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
 
     def on_require_kill(self, handler):
         try:
+            self.send_udps(0xfe)
             self.stack.exit_task(self)
         finally:
             from fluxmonitor.hal.tools import reset_mb
@@ -571,7 +611,11 @@ CMD_MATRIX = {
     CMD_M106: IControlTask.on_set_toolhead_fan_speed,
     CMD_HLSR: IControlTask.on_set_toolhead_pwm,
     CMD_VALU: IControlTask.on_query_value,
+    CMD_THPF: IControlTask.on_toolhead_profile,
     CMD_SYNC: IControlTask.on_require_sync,
+    CMD_REQH: IControlTask.on_require_head,
+    CMD_BSTH: IControlTask.on_bootstrap_toolhead,
+    CMD_CLHE: IControlTask.on_clean_toolhead_error,
     CMD_QUIT: IControlTask.on_require_quit,
     CMD_KILL: IControlTask.on_require_kill,
 }

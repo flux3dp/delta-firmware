@@ -48,6 +48,7 @@ cdef class HeadController:
     cdef int _ready
     cdef bool _wait_update
 
+    cdef public int errcode
     cdef public float _timer
     cdef public float _cmd_sent_at
     cdef public int _cmd_retry
@@ -72,7 +73,6 @@ cdef class HeadController:
                                   EXEC_TYPE_ERROR, required_module)
 
         self._module = "N/A"
-        self.bootstrap(executor)
 
     def bootstrap(self, executor):
         self._ready = 1
@@ -97,6 +97,10 @@ cdef class HeadController:
     @property
     def ready(self):
         return self._ready == 8
+
+    @property
+    def ready_flag(self):
+        return self._ready
 
     @property
     def is_busy(self):
@@ -153,6 +157,7 @@ cdef class HeadController:
     def _on_head_offline(self, error_klass):
         self._module = "N/A"
         self._ready = 0
+        self.errcode = 0
         if self._required_module is None:
             self._ext = None
         raise error_klass()
@@ -310,6 +315,7 @@ cdef class HeadController:
                         L.error("Head er flag failed")
                         self._raise_error(EXEC_HEAD_ERROR, "ER_ERROR")
 
+                self.errcode |= er
                 if er == 0 or self._ready == 0:
                     pass
                 elif er & 4:

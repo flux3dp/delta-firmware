@@ -53,6 +53,7 @@ class FcodeExecutor(BaseExecutor):
             required_module=options.head,
             error_level=self.options.head_error_level
         )
+        self.head_ctrl.bootstrap(self)
 
         self.main_ctrl.callback_msg_empty = self._on_mainboard_empty
         self.main_ctrl.callback_msg_sendable = self._on_mainboard_sendable

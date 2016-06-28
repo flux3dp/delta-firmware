@@ -50,6 +50,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
                                         ready_callback=on_mainboard_ready)
         self.head_ctrl = HeadController(executor=self, error_level=0,
                                         ready_callback=lambda _: None)
+        self.head_ctrl.bootstrap(self)
 
         def on_mainboard_empty(sender):
             if self._macro:
@@ -340,6 +341,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             handler.send_text("error %s" % " ".join(error.args))
 
         def on_macro_running():
+            handler.send_text("POINT %i" % len(self._macro.data))
             handler.send_text("DEBUG: Point:%i/3" % len(self._macro.data))
 
         correct_at_final = True if threshold == float("inf") else False

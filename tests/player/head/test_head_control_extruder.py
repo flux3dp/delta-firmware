@@ -132,6 +132,7 @@ class ExtruderHeadControlTest(ControlTestBase):
         with self.assertSendHeadboard() as executor:
             self.assertRaises(RuntimeError, self.ec.on_message, ER_PONG_MSG,
                               executor)
+            self.assertEqual(self.ec.errcode, 8)
             self.ec.on_message(ER_PONG_MSG, executor)
 
         self.assertFalse(self.ec.ready)
