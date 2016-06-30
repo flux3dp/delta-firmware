@@ -20,6 +20,16 @@ from fluxmonitor.storage import Storage, Metadata
 logger = logging.getLogger("Player")
 
 
+def poweroff_led():
+    tunnel = create_mainboard_socket()
+    tunnel.send("\n@DISABLE_LINECHECK\nX5S83\n")
+
+
+def clean_led():
+    tunnel = create_mainboard_socket()
+    tunnel.send("\n@DISABLE_LINECHECK\nX5S0\n")
+
+
 class PlayerManager(object):
     alive = True
     _sock = None

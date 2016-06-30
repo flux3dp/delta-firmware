@@ -123,6 +123,7 @@ class FrontButtonMonitor(object):
     def send_long_press(self, callback):
         logging.debug("Btn event: LONG_PRESS")
         callback('ABORT   ')
+        callback('POWER   ')
 
     def close(self):
         self._io_tigger.stop()
@@ -163,10 +164,11 @@ class GPIOControl(object):
         wifi_flag = self.sm.wifi_status
 
         if wifi_flag & 32 > 0:
-            # AP Mode
+            # Hostapd Mode
             GPIO.output(GPIO_RIO_1, GPIO.HIGH)
             GPIO.output(GPIO_RIO_2, GPIO_TOGGLE[_1])
         else:
+            # wpa supplicant
             GPIO.output(GPIO_RIO_1, GPIO_TOGGLE[_1])
             if wifi_flag & 64 > 0:
                 GPIO.output(GPIO_RIO_2, GPIO.HIGH)

@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 def ifup(ifname):
-    logger.info("ifup %s" % ifname)
+    logger.debug("ifup %s" % ifname)
     ipr = IPRoute()
     index = _find_device_index(ifname, ipr)
     _clean_ipaddr(ifname, index, ipr)
@@ -30,7 +30,7 @@ def ifdown(ifname):
     index = _find_device_index(ifname, ipr)
     _clean_ipaddr(ifname, index, ipr)
 
-    logger.info("ifdown %s" % ifname)
+    logger.debug("ifdown %s" % ifname)
     ipr.link_down(index=index)
 
 
@@ -40,7 +40,7 @@ def dhcp_client_daemon(manager, ifname):
 
 
 def dhcp_server_daemon(manager, ifname):
-    logger.info("dhcp server for %s" % ifname)
+    logger.debug("dhcp server for %s" % ifname)
     dhcpd_conf = tempfile.mktemp() + ".dhcpd.conf"
     dhcpd_leases = tempfile.mktemp() + ".leases"
 
@@ -53,7 +53,7 @@ def dhcp_server_daemon(manager, ifname):
 
 
 def config_ipaddr(ifname, config):
-    logger.info("[%s] ifconfig: %s" % (ifname, config))
+    logger.debug("[%s] ifconfig: %s" % (ifname, config))
 
     ipr = IPRoute()
     index = _find_device_index(ifname, ipr)
@@ -63,13 +63,13 @@ def config_ipaddr(ifname, config):
     route = config.get("route")
     ns = config.get("ns")
 
-    logger.info("[%s] Add ip %s/%s" % (ifname, ipaddr, mask))
+    logger.debug("[%s] Add ip %s/%s" % (ifname, ipaddr, mask))
     ipr.addr('add', index=index, address=ipaddr, mask=mask)
 
     _clean_route()
 
     if route:
-        logger.info("Add gateway %s" % (route))
+        logger.debug("Add gateway %s" % (route))
         ipr.route('add', gateway=route)
 
     if ns:
@@ -80,7 +80,7 @@ def config_nameserver(nameservers):
     """Config nameserver setting, the params is a list contains multi
     nameserviers"""
 
-    logger.info("nameserver config %s" % nameservers)
+    logger.debug("nameserver config %s" % nameservers)
 
     with open("/etc/resolv.conf", "w") as f:
         f.write("# This file is overwrite by fluxmonitord\n\n")
@@ -100,7 +100,7 @@ def _find_device_index(ifname, ipr):
 def _clean_ipaddr(ifname, index, ipr):
     for address, mask in _get_ipaddresses(index):
         try:
-            logger.info("Del ip %s/%s for %s" % (address, mask, ifname))
+            logger.debug("Del ip %s/%s for %s" % (address, mask, ifname))
             ipr.addr('del', index=index, address=address, mask=mask)
         except Exception:
             logger.exception("Remove ipaddr error")

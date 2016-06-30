@@ -64,7 +64,7 @@ class WirelessNetworkReviewer(object):
 
     @classmethod
     def add_reviewer(cls, ifname, old_config, service):
-        logger.info("Trace %s config status", ifname)
+        logger.debug("Trace %s config status", ifname)
         data = (ifname, time(), old_config, service)
 
         if check_associate(ifname):
@@ -138,6 +138,7 @@ class NetworkService(ServiceBase, NetworkMonitorMixIn):
     def __init__(self, options):
         super(NetworkService, self).__init__(logger)
         self.cm = Metadata()
+        self.activated = (self.cm.wifi_status & 1 == 0)
         self.nic_status = {}
         self.daemons = {}
 
@@ -151,11 +152,8 @@ class NetworkService(ServiceBase, NetworkMonitorMixIn):
         self.nms_watcher.start()
         self.start_network_notifier()
 
-        for ifname in self.nic_status.keys():
-            try:
-                self.bootstrap(ifname)
-            except Exception:
-                logger.exception("Error while bootstrap %s" % ifname)
+        if self.activated:
+            self.startup_all_nic()
 
     def on_shutdown(self):
         self.nms_watcher.stop()
@@ -165,16 +163,22 @@ class NetworkService(ServiceBase, NetworkMonitorMixIn):
         self.timer_watcher.stop()
         self.timer_watcher = None
         self.shutdown_network_notifier()
+        self.shutdown_all_nic()
 
-        for ifname, daemons in self.daemons.items():
-            for dname, instance in daemons.items():
-                instance.kill()
+    def on_activate_changed(self):
+        activated = (self.cm.wifi_status & 1) == 0
+        if activated is False and self.activated is True:
+            self.activated = False
+            self.shutdown_all_nic()
+        elif activated is True and self.activated is False:
+            self.activated = True
+            self.startup_all_nic()
 
     def on_timer(self, watcher, revent):
         st = self.update_network_led()
         if st == watcher.data[1]:
             # Network st not change
-            if watcher.data[0] < 30:
+            if watcher.data[0] < 15:
                 g = watcher.data[0]
                 watcher.stop()
                 watcher.set(g + 2, g + 2)
@@ -239,14 +243,26 @@ class NetworkService(ServiceBase, NetworkMonitorMixIn):
         else:
             self.cm.wifi_status |= 128
 
-    def bootstrap(self, ifname, rebootstrap=False):
-        """start network interface and apply its configurations"""
+    def startup_all_nic(self):
+        logger.debug("startup all nic")
+        for ifname in self.nic_status.keys():
+            try:
+                self.bootstrap(ifname)
+            except Exception:
+                logger.exception("Error while bootstrap %s" % ifname)
 
-        logger.info("[%s] Bootstrap" % ifname)
-        self.kill_daemons(ifname)
+    def shutdown_all_nic(self):
+        logger.debug("shutdown all nic")
+        for ifname in self.nic_status.keys():
+            self.kill_daemons(ifname)
+            net_cfg.ifdown(ifname)
+
+    def bootstrap(self, ifname, rebootstrap=False):
+        # start network interface and apply its configurations
+
+        logger.debug("[%s] Bootstrap" % ifname)
 
         self.bootstrap_nic(ifname, forcus_restart=True)
-
         config = self.get_config(ifname)
 
         if config:
@@ -255,8 +271,8 @@ class NetworkService(ServiceBase, NetworkMonitorMixIn):
             self.config_device(ifname, self._create_default_config(ifname))
 
     def bootstrap_nic(self, ifname, delay=0.5, forcus_restart=False):
-        """Startup nic, this method will get device information from
-        self.nic_status"""
+        # Startup nic, this method will get device information from
+        # self.nic_status
 
         ifstatus = self.nic_status.get(ifname, {}).get('ifstatus')
         if ifstatus == 'UP':
@@ -343,7 +359,7 @@ class NetworkService(ServiceBase, NetworkMonitorMixIn):
             else:
                 logger.error("'%s daemon' (%s) is unexpected "
                              "terminated. Restart." % (name, process))
-                self.bootstrap(ifname)
+                self.bootstrap(ifname, forcus_restart=True)
         else:
             logger.error("A process %s closed but not "
                          "in daemon list" % process)
@@ -361,7 +377,7 @@ class NetworkService(ServiceBase, NetworkMonitorMixIn):
                 logger.error("[%s] Remove zombie daemon %s" % (ifname, name))
             else:
                 try:
-                    logger.info("[%s] Kill daemon %s" % (ifname, name))
+                    logger.debug("[%s] Kill daemon %s" % (ifname, name))
                     daemon.kill()
                     killed_daemons["*" + name] = daemon
                 except Exception:
@@ -396,6 +412,8 @@ class NetworkManageSocket(socket.socket):
                 cmd, data = payloads
                 if cmd == "config_network":
                     self.config_network(NCE.parse_bytes(data))
+                elif cmd == "power_change":
+                    self.master.on_activate_changed()
                 else:
                     self.master.logger.error("Unknow cmd: %s" % cmd)
             else:
