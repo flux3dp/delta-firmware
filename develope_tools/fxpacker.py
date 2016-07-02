@@ -82,6 +82,10 @@ def main():
                         nargs='*', help='Extra eggs')
     parser.add_argument('--debian', dest='extra_deb', type=str, default=None,
                         nargs='*', help='Extra debian packages')
+    parser.add_argument('--prescript', dest='prescript', type=str,
+                        default=None, help='Pre-process script')
+    parser.add_argument('--postscript', dest='postscript', type=str,
+                        default=None, help='Post-process script')
     parser.add_argument('-o', '--out', dest='output', type=str,
                         help="Output file")
 
@@ -96,7 +100,7 @@ def main():
 
     # A stupid check
     f = open(options.mainboard_firmware)
-    assert f.read(4) == b"\x00\x80\x08", "Not a mainboard firmware"
+    assert f.read(4) == b"\x00\x80\x08 ", "Not a mainboard firmware"
 
     try:
         manifest = {"package": "fluxmonitor", "version": version,
@@ -106,6 +110,11 @@ def main():
                                    for fn in options.extra_eggs],
                     "extra_deb": [place_file(fn, workdir)
                                   for fn in options.extra_deb]}
+
+        if options.prescript:
+            manifest["preprocess"] = place_file(options.prescript, workdir)
+        if options.postscript:
+            manifest["postprocess"] = place_file(options.postscript, workdir)
 
         manifest_fn = os.path.join(workdir, "MANIFEST.in")
         signature_fn = os.path.join(workdir, "signature")
