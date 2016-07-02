@@ -1,7 +1,6 @@
 
 import tempfile
 import logging
-import os
 
 from fluxmonitor.misc import Process
 from fluxmonitor.config import network_services
@@ -39,7 +38,8 @@ def get_wlan_ssid(ifname="wlan0"):
 
 
 def check_associate(ifname="wlan0"):
-    return os.system("iwgetid -a " + ifname) == 0
+    ret = Process.call_with_output("iwgetid", "-a", ifname).strip()
+    return True if ret and ret[-17:] != '00:00:00:00:00:00' else False
 
 
 def _write_wpa_config(filepath, config):
