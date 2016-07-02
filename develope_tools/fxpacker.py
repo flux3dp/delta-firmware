@@ -94,14 +94,18 @@ def main():
 
     workdir = mkdtemp()
 
+    # A stupid check
+    f = open(options.mainboard_firmware)
+    assert f.read(4) == b"\x00\x80\x08", "Not a mainboard firmware"
+
     try:
         manifest = {"package": "fluxmonitor", "version": version,
                     "egg": place_file(options.egg, workdir),
                     "mbfw": place_file(options.mainboard_firmware, workdir),
-                    "extra_eggs": [place_file(fn, workdir) \
-                                    for fn in options.extra_eggs],
-                    "extra_deb": [place_file(fn, workdir) \
-                                    for fn in options.extra_deb]}
+                    "extra_eggs": [place_file(fn, workdir)
+                                   for fn in options.extra_eggs],
+                    "extra_deb": [place_file(fn, workdir)
+                                  for fn in options.extra_deb]}
 
         manifest_fn = os.path.join(workdir, "MANIFEST.in")
         signature_fn = os.path.join(workdir, "signature")
