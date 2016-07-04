@@ -391,11 +391,11 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
                                 head_ctrl.status()))
                     self.udp_sock.send(buf)
                 elif head_ctrl.ready_flag > 0:
-                    buf = packb((1, "", -1, head_ctrl.errcode, {}))
+                    buf = packb((1, "", 0, -1, {}))
                     self.udp_sock.send(buf)
 
                 else:
-                    buf = packb((1, "", -2, head_ctrl.errcode, {}))
+                    buf = packb((1, "", 0, -2, {}))
                     self.udp_sock.send(buf)
 
             except socket.error:
