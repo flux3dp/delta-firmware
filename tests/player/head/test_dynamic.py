@@ -16,6 +16,7 @@ class DurarararaControlTest(ControlTestBase):
         with self.get_executor() as executor:
             ec = HeadController(executor, required_module=None,
                                 ready_callback=self.raiseException)
+            ec.bootstrap(executor)
         with self.get_executor() as executor:
             ec._cmd_sent_at = 0
             self.assertRaises(UnittestError, ec.patrol, executor)

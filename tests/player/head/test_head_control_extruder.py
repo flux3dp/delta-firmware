@@ -18,9 +18,10 @@ class ExtruderHeadControlTest(ControlTestBase):
     def setUp(self):
         super(ExtruderHeadControlTest, self).setUp()
 
-        with self.assertSendHeadboard(b"1 HELLO *115\n") as executor:
+        with self.assertSendHeadboard('1 HELLO *115\n') as executor:
             ec = HeadController(executor, required_module="EXTRUDER",
                                 ready_callback=self.raiseException)
+            ec.bootstrap(executor)
 
         with self.assertSendHeadboard(PING_CMD, b"1 F:0 S:0 *4\n") as executor:
             ec.on_message(HELLO_MSG, executor)
