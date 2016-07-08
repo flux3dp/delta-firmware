@@ -2,10 +2,11 @@
 from collections import deque
 import logging
 
-from fluxmonitor.config import MAINBOARD_RETRY_TTL
-from fluxmonitor.err_codes import UNKNOWN_ERROR, EXEC_BAD_COMMAND
 from fluxmonitor.diagnosis.god_mode import allow_god_mode
+from fluxmonitor.misc.systime import systime as time
+from fluxmonitor.err_codes import UNKNOWN_ERROR, EXEC_BAD_COMMAND
 from fluxmonitor.hal.tools import reset_hb
+from fluxmonitor.config import MAINBOARD_RETRY_TTL
 
 from .base import BaseExecutor
 from .base import ST_STARTING, ST_RUNNING, ST_COMPLETED, ST_ABORTED  # noqa
@@ -19,7 +20,42 @@ from .head_controller import HeadController
 logger = logging.getLogger(__name__)
 
 
-class FcodeExecutor(BaseExecutor):
+class AutoResume(object):
+    __resume_counter = 0
+    __resume_timestamp = 0
+
+    def __is_usbc_cable_issue(self):
+        if self.error_symbol:
+            if "HEAD_OFFLINE" in self.error_symbol.args:
+                return True
+            if "HEAD_RESET" in self.error_symbol.args:
+                return True
+        return False
+
+    def paused(self):
+        super(AutoResume, self).paused()
+        if self.status_id & 192:
+            # Game over
+            return
+        else:
+            if self.__is_usbc_cable_issue() is False:
+                return
+
+            if self.__resume_timestamp + 180 > time():
+                self.__resume_counter = 1
+            else:
+                self.__resume_timestamp = time()
+                self.__resume_counter += 1
+
+            if self.__resume_counter > 3:
+                logger.error("Autoresume invalied because error occour more "
+                             "then 3 times.")
+            else:
+                logger.error("Autoresume activated")
+                self.resume()
+
+
+class FcodeExecutor(AutoResume, BaseExecutor):
     debug = False  # Note: debug only use for unittest
     main_ctrl = None
     head_ctrl = None
@@ -72,6 +108,10 @@ class FcodeExecutor(BaseExecutor):
     @property
     def traveled(self):
         return self._fsm.get_traveled()
+
+    @property
+    def position(self):
+        return self._fsm.get_position()
 
     def close(self):
         self._task_loader.close()
