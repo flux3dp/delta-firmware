@@ -13,7 +13,7 @@ from fluxmonitor.player.base import (ST_COMPLETED, ST_ABORTED,
 from fluxmonitor.misc.fcode_file import FCodeFile, FCodeError
 from fluxmonitor.misc.pidfile import load_pid
 from fluxmonitor.err_codes import FILE_BROKEN, NOT_SUPPORT, UNKNOWN_ERROR, \
-    RESOURCE_BUSY
+    RESOURCE_BUSY, SUBSYSTEM_ERROR
 from fluxmonitor.config import PLAY_ENDPOINT, PLAY_SWAP
 from fluxmonitor.storage import Storage, Metadata
 
@@ -100,7 +100,7 @@ class PlayerManager(object):
 
     @property
     def sock(self):
-        if not self._sock:
+        if self._sock is None:
             st = self.meta.format_device_status
 
             if st["st_id"] == 1:
@@ -108,7 +108,7 @@ class PlayerManager(object):
                     raise RuntimeError(RESOURCE_BUSY)
                 else:
                     self.on_fatal_error(log="Player control socket missing")
-                    raise SystemError()
+                    raise SystemError(SUBSYSTEM_ERROR)
 
             try:
                 self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
@@ -120,7 +120,7 @@ class PlayerManager(object):
                     raise RuntimeError("RESOURCE_BUSY")
                 else:
                     self.on_fatal_error(log="Can not connect to Player socket")
-                    raise SystemError()
+                    raise SystemError(SUBSYSTEM_ERROR)
 
         return self._sock
 
@@ -142,7 +142,7 @@ class PlayerManager(object):
             watcher = None
 
     def go_to_hell(self):
-        # will be called form robot only
+        # will be called from robot only
         raise RuntimeError(NOT_SUPPORT)
 
     @property
@@ -189,11 +189,19 @@ class PlayerManager(object):
                 return '{"st_label": "IDLE", "st_id": 0}'
         except SystemError:
             raise RuntimeError(RESOURCE_BUSY)
+        except socket.error as e:
+            logger.error("Player socket error: %s", e)
+            raise RuntimeError(SUBSYSTEM_ERROR)
 
     def quit(self):
         if self.proc.poll() is None:
-            self.sock.send("QUIT")
-            return self.sock.recv(4096)
+            try:
+                self.sock.send("QUIT")
+                return self.sock.recv(4096)
+            except socket.error as e:
+                logger.error("Player socket error: %s", e)
+                self.terminate()
+                raise RuntimeError(SUBSYSTEM_ERROR)
         else:
             if self.child_watcher and self.child_watcher.data:
                 self.child_watcher.data(self)
