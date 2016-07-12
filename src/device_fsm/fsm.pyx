@@ -97,3 +97,6 @@ cdef class PyDeviceFSM:
 
   cpdef double get_traveled(self):
     return self.ptr.fsm.traveled
+
+  cpdef get_position(self):
+    return {"X": self.ptr.fsm.x, "Y": self.ptr.fsm.y, "Z": self.ptr.fsm.z}

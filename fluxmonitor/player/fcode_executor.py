@@ -73,6 +73,10 @@ class FcodeExecutor(BaseExecutor):
     def traveled(self):
         return self._fsm.get_traveled()
 
+    @property
+    def position(self):
+        return self._fsm.get_position()
+
     def close(self):
         self._task_loader.close()
 
