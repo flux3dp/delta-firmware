@@ -512,7 +512,7 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
         self.known_position = None
 
     def on_z_probe(self, handler, x, y):
-        if self.known_position and x**2 + y**2 < 289:
+        if self.known_position and x ** 2 + y ** 2 < 289:
             cmd = "G30X%.5fY%.5f" % (x, y)
             self.append_cmd(TARGET_MAINBOARD, cmd)
 
@@ -547,7 +547,7 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
         self.append_cmd(TARGET_MAINBOARD, "X87F%i" % flags)
 
     def on_toolhead_profile(self, handler):
-        buf = packb((CMD_THPF, self.head_ctrl.status()))
+        buf = packb((CMD_THPF, self.head_ctrl.info()))
         self.handler.send(buf)
 
     def on_require_sync(self, handler, ipaddr, port, salt):
