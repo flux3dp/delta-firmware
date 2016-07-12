@@ -317,6 +317,9 @@ class ConfigMixIn(object):
             "key": "filament_detect"},
         "head_error_level": {
             "type": int, "key": "head_error_level"},
+        "autoresume": {
+            "type": str, "enum": ("Y", "N"),
+            "key": "autoresume"},
     }
 
     def dispatch_config_cmd(self, handler, cmd, *args):

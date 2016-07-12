@@ -25,10 +25,11 @@ class AutoResume(object):
     __resume_timestamp = 0
 
     def __is_usbc_cable_issue(self):
-        if self.error_symbol:
+        if self.options.autoresume and self.error_symbol and \
+                'HEAD_ERROR' in self.error_symbol.args:
             if "HEAD_OFFLINE" in self.error_symbol.args:
                 return True
-            if "HEAD_RESET" in self.error_symbol.args:
+            if "RESET" in self.error_symbol.args:
                 return True
         return False
 
