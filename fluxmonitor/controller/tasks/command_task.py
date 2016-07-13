@@ -199,6 +199,8 @@ class FileManagerMixIn(object):
 
 
 class PlayManagerMixIn(object):
+    _last_playing_file = None
+
     def __get_manager(self):
         component = self.stack.kernel.exclusive_component
         if isinstance(component, PlayerManager):
@@ -226,6 +228,7 @@ class PlayManagerMixIn(object):
                     pm = PlayerManager(
                         self.stack.loop, self._task_file.name,
                         terminated_callback=kernel.release_exclusive)
+                    self._last_playing_file = self._task_file
                 except Exception:
                     logger.exception("Launch playmanager failed")
                     raise RuntimeError(SUBSYSTEM_ERROR, HARDWARE_FAILURE)
