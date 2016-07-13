@@ -56,12 +56,14 @@ class CameraService(ServiceBase):
         while self.live_queue:
             h = self.live_queue.popleft()
             try:
-                h.next_frame()
+                if h.ready == 2:
+                    h.next_frame()
             except Exception:
                 logger.exception("Error at next frame in timer")
 
     def add_to_live_queue(self, handler):
-        self.live_queue.append(handler)
+        if handler not in self.live_queue:
+            self.live_queue.append(handler)
 
     def live(self, camera_id):
         # API for client

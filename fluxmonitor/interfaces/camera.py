@@ -40,19 +40,35 @@ class CameraTcpInterface(SSLInterface):
 
 
 class CameraTcpHandler(SSLConnectionHandler):
+    streaming = False
+
     def on_ready(self):
         self.delegate = proxy(self)
         self.ts = 0
 
-        self.next_frame()
+    def on_text(self, text, _):
+        if text == "f":
+            if systime() - self.ts <= self.kernel.SPF:
+                self.kernel.add_to_live_queue(self)
+            else:
+                self.next_frame()
+        elif text == "s+":
+            self.streaming = True
+            logger.debug("Enable streaming")
+            self.on_frame_sent()
+        elif text == "s-":
+            self.streaming = False
+            logger.debug("Disable streaming")
 
     def on_frame_sent(self, _=None):
-        if systime() - self.ts <= self.kernel.SPF:
-            self.kernel.add_to_live_queue(self)
-        else:
-            self.next_frame()
+        if self.streaming:
+            if systime() - self.ts <= self.kernel.SPF:
+                self.kernel.add_to_live_queue(self)
+            else:
+                self.next_frame()
 
     def next_frame(self):
+        logger.debug("Next frame")
         self.ts, imageobj = self.kernel.live(0)
         mimetype, length, stream = imageobj
         self.send(UINT_PACKER.pack(length))
