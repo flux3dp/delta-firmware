@@ -356,7 +356,8 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
 
             for payload in self.recv_from_headboard(buf):
                 msg = h.on_message(payload, self)
-                if msg and self.head_resp_stack is not None:
+                if msg and self.head_resp_stack is not None and \
+                        len(self.head_resp_stack) <= 32:
                     self.head_resp_stack.append(msg)
 
             self.send_udp1(h)
