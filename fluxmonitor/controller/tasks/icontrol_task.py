@@ -241,6 +241,10 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
 
         def on_mainboard_ready(ctrl):
             self._ready |= 1
+            self.main_ctrl.send_cmd("X8F", self)
+            self.main_ctrl.send_cmd("T0", self)
+            self.main_ctrl.send_cmd("G90", self)
+            self.main_ctrl.send_cmd("G92E0", self)
             handler.send_text("ok")
 
         self.main_ctrl = MainController(executor=self, bufsize=14,
