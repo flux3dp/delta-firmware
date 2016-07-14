@@ -485,39 +485,48 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
         self.cmd_queue.append((target, cmd))
         self.fire()
 
+    def create_movement_command(self, F=None, X=None, Y=None, Z=None,  # noqa
+                                E0=None, E1=None, E2=None):  # noqa
+        target = self.known_position
+        yield "G1"
+
+        if X is not None or Y is not None or Z is not None:
+            if self.known_position:
+                if X is not None:
+                    target[0] = X
+                    yield "X%.5f" % X
+                if Y is not None:
+                    target[1] = Y
+                    yield "Y%.5f" % Y
+                if Z is not None:
+                    target[2] = Z
+                    yield "Z%.5f" % Z
+
+                if (target[0] ** 2 + target[1] ** 2) > 28900:
+                    raise InternalError(CMD_G001, MSG_OPERATION_ERROR)
+                elif target[2] > 240 or target[2] < 0:
+                    raise InternalError(CMD_G001, MSG_OPERATION_ERROR)
+
+            else:
+                raise InternalError(CMD_G001, MSG_OPERATION_ERROR)
+
+        eflag = False
+        for i, e in ((0, E0), (1, E1), (2, E2)):
+            if e is not None:
+                if eflag:
+                    raise InternalError(CMD_G001, MSG_OPERATION_ERROR)
+                else:
+                    eflag = True
+                    if self.main_e_axis != i:
+                        yield "T%i" % i
+                        self.main_e_axis = i
+                    yield "E%.5f" % e
+
+        self.known_position = target
+
     def on_move(self, handler, kw):
-        if self.known_position:
-            cmd = "G1"
-            if "F" in kw:
-                cmd += "F%i" % kw["F"]
-
-            target = self.known_position
-            for i, ax in ((0, "X"), (1, "Y"), (2, "Z")):
-                if ax in kw:
-                    target[i] = p = kw[ax]
-                    cmd += "%s%.5f" % (ax, p)
-
-            if (target[0] ** 2 + target[1] ** 2) > 28900:
-                raise InternalError(CMD_G001, MSG_OPERATION_ERROR)
-            elif target[2] > 240 or target[2] < 0:
-                raise InternalError(CMD_G001, MSG_OPERATION_ERROR)
-
-            eflag = False
-            for i in xrange(3):
-                e = "E" + str(i)
-                if e in kw:
-                    if eflag:
-                        raise InternalError(CMD_G001, MSG_OPERATION_ERROR)
-                    else:
-                        eflag = True
-                        if self.main_e_axis != i:
-                            cmd += "T%i" % i
-                            self.main_e_axis = i
-                        cmd += "E%.5f" % kw[e]
-
-            self.append_cmd(TARGET_MAINBOARD, cmd)
-        else:
-            raise InternalError(CMD_G001, MSG_OPERATION_ERROR)
+        cmd = "".join(self.create_movement_command(**kw))
+        self.append_cmd(TARGET_MAINBOARD, cmd)
 
     def on_sleep(self, handler, secondes):
         cmd = "G4S%.4f" % secondes
