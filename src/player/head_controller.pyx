@@ -179,9 +179,11 @@ cdef class HeadController:
                 if ptr[0] == '*':
                     sscanf(<const char *>(ptr + 1), "%d", &val)
                     if val == s:
-                        self.handle_message(raw_message[2:ptr - raw_message],
-                                            executor)
-                    return
+                        text = raw_message[2:ptr - raw_message]
+                        self.handle_message(text, executor)
+                        return text
+                    else:
+                        return
                 elif ptr[0] == 0:
                     L.warn("Drop message %s", raw_message)
                     return
@@ -261,6 +263,10 @@ cdef class HeadController:
             self._send_cmd(executor)
             self._cmd_callback = complete_callback
             self.wait_allset(allset_callback)
+
+            if padding_cmd[2] == '@':
+                self._padding_cmd = None
+                self._cmd_callback = None
         else:
             L.error("Got unknow command: %s", cmd)
             raise SystemError(UNKNOWN_COMMAND, "HEAD_MESSAGE")
@@ -518,8 +524,20 @@ cdef class LaserExt(BaseExt):
         return {"module": "LASER",}
 
 
+cdef class UserExt(BaseExt):
+    def hello(self, **kw):
+        m = kw.get("TYPE", "UNKNOW")
+        if not m.startswith("USER/"):
+            raise HeadTypeError("USER", m)
+        super(UserExt, self).hello(**kw)
+
+    def generate_command(self, cmd):
+        return create_chksum_cmd("1 %s", cmd)
+
+
 MODULES_EXT["EXTRUDER"] = ExtruderExt
 MODULES_EXT["LASER"] = LaserExt
+MODULES_EXT["USER"] = UserExt
 
 
 class HeadError(RuntimeError):
