@@ -49,22 +49,28 @@ logger = getLogger(__name__)
 #
 #
 # UDP Connection part
-#   (i:0, s:SALT, i:cmd_index, i:queued_size)
-#       * First 0 means it is a status message
-#       * SALT: not for use right now
+#   (i:0, s:salt, i:cmd_index, i:queued_size)
+#       * First integer 0 means it is a status message
+#       * salt: reserved
 #       * cmd_index: next command index should given
 #       * queued_size: command is waitting to be execute in system
 #
-#   (i:1, s:SALT, i:timestemp, i:head_error_code, obj:headstatus)
-#       * First 1 means it is a head status message
-#       * SALT: not for use right now
-#       * timestemp: not for use right now
+#   (i:1, s:salt, i:timestemp, i:head_error_code, obj:headstatus)
+#       * First integer 1 means it is a toolhead status message
+#       * salt: reserved
+#       * timestemp: reserved
 #       * head_error_code:
 #           == -2: Head Offline
 #           == -1: Not ready
 #            == 0: Ready
 #             > 0: Follow toolhead error table
-
+#
+#   (i:2, s:salt, i:timestemp, ...)
+#       * Please assume array size is dynamic
+#       * First integer 2 means it is a user toolhead status message
+#       * salt: reserved
+#       * timestemp: reserved
+#       * Element 3: Toolhead response message stack size
 
 CMD_G001 = 0x01
 # Move position
@@ -140,6 +146,15 @@ CMD_THPF = 0x51
 # ()
 #    => (0x51, {"module": "EXTRUDER", "vendor": "FLUX .inc", "id": "...", }, )
 
+CMD_THRC = 0x5e
+# Send raw command to toolhead, only vaild when toolhead type is USER/*
+# (s:command)
+
+CMD_THRR = 0x5f
+# Recv raw command data from toolhead, only valid when toolhead type is USER/*
+# ()
+#    = (0x52, ["COMMAND RESPONSE n", "COMMAND RESPONSE n + 1", ...])
+
 CMD_M104 = 0x60
 # Set toolhead extruder temperature
 # (i:index, i:temperature)
@@ -212,6 +227,7 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
     known_position = None  # Is toolhead position is known or not
     main_ctrl = None  # Mainborad Controller
     head_ctrl = None  # Headboard Controller
+    head_resp_stack = None  # Toolhead raw rasponse stack
 
     def __init__(self, stack, handler, enable_watcher=True, mb_sock=None,
                  th_sock=None):
@@ -334,8 +350,10 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
 
             h = self.head_ctrl
 
-            for msg in self.recv_from_headboard(buf):
-                h.on_message(msg, self)
+            for payload in self.recv_from_headboard(buf):
+                msg = h.on_message(payload, self)
+                if msg and self.head_resp_stack is not None:
+                    self.head_resp_stack.append(msg)
 
             self.send_udp1(h)
 
@@ -386,10 +404,15 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
     def send_udp1(self, head_ctrl):
         if self.udp_sock:
             try:
+                if self.head_resp_stack is not None:
+                    buf = packb((2, "", 0, len(self.head_resp_stack)))
+                    self.udp_sock.send(buf)
+
                 if head_ctrl.ready:
                     buf = packb((1, "", 0, head_ctrl.errcode,
                                 head_ctrl.status()))
                     self.udp_sock.send(buf)
+
                 elif head_ctrl.ready_flag > 0:
                     buf = packb((1, "", 0, -1, {}))
                     self.udp_sock.send(buf)
@@ -550,6 +573,14 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
         buf = packb((CMD_THPF, self.head_ctrl.info()))
         self.handler.send(buf)
 
+    def on_toolhead_raw_command(self, handler, cmd):
+        self.append_cmd(TARGET_TOOLHEAD, cmd)
+
+    def on_toolhead_raw_response(self, handler):
+        buf = packb((CMD_THRR, self.head_resp_stack))
+        self.head_resp_stack = []
+        self.handler.send(buf)
+
     def on_require_sync(self, handler, ipaddr, port, salt):
         endpoint = (ipaddr, port)
         logger.debug("Create sync udp endpoint at %s", repr(endpoint))
@@ -570,6 +601,7 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
         self.head_ctrl = HeadController(executor=self, error_level=0,
                                         required_module=head_type,
                                         ready_callback=self.on_toolhead_ready)
+        self.head_resp_stack = [] if head_type == "USER" else None
 
     def on_bootstrap_toolhead(self, handler):
         self.head_ctrl.bootstrap(self)
@@ -612,6 +644,8 @@ CMD_MATRIX = {
     CMD_HLSR: IControlTask.on_set_toolhead_pwm,
     CMD_VALU: IControlTask.on_query_value,
     CMD_THPF: IControlTask.on_toolhead_profile,
+    CMD_THRC: IControlTask.on_toolhead_raw_command,
+    CMD_THRR: IControlTask.on_toolhead_raw_response,
     CMD_SYNC: IControlTask.on_require_sync,
     CMD_REQH: IControlTask.on_require_head,
     CMD_BSTH: IControlTask.on_bootstrap_toolhead,

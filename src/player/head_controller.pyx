@@ -180,8 +180,7 @@ cdef class HeadController:
                     sscanf(<const char *>(ptr + 1), "%d", &val)
                     if val == s:
                         text = raw_message[2:ptr - raw_message]
-                        self.handle_message(text, executor)
-                        return text
+                        return self.handle_message(text, executor)
                     else:
                         return
                 elif ptr[0] == 0:
@@ -198,9 +197,9 @@ cdef class HeadController:
                 if self._padding_cmd:
                     self._send_cmd(executor)
             elif self._parse_cmd_response(msg, executor):
-                pass
+                return msg
             elif self._ext.on_message(msg):
-                pass
+                return msg
             else:
                 L.info("RECV_UH: '%s'", msg)
         elif self._ready == 4 or self._ready == 16:
@@ -525,14 +524,23 @@ cdef class LaserExt(BaseExt):
 
 
 cdef class UserExt(BaseExt):
+    cdef object status_ref
+
     def hello(self, **kw):
         m = kw.get("TYPE", "UNKNOW")
         if not m.startswith("USER/"):
             raise HeadTypeError("USER", m)
         super(UserExt, self).hello(**kw)
+        self.status_ref = {"module": m}
 
     def generate_command(self, cmd):
         return create_chksum_cmd("1 %s", cmd)
+
+    def update_status(self, key, value):
+        self.status_ref[key] = value
+
+    def status(self):
+        return self.status_ref 
 
 
 MODULES_EXT["EXTRUDER"] = ExtruderExt
