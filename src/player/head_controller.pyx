@@ -142,7 +142,7 @@ cdef class HeadController:
                 if self._required_module == "N/A":
                     raise HeadTypeError("N/A", module_type)
                 else:
-                    ext_klass = MODULES_EXT.get(module_type)
+                    ext_klass = MODULES_EXT.get(module_type.split("/")[0])
                     if ext_klass:
                         self._ext = ext_klass()
                         self._ext.hello(**module_info)

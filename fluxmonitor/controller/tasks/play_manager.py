@@ -117,7 +117,7 @@ class PlayerManager(object):
                 self._sock.settimeout(1.5)
             except socket.error:
                 if time() - st["timestemp"] < 30:
-                    raise RuntimeError("RESOURCE_BUSY")
+                    raise RuntimeError(RESOURCE_BUSY)
                 else:
                     self.on_fatal_error(log="Can not connect to Player socket")
                     raise SystemError(SUBSYSTEM_ERROR)

@@ -101,7 +101,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
                 if self._macro:
                     self._macro.on_headboard_message(msg, self)
                 self.head_ctrl.on_message(msg, self)
-        except HeadResetError as e:
+        except (HeadOfflineError, HeadResetError) as e:
             logger.debug("Head reset")
             self.head_ctrl.bootstrap(self)
             if self._macro:
