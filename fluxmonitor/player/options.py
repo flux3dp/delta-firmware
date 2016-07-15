@@ -57,7 +57,7 @@ class Options(object):
         storage = Storage("general", "meta")
         if self.correction is None:
             self.correction = ensure_value(
-                storage.readall("auto_correction"), "H")
+                storage.readall("auto_correction"), "A")
 
         if self.filament_detect is None:
             self.filament_detect = ensure_value(
