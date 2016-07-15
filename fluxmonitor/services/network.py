@@ -223,7 +223,7 @@ class NetworkService(ServiceBase, NetworkMonitorMixIn):
         else:
             c = create_default_config(ifname)
             self.set_config(ifname, c)
-        return None
+            return c
 
     def update_network_led(self, host_flag=None):
         """Return True if network is read"""
@@ -264,11 +264,8 @@ class NetworkService(ServiceBase, NetworkMonitorMixIn):
 
         self.bootstrap_nic(ifname, forcus_restart=True)
         config = self.get_config(ifname)
-
-        if config:
-            self.config_device(ifname, config)
-        else:
-            self.config_device(ifname, self._create_default_config(ifname))
+        assert config
+        self.config_device(ifname, config)
 
     def bootstrap_nic(self, ifname, delay=0.5, forcus_restart=False):
         # Startup nic, this method will get device information from
