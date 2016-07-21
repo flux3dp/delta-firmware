@@ -386,14 +386,14 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
         #   "DATA READ X:0.124 Y:0.234 Z:0.534 F0:1 F1:0 MB:0"
         if message.startswith("DATA READ "):
             output = {}
-            for key, val in ((p.split(":") for p in message[10:].split(":"))):
+            for key, val in ((p.split(":") for p in message[10:].split(" "))):
                 if key in ("X", "Y", "Z"):
                     output[key] = float(val)
                 elif key in ("F0", "F1"):
                     output[key] = (val == "1")
                 elif key == "MB":
                     output[key] = (val == "1")
-            self.handler.send(packb(CMD_VALU, output))
+            self.handler.send(packb((CMD_VALU, output)))
         #   "DATA ZPROBE -0.5"
         if message.startswith("DATA ZPROBE "):
             self.handler.send(packb(CMD_G030, float(message[12:])))
@@ -490,6 +490,9 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
                                 E0=None, E1=None, E2=None):  # noqa
         target = self.known_position
         yield "G1"
+
+        if F:
+            yield "F%i" % F
 
         if X is not None or Y is not None or Z is not None:
             if self.known_position:
