@@ -17,9 +17,9 @@ from fluxmonitor.misc import network_config_encoder as NCE  # noqa
 from fluxmonitor.security.passwd import set_password
 from fluxmonitor.security.access_control import is_rsakey, get_keyobj, \
     add_trusted_keyobj, untrust_all
-from fluxmonitor.storage import Storage, Metadata
 from fluxmonitor.security.misc import randstr
-from fluxmonitor.halprofile import get_model_id
+from fluxmonitor.hal.misc import get_deviceinfo
+from fluxmonitor.storage import Storage, Metadata
 from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT, uart_config
 from fluxmonitor.err_codes import UNKNOWN_ERROR
 from fluxmonitor import security
@@ -28,9 +28,6 @@ from .base import ServiceBase
 
 logger = logging.getLogger(__name__)
 
-UUID_HEX = security.get_uuid()
-SERIAL = security.get_serial()
-MODEL_ID = get_model_id()
 COMMON_ERRNO = (ENOENT, ENOTSOCK)
 
 MSG_OK = b"OK"
@@ -228,12 +225,13 @@ class UsbIO(object):
 
     def on_identify(self, buf):
         self._vector = randstr(8)
-        resp = ("ver=%s\x00model=%s\x00uuid=%s\x00serial=%s\x00name=%s\x00"
-                "time=%.2f\x00pwd=%i\x00vector=%s") % (
-                    VERSION, MODEL_ID, UUID_HEX, SERIAL, self.meta.nickname,
-                    time(), security.has_password(), self._vector)
-        # NOTE: encoding
-        self.send_response(REQ_IDENTIFY, True, resp)
+        info = {"time": time(), "pwd": 1 if security.has_password() else 0,
+                "vector": self._vector}
+        info.update(get_deviceinfo(self.meta))
+        info["ver"] = info.pop("version")
+        info["name"] = info.pop("nickname")
+        resp = "\x00".join(("%s=%s" % kv for kv in info.items()))
+        self.send_response(REQ_IDENTIFY, True, resp.encode())
 
     def on_rsakey(self, buf):
         pkey = security.get_private_key()

@@ -15,11 +15,10 @@ from fluxmonitor.err_codes import (UNKNOWN_COMMAND, NOT_EXIST, TOO_LARGE,
                                    NO_TASK, BAD_PARAMS, BAD_FILE_FORMAT,
                                    RESOURCE_BUSY, SUBSYSTEM_ERROR,
                                    HARDWARE_FAILURE)
-from fluxmonitor.storage import Storage, Metadata, UserSpace
 from fluxmonitor.diagnosis.god_mode import allow_god_mode
+from fluxmonitor.hal.misc import get_deviceinfo
+from fluxmonitor.storage import Storage, Metadata, UserSpace
 from fluxmonitor.misc import mimetypes
-from fluxmonitor import halprofile
-import fluxmonitor
 
 from .base import CommandMixIn
 from .scan_task import ScanTask
@@ -486,9 +485,9 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
         handler.send_text("continue")
 
     def deviceinfo(self, handler):
-        handler.send_text("ok\nversion:%s\nmodel:%s" % (
-            fluxmonitor.__version__,
-            halprofile.get_model_id()))
+        buf = "\n".join(
+            ("%s:%s" % kv for kv in get_deviceinfo(self.settings).items()))
+        handler.send_text("ok\n%s" % buf)
 
     def fetch_log(self, handler, path):
         filename = os.path.abspath(os.path.join("/var/log", path))
