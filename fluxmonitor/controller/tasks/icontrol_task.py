@@ -455,7 +455,7 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
         try:
             self.head_ctrl.patrol(self)
         except (HeadOfflineError, HeadResetError) as e:
-            logger.debug("Head Offline/Reset: %s %s", e)
+            logger.debug("Head Offline/Reset: %s", e)
 
         except RuntimeError as e:
             logger.info("%s", e)
