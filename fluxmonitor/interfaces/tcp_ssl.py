@@ -129,7 +129,7 @@ class SSLConnectionHandler(HandlerBase):
             return "ZOMBIE"
 
     def on_recv(self, watcher, revent):
-        if self.ready > 0:  # ready > 0
+        if self.ready > 0:
             while True:
                 try:
                     l = self.sock.recv_into(self._bufview[self._buffered:])
@@ -140,7 +140,8 @@ class SSLConnectionHandler(HandlerBase):
                     self.close()
                     return
                 except Exception as e:
-                    logger.exception("SSL Socket recv error")
+                    logger.exception("SSL Socket recv error (self.ready=%i)",
+                                     self.ready)
                     self.close()
                     return
 

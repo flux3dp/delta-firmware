@@ -153,7 +153,7 @@ CMD_THRC = 0x5e
 CMD_THRR = 0x5f
 # Recv raw command data from toolhead, only valid when toolhead type is USER/*
 # ()
-#    = (0x52, ["COMMAND RESPONSE n", "COMMAND RESPONSE n + 1", ...])
+#    = (0x5f, ["COMMAND RESPONSE n", "COMMAND RESPONSE n + 1", ...])
 
 CMD_M104 = 0x60
 # Set toolhead extruder temperature
