@@ -158,12 +158,12 @@ class SSLConnectionHandler(HandlerBase):
                     else:
                         self.close("CONNECTION_GONE")
 
+                except SystemError as e:
+                    logger.warning("%s", repr(e))
+                    self.close()
                 except Exception:
                     logger.exception("Unhandle error on recv interface, "
                                      "disconnect")
-                    self.close()
-                except SystemError as e:
-                    logger.error("%s", repr(e))
                     self.close()
         else:
             self._on_ssl_handshake()

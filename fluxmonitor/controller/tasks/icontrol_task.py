@@ -211,6 +211,7 @@ CMD_KILL = 0xff
 
 MSG_OPERATION_ERROR = 0x01
 MSG_QUEUE_FULL = 0x02
+MSG_BAD_PARAMS = 0x03
 MSG_UNKNOWN_ERROR = 0xff
 
 TARGET_MAINBOARD = 0
@@ -529,16 +530,25 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
         self.known_position = target
 
     def on_move(self, handler, kw):
-        cmd = "".join(self.create_movement_command(**kw))
-        self.append_cmd(TARGET_MAINBOARD, cmd)
+        try:
+            cmd = "".join(self.create_movement_command(**kw))
+            self.append_cmd(TARGET_MAINBOARD, cmd)
+        except TypeError:
+            raise InternalError(CMD_G001, MSG_BAD_PARAMS)
 
     def on_sleep(self, handler, secondes):
-        cmd = "G4S%.4f" % secondes
-        self.append_cmd(TARGET_MAINBOARD, cmd)
+        try:
+            cmd = "G4S%.4f" % secondes
+            self.append_cmd(TARGET_MAINBOARD, cmd)
+        except TypeError:
+            raise InternalError(CMD_G004, MSG_BAD_PARAMS)
 
     def on_scan_lasr(self, handler, flags):
-        cmd = "X1E%i" % flags
-        self.append_cmd(TARGET_MAINBOARD, cmd)
+        try:
+            cmd = "X1E%i" % flags
+            self.append_cmd(TARGET_MAINBOARD, cmd)
+        except TypeError:
+            raise InternalError(CMD_SLSR, MSG_BAD_PARAMS)
 
     def on_home(self, handler):
         self.append_cmd(TARGET_MAINBOARD, "X6")
@@ -552,12 +562,15 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
         self.known_position = None
 
     def on_z_probe(self, handler, x, y):
-        if self.known_position and x ** 2 + y ** 2 < 289:
-            cmd = "G30X%.5fY%.5f" % (x, y)
-            self.append_cmd(TARGET_MAINBOARD, cmd)
+        try:
+            if self.known_position and x ** 2 + y ** 2 < 289:
+                cmd = "G30X%.5fY%.5f" % (x, y)
+                self.append_cmd(TARGET_MAINBOARD, cmd)
 
-        else:
-            raise InternalError(CMD_G030, MSG_OPERATION_ERROR)
+            else:
+                raise InternalError(CMD_G030, MSG_OPERATION_ERROR)
+        except TypeError:
+            raise InternalError(CMD_G030, MSG_BAD_PARAMS)
 
     # def on_adjust(self, handler, kw):
     #     pass
