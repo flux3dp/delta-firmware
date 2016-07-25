@@ -322,6 +322,9 @@ class ConfigMixIn(object):
         "autoresume": {
             "type": str, "enum": ("Y", "N"),
             "key": "autoresume"},
+        "broadcast": {
+            "type": str, "enum": ("L", "A", "N"),
+            "key": "broadcast"},
     }
 
     def dispatch_config_cmd(self, handler, cmd, *args):
