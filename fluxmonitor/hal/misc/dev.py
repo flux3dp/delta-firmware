@@ -1,3 +1,3 @@
 
-def get_deviceinfo():
+def _get_deviceinfo():
     return {"dev": True}
