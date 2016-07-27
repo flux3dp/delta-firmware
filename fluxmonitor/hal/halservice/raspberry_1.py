@@ -122,8 +122,8 @@ class FrontButtonMonitor(object):
 
     def send_long_press(self, callback):
         logging.debug("Btn event: LONG_PRESS")
-        callback('ABORT   ')
         callback('POWER   ')
+        callback('ABORT   ')
 
     def close(self):
         self._io_tigger.stop()
