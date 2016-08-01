@@ -53,6 +53,7 @@ class DeviceOperationMixIn(object):
     the 'clean' method will be invoked before mainboard/headboard be closed.
     """
 
+    _cleaned = False
     _uart_mb = _uart_hb = None
     _mb_watcher = _hb_watcher = None
 
@@ -70,7 +71,10 @@ class DeviceOperationMixIn(object):
 
     def _clean(self):
         try:
-            self.clean()
+            if self._cleaned is False:
+                self._cleaned = True
+                self.clean()
+
         except Exception:
             logger.exception("Error while clean task '%s'", self.__class__)
 

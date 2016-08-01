@@ -68,18 +68,15 @@ class Robot(ServiceBase):
                     elif self.exclusive_component.is_running:
                         self.exclusive_component.pause()
                 elif message == "ABORT":
-                    self.exclusive_component.abort()
+                    if self.exclusive_component.is_terminated is False:
+                        self.exclusive_component.abort()
                 elif message == "POWER":
                     if self.exclusive_component.is_terminated:
-                        self.exclusive_component.terminate()
-                        self.exclusive_component = None
-                    self.power_management()
+                        self.exclusive_component.quit()
+                        self.power_management()
             else:
                 if message == "POWER":
                     self.destory_exclusive()
-                    self.power_management()
-                else:
-                    logger.debug("Button trigger failed: Resource busy")
         else:
             # Not playing, autoplay
             if message == "PLAYTOGL":
