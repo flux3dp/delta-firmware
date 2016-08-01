@@ -1,23 +1,12 @@
 
+from collections import deque
 import logging
 
 from fluxmonitor.err_codes import HARDWARE_ERROR, EXEC_CONVERGENCE_FAILED, \
     EXEC_ZPROBE_ERROR
 from fluxmonitor.storage import Metadata
-from fluxmonitor.misc import correction
 
 logger = logging.getLogger(__name__)
-
-
-def do_correction(meta, x, y, z):
-    old_corr = meta.plate_correction
-    new_corr = correction.calculate(
-        old_corr["X"], old_corr["Y"], old_corr["Z"], old_corr["H"], x, y, z, 0)
-    new_corr.pop("H")
-    meta.plate_correction = new_corr
-
-    logger.debug("Old correction: M666X%(X).4fY%(Y).4fZ%(Z).4f", old_corr)
-    return "M666X%(X).4fY%(Y).4fZ%(Z).4f" % new_corr
 
 
 class ZprobeMacro(object):
@@ -32,6 +21,8 @@ class ZprobeMacro(object):
         self.ttl = ttl
         self.data = None
         self.clean = clean
+
+        self.debug_logs = deque(maxlen=16)
 
         self.convergence = False
         self.round = 0
@@ -85,13 +76,15 @@ class ZprobeMacro(object):
         self.data = None
 
     def on_mainboard_message(self, msg, executor):
-        if msg.startswith("Bed Z-Height at"):
+        if msg.startswith("DATA ZPROBE "):
             str_probe = msg.rsplit(" ", 1)[-1]
             val = float(str_probe)
             if val <= -50:
                 executor.main_ctrl.send_cmd("G1F6000X0Y0Z210", executor)
                 raise RuntimeError(HARDWARE_ERROR, EXEC_ZPROBE_ERROR)
             self.data = val
+        elif msg.startswith("DEBUG "):
+            self.debug_logs.append(msg[6:])
 
     def on_headboard_message(self, msg, executor):
         pass

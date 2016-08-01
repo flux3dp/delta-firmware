@@ -87,6 +87,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         except (RuntimeError, SystemError) as e:
             if self._macro:
                 self._on_macro_error(e)
+            logger.exception("Unhandle Error")
         except Exception:
             logger.exception("Unhandle Error")
 
@@ -128,7 +129,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         if cmd == "home":
             self.do_home(handler)
 
-        elif cmd == "calibration":
+        elif cmd == "calibration" or cmd == "calibrate":
             try:
                 threshold = float(args[0])
                 if threshold < 0.01:
@@ -137,7 +138,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
                 threshold = float("inf")
 
             clean = "clean" in args
-            self.do_calibration(handler, threshold, clean=clean)
+            self.do_calibrate(handler, threshold, clean=clean)
 
         elif cmd == "zprobe":
             if len(args) > 0:
@@ -318,17 +319,16 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             handler.send_text("error %s" % " ".join(error.args))
             self._busy = False
 
-        def on_macro_running():
-            handler.send_text("DEBUG: HOME")
-
         self._macro = macro.CommandMacro(on_success_cb, ["G28+"])
         self._on_macro_error = on_macro_error
-        self._on_macro_running = on_macro_running
         self._busy = True
         self._macro.start(self)
 
-    def do_calibration(self, handler, threshold, clean=False):
+    def do_calibrate(self, handler, threshold, clean=False):
         def on_success_cb():
+            while self._macro.debug_logs:
+                handler.send_text("DEBUG " + self._macro.debug_logs.popleft())
+
             p1, p2, p3 = self._macro.history[-1]
             handler.send_text("ok %.4f %.4f %.4f" % (p1, p2, p3))
             self._macro = self._on_macro_error = self._on_macro_running = None
@@ -341,8 +341,9 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             handler.send_text("error %s" % " ".join(error.args))
 
         def on_macro_running():
-            handler.send_text("POINT %i" % len(self._macro.data))
-            handler.send_text("DEBUG: Point:%i/3" % len(self._macro.data))
+            while self._macro.debug_logs:
+                handler.send_text("DEBUG " + self._macro.debug_logs.popleft())
+            handler.send_text("CTRL POINT %i" % len(self._macro.data))
 
         correct_at_final = True if threshold == float("inf") else False
         self._macro = macro.CorrectionMacro(on_success_cb, clean=clean,
@@ -369,6 +370,8 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             return
 
         def on_success_cb():
+            while self._macro.debug_logs:
+                handler.send_text("DEBUG " + self._macro.debug_logs.popleft())
             handler.send_text("ok %.4f" % self._macro.history[0])
             self._macro = self._on_macro_error = self._on_macro_running = None
             self._busy = False
@@ -380,7 +383,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             handler.send_text("error %s" % " ".join(error.args))
 
         def on_macro_running():
-            handler.send_text("DEBUG: DA~DA~DA~")
+            handler.send_text("CTRL ZPROBE")
 
         self._macro = macro.ZprobeMacro(on_success_cb, threshold=float("inf"),
                                         clean=False)
