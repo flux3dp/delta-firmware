@@ -13,7 +13,7 @@ SERIAL = get_serial()
 
 
 def get_deviceinfo(metadata=None):
-    nickname = metadata.nickname.encode("utf8", "ignore") if metadata else None
+    nickname = metadata.nickname if metadata else None
 
     info = {
         "version": version, "model": halprofile.get_model_id(),
