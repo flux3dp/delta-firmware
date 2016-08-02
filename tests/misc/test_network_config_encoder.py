@@ -1,19 +1,19 @@
 
 import unittest
 
-from fluxmonitor.misc import network_config_encoder as NCE
+from fluxmonitor.misc import network_config_encoder as NCE  # noqa
 
 
 class NWConfigEncoderTest(unittest.TestCase):
     def test_dhcp_plaint_wifi(self):
         buf = b"method=dhcp\x00ssid=UNITTEST\x00TRASH=TRASH"
-        real_options = {"method": "dhcp", "ssid": "UNITTEST",
+        real_options = {"method": "dhcp", "ssid": "UNITTEST", "scan_ssid": "0",
                         "wifi_mode": "client", "security": None}
         options = NCE.parse_bytes(buf)
-        self.assertEqual(options, real_options)
+        self.assertDictEqual(real_options, options)
 
         buf2 = NCE.to_bytes(options)
-        self.assertEqual(NCE.parse_bytes(buf2), real_options)
+        self.assertDictEqual(real_options, NCE.parse_bytes(buf2))
 
     def test_static_ip_no_wifi(self):
         buf = b"method=static\x00ipaddr=192.168.100.200\x00mask=24\x00" \
@@ -32,12 +32,12 @@ class NWConfigEncoderTest(unittest.TestCase):
               b"psk=wifipasswd12345678"
         real_options = {"method": "dhcp", "ssid": "UNITTEST",
                         "wifi_mode": "client", "security": "WPA2-PSK",
-                        "psk": "wifipasswd12345678"}
+                        "psk": "wifipasswd12345678", "scan_ssid": "0"}
         options = NCE.parse_bytes(buf)
-        self.assertEqual(options, real_options)
+        self.assertDictEqual(real_options, options)
 
         buf2 = NCE.to_bytes(options)
-        self.assertEqual(NCE.parse_bytes(buf2), real_options)
+        self.assertDictEqual(real_options, NCE.parse_bytes(buf2))
 
     def test_bad_options(self):
         buf = b"method=static\x00ssid=UNITTEST\x00TRASH=TRASH"
