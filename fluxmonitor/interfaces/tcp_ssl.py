@@ -135,7 +135,7 @@ class SSLConnectionHandler(HandlerBase):
                     l = self.sock.recv_into(self._bufview[self._buffered:])
                 except ssl.SSLWantReadError:
                     return
-                except ssl.SSLError as e:
+                except (ssl.SSLError, socket.error) as e:
                     logger.warn("SSLError: %s", e)
                     self.close()
                     return

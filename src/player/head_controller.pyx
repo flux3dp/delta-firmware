@@ -256,7 +256,11 @@ cdef class HeadController:
             self._raise_error(EXEC_OPERATION_ERROR,
                               "BUSY: %s" % self._padding_cmd)
 
-        padding_cmd = self._ext.generate_command(cmd)
+        padding_cmd = None
+
+        if self._ext:
+            padding_cmd = self._ext.generate_command(cmd)
+
         if padding_cmd:
             self._padding_cmd = padding_cmd
             self._send_cmd(executor)
@@ -302,6 +306,9 @@ cdef class HeadController:
         return 0
 
     cdef inline int _handle_pong(self, msg) except *:
+        if self._ext is None:
+            self._on_head_offline(HeadResetError)
+
         cdef int er = -1
         self._update_retry = 0
         self._wait_update = False

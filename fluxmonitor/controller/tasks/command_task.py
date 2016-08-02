@@ -189,12 +189,13 @@ class FileManagerMixIn(object):
         self.stack.enter_task(task, self.end_upload_file)
         handler.send_text("continue")
 
-    def end_upload_file(self, is_success):
+    def end_upload_file(self, is_success=None):
         if is_success:
             self._task_file.seek(0)
         else:
             self._task_file.close()
             self._task_file = None
+            logger.debug("Upload task failed (is_success=%s)", is_success)
 
 
 class PlayManagerMixIn(object):

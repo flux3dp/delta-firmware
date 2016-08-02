@@ -103,8 +103,8 @@ class PlayerManager(object):
         if self._sock is None:
             st = self.meta.format_device_status
 
-            if st["st_id"] == 1:
-                if time() - st["timestemp"] < 30:
+            if st["st_id"] == 1 or st["st_id"] == 128:
+                if time() - st["timestemp"] < 15:
                     raise RuntimeError(RESOURCE_BUSY)
                 else:
                     self.on_fatal_error(log="Player control socket missing")
@@ -116,7 +116,7 @@ class PlayerManager(object):
                 self._sock.connect(PLAY_ENDPOINT)
                 self._sock.settimeout(1.5)
             except socket.error:
-                if time() - st["timestemp"] < 30:
+                if time() - st["timestemp"] < 15:
                     raise RuntimeError(RESOURCE_BUSY)
                 else:
                     self.on_fatal_error(log="Can not connect to Player socket")
@@ -190,6 +190,9 @@ class PlayerManager(object):
         except SystemError:
             raise RuntimeError(RESOURCE_BUSY)
         except socket.error as e:
+            if st["st_id"] == 128 and time() - st["timestemp"] < 15:
+                raise RuntimeError(RESOURCE_BUSY)
+
             logger.error("Player socket error: %s", e)
             raise RuntimeError(SUBSYSTEM_ERROR)
 

@@ -87,7 +87,6 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         except (RuntimeError, SystemError) as e:
             if self._macro:
                 self._on_macro_error(e)
-            logger.exception("Unhandle Error")
         except Exception:
             logger.exception("Unhandle Error")
 
