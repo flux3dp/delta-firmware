@@ -2,7 +2,6 @@
 from json import dumps
 import logging
 import socket
-import re
 
 from fluxmonitor.player.main_controller import MainController
 from fluxmonitor.player.head_controller import (
@@ -19,9 +18,6 @@ from .base import CommandMixIn, DeviceOperationMixIn, \
     DeviceMessageReceiverMixIn
 from .update_hbfw_task import UpdateHbFwTask
 
-RE_REPORT_DIST = re.compile("X:(?P<X>(-)?[\d]+(.[\d]+)?) "
-                            "Y:(?P<Y>(-)?[\d]+(.[\d]+)?) "
-                            "Z:(?P<Z>(-)?[\d]+(.[\d]+)?) ")
 logger = logging.getLogger(__name__)
 
 
