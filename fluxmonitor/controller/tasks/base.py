@@ -75,6 +75,7 @@ class DeviceOperationMixIn(object):
                 self._cleaned = True
                 self.clean()
 
+            logger.debug("Clean device operation task")
         except Exception:
             logger.exception("Error while clean task '%s'", self.__class__)
 

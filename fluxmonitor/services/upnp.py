@@ -128,7 +128,7 @@ class InterfaceBaseV1(object):
             logger.debug("Recive bad magic num: %s", magic_num)
             return
 
-        if proto_ver != 1:
+        if proto_ver != 1 and proto_ver > 0:
             logger.debug("Recive non support proto ver: %s", proto_ver)
             return
 
@@ -171,18 +171,15 @@ class BroadcaseNotifyInterface(InterfaceBaseV1):
                 "<4sBB16s",
                 "FLUX",             # Magic String
                 0,                  # Protocol Version
-                0,                  # Reserved
+                1,                  # Reserved
                 UUID_BYTES)         # Device UUID
         return self.__notify_payload
 
     def send_notify(self):
         now = time()
         if now - self.__last_notify > self.__period:
-            print("GO")
             self.sock.sendto(self._notify_payload, self.endpoint)
             self.__last_notify = now
-        else:
-            print("PASS")
 
     def close(self):
         self.sock.close()
