@@ -8,6 +8,7 @@ from md5 import md5
 import logging
 import shutil
 import json
+import sys
 import os
 
 from fluxmonitor.player.fcode_parser import fast_read_meta
@@ -422,47 +423,63 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
         self.user_space = UserSpace()
 
     def dispatch_cmd(self, handler, cmd, *args):
-        if cmd == "player":
-            self.dispatch_playmanage_cmd(handler, *args)
-        elif cmd == "file":
-            self.dispatch_filemanage_cmd(handler, *args)
-        elif cmd == "update_fw":
-            mimetype, filesize, upload_to = args
-            if mimetype != mimetypes.MIMETYPE_FLUX_FIRMWARE:
-                raise RuntimeError(BAD_FILE_FORMAT)
-            self.update_fw(handler, int(filesize, 10))
-        elif cmd == "config":
-            self.dispatch_config_cmd(handler, *args)
-        elif cmd == "task":
-            self.dispatch_task_cmd(handler, *args)
-        elif cmd == "kick":
-            self.stack.kernel.destory_exclusive()
-            # TODO: more message?
-            handler.send_text("ok")
-        elif cmd == "update_mbfw" and allow_god_mode():
-            mimetype, filesize, upload_to = args
-            return self.update_mbfw(handler, int(filesize, 10))
-        elif cmd == "deviceinfo":
-            self.deviceinfo(handler)
-        elif cmd == "scan":
-            # TODO: going tobe remove
-            self.dispatch_task_cmd(handler, "scan")
-        elif cmd == "start":
-            # TODO: going tobe removed
-            self.dispatch_playmanage_cmd(handler, "start")
-            self.play(handler)
-        elif cmd == "maintain":
-            # TODO: going tobe removed
-            self.dispatch_task_cmd(handler, "maintain")
-        elif cmd == "oracle":
-            s = Storage("general", "meta")
-            s["debug"] = args[0].encode("utf8")
-            handler.send_text("oracle")
-        elif cmd == "fetch_log" and allow_god_mode():
-            self.fetch_log(handler, *args)
-        else:
-            logger.debug("Can not handle: %s" % repr(cmd))
-            raise RuntimeError(UNKNOWN_COMMAND)
+        try:
+            if cmd == "player":
+                self.dispatch_playmanage_cmd(handler, *args)
+            elif cmd == "file":
+                self.dispatch_filemanage_cmd(handler, *args)
+            elif cmd == "task":
+                self.dispatch_task_cmd(handler, *args)
+            elif cmd == "config":
+                self.dispatch_config_cmd(handler, *args)
+
+        except TypeError:
+            tb = sys.exc_info()[2]
+            if tb.tb_next is None or tb.tb_next.tb_next is None:
+                raise RuntimeError(BAD_PARAMS)
+            else:
+                raise
+
+        try:
+            if cmd == "update_fw":
+                mimetype, filesize, upload_to = args
+                if mimetype != mimetypes.MIMETYPE_FLUX_FIRMWARE:
+                    raise RuntimeError(BAD_FILE_FORMAT)
+                self.update_fw(handler, int(filesize, 10))
+            elif cmd == "kick":
+                self.stack.kernel.destory_exclusive()
+                handler.send_text("ok")
+            elif cmd == "update_mbfw" and allow_god_mode():
+                mimetype, filesize, upload_to = args
+                return self.update_mbfw(handler, int(filesize, 10))
+            elif cmd == "deviceinfo":
+                self.deviceinfo(handler)
+            elif cmd == "scan":
+                # TODO: going tobe remove
+                self.dispatch_task_cmd(handler, "scan")
+            elif cmd == "start":
+                # TODO: going tobe removed
+                self.dispatch_playmanage_cmd(handler, "start")
+                self.play(handler)
+            elif cmd == "maintain":
+                # TODO: going tobe removed
+                self.dispatch_task_cmd(handler, "maintain")
+            elif cmd == "oracle":
+                s = Storage("general", "meta")
+                s["debug"] = args[0].encode("utf8")
+                handler.send_text("oracle")
+            elif cmd == "fetch_log" and allow_god_mode():
+                self.fetch_log(handler, *args)
+            else:
+                logger.debug("Can not handle: %s" % repr(cmd))
+                raise RuntimeError(UNKNOWN_COMMAND)
+
+        except TypeError:
+            tb = sys.exc_info()[2]
+            if tb.tb_next is None:
+                raise RuntimeError(BAD_PARAMS)
+            else:
+                raise
 
     def storage_dispatch(self, entry, path, sd_only=False, require_file=False,
                          require_dir=False):
