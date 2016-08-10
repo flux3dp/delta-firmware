@@ -8,7 +8,7 @@ import os
 
 from fluxmonitor.err_codes import AUTH_ERROR
 from fluxmonitor import security
-from .base import InterfaceBase, HandlerBase
+from .base import InterfaceBase, HandlerBase, ConnectionClosedException
 
 __all__ = ["TcpInterface", "TcpConnectionHandler"]
 SHORT_PACKER = Struct("<H")
@@ -196,13 +196,16 @@ class TcpConnectionHandler(HandlerBase):
         pass
 
     def send(self, buf):
-        length = len(buf)
-        buf = memoryview(self.aes.encrypt(buf))
+        try:
+            length = len(buf)
+            buf = memoryview(self.aes.encrypt(buf))
 
-        sent = self.sock.send(buf)
-        while sent < length:
-            sent += self.sock.send(buf[sent:])
-        return length
+            sent = self.sock.send(buf)
+            while sent < length:
+                sent += self.sock.send(buf[sent:])
+            return length
+        except socket.error as e:
+            raise ConnectionClosedException("Socket error: %s" % e)
 
     def send_text(self, message):
         if isinstance(message, unicode):

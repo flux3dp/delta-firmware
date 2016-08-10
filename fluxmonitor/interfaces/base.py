@@ -1,7 +1,6 @@
 
 from weakref import WeakSet, proxy
 import logging
-import socket
 import abc
 
 import pyev
@@ -133,8 +132,8 @@ class HandlerBase(object):
             else:
                 watcher.data = (length, sent_length, stream, callback)
 
-        except socket.error as e:
-            logger.debug("Socket %s send error: %s", self.sock, e)
+        except ConnectionClosedException as e:
+            logger.debug("%s", e)
             watcher.stop()
             self.send_watcher = None
             self.close()
@@ -178,3 +177,7 @@ class HandlerBase(object):
 
         if self in __handlers__:
             __handlers__.remove(self)
+
+
+class ConnectionClosedException(Exception):
+    pass

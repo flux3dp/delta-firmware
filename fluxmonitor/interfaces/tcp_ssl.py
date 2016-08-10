@@ -10,7 +10,7 @@ import pyev
 
 from fluxmonitor.security import (is_trusted_remote, get_uuid, get_keyobj,
                                   randbytes, hash_password, SSL_CERT, SSL_KEY)
-from .base import InterfaceBase, HandlerBase
+from .base import InterfaceBase, HandlerBase, ConnectionClosedException
 
 MESSAGE_OK = b"OK              "
 MESSAGE_AUTH_ERROR = b"AUTH_ERROR      "
@@ -136,7 +136,7 @@ class SSLConnectionHandler(HandlerBase):
                 except ssl.SSLWantReadError:
                     return
                 except (ssl.SSLError, socket.error) as e:
-                    logger.warn("SSLError: %s", e)
+                    logger.info("SSLError: %s", e)
                     self.close()
                     return
                 except Exception as e:
@@ -214,6 +214,8 @@ class SSLConnectionHandler(HandlerBase):
             while sent < length:
                 sent += self.sock.send(buf[sent:])
             return length
+        except socket.error as e:
+            raise ConnectionClosedException("Socket error: %s" % e)
         except ssl.SSLError as e:
             raise SystemError("SOCKET_ERROR", "SSL", repr(e))
 

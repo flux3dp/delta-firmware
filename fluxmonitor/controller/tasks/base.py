@@ -9,6 +9,7 @@ import pyev
 
 from fluxmonitor.config import uart_config, DEBUG
 from fluxmonitor.err_codes import SUBSYSTEM_ERROR, NO_RESPONSE, UNKNOWN_ERROR
+from fluxmonitor.interfaces.base import ConnectionClosedException
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,11 @@ class CommandMixIn(object):
 
         except RuntimeError as e:
             handler.send_text(("error " + " ".join(e.args)).encode())
+
+        except ConnectionClosedException as e:
+            logger.debug("Connection close: %s" % e)
+            self.close()
+
         except Exception as e:
             if DEBUG:
                 handler.send_text("error %s %s" % (UNKNOWN_ERROR, e))

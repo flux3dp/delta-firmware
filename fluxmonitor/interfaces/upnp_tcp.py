@@ -13,6 +13,7 @@ from fluxmonitor.err_codes import (UNKNOWN_ERROR, BAD_PARAMS, AUTH_ERROR,
 from fluxmonitor.security import (RSAObject, AccessControl, hash_password,
                                   get_uuid)
 from .tcp_ssl import SSLInterface, SSLConnectionHandler
+from .base import ConnectionClosedException
 
 __all__ = ["UpnpTcpInterface", "UpnpTcpHandler"]
 logger = logging.getLogger(__name__)
@@ -94,6 +95,9 @@ class UpnpTcpHandler(SSLConnectionHandler):
                     self.send_text("er " + UNKNOWN_COMMAND)
             except RuntimeError as e:
                 self.send_text("er " + " ".join(e.args))
+            except ConnectionClosedException as e:
+                logger.debug("Connection close: %s" % e)
+                self.close()
             except Exception:
                 logger.exception("Unknown error during process command")
                 self.send_text("UNKNOWN_ERROR")
@@ -121,6 +125,9 @@ class UpnpTcpHandler(SSLConnectionHandler):
                         logger.debug("Remote password error")
                         self.send_text("error " + AUTH_ERROR)
                         self.close()
+            except ConnectionClosedException as e:
+                logger.debug("Connection close: %s" % e)
+                self.close()
             except Exception:
                 self.send_text("error " + UNKNOWN_ERROR)
                 self.close()
@@ -137,6 +144,9 @@ class UpnpTcpHandler(SSLConnectionHandler):
                     self.send_text("password")
             except TypeError:
                 self.send_text("error " + BAD_PARAMS)
+                self.close()
+            except ConnectionClosedException as e:
+                logger.debug("Connection close: %s" % e)
                 self.close()
             except Exception:
                 self.send_text("error " + UNKNOWN_ERROR)
