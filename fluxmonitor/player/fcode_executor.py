@@ -384,7 +384,7 @@ class FcodeExecutor(AutoResume, BaseExecutor):
             self.fire()
         except RuntimeError as err:
             # TODO: cut toolhead 5v because pwm issue
-            if err.args == ('HEAD_ERROR', 'HARDWARE_FAILURE'):
+            if err.args[:2] == ('HEAD_ERROR', 'HARDWARE_FAILURE'):
                 reset_hb()
 
             if not self.pause(err):

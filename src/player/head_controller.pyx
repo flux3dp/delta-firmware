@@ -342,7 +342,7 @@ cdef class HeadController:
                     if er & 32:
                         raise HeadTiltError(strer)
                     if er & 576:
-                        raise HeadHardwareError(strer)
+                        raise HeadHardwareError(strer, self._ext)
                     if er & 128:
                         raise HeadFanError(strer)
                     if er & 256:
@@ -404,10 +404,12 @@ cdef class HeadController:
 
 cdef class BaseExt:
     cdef public object required_spec
+    cdef public object ext_status
     cdef public object spec
 
     def __init__(self, **spec):
         self.required_spec = spec
+        self.ext_status = {}
 
     def bootstrap_commands(self):
         return []
@@ -422,7 +424,10 @@ cdef class BaseExt:
         pass
 
     def update_status(self, key, value):
-        pass
+        self.ext_status[key] = value
+
+    def status(self):
+        return self.ext_status
 
     def on_message(self, message):
         return False
@@ -440,6 +445,7 @@ cdef class ExtruderExt(BaseExt):
     cdef float* _current_temp
 
     def __init__(self, num_of_extruder=1):
+        super().__init__()
         self._fanspeed = 0
         self._temperatures = <float*>malloc(num_of_extruder * sizeof(float))
         self._current_temp = <float*>malloc(num_of_extruder * sizeof(float))
@@ -469,12 +475,12 @@ cdef class ExtruderExt(BaseExt):
         return cmds
 
     def status(self):
-        return {
-            "module": "EXTRUDER",
-            "tt": (self._temperatures[0], ),
-            "rt": (self._current_temp[0], ),
-            "tf": (self._fanspeed, )
-        }
+        cdef object st = super().status()
+        st["module"] = "EXTRUDER"
+        st["tt"] = (self._temperatures[0], )
+        st["rt"] = (self._current_temp[0], )
+        st["tf"] = (self._fanspeed, )
+        return st
 
     cpdef set_heater(self, int heater_id, float temperature):
         if temperature < 0:
@@ -503,6 +509,8 @@ cdef class ExtruderExt(BaseExt):
     def update_status(self, key, value):
         if key == "RT":
             self._current_temp[0] = float(value)
+        else:
+            super().update_status(key, value)
 
     def on_message(self, message):
         return False
@@ -527,12 +535,12 @@ cdef class LaserExt(BaseExt):
         super(LaserExt, self).hello(**kw)
 
     def status(self):
-        return {"module": "LASER",}
+        cdef object st = self.ext_status()
+        st["module"] = "LASER"
+        return st
 
 
 cdef class UserExt(BaseExt):
-    cdef object status_ref
-
     def hello(self, **kw):
         m = kw.get("TYPE", "UNKNOW")
         if not m.startswith("USER/"):
@@ -542,12 +550,6 @@ cdef class UserExt(BaseExt):
 
     def generate_command(self, cmd):
         return create_chksum_cmd("1 %s", cmd)
-
-    def update_status(self, key, value):
-        self.status_ref[key] = value
-
-    def status(self):
-        return self.status_ref 
 
 
 MODULES_EXT["EXTRUDER"] = ExtruderExt
@@ -602,8 +604,14 @@ class HeadTiltError(HeadError):
 
 
 class HeadHardwareError(HeadError):
-    def __init__(self, errno):
-        RuntimeError.__init__(self, EXEC_HEAD_ERROR, HARDWARE_FAILURE, errno)
+    def __init__(self, errno, ext=None):
+        he = ext.ext_status.get("HE") if ext else None
+        if he:
+            RuntimeError.__init__(self, EXEC_HEAD_ERROR, HARDWARE_FAILURE,
+                                  errno, he)
+        else:
+            RuntimeError.__init__(self, EXEC_HEAD_ERROR, HARDWARE_FAILURE,
+                                  errno)
 
 
 class HeadFanError(HeadError):
