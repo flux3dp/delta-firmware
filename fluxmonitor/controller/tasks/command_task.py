@@ -425,13 +425,13 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
     def dispatch_cmd(self, handler, cmd, *args):
         try:
             if cmd == "player":
-                self.dispatch_playmanage_cmd(handler, *args)
+                return self.dispatch_playmanage_cmd(handler, *args)
             elif cmd == "file":
-                self.dispatch_filemanage_cmd(handler, *args)
+                return self.dispatch_filemanage_cmd(handler, *args)
             elif cmd == "task":
-                self.dispatch_task_cmd(handler, *args)
+                return self.dispatch_task_cmd(handler, *args)
             elif cmd == "config":
-                self.dispatch_config_cmd(handler, *args)
+                return self.dispatch_config_cmd(handler, *args)
 
         except TypeError:
             tb = sys.exc_info()[2]
