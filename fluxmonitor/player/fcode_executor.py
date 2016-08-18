@@ -42,6 +42,10 @@ class AutoResume(object):
             if self.__is_usbc_cable_issue() is False:
                 return
 
+            if self.status_id & ST_STARTING == ST_STARTING:
+                # Do not do autoresume during starting up
+                return
+
             if self.__resume_timestamp + 180 > time():
                 self.__resume_counter = 1
             else:
