@@ -535,7 +535,7 @@ cdef class LaserExt(BaseExt):
         super(LaserExt, self).hello(**kw)
 
     def status(self):
-        cdef object st = self.ext_status()
+        cdef object st = super().status()
         st["module"] = "LASER"
         return st
 

@@ -12534,7 +12534,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_8LaserExt_hel
  *         super(LaserExt, self).hello(**kw)
  * 
  *     def status(self):             # <<<<<<<<<<<<<<
- *         cdef object st = self.ext_status()
+ *         cdef object st = super().status()
  *         st["module"] = "LASER"
  */
 
@@ -12563,12 +12563,25 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_8LaserExt_2st
   /* "src/player/head_controller.pyx":538
  * 
  *     def status(self):
- *         cdef object st = self.ext_status()             # <<<<<<<<<<<<<<
+ *         cdef object st = super().status()             # <<<<<<<<<<<<<<
  *         st["module"] = "LASER"
  *         return st
  */
-  __Pyx_INCREF(__pyx_v_self->__pyx_base.ext_status);
-  __pyx_t_2 = __pyx_v_self->__pyx_base.ext_status; __pyx_t_3 = NULL;
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 538, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_INCREF(((PyObject *)__pyx_ptype_11fluxmonitor_6player_16_head_controller_LaserExt));
+  __Pyx_GIVEREF(((PyObject *)__pyx_ptype_11fluxmonitor_6player_16_head_controller_LaserExt));
+  PyTuple_SET_ITEM(__pyx_t_2, 0, ((PyObject *)__pyx_ptype_11fluxmonitor_6player_16_head_controller_LaserExt));
+  __Pyx_INCREF(((PyObject *)__pyx_v_self));
+  __Pyx_GIVEREF(((PyObject *)__pyx_v_self));
+  PyTuple_SET_ITEM(__pyx_t_2, 1, ((PyObject *)__pyx_v_self));
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_super, __pyx_t_2, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 538, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_status); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 538, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
     __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
     if (likely(__pyx_t_3)) {
@@ -12591,7 +12604,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_8LaserExt_2st
 
   /* "src/player/head_controller.pyx":539
  *     def status(self):
- *         cdef object st = self.ext_status()
+ *         cdef object st = super().status()
  *         st["module"] = "LASER"             # <<<<<<<<<<<<<<
  *         return st
  * 
@@ -12599,7 +12612,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_8LaserExt_2st
   if (unlikely(PyObject_SetItem(__pyx_v_st, __pyx_n_s_module, __pyx_n_s_LASER) < 0)) __PYX_ERR(0, 539, __pyx_L1_error)
 
   /* "src/player/head_controller.pyx":540
- *         cdef object st = self.ext_status()
+ *         cdef object st = super().status()
  *         st["module"] = "LASER"
  *         return st             # <<<<<<<<<<<<<<
  * 
@@ -12614,7 +12627,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_8LaserExt_2st
  *         super(LaserExt, self).hello(**kw)
  * 
  *     def status(self):             # <<<<<<<<<<<<<<
- *         cdef object st = self.ext_status()
+ *         cdef object st = super().status()
  *         st["module"] = "LASER"
  */
 
