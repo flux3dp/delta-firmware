@@ -231,7 +231,7 @@ class UsbIO(object):
         info["ver"] = info.pop("version")
         info["name"] = info.pop("nickname")
         resp = "\x00".join(("%s=%s" % kv for kv in info.items()))
-        self.send_response(REQ_IDENTIFY, True, resp.encode())
+        self.send_response(REQ_IDENTIFY, True, resp)
 
     def on_rsakey(self, buf):
         pkey = security.get_private_key()
