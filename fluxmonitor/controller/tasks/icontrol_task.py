@@ -397,7 +397,7 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
             self.handler.send(packb((CMD_VALU, output)))
         #   "DATA ZPROBE -0.5"
         if message.startswith("DATA ZPROBE "):
-            self.handler.send(packb(CMD_G030, float(message[12:])))
+            self.handler.send(packb((CMD_G030, float(message[12:]))))
 
     def send_udp0(self):
         if self.udp_sock:
@@ -563,7 +563,7 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
 
     def on_z_probe(self, handler, x, y):
         try:
-            if self.known_position and x ** 2 + y ** 2 < 289:
+            if self.known_position and x ** 2 + y ** 2 < 4901:
                 cmd = "G30X%.5fY%.5f" % (x, y)
                 self.append_cmd(TARGET_MAINBOARD, cmd)
 
