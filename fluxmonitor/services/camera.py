@@ -11,6 +11,7 @@ except ImportError:
     ScanChecking = None
 
 from fluxmonitor.interfaces.camera import (CameraTcpInterface,
+                                           CameraCloudHandler,
                                            CameraUnixStreamInterface)
 
 from fluxmonitor.hal.camera import Cameras
@@ -23,6 +24,7 @@ class CameraService(ServiceBase):
     FPS = 4.0
     SPF = 1.0 / FPS
     cameras = None
+    cloud_conn = None
 
     def __init__(self, options):
         super(CameraService, self).__init__(logger)
@@ -41,24 +43,33 @@ class CameraService(ServiceBase):
         self.public_ifce.close()
         self.internal_ifce.close()
 
-    def on_client_connected(self):
-        self.cameras.attach()
+    def on_connected(self, handler):
         if not self.live_timer.active:
             self.live_timer.start()
 
-    def on_client_gone(self):
+    def on_disconnected(self, handler):
         if not self.internal_ifce.clients and not self.public_ifce.clients:
             self.cameras.release()
             if self.live_timer.active:
                 self.live_timer.stop()
 
+    def on_connect2cloud(self, camera_id, endpoint, token):
+        if self.cloud_conn:
+            self.cloud_conn.close()
+            self.cloud_conn = None
+
+        def on_close(agent):
+            self.cloud_conn = None
+
+        self.cloud_conn = CameraCloudHandler(self, endpoint, token, on_close)
+
     def on_live(self, watcher=None, revent=None):
         while self.live_queue:
             h = self.live_queue.popleft()
             try:
-                if h.ready == 2:
-                    h.next_frame()
+                h.next_frame()
             except Exception:
+                h.close()
                 logger.exception("Error at next frame in timer")
 
     def add_to_live_queue(self, handler):

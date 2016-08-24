@@ -17,8 +17,9 @@ __handlers__ = set()
 class InterfaceBase(object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, kernel, endpoint=None):
+    def __init__(self, kernel, endpoint=None, handler=None):
         self.kernel = proxy(kernel)
+        self.handler = handler
         self.meta = Metadata()
 
         s = self.create_socket(endpoint)
@@ -37,9 +38,13 @@ class InterfaceBase(object):
     def create_socket(self, endpoint):
         pass
 
-    @abc.abstractmethod
     def create_handler(self, sock, endpoint):
-        pass
+        h = self.handler(self.kernel, sock, endpoint)
+        return h
+
+    def getsocket(self):
+        if self.listen_w:
+            return self.listen_w.data
 
     def on_accept(self, watcher, revent):
         sock, endpoint = watcher.data.accept()
@@ -61,6 +66,7 @@ class InterfaceBase(object):
             h.close("Timeout")
             logger.debug("Clean zombie %s", h)
             self.clients.remove(h)
+            self.on_disconnected(h)
 
     def close(self):
         if self.listen_w:
@@ -82,6 +88,7 @@ class HandlerBase(object):
     def __init__(self, kernel, sock, endpoint):
         self.sock = sock
         self.kernel = kernel
+        kernel.on_connected(self)
         self.recv_watcher = kernel.loop.io(sock, pyev.EV_READ, self._on_recv)
         self.recv_watcher.start()
         __handlers__.add(self)
@@ -177,6 +184,7 @@ class HandlerBase(object):
 
         if self in __handlers__:
             __handlers__.remove(self)
+            self.kernel.on_disconnected(self)
 
 
 class ConnectionClosedException(Exception):

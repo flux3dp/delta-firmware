@@ -7,10 +7,9 @@ import os
 
 import sysv_ipc
 
-from fluxmonitor.config import USERSPACE, general_config
 from fluxmonitor.hal.usbmount import get_usbmount_hal
 from fluxmonitor.err_codes import NOT_EXIST, BAD_PARAMS
-
+from fluxmonitor.config import USERSPACE, general_config
 
 class Storage(object):
     def __init__(self, *args):
@@ -101,7 +100,7 @@ class CommonMetadata(object):
         # 1024 ~ 2048: Shared rsakey
         # 3072: Wifi status code
         # 3584 ~ 4096: Device status
-        self.shm = sysv_ipc.SharedMemory(19851226, sysv_ipc.IPC_CREAT,
+        self.shm = sysv_ipc.SharedMemory(13000, sysv_ipc.IPC_CREAT,
                                          size=4096, init_character='\x00')
 
     def __del__(self):

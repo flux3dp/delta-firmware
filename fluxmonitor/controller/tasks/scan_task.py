@@ -1,11 +1,10 @@
 
 from select import select
 from errno import ECONNREFUSED, ENOENT
-from shlex import split as shlex_split
 from time import sleep
 from io import BytesIO
 import logging
-import struct
+import msgpack
 import socket
 
 from fluxmonitor.player.main_controller import MainController
@@ -28,46 +27,21 @@ class CameraInterface(object):
         try:
             self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             self.sock.connect(CAMERA_ENDPOINT)
+            self.unpacker = msgpack.Unpacker()
         except socket.error as err:
             if err.args[0] in [ECONNREFUSED, ENOENT]:
                 raise RuntimeError(SUBSYSTEM_ERROR, NO_RESPONSE)
             else:
                 raise
 
-    def oneshot(self):
-        self.sock.send(struct.pack("@BB", 0, 0))
-        resp = self.recv_text()
-        args = shlex_split(resp)
-        if args[0] == "binary":
-            mimetype = args[1]
-            length = int(args[2])
-            return mimetype, length, self.recv_binary(int(int(args[2])))
-        elif args[0] == "ER":
-            raise RuntimeError(*args[1:])
+    def recv_object(self):
+        buf = self.sock.recv(4096)
+        if buf:
+            self.unpacker.feed(buf)
+            for payload in self.unpacker:
+                return payload
         else:
-            raise SystemError("Unknow response: %s", resp)
-
-    def check_camera_position(self):
-        self.sock.send(struct.pack("@BB", 1, 0))
-        return self.recv_text()
-
-    def get_bias(self):
-        self.sock.send(struct.pack("@BB", 2, 0))
-        return self.recv_text()
-
-    def compute_cab(self, step):
-        if step == 'O':
-            self.sock.send(struct.pack("@BB", 3, 0))
-        elif step == 'L':
-            self.sock.send(struct.pack("@BB", 4, 0))
-        elif step == 'R':
-            self.sock.send(struct.pack("@BB", 5, 0))
-        return self.recv_text()
-
-    def recv_text(self):
-        buf = self.sock.recv(1)
-        textlen = struct.unpack("@B", buf)[0]
-        return self.sock.recv(textlen).decode("ascii", "ignore")
+            raise SystemError(SUBSYSTEM_ERROR, NO_RESPONSE)
 
     def recv_binary(self, length):
         l = 0
@@ -85,6 +59,36 @@ class CameraInterface(object):
                 raise SystemError("Camera service broken pipe")
         f.seek(0)
         return f
+
+    def oneshot(self):
+        self.sock.send(msgpack.packb((0, 0)))
+        args = self.recv_object()
+        if args[0] == "binary":
+            mimetype = args[1]
+            length = args[2]
+            return mimetype, length, self.recv_binary(int(int(args[2])))
+        elif args[0] == "er":
+            raise RuntimeError(*args[1:])
+        else:
+            logger.error("Got unknown response from camera service: %s", args)
+            raise SystemError("UNKNOWN_ERROR")
+
+    def check_camera_position(self):
+        self.sock.send(msgpack.packb((1, 0)))
+        return " ".join(self.recv_object())
+
+    def get_bias(self):
+        self.sock.send(msgpack.packb((2, 0)))
+        return " ".join(self.recv_object())
+
+    def compute_cab(self, step):
+        if step == 'O':
+            self.sock.send(msgpack.packb((3, 0)))
+        elif step == 'L':
+            self.sock.send(msgpack.packb((4, 0)))
+        elif step == 'R':
+            self.sock.send(msgpack.packb((5, 0)))
+        return " ".join(self.recv_object())
 
     def close(self):
         self.sock.close()

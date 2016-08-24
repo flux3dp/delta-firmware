@@ -1,14 +1,13 @@
 
-from weakref import proxy
 from struct import Struct
 import logging
-import os
 
 from fluxmonitor.misc.systime import systime
 from fluxmonitor.config import CAMERA_ENDPOINT
 
-from .tcp_ssl import SSLInterface, SSLConnectionHandler
-from .unixsocket import UnixStreamInterface, UnixStreamHandler
+from .handler import TextBinaryProtocol, SSLServerSideHandler, CloudHandler
+from .tcp_ssl import SSLInterface
+from .unixsocket import UnixStreamInterface, UnixStreamHandler, MsgpackMixIn
 
 __all__ = ["CameraTcpInterface", "CameraTcpHandler",
            "CameraUnixStreamInterface", "CameraUnixStreamHandler"]
@@ -19,34 +18,25 @@ logger = logging.getLogger(__name__)
 
 
 class CameraTcpInterface(SSLInterface):
-    _empty = True
-
     def __init__(self, kernel, endpoint=("", 23812)):
         super(CameraTcpInterface, self).__init__(kernel, endpoint)
 
-    def on_timer(self, watcher, revent):
-        super(CameraTcpInterface, self).on_timer(watcher, revent)
-        if not self.clients and self._empty is False:
-            self._empty = True
-            self.kernel.on_client_gone()
-
     def create_handler(self, sock, endpoint):
-        h = CameraTcpHandler(self.kernel, sock, endpoint,
-                             self.certfile, self.keyfile)
-        if self._empty is True:
-            self._empty = False
-            self.kernel.on_client_connected()
+        logger.debug("Incomming connection from %s", endpoint)
+        h = CameraTcpHandler(self.kernel, endpoint, sock, server_side=True,
+                             certfile=self.certfile, keyfile=self.keyfile)
+        self.kernel.on_connected(h)
         return h
 
 
-class CameraTcpHandler(SSLConnectionHandler):
+class CameraProtocol(TextBinaryProtocol):
     streaming = False
 
     def on_ready(self):
-        self.delegate = proxy(self)
+        super(CameraProtocol, self).on_ready()
         self.ts = 0
 
-    def on_text(self, text, _):
+    def on_text(self, text):
         if text == "f":
             if systime() - self.ts <= self.kernel.SPF:
                 self.kernel.add_to_live_queue(self)
@@ -78,68 +68,68 @@ class CameraTcpHandler(SSLConnectionHandler):
         pass
 
 
-class CameraUnixStreamInterface(UnixStreamInterface):
-    _empty = True
-
-    def __init__(self, kernel, endpoint=CAMERA_ENDPOINT):
-        super(CameraUnixStreamInterface, self).__init__(kernel, endpoint)
-
-    def on_timer(self, watcher, revent):
-        super(CameraUnixStreamInterface, self).on_timer(watcher, revent)
-        if not self.clients and self._empty is False:
-            self._empty = True
-            self.kernel.on_client_gone()
-
-    def create_handler(self, sock, endpoint):
-        h = CameraUnixStreamHandler(self.kernel, sock, endpoint)
-        if self._empty is True:
-            self._empty = False
-            self.kernel.on_client_connected()
-        return h
-
-    def close(self):
-        super(CameraUnixStreamInterface, self).close()
-        os.unlink(CAMERA_ENDPOINT)
+class CameraTcpHandler(CameraProtocol, SSLServerSideHandler):
+    def on_authorized(self):
+        super(SSLServerSideHandler, self).on_authorized()
+        self.on_ready()
 
 
-class CameraUnixStreamHandler(UnixStreamHandler):
-    buf = b""
+class CameraCloudHandler(CameraProtocol, CloudHandler):
+    def on_cloud_connected(self):
+        super(CameraCloudHandler, self).on_cloud_connected()
+        self.on_ready()
 
-    def send_text(self, message):
-        buf = BYTE_PACKER.pack(len(message)) + message
-        self.send(buf)
 
-    def on_recv(self, watcher, revent):
-        buf = self.sock.recv(2 - len(self.buf))
-        if not buf:
-            self.close()
-        self.buf += buf
+CMD_REQUEST_FRAME = 0x00
+CMD_SCAN_CHECKING = 0x01
+CMD_GET_BIAS = 0x02
+CMD_COMPUTE_CAB = (0x03, 0x04, 0x05)
+CMD_CLOUD_CONNECTION = 0x80
 
-        while len(self.buf) >= 2:
-            request = self.buf[:2]
-            self.buf = self.buf[2:]
-            cmd_id, camera_id = UNIX_CMD_PACKER.unpack(request)
 
+class CameraUnixStreamHandler(MsgpackMixIn, UnixStreamHandler):
+    def __init__(self, *args, **kw):
+        super(CameraUnixStreamHandler, self).__init__(*args, **kw)
+        self.msgpack_init()
+
+    def on_request(self, request):
+        if isinstance(request, tuple):
             try:
-                if cmd_id == 0:
+                cmd = request[0]
+                camera_id = request[1]
+
+                if cmd == CMD_REQUEST_FRAME:
                     mimetype, length, stream = self.kernel.makeshot(camera_id)
-                    self.send_text("binary %s %i" % (mimetype, length))
+                    self.send_payload(("binary", mimetype, length))
                     self.begin_send(stream, length, lambda _: None)
-
-                elif cmd_id == 1:
+                elif cmd == CMD_SCAN_CHECKING:
                     ret = self.kernel.scan_checking(camera_id)
-                    self.send_text("ok %s" % ret)
-
-                elif cmd_id == 2:
+                    self.send_payload(("ok", ret))
+                elif cmd == CMD_GET_BIAS:
                     ret = self.kernel.get_bias(camera_id)
-                    self.send_text("ok {}".format(ret))
-
-                elif cmd_id >= 3 and cmd_id <= 5:
-                    ret = self.kernel.compute_cab(camera_id, cmd_id)
-                    self.send_text("ok {}".format(ret))
-
+                    self.send_payload(("ok", ret))
+                elif cmd in CMD_COMPUTE_CAB:
+                    ret = self.kernel.compute_cab(camera_id, cmd)
+                    self.send_payload(("ok", ret))
+                elif cmd == CMD_CLOUD_CONNECTION:
+                    endpoint = request[2]
+                    token = request[3]
+                    ret = self.kernel.on_connect2cloud(camera_id, endpoint,
+                                                       token)
+                    self.send_payload(("ok", ret))
                 else:
-                    self.send_text("er UNKNOWN_COMMAND")
-            except Exception as e:
-                self.send_text("er UNKNOWN_ERROR {}".format(e))
+                    self.send_payload(("er", "UNKNOWN_COMMAND"))
+            except Exception:
                 logger.exception("Error while exec camera unixsock cmd")
+                self.send_payload(("er", "UNKNOWN_ERROR"))
+                self.close()
+        else:
+            self.send_payload(("er", "UNKNOWN_COMMAND"))
+            self.close()
+
+
+class CameraUnixStreamInterface(UnixStreamInterface):
+    def __init__(self, kernel, endpoint=CAMERA_ENDPOINT,
+                 handler=CameraUnixStreamHandler):
+        super(CameraUnixStreamInterface, self).__init__(kernel, endpoint,
+                                                        handler)

@@ -36,8 +36,8 @@ class SSLInterface(InterfaceBase):
 
 
 class SSLConnectionHandler(HandlerBase):
-    send_watcher = None
-    binary_mode = False
+    # send_watcher = None
+    # binary_mode = False
     delegate = None
     access_id = None
     ready = 0
@@ -81,6 +81,7 @@ class SSLConnectionHandler(HandlerBase):
         except ssl.SSLWantWriteError:
             self.send_watcher = self.kernel.loop.io(
                 self.sock, pyev.EV_WRITE, self._do_ssl_handshake)
+            self.send_watcher.start()
         except ssl.SSLEOFError:
             self.close()
         except Exception:

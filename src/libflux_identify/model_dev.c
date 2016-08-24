@@ -23,9 +23,9 @@ int get_machine_sn(unsigned char *sn_buf[10]) {
 
 
 int get_machine_identify(unsigned char** buffer) {
-    *buffer = malloc(10);
-    memcpy(*buffer, "WASUREMONO", 10);
-    return 10;
+    *buffer = malloc(12);
+    memcpy(*buffer, "WAWASUREMONO", 12);
+    return 12;
 }
 
 #endif
