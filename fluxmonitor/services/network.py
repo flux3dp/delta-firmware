@@ -68,6 +68,7 @@ class WirelessNetworkReviewer(object):
         else:
             b = 3.0
 
+        old_config["recover"] = True
         data = cls(ifname, old_config, service, essid)
         watcher = service.loop.timer(b, 1.5, cls.reviewer, data)
         cls.workers.add(watcher)
@@ -215,7 +216,7 @@ class NetworkService(ServiceBase, NetworkMonitorMixIn):
         config = NCE.validate_options(config)
 
         # Encrypt password in client mode
-        if "psk" in config and "ssid" in config:
+        if "psk" in config and "ssid" in config and "recover" not in config:
             if config.get("wifi_mode") == "client":
                 plain_passwd = config["psk"]
                 config["psk"] = get_wpa_psk(config["ssid"], plain_passwd)
