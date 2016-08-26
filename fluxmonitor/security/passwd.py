@@ -32,10 +32,14 @@ def validate_and_set_password(password, old_password, reset_acl=True):
 
 
 def set_password(password):
-    salt = randstr(8)
-    pwdhash = HMAC(salt, password, sha1).hexdigest()
-    with _storage.open("password", "w") as f:
-        f.write(salt + ";" + pwdhash)
+    if password:
+        salt = randstr(8)
+        pwdhash = HMAC(salt, password, sha1).hexdigest()
+        with _storage.open("password", "w") as f:
+            f.write(salt + ";" + pwdhash)
+    else:
+        if has_password():
+            _storage.remove("password")
 
 
 def validate_password(password):
