@@ -213,10 +213,11 @@ class NetworkService(ServiceBase, NetworkMonitorMixIn):
         return Storage("net")
 
     def set_config(self, ifname, config):
+        recover = "recover" in config
         config = NCE.validate_options(config)
 
         # Encrypt password in client mode
-        if "psk" in config and "ssid" in config and "recover" not in config:
+        if "psk" in config and "ssid" in config and not recover:
             if config.get("wifi_mode") == "client":
                 plain_passwd = config["psk"]
                 config["psk"] = get_wpa_psk(config["ssid"], plain_passwd)
