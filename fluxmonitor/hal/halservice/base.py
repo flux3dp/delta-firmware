@@ -199,7 +199,7 @@ class BaseOnSerial(object):
             try:
                 w.data.send(buf)
             except Exception:
-                logger.error("Send mainboard message to %s failed", w.data)
+                logger.error("Send headboard message to %s failed", w.data)
         return buf
 
     def on_recvfrom_pc(self, watcher, revent):
@@ -208,5 +208,5 @@ class BaseOnSerial(object):
             try:
                 w.data.send(buf)
             except Exception:
-                logger.error("Send mainboard message to %s failed", w.data)
+                logger.error("Send pc message to %s failed", w.data)
         return buf
