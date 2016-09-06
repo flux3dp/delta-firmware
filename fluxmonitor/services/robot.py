@@ -10,7 +10,7 @@ from fluxmonitor.controller.tasks.play_manager import poweroff_led, clean_led
 from fluxmonitor.err_codes import RESOURCE_BUSY, EXEC_OPERATION_ERROR
 from fluxmonitor.controller.startup import device_startup
 from fluxmonitor.services.base import ServiceBase
-from fluxmonitor.storage import UserSpace, Metadata
+from fluxmonitor.storage import UserSpace, Metadata, Storage
 from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT
 
 
@@ -117,7 +117,14 @@ class Robot(ServiceBase):
             logger.exception("Flush network service status failed")
 
     def autoplay(self):
-        pathlist = (("USB", "autoplay.fc"), ("SD", "autoplay.fc",))
+        storage = Storage("general", "meta")
+
+        if storage["replay"] != "N":
+            pathlist = (("USB", "autoplay.fc"), ("SD", "autoplay.fc",),
+                        ("SD", "Recent/recent-1.fc",))
+        else:
+            pathlist = (("USB", "autoplay.fc"), ("SD", "autoplay.fc",))
+
         us = UserSpace()
 
         for candidate in pathlist:

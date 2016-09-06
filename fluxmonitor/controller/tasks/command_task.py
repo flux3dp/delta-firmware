@@ -327,6 +327,9 @@ class ConfigMixIn(object):
         "broadcast": {
             "type": str, "enum": ("L", "A", "N"),
             "key": "broadcast"},
+        "replay": {
+            "type": str, "enum": ("Y", "N"),
+            "key": "replay"},
     }
 
     def dispatch_config_cmd(self, handler, cmd, *args):
