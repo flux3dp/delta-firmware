@@ -60,13 +60,16 @@ class WirelessNetworkReviewer(object):
     workers = set()
 
     @classmethod
-    def add_reviewer(cls, ifname, old_config, essid, service):
+    def add_reviewer(cls, ifname, old_config, essid, hidden_ssid, service):
         logger.debug("Trace %s config status", ifname)
 
         if get_wlan_ssid(ifname):
             b = 6.0
         else:
             b = 3.0
+
+        if hidden_ssid:
+            b += 30.0
 
         old_config["recover"] = True
         data = cls(ifname, old_config, service, essid)
@@ -304,9 +307,11 @@ class NetworkService(ServiceBase, NetworkMonitorMixIn):
 
     def apply_config(self, ifname, config, recoverable=False):
         if is_wireless(ifname) and recoverable:
+            hidden_ssid = config.get("scan_ssid") == "1"
             WirelessNetworkReviewer.add_reviewer(
                 ifname=ifname, old_config=self.get_config(ifname),
-                essid=config.get("ssid"), service=self)
+                essid=config.get("ssid"), hidden_ssid=hidden_ssid,
+                service=self)
 
         config = self.set_config(ifname, config)
         logger.debug(
