@@ -10,6 +10,7 @@ from fluxmonitor.controller.tasks.play_manager import poweroff_led, clean_led
 from fluxmonitor.err_codes import RESOURCE_BUSY, EXEC_OPERATION_ERROR
 from fluxmonitor.controller.startup import device_startup
 from fluxmonitor.services.base import ServiceBase
+from fluxmonitor.misc.systime import systime as time
 from fluxmonitor.storage import UserSpace, Metadata, Storage
 from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT
 
@@ -23,6 +24,14 @@ logger = logging.getLogger(__name__)
 
 class Robot(ServiceBase):
     _exclusive_component = None
+
+    # This is a timestemp to recoard last exclusive quit at.
+    # This data use to prevent autoplay when user double click at load/unload
+    # filament.
+    # First click: Terminate load/unload filament.
+    # Then FLUX Studio send quit maintain in a short time.
+    # Second click: Trigger autoplay <-- Prevent it occour
+    _exclusive_release_at = 0
 
     def __init__(self, options):
         ServiceBase.__init__(self, logger, options)
@@ -80,7 +89,10 @@ class Robot(ServiceBase):
         else:
             # Not playing, autoplay
             if message == "PLAYTOGL":
-                self.autoplay()
+                if time() - self._exclusive_release_at < 1:
+                    logger.debug("Prevent autoplay")
+                else:
+                    self.autoplay()
             elif message == "POWER":
                 self.power_management()
 
@@ -158,6 +170,7 @@ class Robot(ServiceBase):
             self._exclusive_component = val
         elif val is None:
             self._exclusive_component = None
+            self._exclusive_release_at = time()
         else:
             self._exclusive_component = weakref.ref(val)
 
