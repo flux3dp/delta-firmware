@@ -183,6 +183,7 @@ class Player(ServiceBase):
                 st = self.executor.get_status()
                 st["traveled"] = self.executor.traveled
                 st["prog"] = self.executor.traveled / self.travel_dist
+                st["pos"] = self.executor.position
                 pl = json.dumps(st)
                 self.send_cmd_response(S, R, pl)
             elif cmd == "RESUME":  # Continue

@@ -36,7 +36,7 @@ class CorrectionMacroTest(ControlTestBase):
         # Get point 1 z
         with self.assertSendMainboard() as executor:
             self.cm.on_mainboard_message(
-                "Bed Z-Height at X:-73.6122 Y:-42.5 = 0.3", executor)
+                "DATA ZPROBE 0.3", executor)
         self.assertEqual(self.cm.data, [0.3])
 
         # Move to point 2
@@ -45,7 +45,7 @@ class CorrectionMacroTest(ControlTestBase):
         # Get point 2 z
         with self.assertSendMainboard() as executor:
             self.cm.on_mainboard_message(
-                "Bed Z-Height at X:73.6122 Y:-42.5 = 0.25", executor)
+                "DATA ZPROBE 0.25", executor)
         self.assertEqual(self.cm.data, [0.3, 0.25])
 
         # Move to point 3
@@ -54,7 +54,7 @@ class CorrectionMacroTest(ControlTestBase):
         # Get point 3 z
         with self.assertSendMainboard() as executor:
             self.cm.on_mainboard_message(
-                "Bed Z-Height at X:0 Y:85 = 0.31", executor)
+                "DATA ZPROBE 0.31", executor)
         self.assertEqual(self.cm.data, [0.3, 0.25, 0.31])
 
         # # Calculate
@@ -69,15 +69,15 @@ class CorrectionMacroTest(ControlTestBase):
                                       "G30X0Y85") as executor:
             self.cm.on_command_empty(executor)
             self.cm.on_mainboard_message(
-                "Bed Z-Height at X:-73.6122 Y:-42.5 = 0.01", executor)
+                "DATA ZPROBE 0.01", executor)
 
             self.cm.on_command_empty(executor)
             self.cm.on_mainboard_message(
-                "Bed Z-Height at X:73.6122 Y:-42.5 = -0.01", executor)
+                "DATA ZPROBE -0.01", executor)
 
             self.cm.on_command_empty(executor)
             self.cm.on_mainboard_message(
-                "Bed Z-Height at X:0 Y:85 = 0.02", executor)
+                "DATA ZPROBE 0.02", executor)
 
         # # Calculate
         self.assertIsNone(self.callback_status)
@@ -95,15 +95,16 @@ class CorrectionMacroTest(ControlTestBase):
             self.cm.start(executor)
             self.cm.on_command_empty(executor)
             self.cm.on_mainboard_message(
-                "Bed Z-Height at X:-73.6122 Y:-42.5 = 5", executor)
+                "DATA ZPROBE 5", executor)
             self.cm.on_command_empty(executor)
             self.cm.on_mainboard_message(
-                "Bed Z-Height at X:73.6122 Y:-42.5 = 0", executor)
+                "DATA ZPROBE 0", executor)
             self.cm.on_command_empty(executor)
             self.cm.on_mainboard_message(
-                "Bed Z-Height at X:0 Y:85 = 0", executor)
+                "DATA ZPROBE 0", executor)
 
         # # Calculate
         self.assertIsNone(self.callback_status)
-        with self.assertSendMainboard("G1F9000X0Y0Z230") as executor:
+        with self.assertSendMainboard("M666X0Y0Z0H242", "G1F10000X0Y0Z230",
+                                      "G28+") as executor:
             self.assertRaises(RuntimeError, self.cm.on_command_empty, executor)

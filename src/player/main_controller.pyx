@@ -14,7 +14,7 @@ import logging
 
 from fluxmonitor.err_codes import EXEC_OPERATION_ERROR, EXEC_INTERNAL_ERROR,\
     EXEC_MAINBOARD_OFFLINE, EXEC_FILAMENT_RUNOUT, HARDWARE_ERROR, \
-    EXEC_HOME_FAILED
+    EXEC_HOME_FAILED, EXEC_SENSOR_ERROR
 
 
 cdef object L = logging.getLogger(__name__)
@@ -197,6 +197,10 @@ cdef class MainController:
 
             elif msg == "ER G28_FAILED":
                 raise SystemError(HARDWARE_ERROR, EXEC_HOME_FAILED)
+
+            elif msg.startswith("ER FSR"):
+                raise RuntimeError(HARDWARE_ERROR, EXEC_SENSOR_ERROR, "FSR",
+                                   *(msg.split(" ")[2:]))
 
             else:
                 if msg.startswith("ER "):

@@ -9,6 +9,7 @@ import pyev
 
 from fluxmonitor.config import uart_config, DEBUG
 from fluxmonitor.err_codes import SUBSYSTEM_ERROR, NO_RESPONSE, UNKNOWN_ERROR
+from fluxmonitor.interfaces.base import ConnectionClosedException
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,11 @@ class CommandMixIn(object):
 
         except RuntimeError as e:
             handler.send_text(("error " + " ".join(e.args)).encode())
+
+        except ConnectionClosedException as e:
+            logger.debug("Connection close: %s" % e)
+            self.close()
+
         except Exception as e:
             if DEBUG:
                 handler.send_text("error %s %s" % (UNKNOWN_ERROR, e))
@@ -53,15 +59,17 @@ class DeviceOperationMixIn(object):
     the 'clean' method will be invoked before mainboard/headboard be closed.
     """
 
+    _cleaned = False
     _uart_mb = _uart_hb = None
     _mb_watcher = _hb_watcher = None
 
-    def __init__(self, stack, handler, enable_watcher=True):
+    def __init__(self, stack, handler, enable_watcher=True, mb_sock=None,
+                 th_sock=None):
         kernel = stack.loop.data
         kernel.exclusive(self)
         self.stack = stack
         self.handler = handler
-        self._connect(enable_watcher)
+        self._connect(enable_watcher, mb_sock, th_sock)
 
     @property
     def label(self):
@@ -69,7 +77,11 @@ class DeviceOperationMixIn(object):
 
     def _clean(self):
         try:
-            self.clean()
+            if self._cleaned is False:
+                self._cleaned = True
+                self.clean()
+
+            logger.debug("Clean device operation task")
         except Exception:
             logger.exception("Error while clean task '%s'", self.__class__)
 
@@ -79,18 +91,21 @@ class DeviceOperationMixIn(object):
         kernel.release_exclusive(self)
         self._disconnect()
 
-    def _connect(self, enable_watcher):
+    def _connect(self, enable_watcher, mb, hb):
         try:
-            self._uart_mb = mb = socket.socket(socket.AF_UNIX,
-                                               socket.SOCK_STREAM)
-            logger.info("Connect to mainboard %s" % uart_config["mainboard"])
-            mb.connect(uart_config["mainboard"])
+            if not mb:
+                mb = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                logger.info("Connect to mainboard %s",
+                            uart_config["mainboard"])
+                mb.connect(uart_config["mainboard"])
+            self._uart_mb = mb
 
-            self._uart_hb = hb = socket.socket(socket.AF_UNIX,
-                                               socket.SOCK_STREAM)
-            logger.info("Connect to headboard %s" %
-                        uart_config["headboard"])
-            hb.connect(uart_config["headboard"])
+            if not hb:
+                hb = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                logger.info("Connect to headboard %s",
+                            uart_config["headboard"])
+                hb.connect(uart_config["headboard"])
+            self._uart_hb = hb
 
             if enable_watcher:
                 self._mb_watcher = self.stack.loop.io(
@@ -139,6 +154,7 @@ class DeviceOperationMixIn(object):
 
     def on_dead(self, reason=None):
         self._clean()
+        self._disconnect()
         self.handler.send_text("error KICKED")
         logger.info("%s dead (reason=%s)", self.__class__.__name__, reason)
         self.handler.close()

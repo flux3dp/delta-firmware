@@ -25,13 +25,16 @@ class Options(object):
     head_error_level = None
     play_bufsize = None
     filament_detect = None
+    autoresume = False
     max_x = inf
     max_y = inf
     max_z = inf
 
-    def __init__(self, taskloader=None):
+    def __init__(self, taskloader=None, head=None):
         if taskloader:
             self.__load_from_metadata__(taskloader.metadata)
+        if head:
+            self.head = head
         self.__load_form_local__()
 
     def __load_from_metadata__(self, metadata):
@@ -63,6 +66,8 @@ class Options(object):
         if self.head_error_level is None:
             self.head_error_level = parse_int(
                 storage.readall("head_error_level"), 4095)
+
+        self.autoresume = storage["autoresume"] == "Y"
 
         if self.head != "EXTRUDER":
             # Only EXTRUDER need filament detect

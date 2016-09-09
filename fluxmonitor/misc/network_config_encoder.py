@@ -20,6 +20,8 @@ except NameError:
 #     # Required only if NIC is a wireless device
 #     "wifi_mode": "host"|"client"  # host is AP mode
 #     "ssid": "YOUR_SSID",          #
+#     # Required only if SSID is hidden
+#     "scan_ssid": "1"
 #
 #     # Required only if wifi has a security configuration
 #     "security": "WEP"|"WPA-PSK"|"WPA2-PSK",
@@ -84,6 +86,8 @@ def validate_options(orig):
 
     if b"ssid" in orig:
         ssid = _b2s(orig[b"ssid"])
+        scan_ssid = _b2s(orig.get(b"scan_ssid"))
+
         wifi_mode = _b2s(orig.get(b"wifi_mode", b"client"))
         security = _b2s(orig.get(b"security"))
 
@@ -96,6 +100,7 @@ def validate_options(orig):
             raise KeyError("security")
 
         options["ssid"] = ssid
+        options["scan_ssid"] = "1" if scan_ssid == "1" else "0"
         options["wifi_mode"] = wifi_mode
         options["security"] = security
 

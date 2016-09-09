@@ -1,7 +1,6 @@
 
 import tempfile
 import logging
-import os
 
 from fluxmonitor.misc import Process
 from fluxmonitor.config import network_services
@@ -15,7 +14,8 @@ __all__ = ["wlan_managed_daemon", "wlan_ap_daemon", "get_wlan_ssid",
 
 
 def wlan_managed_daemon(manager, ifname, wlan_config):
-    logger.info("[%s] wpa: %s" % (ifname, wlan_config))
+    logger.info("[%s] wpa: %s (%s)", ifname, wlan_config.get("ssid"),
+                wlan_config.get("security"))
 
     conf_file = tempfile.mktemp() + ".wpa.conf"
     _write_wpa_config(conf_file, wlan_config)
@@ -26,7 +26,7 @@ def wlan_managed_daemon(manager, ifname, wlan_config):
 
 
 def wlan_ap_daemon(manager, ifname, config):
-    logger.info("hostapd %s" % ifname)
+    logger.info("[%s] hostapd: %s", ifname, config.get("ssid"))
 
     conf_file = tempfile.mktemp() + ".hostapd.conf"
     _write_hostapd_config(conf_file, ifname, config)
@@ -39,17 +39,28 @@ def get_wlan_ssid(ifname="wlan0"):
 
 
 def check_associate(ifname="wlan0"):
-    return os.system("iwgetid -a " + ifname) == 0
+    return Process.fast_exec(("iwgetid", "-r", ifname))[0] == 0
+    # ret = Process.call_with_output("iwgetid", "-a", ifname).strip()
+    # if ret and ret[-17:] != '00:00:00:00:00:00':
+    #     ret = Process.call_with_output("iwgetid", "-r", ifname).strip()
+
+    # else:
+    #     return False
+
+    # return True if ret and ret[-17:] != '00:00:00:00:00:00' else False
 
 
 def _write_wpa_config(filepath, config):
     security = config.get("security")
+    if "scan_ssid" not in config:
+        config["scan_ssid"] = "0"
     buf = None
 
     if security == "":
         buf = """network={
             ssid="%(ssid)s"
             mode=0
+            scan_ssid=%(scan_ssid)s
             key_mgmt=NONE
 }""" % config
 
@@ -57,6 +68,7 @@ def _write_wpa_config(filepath, config):
         buf = """network={
             ssid="%(ssid)s"
             mode=0
+            scan_ssid=%(scan_ssid)s
             wep_key0="%(wepkey)s"
             key_mgmt=NONE
 }""" % config
@@ -68,6 +80,7 @@ def _write_wpa_config(filepath, config):
             buf = """network={
                 ssid="%(ssid)s"
                 mode=0
+                scan_ssid=%(scan_ssid)s
                 psk="%(psk)s"
                 proto=WPA RSN
                 key_mgmt=WPA-PSK
@@ -75,6 +88,7 @@ def _write_wpa_config(filepath, config):
         else:
             buf = """network={
                 ssid="%(ssid)s"
+                scan_ssid=%(scan_ssid)s
                 mode=0
                 psk=%(psk)s
                 proto=WPA RSN

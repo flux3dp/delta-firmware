@@ -34,7 +34,7 @@ class ZprobeMacroTest(ControlTestBase):
 
         with self.assertSendMainboard() as executor:
             self.cm.on_mainboard_message(
-                "Bed Z-Height at X:0 Y:0 = 0.3", executor)
+                "DATA ZPROBE 0.3", executor)
         self.assertEqual(self.cm.data, 0.3)
 
         # ROUND 1
@@ -44,7 +44,7 @@ class ZprobeMacroTest(ControlTestBase):
 
         with self.assertSendMainboard() as executor:
             self.cm.on_mainboard_message(
-                "Bed Z-Height at X:0 Y:0 = 0.01", executor)
+                "DATA ZPROBE 0.01", executor)
         self.assertEqual(self.cm.data, 0.01)
 
         # Complete
@@ -64,10 +64,10 @@ class ZprobeMacroTest(ControlTestBase):
         for sb in (1, -1, 1):
             if sb > 0:
                 m666 = "M666H241.2000"
-                zprob = "Bed Z-Height at X:-73.6122 Y:-42.5 = 0.8"
+                zprob = "DATA ZPROBE 0.8"
             else:
                 m666 = "M666H242.0000"
-                zprob = "Bed Z-Height at X:-73.6122 Y:-42.5 = -0.8"
+                zprob = "DATA ZPROBE -0.8"
 
             with self.assertSendMainboard(m666, "G30X0Y0") as executor:
                 self.cm.on_mainboard_message(zprob, executor)
@@ -78,7 +78,7 @@ class ZprobeMacroTest(ControlTestBase):
         with self.assertSendMainboard("M666H242.0000",
                                       "G1F6000X0Y0Z210") as executor:
             self.cm.on_mainboard_message(
-                "Bed Z-Height at X:-73.6122 Y:-42.5 = -0.8", executor)
+                "DATA ZPROBE -0.8", executor)
             self.assertRaises(RuntimeError, self.cm.on_command_empty, executor)
 
     def test_zprob_failed(self):
@@ -87,5 +87,5 @@ class ZprobeMacroTest(ControlTestBase):
             self.cm.start(executor)
             self.cm.on_command_empty(executor)
             self.assertRaises(RuntimeError, self.cm.on_mainboard_message,
-                              "Bed Z-Height at X:-73.6122 Y:-42.5 = -100",
+                              "DATA ZPROBE -100",
                               executor)
