@@ -1,5 +1,5 @@
 
-from binascii import b2a_hex as to_hex
+from random import randrange
 from time import sleep
 import logging
 import socket
@@ -8,13 +8,12 @@ import os
 
 import pyev
 
-from fluxmonitor.hal.nl80211.config import check_associate
+from fluxmonitor.hal.nl80211.config import get_wlan_ssid
 from fluxmonitor.security._security import get_wpa_psk
 from fluxmonitor.hal.net.monitor import Monitor as NetworkMonitor
-from fluxmonitor.misc.systime import systime as time
 from fluxmonitor.hal.nl80211 import config as nl80211_config
 from fluxmonitor.halprofile import get_model_id
-from fluxmonitor.security import get_serial, hash_password
+from fluxmonitor.security import get_serial
 from fluxmonitor.storage import Storage, Metadata
 from fluxmonitor.hal.net import config as net_cfg
 from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT
@@ -40,20 +39,18 @@ def is_wireless(ifname):
 
 def create_default_config(ifname):
     if is_wireless(ifname):
-        sn = get_serial()
         model_id = get_model_id()
 
         if model_id.startswith("delta"):
             model_id = "Delta"
-        h = to_hex(hash_password("FLUX", sn)[:2])
-        ssid = "FLUX %s [%s]" % (model_id, h)
+        ssid = "FLUX %s [%s]" % (model_id, "%4x" % randrange(65536))
 
         return {
             "method": "internal",
             "wifi_mode": "host",
             "ssid": ssid,
             "security": "WPA2-PSK",
-            "psk": sn,
+            "psk": get_serial(),
         }
     else:
         return {"method": "dhcp"}
@@ -63,38 +60,59 @@ class WirelessNetworkReviewer(object):
     workers = set()
 
     @classmethod
-    def add_reviewer(cls, ifname, old_config, service):
+    def add_reviewer(cls, ifname, old_config, essid, hidden_ssid, service):
         logger.debug("Trace %s config status", ifname)
-        data = (ifname, time(), old_config, service)
 
-        if check_associate(ifname):
+        if get_wlan_ssid(ifname):
             b = 6.0
         else:
             b = 3.0
 
+        if hidden_ssid:
+            b += 30.0
+
+        old_config["recover"] = True
+        data = cls(ifname, old_config, service, essid)
         watcher = service.loop.timer(b, 1.5, cls.reviewer, data)
         cls.workers.add(watcher)
         watcher.start()
 
     @classmethod
     def reviewer(cls, watcher, revent):
-        ifname = watcher.data[0]
-        if check_associate(ifname):
-            watcher.stop()
-            cls.workers.remove(watcher)
-            logger.info("%s config accepted", ifname)
+        data = watcher.data
+
+        if get_wlan_ssid(data.ifname) == data.essid:
+            if data.ok_counter == 9:
+                watcher.stop()
+                cls.workers.remove(watcher)
+                logger.info("%s config accepted", data.ifname)
+            else:
+                data.ok_counter += 1
+                logger.debug("Reviewer OK %i/%i",
+                             data.ok_counter, data.er_counter)
+
         else:
-            start_at = watcher.data[1]
+            logger.debug("Reviewer ER %i/%i",
+                         data.ok_counter, data.er_counter)
+            if data.er_counter > 8 or data.ok_counter > 0:
+                logger.info("%s config rejected", data.ifname)
 
-            if time() - start_at > 8.0:
-                old_config = watcher.data[2]
-                service = watcher.data[3]
-
-                service.apply_config(ifname, old_config, recoverable=False)
+                data.service.apply_config(
+                    data.ifname, data.old_config, recoverable=False)
 
                 watcher.stop()
                 cls.workers.remove(watcher)
-                logger.info("%s config rejected", ifname)
+            else:
+                data.er_counter += 1
+
+    def __init__(self, ifname, old_config, service, essid):
+        self.ifname = ifname
+        self.old_config = old_config
+        self.service = service
+        self.essid = essid
+
+        self.ok_counter = 0
+        self.er_counter = 0
 
 
 class NetworkMonitorMixIn(object):
@@ -198,10 +216,11 @@ class NetworkService(ServiceBase, NetworkMonitorMixIn):
         return Storage("net")
 
     def set_config(self, ifname, config):
+        recover = "recover" in config
         config = NCE.validate_options(config)
 
         # Encrypt password in client mode
-        if "psk" in config and "ssid" in config:
+        if "psk" in config and "ssid" in config and not recover:
             if config.get("wifi_mode") == "client":
                 plain_passwd = config["psk"]
                 config["psk"] = get_wpa_psk(config["ssid"], plain_passwd)
@@ -223,7 +242,7 @@ class NetworkService(ServiceBase, NetworkMonitorMixIn):
         else:
             c = create_default_config(ifname)
             self.set_config(ifname, c)
-        return None
+            return c
 
     def update_network_led(self, host_flag=None):
         """Return True if network is read"""
@@ -261,14 +280,13 @@ class NetworkService(ServiceBase, NetworkMonitorMixIn):
         # start network interface and apply its configurations
 
         logger.debug("[%s] Bootstrap" % ifname)
+        if rebootstrap:
+            self.kill_daemons(ifname)
 
         self.bootstrap_nic(ifname, forcus_restart=True)
         config = self.get_config(ifname)
-
-        if config:
-            self.config_device(ifname, config)
-        else:
-            self.config_device(ifname, self._create_default_config(ifname))
+        assert config
+        self.config_device(ifname, config)
 
     def bootstrap_nic(self, ifname, delay=0.5, forcus_restart=False):
         # Startup nic, this method will get device information from
@@ -289,10 +307,11 @@ class NetworkService(ServiceBase, NetworkMonitorMixIn):
 
     def apply_config(self, ifname, config, recoverable=False):
         if is_wireless(ifname) and recoverable:
+            hidden_ssid = config.get("scan_ssid") == "1"
             WirelessNetworkReviewer.add_reviewer(
-                ifname,
-                self.get_config(ifname),
-                self)
+                ifname=ifname, old_config=self.get_config(ifname),
+                essid=config.get("ssid"), hidden_ssid=hidden_ssid,
+                service=self)
 
         config = self.set_config(ifname, config)
         logger.debug(
@@ -359,7 +378,7 @@ class NetworkService(ServiceBase, NetworkMonitorMixIn):
             else:
                 logger.error("'%s daemon' (%s) is unexpected "
                              "terminated. Restart." % (name, process))
-                self.bootstrap(ifname, forcus_restart=True)
+                self.bootstrap(ifname, rebootstrap=True)
         else:
             logger.error("A process %s closed but not "
                          "in daemon list" % process)

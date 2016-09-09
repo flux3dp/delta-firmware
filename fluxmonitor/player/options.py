@@ -25,6 +25,7 @@ class Options(object):
     head_error_level = None
     play_bufsize = None
     filament_detect = None
+    autoresume = False
     max_x = inf
     max_y = inf
     max_z = inf
@@ -56,7 +57,7 @@ class Options(object):
         storage = Storage("general", "meta")
         if self.correction is None:
             self.correction = ensure_value(
-                storage.readall("auto_correction"), "H")
+                storage.readall("auto_correction"), "A")
 
         if self.filament_detect is None:
             self.filament_detect = ensure_value(
@@ -65,6 +66,8 @@ class Options(object):
         if self.head_error_level is None:
             self.head_error_level = parse_int(
                 storage.readall("head_error_level"), 4095)
+
+        self.autoresume = storage["autoresume"] == "Y"
 
         if self.head != "EXTRUDER":
             # Only EXTRUDER need filament detect

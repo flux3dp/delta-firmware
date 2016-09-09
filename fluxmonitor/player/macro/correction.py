@@ -1,4 +1,5 @@
 
+from collections import deque
 import logging
 
 from fluxmonitor.err_codes import HARDWARE_ERROR, EXEC_CONVERGENCE_FAILED, \
@@ -9,7 +10,7 @@ from fluxmonitor.misc import correction
 logger = logging.getLogger(__name__)
 
 
-def do_correction(meta, x, y, z):
+def do_calibrate(meta, x, y, z):
     old_corr = meta.plate_correction
     new_corr = correction.calculate(
         old_corr["X"], old_corr["Y"], old_corr["Z"], old_corr["H"], x, y, z, 0)
@@ -34,6 +35,8 @@ class CorrectionMacro(object):
         self.history = []
         self.data = []
         self.ttl = ttl
+
+        self.debug_logs = deque(maxlen=16)
 
         self.convergence = False
         self.round = 0
@@ -77,12 +80,12 @@ class CorrectionMacro(object):
                 self.convergence = True
 
                 if self.correct_at_final:
-                    corr_str = do_correction(self.meta, *data)
+                    corr_str = do_calibrate(self.meta, *data)
                     executor.main_ctrl.send_cmd(corr_str, executor)
                 executor.main_ctrl.send_cmd("G1F9000X0Y0Z30", executor)
 
             else:
-                corr_str = do_correction(self.meta, *data)
+                corr_str = do_calibrate(self.meta, *data)
                 logger.debug("New Correction: %s" % corr_str)
                 executor.main_ctrl.send_cmd(corr_str, executor)
 
@@ -106,7 +109,7 @@ class CorrectionMacro(object):
         self.data = []
 
     def on_mainboard_message(self, msg, executor):
-        if msg.startswith("Bed Z-Height at"):
+        if msg.startswith("DATA ZPROBE "):
             str_probe = msg.rsplit(" ", 1)[-1]
             val = float(str_probe)
             if val <= -50:
@@ -116,6 +119,8 @@ class CorrectionMacro(object):
                 raise RuntimeError(HARDWARE_ERROR, EXEC_ZPROBE_ERROR)
 
             self.data.append(val)
+        elif msg.startswith("DEBUG "):
+            self.debug_logs.append(msg[6:])
 
     def on_headboard_message(self, msg, executor):
         pass

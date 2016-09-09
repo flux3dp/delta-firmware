@@ -523,6 +523,7 @@ struct __pyx_vtabstruct_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM {
   float (*get_e)(struct __pyx_obj_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM *, int, int __pyx_skip_dispatch);
   PyObject *(*set_e)(struct __pyx_obj_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM *, int, float, int __pyx_skip_dispatch);
   double (*get_traveled)(struct __pyx_obj_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM *, int __pyx_skip_dispatch);
+  PyObject *(*get_position)(struct __pyx_obj_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM *, int __pyx_skip_dispatch);
 };
 static struct __pyx_vtabstruct_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM *__pyx_vtabptr_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM;
 
@@ -733,6 +734,7 @@ static PyObject *__pyx_f_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_set_z
 static float __pyx_f_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_get_e(struct __pyx_obj_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM *__pyx_v_self, int __pyx_v_index, int __pyx_skip_dispatch); /* proto*/
 static PyObject *__pyx_f_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_set_e(struct __pyx_obj_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM *__pyx_v_self, int __pyx_v_index, float __pyx_v_val, int __pyx_skip_dispatch); /* proto*/
 static double __pyx_f_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_get_traveled(struct __pyx_obj_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM *__pyx_v_self, int __pyx_skip_dispatch); /* proto*/
+static PyObject *__pyx_f_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_get_position(struct __pyx_obj_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM *__pyx_v_self, int __pyx_skip_dispatch); /* proto*/
 
 /* Module declarations from 'libc.math' */
 
@@ -743,6 +745,9 @@ static void __pyx_f_11fluxmonitor_6player_11_device_fsm_pycallback(char const *,
 int __pyx_module_is_main_fluxmonitor__player___device_fsm = 0;
 
 /* Implementation of 'fluxmonitor.player._device_fsm' */
+static const char __pyx_k_X[] = "X";
+static const char __pyx_k_Y[] = "Y";
+static const char __pyx_k_Z[] = "Z";
 static const char __pyx_k_f[] = "f";
 static const char __pyx_k_t[] = "t";
 static const char __pyx_k_x[] = "x";
@@ -774,8 +779,12 @@ static const char __pyx_k_set_y[] = "set_y";
 static const char __pyx_k_set_z[] = "set_z";
 static const char __pyx_k_callback[] = "callback";
 static const char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
+static const char __pyx_k_get_position[] = "get_position";
 static const char __pyx_k_get_traveled[] = "get_traveled";
 static const char __pyx_k_set_max_exec_time[] = "set_max_exec_time";
+static PyObject *__pyx_n_s_X;
+static PyObject *__pyx_n_s_Y;
+static PyObject *__pyx_n_s_Z;
 static PyObject *__pyx_n_s_callback;
 static PyObject *__pyx_n_s_e1;
 static PyObject *__pyx_n_s_e2;
@@ -785,6 +794,7 @@ static PyObject *__pyx_n_s_fd;
 static PyObject *__pyx_n_s_feed;
 static PyObject *__pyx_n_s_get_e;
 static PyObject *__pyx_n_s_get_f;
+static PyObject *__pyx_n_s_get_position;
 static PyObject *__pyx_n_s_get_t;
 static PyObject *__pyx_n_s_get_traveled;
 static PyObject *__pyx_n_s_get_x;
@@ -827,6 +837,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_28se
 static PyObject *__pyx_pf_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_30get_e(struct __pyx_obj_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM *__pyx_v_self, int __pyx_v_index); /* proto */
 static PyObject *__pyx_pf_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_32set_e(struct __pyx_obj_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM *__pyx_v_self, int __pyx_v_index, float __pyx_v_val); /* proto */
 static PyObject *__pyx_pf_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_34get_traveled(struct __pyx_obj_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_36get_position(struct __pyx_obj_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM *__pyx_v_self); /* proto */
 static PyObject *__pyx_tp_new_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static float __pyx_k_;
 static float __pyx_k__2;
@@ -3394,6 +3405,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_32se
  * 
  *   cpdef double get_traveled(self):             # <<<<<<<<<<<<<<
  *     return self.ptr.fsm.traveled
+ * 
  */
 
 static PyObject *__pyx_pw_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_35get_traveled(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
@@ -3445,6 +3457,8 @@ static double __pyx_f_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_get_trav
  * 
  *   cpdef double get_traveled(self):
  *     return self.ptr.fsm.traveled             # <<<<<<<<<<<<<<
+ * 
+ *   cpdef get_position(self):
  */
   __pyx_r = __pyx_v_self->ptr->fsm.traveled;
   goto __pyx_L0;
@@ -3454,6 +3468,7 @@ static double __pyx_f_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_get_trav
  * 
  *   cpdef double get_traveled(self):             # <<<<<<<<<<<<<<
  *     return self.ptr.fsm.traveled
+ * 
  */
 
   /* function exit code */
@@ -3498,6 +3513,138 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_34ge
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_AddTraceback("fluxmonitor.player._device_fsm.PyDeviceFSM.get_traveled", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "src/device_fsm/fsm.pyx":101
+ *     return self.ptr.fsm.traveled
+ * 
+ *   cpdef get_position(self):             # <<<<<<<<<<<<<<
+ *     return {"X": self.ptr.fsm.x, "Y": self.ptr.fsm.y, "Z": self.ptr.fsm.z}
+ */
+
+static PyObject *__pyx_pw_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_37get_position(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_f_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_get_position(struct __pyx_obj_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM *__pyx_v_self, int __pyx_skip_dispatch) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
+  __Pyx_RefNannySetupContext("get_position", 0);
+  /* Check if called by wrapper */
+  if (unlikely(__pyx_skip_dispatch)) ;
+  /* Check if overridden in Python */
+  else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_position); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 101, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_37get_position)) {
+      __Pyx_XDECREF(__pyx_r);
+      __Pyx_INCREF(__pyx_t_1);
+      __pyx_t_3 = __pyx_t_1; __pyx_t_4 = NULL;
+      if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_3))) {
+        __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_3);
+        if (likely(__pyx_t_4)) {
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+          __Pyx_INCREF(__pyx_t_4);
+          __Pyx_INCREF(function);
+          __Pyx_DECREF_SET(__pyx_t_3, function);
+        }
+      }
+      if (__pyx_t_4) {
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 101, __pyx_L1_error)
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      } else {
+        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 101, __pyx_L1_error)
+      }
+      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __pyx_r = __pyx_t_2;
+      __pyx_t_2 = 0;
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      goto __pyx_L0;
+    }
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  }
+
+  /* "src/device_fsm/fsm.pyx":102
+ * 
+ *   cpdef get_position(self):
+ *     return {"X": self.ptr.fsm.x, "Y": self.ptr.fsm.y, "Z": self.ptr.fsm.z}             # <<<<<<<<<<<<<<
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 102, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_self->ptr->fsm.x); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 102, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_X, __pyx_t_2) < 0) __PYX_ERR(0, 102, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_self->ptr->fsm.y); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 102, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_Y, __pyx_t_2) < 0) __PYX_ERR(0, 102, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_self->ptr->fsm.z); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 102, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_Z, __pyx_t_2) < 0) __PYX_ERR(0, 102, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "src/device_fsm/fsm.pyx":101
+ *     return self.ptr.fsm.traveled
+ * 
+ *   cpdef get_position(self):             # <<<<<<<<<<<<<<
+ *     return {"X": self.ptr.fsm.x, "Y": self.ptr.fsm.y, "Z": self.ptr.fsm.z}
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_AddTraceback("fluxmonitor.player._device_fsm.PyDeviceFSM.get_position", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* Python wrapper */
+static PyObject *__pyx_pw_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_37get_position(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_37get_position(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("get_position (wrapper)", 0);
+  __pyx_r = __pyx_pf_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_36get_position(((struct __pyx_obj_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_36get_position(struct __pyx_obj_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("get_position", 0);
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = __pyx_f_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_get_position(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 101, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("fluxmonitor.player._device_fsm.PyDeviceFSM.get_position", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -3556,6 +3703,7 @@ static PyMethodDef __pyx_methods_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM
   {"get_e", (PyCFunction)__pyx_pw_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_31get_e, METH_O, 0},
   {"set_e", (PyCFunction)__pyx_pw_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_33set_e, METH_VARARGS|METH_KEYWORDS, 0},
   {"get_traveled", (PyCFunction)__pyx_pw_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_35get_traveled, METH_NOARGS, 0},
+  {"get_position", (PyCFunction)__pyx_pw_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_37get_position, METH_NOARGS, 0},
   {0, 0, 0, 0}
 };
 
@@ -3640,6 +3788,9 @@ static struct PyModuleDef __pyx_moduledef = {
 #endif
 
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
+  {&__pyx_n_s_X, __pyx_k_X, sizeof(__pyx_k_X), 0, 0, 1, 1},
+  {&__pyx_n_s_Y, __pyx_k_Y, sizeof(__pyx_k_Y), 0, 0, 1, 1},
+  {&__pyx_n_s_Z, __pyx_k_Z, sizeof(__pyx_k_Z), 0, 0, 1, 1},
   {&__pyx_n_s_callback, __pyx_k_callback, sizeof(__pyx_k_callback), 0, 0, 1, 1},
   {&__pyx_n_s_e1, __pyx_k_e1, sizeof(__pyx_k_e1), 0, 0, 1, 1},
   {&__pyx_n_s_e2, __pyx_k_e2, sizeof(__pyx_k_e2), 0, 0, 1, 1},
@@ -3649,6 +3800,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_feed, __pyx_k_feed, sizeof(__pyx_k_feed), 0, 0, 1, 1},
   {&__pyx_n_s_get_e, __pyx_k_get_e, sizeof(__pyx_k_get_e), 0, 0, 1, 1},
   {&__pyx_n_s_get_f, __pyx_k_get_f, sizeof(__pyx_k_get_f), 0, 0, 1, 1},
+  {&__pyx_n_s_get_position, __pyx_k_get_position, sizeof(__pyx_k_get_position), 0, 0, 1, 1},
   {&__pyx_n_s_get_t, __pyx_k_get_t, sizeof(__pyx_k_get_t), 0, 0, 1, 1},
   {&__pyx_n_s_get_traveled, __pyx_k_get_traveled, sizeof(__pyx_k_get_traveled), 0, 0, 1, 1},
   {&__pyx_n_s_get_x, __pyx_k_get_x, sizeof(__pyx_k_get_x), 0, 0, 1, 1},
@@ -3793,6 +3945,7 @@ PyMODINIT_FUNC PyInit__device_fsm(void)
   __pyx_vtable_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM.get_e = (float (*)(struct __pyx_obj_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM *, int, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_get_e;
   __pyx_vtable_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM.set_e = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM *, int, float, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_set_e;
   __pyx_vtable_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM.get_traveled = (double (*)(struct __pyx_obj_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM *, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_get_traveled;
+  __pyx_vtable_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM.get_position = (PyObject *(*)(struct __pyx_obj_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM *, int __pyx_skip_dispatch))__pyx_f_11fluxmonitor_6player_11_device_fsm_11PyDeviceFSM_get_position;
   if (PyType_Ready(&__pyx_type_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM) < 0) __PYX_ERR(0, 28, __pyx_L1_error)
   __pyx_type_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM.tp_print = 0;
   if (__Pyx_SetVtable(__pyx_type_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM.tp_dict, __pyx_vtabptr_11fluxmonitor_6player_11_device_fsm_PyDeviceFSM) < 0) __PYX_ERR(0, 28, __pyx_L1_error)

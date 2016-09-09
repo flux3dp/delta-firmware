@@ -1,4 +1,5 @@
 
+from select import select
 from errno import ECONNREFUSED, ENOENT
 from shlex import split as shlex_split
 from time import sleep
@@ -7,13 +8,17 @@ import logging
 import struct
 import socket
 
-from fluxmonitor.err_codes import DEVICE_ERROR, SUBSYSTEM_ERROR, \
-    NO_RESPONSE, UNKNOWN_COMMAND
-from fluxmonitor.config import CAMERA_ENDPOINT
+from fluxmonitor.player.main_controller import MainController
+from fluxmonitor.player.head_controller import (
+    HeadController, HeadError, HeadOfflineError, HeadResetError)
+from fluxmonitor.err_codes import (
+    SUBSYSTEM_ERROR, NO_RESPONSE, RESOURCE_BUSY, UNKNOWN_COMMAND)
 from fluxmonitor.storage import Storage, Metadata
+from fluxmonitor.config import CAMERA_ENDPOINT
+from fluxmonitor.player import macro
 
-
-from .base import CommandMixIn, DeviceOperationMixIn
+from .base import CommandMixIn, DeviceOperationMixIn, \
+    DeviceMessageReceiverMixIn
 
 logger = logging.getLogger(__name__)
 
@@ -85,49 +90,90 @@ class CameraInterface(object):
         self.sock.close()
 
 
-class ScanTask(DeviceOperationMixIn, CommandMixIn):
+class ScanTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
+               CommandMixIn):
     st_id = -2
-    _device_busy = False
+    main_ctrl = None
+    head_ctrl = None
     step_length = 0.45
+
+    _macro = None
 
     def __init__(self, stack, handler, camera_id=None):
         self.camera = CameraInterface()
-        super(ScanTask, self).__init__(stack, handler, enable_watcher=False)
+        super(ScanTask, self).__init__(stack, handler)
 
-        self.meta = Metadata()
+        def on_mainboard_ready(ctrl):
+            for cmd in ("G28", "G91", "M302", "M907 Y0.4", "T2"):
+                ctrl.send_cmd(cmd, self)
+            handler.send_text("ok")
+
+        self.main_ctrl = MainController(executor=self, bufsize=14,
+                                        ready_callback=on_mainboard_ready)
+        self.head_ctrl = HeadController(executor=self, error_level=0,
+                                        ready_callback=lambda _: None)
+
+        def on_mainboard_empty(sender):
+            if self._macro:
+                self._macro.on_command_empty(self)
+
+        def on_mainboard_sendable(sender):
+            if self._macro:
+                self._macro.on_command_sendable(self)
+
+        self.main_ctrl.callback_msg_empty = on_mainboard_empty
+        self.main_ctrl.callback_msg_sendable = on_mainboard_sendable
+
+        self.metadata = Metadata()
         self.timer_watcher = stack.loop.timer(1, 1, self.on_timer)
         self.timer_watcher.start()
 
-        self.step_length = 0.45
-        self.init_device()
+    def send_mainboard(self, msg):
+        if self._uart_mb.send(msg) != len(msg):
+            raise Exception("DIE")
 
     def clean(self):
+        if self.main_ctrl:
+            self.main_ctrl.send_cmd("X1E0", self)
+        try:
+            if self.main_ctrl:
+                self.main_ctrl.close(self)
+                self.main_ctrl = None
+        except Exception:
+            logger.exception("Mainboard error while quit")
+
+        try:
+            if self.head_ctrl:
+                self.head_ctrl.close(self)
+                self.head_ctrl = None
+        except Exception:
+            logger.exception("Toolhead error while quit")
+
         if self.timer_watcher:
             self.timer_watcher.stop()
             self.timer_watcher = None
+
         if self.camera:
             self.camera.close()
             self.camera = None
-        self.meta.update_device_status(0, 0, "N/A", "")
-
-    def init_device(self):
-        try:
-            init_gcodes = ["G28", "M302", "M907 Y0.4", "T2", "G91"]
-            for cmd in init_gcodes:
-                ret = self.make_gcode_cmd(cmd)
-                if not ret.endswith("ok"):
-                    erro_msg = "GCode '%s' return '%s'" % (cmd, ret)
-                    logger.error(erro_msg)
-                    raise RuntimeError(DEVICE_ERROR, erro_msg)
-        except:
-            raise
+        self.metadata.update_device_status(0, 0, "N/A", "")
 
     def make_gcode_cmd(self, cmd):
-        self._uart_mb.send(("%s\n" % cmd).encode())
-        return self._uart_mb.recv(128).decode("ascii", "ignore").strip()
+        def cb():
+            self._macro = None
+        self._macro = macro.CommandMacro(cb, (cmd, ))
+        self._macro.start(self)
+
+        while self._macro:
+            rl = select((self._uart_mb, ), (), (), 1.0)[0]
+            if rl:
+                self.on_mainboard_message(self._mb_watcher, 0)
 
     def dispatch_cmd(self, handler, cmd, *args):
-        if cmd == "oneshot":
+        if self._macro:
+            raise RuntimeError(RESOURCE_BUSY)
+
+        elif cmd == "oneshot":
             self.oneshot(handler)
 
         elif cmd == "scanimages":
@@ -146,7 +192,10 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
             param = args[0] if args else ""
             l_on = "l" in param
             r_on = "r" in param
-            handler.send_text(self.change_laser(left=l_on, right=r_on))
+
+            def cb():
+                handler.send_text("ok")
+            self.change_laser(left=l_on, right=r_on, callback=cb)
 
         elif cmd == "set":
             if args[0] == "steplen":
@@ -156,19 +205,20 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
                 raise RuntimeError(UNKNOWN_COMMAND, args[1])
 
         elif cmd == "scan_backward":
-            ret = self.make_gcode_cmd("G1 F500 E-%.5f" % self.step_length)
-            if ret != "ok":
-                raise RuntimeError(DEVICE_ERROR, ret)
-            sleep(0.05)
-            handler.send_text(ret)
+            def cb():
+                self._macro = None
+                handler.send_text("ok")
+            cmd = "G1 F500 E-%.5f" % self.step_length
+            self._macro = macro.CommandMacro(cb, (cmd, ))
+            self._macro.start(self)
 
         elif cmd == "scan_next":
-            ret = self.make_gcode_cmd("G1 F500 E%.5f" % self.step_length)
-            if ret != "ok":
-                logger.error("Mainboard response %s rather then ok", repr(ret))
-                raise RuntimeError(DEVICE_ERROR, ret)
-            sleep(0.05)
-            handler.send_text(ret)
+            def cb():
+                self._macro = None
+                handler.send_text("ok")
+            cmd = "G1 F500 E%.5f" % self.step_length
+            self._macro = macro.CommandMacro(cb, (cmd, ))
+            self._macro.start(self)
 
         elif cmd == "quit":
             self.stack.exit_task(self)
@@ -178,10 +228,21 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
             logger.debug("Can not handle: '%s'" % cmd)
             raise RuntimeError(UNKNOWN_COMMAND)
 
-    def change_laser(self, left, right):
-        self.make_gcode_cmd("X1O1" if left else "X1F1")
-        self.make_gcode_cmd("X1O2" if right else "X1F2")
-        return "ok"
+    def change_laser(self, left, right, callback=None):
+        def cb():
+            self._macro = None
+            if callback:
+                callback()
+
+        flag = (1 if left else 0) + (2 if right else 0)
+        self._macro = macro.CommandMacro(cb, ("X1E%i" % flag, ))
+        self._macro.start(self)
+
+        if not callback:
+            while self._macro:
+                rl = select((self._uart_mb, ), (), (), 1.0)[0]
+                if rl:
+                    self.on_mainboard_message(self._mb_watcher, 0)
 
     def scan_check(self, handler):
         handler.send_text(self.camera.check_camera_position())
@@ -190,6 +251,7 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
         # this is measure by data set
         table = {8: 60, 7: 51, 6: 40, 5: 32, 4: 26, 3: 19, 2: 11, 1: 6, 0: 1}
         flag = 0
+
         self.change_laser(left=False, right=False)
         while True:
             if flag > 10:
@@ -215,7 +277,9 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
 
                     if 'fail' in calibrate_parameter:
                         flag = 12
-                    elif all(abs(float(r) - float(calibrate_parameter[0])) < 72 for r in calibrate_parameter[1:]):  # so naive check
+                    elif all(abs(float(r) - float(calibrate_parameter[0])) < 72
+                             for r in calibrate_parameter[1:]):
+                        # so naive check
                         s = Storage('camera')
                         s['calibration'] = ' '.join(
                             map(lambda x: str(round(float(x))),
@@ -267,14 +331,60 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
         def cb_shot2(h):
             mimetype, length, stream = self.camera.oneshot()
             h.async_send_binary(mimetype, length, stream, cb_shot3)
-            self.change_laser(left=False, right=False)
+            self.change_laser(left=False, right=False,
+                              callback=lambda: sleep(0.04))
 
-        self.change_laser(left=True, right=False)
-        sleep(0.03)
-        mimetype, length, stream = self.camera.oneshot()
+        def cb_shot1():
+            mimetype, length, stream = self.camera.oneshot()
+            handler.async_send_binary(mimetype, length, stream, cb_shot2)
+            self.change_laser(left=False, right=True,
+                              callback=lambda: sleep(0.04))
 
-        handler.async_send_binary(mimetype, length, stream, cb_shot2)
-        self.change_laser(left=False, right=True)
+        self.change_laser(left=True, right=False, callback=cb_shot1)
+
+    def on_mainboard_message(self, watcher, revent):
+        try:
+            buf = watcher.data.recv(1024)
+            if not buf:
+                logger.error("Mainboard connection broken")
+                self.stack.exit_task(self)
+
+            for msg in self.recv_from_mainboard(buf):
+                if self._macro:
+                    self._macro.on_mainboard_message(msg, self)
+                self.main_ctrl.on_message(msg, self)
+        except RuntimeError:
+            pass
+        except Exception:
+            logger.exception("Unhandle Error")
+
+    def on_headboard_message(self, watcher, revent):
+        try:
+            buf = watcher.data.recv(1024)
+            if not buf:
+                logger.error("Headboard connection broken")
+                self.stack.exit_task(self)
+
+            for msg in self.recv_from_headboard(buf):
+                if self._macro:
+                    self._macro.on_headboard_message(msg, self)
+                self.head_ctrl.on_message(msg, self)
+        except (HeadOfflineError, HeadResetError) as e:
+            logger.debug("Head reset")
+            self.head_ctrl.bootstrap(self)
+            if self._macro:
+                self._on_macro_error(e)
+
+        except HeadError as e:
+            logger.info("Head Error: %s", e)
+
+        except SystemError as e:
+            logger.exception("Unhandle Error")
+            if self._macro:
+                self._on_macro_error(e)
+
+        except Exception:
+            logger.exception("Unhandle Error")
 
     def on_timer(self, watcher, revent):
-        self.meta.update_device_status(self.st_id, 0, "N/A", "")
+        self.metadata.update_device_status(self.st_id, 0, "N/A", "")

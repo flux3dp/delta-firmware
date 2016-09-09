@@ -92,6 +92,8 @@ class UartHalBase(object):
         except RuntimeError as e:
             logger.debug("RuntimeError: %s", e)
             watcher.data.send("er %s" % e.args[0])
+        except socket.error as e:
+            logger.debug("Socket error while process ctrl message: %s", e)
         except Exception:
             logger.exception("Unhandle error")
             watcher.data.send("er UNKNOWN_ERROR")
@@ -208,5 +210,5 @@ class BaseOnSerial(object):
             try:
                 w.data.send(buf)
             except Exception:
-                logger.error("Send pc message to %s failed", w.data)
+                logger.error("Send usb message to %s failed", w.data)
         return buf

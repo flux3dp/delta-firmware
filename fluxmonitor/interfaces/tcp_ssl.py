@@ -10,7 +10,7 @@ import pyev
 
 from fluxmonitor.security import (is_trusted_remote, get_uuid, get_keyobj,
                                   randbytes, hash_password, SSL_CERT, SSL_KEY)
-from .base import InterfaceBase, HandlerBase
+from .base import InterfaceBase, HandlerBase, ConnectionClosedException
 
 MESSAGE_OK = b"OK              "
 MESSAGE_AUTH_ERROR = b"AUTH_ERROR      "
@@ -129,18 +129,19 @@ class SSLConnectionHandler(HandlerBase):
             return "ZOMBIE"
 
     def on_recv(self, watcher, revent):
-        if self.ready > 0:  # ready > 0
+        if self.ready > 0:
             while True:
                 try:
                     l = self.sock.recv_into(self._bufview[self._buffered:])
                 except ssl.SSLWantReadError:
                     return
-                except ssl.SSLError as e:
-                    logger.warn("SSLError: %s", e)
+                except (ssl.SSLError, socket.error) as e:
+                    logger.info("SSLError: %s", e)
                     self.close()
                     return
                 except Exception as e:
-                    logger.exception("SSL Socket recv error")
+                    logger.exception("SSL Socket recv error (self.ready=%i)",
+                                     self.ready)
                     self.close()
                     return
 
@@ -157,12 +158,12 @@ class SSLConnectionHandler(HandlerBase):
                     else:
                         self.close("CONNECTION_GONE")
 
+                except SystemError as e:
+                    logger.warning("%s", repr(e))
+                    self.close()
                 except Exception:
                     logger.exception("Unhandle error on recv interface, "
                                      "disconnect")
-                    self.close()
-                except SystemError as e:
-                    logger.error("%s", repr(e))
                     self.close()
         else:
             self._on_ssl_handshake()
@@ -213,6 +214,8 @@ class SSLConnectionHandler(HandlerBase):
             while sent < length:
                 sent += self.sock.send(buf[sent:])
             return length
+        except socket.error as e:
+            raise ConnectionClosedException("Socket error: %s" % e)
         except ssl.SSLError as e:
             raise SystemError("SOCKET_ERROR", "SSL", repr(e))
 

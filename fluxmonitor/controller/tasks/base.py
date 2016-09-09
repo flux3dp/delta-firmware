@@ -9,6 +9,7 @@ import pyev
 
 from fluxmonitor.config import uart_config, DEBUG
 from fluxmonitor.err_codes import SUBSYSTEM_ERROR, NO_RESPONSE, UNKNOWN_ERROR
+from fluxmonitor.interfaces.base import ConnectionClosedException
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,11 @@ class CommandMixIn(object):
 
         except RuntimeError as e:
             handler.send_text(("error " + " ".join(e.args)).encode())
+
+        except ConnectionClosedException as e:
+            logger.debug("Connection close: %s" % e)
+            self.close()
+
         except Exception as e:
             if DEBUG:
                 handler.send_text("error %s %s" % (UNKNOWN_ERROR, e))
@@ -53,6 +59,7 @@ class DeviceOperationMixIn(object):
     the 'clean' method will be invoked before mainboard/headboard be closed.
     """
 
+    _cleaned = False
     _uart_mb = _uart_hb = None
     _mb_watcher = _hb_watcher = None
 
@@ -70,7 +77,11 @@ class DeviceOperationMixIn(object):
 
     def _clean(self):
         try:
-            self.clean()
+            if self._cleaned is False:
+                self._cleaned = True
+                self.clean()
+
+            logger.debug("Clean device operation task")
         except Exception:
             logger.exception("Error while clean task '%s'", self.__class__)
 

@@ -13,11 +13,15 @@ logger = logging.getLogger(__name__)
 
 
 class Process(Popen):
-    @staticmethod
-    def call_with_output(*args):
+    @classmethod
+    def call_with_output(cls, *args):
+        return cls.fast_exec(args)[1]
+
+    @classmethod
+    def fast_exec(cls, args, timeout=15.0):
         proc = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE)
         buffer = BytesIO()
-        ttl = time() + 15.0
+        ttl = time() + timeout
 
         try:
             while ttl > time():
@@ -25,10 +29,15 @@ class Process(Popen):
                 if l == 0:
                     break
 
-            return buffer.getvalue()
+            while ttl > time() and proc.poll() is None:
+                sleep(0.005)
+
         finally:
             if proc.poll() is None:
                 proc.kill()
+                return None, buffer.getvalue()
+            else:
+                return proc.poll(), buffer.getvalue()
 
     def __init__(self, service, cmd):
         self.cmd = " ".join(cmd)

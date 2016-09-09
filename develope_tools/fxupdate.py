@@ -6,19 +6,26 @@ from time import sleep
 import pkg_resources
 import argparse
 import zipfile
+import logging
 import shutil
 import json
 import sys
 import os
 
-from serial import Serial, SerialException
+from serial import Serial
 
+logger = logging.getLogger("FXUPDATE")
+handler = logging.StreamHandler()
+handler.setFormatter(
+    logging.Formatter(" ==> [%(levelname)s] %(message)s"))
+logger.addHandler(handler)
 
 # Note:
 #   return 1: Error while updating
 #   return 8/9: File broken
 #
 #
+
 
 class DryrunSerial(object):
     def write(self, *args):
@@ -30,6 +37,7 @@ class DryrunSerial(object):
 
 def unpack_resource(zf, metadata):
     name, signature = metadata
+    logger.debug("Unpack '%s' [signature=%s]", name, signature)
 
     zf.extract(name)
 
@@ -52,22 +60,29 @@ def unpack_resource(zf, metadata):
 
 def fast_check(zf):
     mi = zf.getinfo("MANIFEST.in")
-    if mi.file_size > 8*2**20:
+    if mi.file_size > 8 * 2**20:
         raise RuntimeError("MANIFEST.in size overlimit, ignore")
     mi = zf.getinfo("signature")
-    if mi.file_size > 8*2**20:
+    if mi.file_size > 8 * 2**20:
         raise RuntimeError("signature size overlimit, ignore")
 
 
-def validate_signature(manifest_fn, signature_fn):
-    if os.path.exists("/etc/flux/fxupdate.pem"):
-        keyfile = "/etc/flux/fxupdate.pem"
+def validate_signature(options, manifest_fn, signature_fn):
+    if os.path.exists(os.path.join(options.etc, "fxupdate.pem")):
+        keyfile = os.path.join(options.etc, "fxupdate.pem")
     else:
         keyfile = pkg_resources.resource_filename("fluxmonitor",
                                                   "data/fxupdate.pem")
+    logger.debug("Use keyfile: %s", keyfile)
     ret = os.system("openssl dgst -sha1 -verify %s -signature %s %s" % (
                     keyfile, signature_fn, manifest_fn))
     return ret == 0
+
+
+def is_blocked_signature(options, signature_fn):
+    with open(signature_fn, "rb") as f:
+        fp = sha256(f.read()).hexdigest()
+        return os.path.exists(os.path.join(options.etc, "blocked_fw", fp))
 
 
 def get_mainboard_tty():
@@ -90,10 +105,10 @@ def get_mainboard_tty():
 def update_mbfw(fw_path, tty):
     from RPi import GPIO
 
-    GPIO_MAINBOARD_POW_PIN = 16
-    GPIO_NOT_DEFINED = (22, 24, )
-    MAINBOARD_ON = GPIO.HIGH
-    MAINBOARD_OFF = GPIO.LOW
+    GPIO_MAINBOARD_POW_PIN = 16  # noqa
+    GPIO_NOT_DEFINED = (22, 24, )  # noqa
+    MAINBOARD_ON = GPIO.HIGH  # noqa
+    MAINBOARD_OFF = GPIO.LOW  # noqa
     GPIO.setmode(GPIO.BOARD)
     GPIO.setwarnings(False)
 
@@ -106,13 +121,16 @@ def update_mbfw(fw_path, tty):
         GPIO.output(GPIO_MAINBOARD_POW_PIN, MAINBOARD_ON)
         sleep(1.0)
 
-        if os.system("stty -F %s 1200" % tty) != 0:
+        cmd = "stty -F %s 1200" % tty
+        logger.debug("EXEC '%s'", cmd)
+        if os.system(cmd) != 0:
             raise RuntimeError("stty exec failed")
 
         sleep(3.0)
 
-        if os.system("bossac -p %s -e -w -v -b %s" % (
-                     tty.split("/")[-1], fw_path)) != 0:
+        cmd = "bossac -p %s -e -w -v -b %s" % (tty.split("/")[-1], fw_path)
+        logger.debug("EXEC '%s'", cmd)
+        if os.system(cmd) != 0:
             raise RuntimeError("bossac exec failed")
 
         GPIO.output(GPIO_MAINBOARD_POW_PIN, MAINBOARD_OFF)
@@ -129,21 +147,39 @@ def main():
                         const=True, default=False, help='Dry run')
     parser.add_argument('package_file', type=str,
                         help='Update package file')
+    parser.add_argument('--etc', dest='etc', type=str, default='/etc/flux',
+                        help='configure files location')
+    parser.add_argument('--verbose', dest='verbose', action='store_const',
+                        const=True, default=False,
+                        help='Print more informations')
+
     options = parser.parse_args()
     options.package_file = os.path.abspath(options.package_file)
+    if options.verbose:
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
 
     workdir = mkdtemp()
+    logger.debug("Configure directory: %s", options.etc)
+    logger.debug("Working directory: %s", workdir)
+
     try:
         extra_deb_tasks = None
         extra_eggs_tasks = None
         egg_task = None
         mbfw_task = None
 
+        preprocess_script = None
+        postprocess_script = None
+
         if options.dryrun:
+            logger.warn("Dry run")
             s = DryrunSerial()
             tty = None
         else:
             tty = get_mainboard_tty()
+            logger.debug("Found mainboard at %s", tty)
             s = Serial(port=tty, baudrate=115200, timeout=0)
             s.write("\nX5S85\n")
 
@@ -156,45 +192,86 @@ def main():
 
                 manifest_fn = os.path.join(workdir, "MANIFEST.in")
                 signature_fn = os.path.join(workdir, "signature")
-                if not validate_signature(manifest_fn, signature_fn):
-                    print("Can not validate signature")
+                if not validate_signature(options, manifest_fn, signature_fn):
+                    logger.error("Can not validate signature")
+                    sys.exit(8)
+
+                if is_blocked_signature(options, signature_fn):
+                    logger.error("Signature is in block list")
                     sys.exit(8)
 
                 with open(manifest_fn, "r") as f:
                     manifest = json.load(f)
                 os.chdir(workdir)
 
-                extra_deb_tasks = [unpack_resource(zf, package) \
-                                      for package in manifest["extra_deb"]]
-                extra_eggs_tasks = [unpack_resource(zf, package) \
-                                      for package in manifest["extra_eggs"]]
+                extra_deb_tasks = [unpack_resource(zf, package)
+                                   for package in manifest["extra_deb"]]
+                extra_eggs_tasks = [unpack_resource(zf, package)
+                                    for package in manifest["extra_eggs"]]
                 egg_task = unpack_resource(zf, manifest["egg"])
+
+                if "preprocess" in manifest:
+                    preprocess_script = unpack_resource(
+                        zf, manifest["preprocess"])
+                if "postprocess" in manifest:
+                    postprocess_script = unpack_resource(
+                        zf, manifest["postprocess"])
+
                 mbfw_task = unpack_resource(zf, manifest["mbfw"])
 
-        except Exception as e:
-            print(e)
+        except Exception:
+            logger.exception("Unknown error")
             s.write("\nX5S0\n")
             sys.exit(9)
 
         s.close()
 
-        if options.dryrun:
-            return
+        if preprocess_script:
+            cmd = "python %s %s" % (preprocess_script, options.etc)
+            logger.debug("EXEC '%s'", cmd)
+            if not options.dryrun:
+                if os.system(cmd) > 0:
+                    raise RuntimeError("Exec pre-process script failed")
 
         for package in extra_deb_tasks:
-            if os.system("dpkg -i %s" % package) > 0:
+            cmd = "dpkg --dry-run -i %s" % package \
+                  if options.dryrun else \
+                  "dpkg -i %s" % package
+            logger.debug("EXEC '%s'", cmd)
+            if os.system(cmd) > 0:
                 raise RuntimeError("Install %s failed" % package)
 
         for package in extra_eggs_tasks:
-            if os.system("easy_install %s" % package) > 0:
+            cmd = "easy_install --dry-run %s" % package \
+                  if options.dryrun else \
+                  "easy_install %s" % package
+            logger.debug("EXEC '%s'", cmd)
+            if os.system(cmd) > 0:
                 raise RuntimeError("Install %s failed" % package)
 
-        if os.system("easy_install %s" % egg_task) > 0:
+        if options.dryrun:
+            cmd = "easy_install --dry-run %s" % egg_task
+        else:
+            cmd = "easy_install %s" % egg_task
+        logger.debug("EXEC '%s'", cmd)
+        if os.system(cmd) > 0:
             raise RuntimeError("Install %s failed" % egg_task)
 
-        update_mbfw(mbfw_task, tty)
+        if options.dryrun:
+            logger.warn("Ignore update mbfw (dryrun)")
+        else:
+            update_mbfw(mbfw_task, tty)
+
+        if postprocess_script:
+            cmd = "python %s %s" % (postprocess_script, options.etc)
+            logger.debug("EXEC '%s'", cmd)
+            if not options.dryrun:
+                if os.system(cmd) > 0:
+                    raise RuntimeError("Exec post-process script failed")
+
     finally:
         shutil.rmtree(workdir)
+
 
 if __name__ == "__main__":
     main()

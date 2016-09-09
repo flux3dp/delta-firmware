@@ -49,22 +49,28 @@ logger = getLogger(__name__)
 #
 #
 # UDP Connection part
-#   (i:0, s:SALT, i:cmd_index, i:queued_size)
-#       * First 0 means it is a status message
-#       * SALT: not for use right now
+#   (i:0, s:salt, i:cmd_index, i:queued_size)
+#       * First integer 0 means it is a status message
+#       * salt: reserved
 #       * cmd_index: next command index should given
 #       * queued_size: command is waitting to be execute in system
 #
-#   (i:1, s:SALT, i:timestemp, i:head_error_code, obj:headstatus)
-#       * First 1 means it is a head status message
-#       * SALT: not for use right now
-#       * timestemp: not for use right now
+#   (i:1, s:salt, i:timestemp, i:head_error_code, obj:headstatus)
+#       * First integer 1 means it is a toolhead status message
+#       * salt: reserved
+#       * timestemp: reserved
 #       * head_error_code:
 #           == -2: Head Offline
 #           == -1: Not ready
 #            == 0: Ready
 #             > 0: Follow toolhead error table
-
+#
+#   (i:2, s:salt, i:timestemp, ...)
+#       * Please assume array size is dynamic
+#       * First integer 2 means it is a user toolhead status message
+#       * salt: reserved
+#       * timestemp: reserved
+#       * Element 3: Toolhead response message stack size
 
 CMD_G001 = 0x01
 # Move position
@@ -140,6 +146,15 @@ CMD_THPF = 0x51
 # ()
 #    => (0x51, {"module": "EXTRUDER", "vendor": "FLUX .inc", "id": "...", }, )
 
+CMD_THRC = 0x5e
+# Send raw command to toolhead, only vaild when toolhead type is USER/*
+# (s:command)
+
+CMD_THRR = 0x5f
+# Recv raw command data from toolhead, only valid when toolhead type is USER/*
+# ()
+#    = (0x5f, ["COMMAND RESPONSE n", "COMMAND RESPONSE n + 1", ...])
+
 CMD_M104 = 0x60
 # Set toolhead extruder temperature
 # (i:index, i:temperature)
@@ -196,6 +211,7 @@ CMD_KILL = 0xff
 
 MSG_OPERATION_ERROR = 0x01
 MSG_QUEUE_FULL = 0x02
+MSG_BAD_PARAMS = 0x03
 MSG_UNKNOWN_ERROR = 0xff
 
 TARGET_MAINBOARD = 0
@@ -212,6 +228,7 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
     known_position = None  # Is toolhead position is known or not
     main_ctrl = None  # Mainborad Controller
     head_ctrl = None  # Headboard Controller
+    head_resp_stack = None  # Toolhead raw rasponse stack
 
     def __init__(self, stack, handler, enable_watcher=True, mb_sock=None,
                  th_sock=None):
@@ -225,6 +242,10 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
 
         def on_mainboard_ready(ctrl):
             self._ready |= 1
+            self.main_ctrl.send_cmd("X8F", self)
+            self.main_ctrl.send_cmd("T0", self)
+            self.main_ctrl.send_cmd("G90", self)
+            self.main_ctrl.send_cmd("G92E0", self)
             handler.send_text("ok")
 
         self.main_ctrl = MainController(executor=self, bufsize=14,
@@ -334,8 +355,11 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
 
             h = self.head_ctrl
 
-            for msg in self.recv_from_headboard(buf):
-                h.on_message(msg, self)
+            for payload in self.recv_from_headboard(buf):
+                msg = h.on_message(payload, self)
+                if msg and self.head_resp_stack is not None and \
+                        len(self.head_resp_stack) <= 32:
+                    self.head_resp_stack.append(msg)
 
             self.send_udp1(h)
 
@@ -363,17 +387,17 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
         #   "DATA READ X:0.124 Y:0.234 Z:0.534 F0:1 F1:0 MB:0"
         if message.startswith("DATA READ "):
             output = {}
-            for key, val in ((p.split(":") for p in message[10:].split(":"))):
+            for key, val in ((p.split(":") for p in message[10:].split(" "))):
                 if key in ("X", "Y", "Z"):
                     output[key] = float(val)
                 elif key in ("F0", "F1"):
                     output[key] = (val == "1")
                 elif key == "MB":
                     output[key] = (val == "1")
-            self.handler.send(packb(CMD_VALU, output))
+            self.handler.send(packb((CMD_VALU, output)))
         #   "DATA ZPROBE -0.5"
         if message.startswith("DATA ZPROBE "):
-            self.handler.send(packb(CMD_G030, float(message[12:])))
+            self.handler.send(packb((CMD_G030, float(message[12:]))))
 
     def send_udp0(self):
         if self.udp_sock:
@@ -386,16 +410,21 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
     def send_udp1(self, head_ctrl):
         if self.udp_sock:
             try:
+                if self.head_resp_stack is not None:
+                    buf = packb((2, "", 0, len(self.head_resp_stack)))
+                    self.udp_sock.send(buf)
+
                 if head_ctrl.ready:
                     buf = packb((1, "", 0, head_ctrl.errcode,
                                 head_ctrl.status()))
                     self.udp_sock.send(buf)
+
                 elif head_ctrl.ready_flag > 0:
-                    buf = packb((1, "", -1, head_ctrl.errcode, {}))
+                    buf = packb((1, "", 0, -1, {}))
                     self.udp_sock.send(buf)
 
                 else:
-                    buf = packb((1, "", -2, head_ctrl.errcode, {}))
+                    buf = packb((1, "", 0, -2, {}))
                     self.udp_sock.send(buf)
 
             except socket.error:
@@ -427,7 +456,7 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
         try:
             self.head_ctrl.patrol(self)
         except (HeadOfflineError, HeadResetError) as e:
-            logger.debug("Head Offline/Reset: %s %s", e)
+            logger.debug("Head Offline/Reset: %s", e)
 
         except RuntimeError as e:
             logger.info("%s", e)
@@ -458,47 +487,68 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
         self.cmd_queue.append((target, cmd))
         self.fire()
 
+    def create_movement_command(self, F=None, X=None, Y=None, Z=None,  # noqa
+                                E0=None, E1=None, E2=None):  # noqa
+        target = self.known_position
+        yield "G1"
+
+        if F:
+            yield "F%i" % F
+
+        if X is not None or Y is not None or Z is not None:
+            if self.known_position:
+                if X is not None:
+                    target[0] = X
+                    yield "X%.5f" % X
+                if Y is not None:
+                    target[1] = Y
+                    yield "Y%.5f" % Y
+                if Z is not None:
+                    target[2] = Z
+                    yield "Z%.5f" % Z
+
+                if (target[0] ** 2 + target[1] ** 2) > 28900:
+                    raise InternalError(CMD_G001, MSG_OPERATION_ERROR)
+                elif target[2] > 240 or target[2] < 0:
+                    raise InternalError(CMD_G001, MSG_OPERATION_ERROR)
+
+            else:
+                raise InternalError(CMD_G001, MSG_OPERATION_ERROR)
+
+        eflag = False
+        for i, e in ((0, E0), (1, E1), (2, E2)):
+            if e is not None:
+                if eflag:
+                    raise InternalError(CMD_G001, MSG_OPERATION_ERROR)
+                else:
+                    eflag = True
+                    if self.main_e_axis != i:
+                        yield "T%i" % i
+                        self.main_e_axis = i
+                    yield "E%.5f" % e
+
+        self.known_position = target
+
     def on_move(self, handler, kw):
-        if self.known_position:
-            cmd = "G1"
-            if "F" in kw:
-                cmd += "F%i" % kw["F"]
-
-            target = self.known_position
-            for i, ax in ((0, "X"), (1, "Y"), (2, "Z")):
-                if ax in kw:
-                    target[i] = p = kw[ax]
-                    cmd += "%s%.5f" % (ax, p)
-
-            if (target[0] ** 2 + target[1] ** 2) > 28900:
-                raise InternalError(CMD_G001, MSG_OPERATION_ERROR)
-            elif target[2] > 240 or target[2] < 0:
-                raise InternalError(CMD_G001, MSG_OPERATION_ERROR)
-
-            eflag = False
-            for i in xrange(3):
-                e = "E" + str(i)
-                if e in kw:
-                    if eflag:
-                        raise InternalError(CMD_G001, MSG_OPERATION_ERROR)
-                    else:
-                        eflag = True
-                        if self.main_e_axis != i:
-                            cmd += "T%i" % i
-                            self.main_e_axis = i
-                        cmd += "E%.5f" % kw[e]
-
+        try:
+            cmd = "".join(self.create_movement_command(**kw))
             self.append_cmd(TARGET_MAINBOARD, cmd)
-        else:
-            raise InternalError(CMD_G001, MSG_OPERATION_ERROR)
+        except TypeError:
+            raise InternalError(CMD_G001, MSG_BAD_PARAMS)
 
     def on_sleep(self, handler, secondes):
-        cmd = "G4S%.4f" % secondes
-        self.append_cmd(TARGET_MAINBOARD, cmd)
+        try:
+            cmd = "G4S%.4f" % secondes
+            self.append_cmd(TARGET_MAINBOARD, cmd)
+        except TypeError:
+            raise InternalError(CMD_G004, MSG_BAD_PARAMS)
 
     def on_scan_lasr(self, handler, flags):
-        cmd = "X1E%i" % flags
-        self.append_cmd(TARGET_MAINBOARD, cmd)
+        try:
+            cmd = "X1E%i" % flags
+            self.append_cmd(TARGET_MAINBOARD, cmd)
+        except TypeError:
+            raise InternalError(CMD_SLSR, MSG_BAD_PARAMS)
 
     def on_home(self, handler):
         self.append_cmd(TARGET_MAINBOARD, "X6")
@@ -512,12 +562,15 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
         self.known_position = None
 
     def on_z_probe(self, handler, x, y):
-        if self.known_position and x ** 2 + y ** 2 < 289:
-            cmd = "G30X%.5fY%.5f" % (x, y)
-            self.append_cmd(TARGET_MAINBOARD, cmd)
+        try:
+            if self.known_position and x ** 2 + y ** 2 < 4901:
+                cmd = "G30X%.5fY%.5f" % (x, y)
+                self.append_cmd(TARGET_MAINBOARD, cmd)
 
-        else:
-            raise InternalError(CMD_G030, MSG_OPERATION_ERROR)
+            else:
+                raise InternalError(CMD_G030, MSG_OPERATION_ERROR)
+        except TypeError:
+            raise InternalError(CMD_G030, MSG_BAD_PARAMS)
 
     # def on_adjust(self, handler, kw):
     #     pass
@@ -550,6 +603,14 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
         buf = packb((CMD_THPF, self.head_ctrl.info()))
         self.handler.send(buf)
 
+    def on_toolhead_raw_command(self, handler, cmd):
+        self.append_cmd(TARGET_TOOLHEAD, cmd)
+
+    def on_toolhead_raw_response(self, handler):
+        buf = packb((CMD_THRR, self.head_resp_stack))
+        self.head_resp_stack = []
+        self.handler.send(buf)
+
     def on_require_sync(self, handler, ipaddr, port, salt):
         endpoint = (ipaddr, port)
         logger.debug("Create sync udp endpoint at %s", repr(endpoint))
@@ -570,6 +631,7 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
         self.head_ctrl = HeadController(executor=self, error_level=0,
                                         required_module=head_type,
                                         ready_callback=self.on_toolhead_ready)
+        self.head_resp_stack = [] if head_type == "USER" else None
 
     def on_bootstrap_toolhead(self, handler):
         self.head_ctrl.bootstrap(self)
@@ -612,6 +674,8 @@ CMD_MATRIX = {
     CMD_HLSR: IControlTask.on_set_toolhead_pwm,
     CMD_VALU: IControlTask.on_query_value,
     CMD_THPF: IControlTask.on_toolhead_profile,
+    CMD_THRC: IControlTask.on_toolhead_raw_command,
+    CMD_THRR: IControlTask.on_toolhead_raw_response,
     CMD_SYNC: IControlTask.on_require_sync,
     CMD_REQH: IControlTask.on_require_head,
     CMD_BSTH: IControlTask.on_bootstrap_toolhead,

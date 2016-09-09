@@ -11,9 +11,9 @@ proper unixsocket
 from pprint import pprint
 import argparse
 import socket
-import json
 
-from fluxmonitor.misc import network_config_encoder as NCE
+from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT
+from fluxmonitor.misc import network_config_encoder as NCE  # noqa
 from fluxmonitor.misc.flux_argparse import add_config_arguments, \
     apply_config_arguments
 
@@ -37,6 +37,9 @@ parser.add_argument('--dns', dest='ns', type=str, default=None, nargs=1,
                     help='Route, example: 192.168.1.1')
 parser.add_argument('--ssid', dest='ssid', type=str, default=None,
                     help='SSID, example:: FLUX')
+parser.add_argument('--hidden-ssid', dest='scan_ssid', action='store_const',
+                    const="1", default="0",
+                    help='Required if ssid is hidden')
 parser.add_argument('--security', dest='security', type=str, default=None,
                     choices=['', 'WEP', 'WPA-PSK', 'WPA2-PSK'],
                     help='wifi security')
@@ -47,8 +50,6 @@ parser.add_argument('--wepkey', dest='wepkey', type=str, default=None,
 
 options = parser.parse_args()
 apply_config_arguments(options)
-
-from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT
 
 # ======== Build config message here ========
 payload = {"ifname": options.ifname}
@@ -79,7 +80,8 @@ if options.ssid:
     if options.security == "":
         # No security
         payload.update({
-            "ssid": options.ssid
+            "ssid": options.ssid,
+            "scan_ssid": options.scan_ssid
         })
     elif options.security == "WEP":
         if not options.wepkey:
@@ -87,13 +89,15 @@ if options.ssid:
         payload.update({
             "ssid": options.ssid,
             "security": "WEP",
-            "wepkey": options.wepkey
+            "wepkey": options.wepkey,
+            "scan_ssid": options.scan_ssid
         })
     elif options.security in ['WPA-PSK', 'WPA2-PSK']:
         payload.update({
             "ssid": options.ssid,
             "security": options.security,
-            "psk": options.psk
+            "psk": options.psk,
+            "scan_ssid": options.scan_ssid
         })
     else:
         raise RuntimeError("Unknow security option: %s" % options.security)
