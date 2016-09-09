@@ -89,13 +89,15 @@ if options.ssid:
         payload.update({
             "ssid": options.ssid,
             "security": "WEP",
-            "wepkey": options.wepkey
+            "wepkey": options.wepkey,
+            "scan_ssid": options.scan_ssid
         })
     elif options.security in ['WPA-PSK', 'WPA2-PSK']:
         payload.update({
             "ssid": options.ssid,
             "security": options.security,
-            "psk": options.psk
+            "psk": options.psk,
+            "scan_ssid": options.scan_ssid
         })
     else:
         raise RuntimeError("Unknow security option: %s" % options.security)

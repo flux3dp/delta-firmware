@@ -60,7 +60,7 @@ class WirelessNetworkReviewer(object):
     workers = set()
 
     @classmethod
-    def add_reviewer(cls, ifname, old_config, essid, service):
+    def add_reviewer(cls, ifname, old_config, essid, hidden_ssid, service):
         logger.debug("Trace %s config status", ifname)
 
         if get_wlan_ssid(ifname):
@@ -68,6 +68,10 @@ class WirelessNetworkReviewer(object):
         else:
             b = 3.0
 
+        if hidden_ssid:
+            b += 30.0
+
+        old_config["recover"] = True
         data = cls(ifname, old_config, service, essid)
         watcher = service.loop.timer(b, 1.5, cls.reviewer, data)
         cls.workers.add(watcher)
@@ -212,10 +216,11 @@ class NetworkService(ServiceBase, NetworkMonitorMixIn):
         return Storage("net")
 
     def set_config(self, ifname, config):
+        recover = "recover" in config
         config = NCE.validate_options(config)
 
         # Encrypt password in client mode
-        if "psk" in config and "ssid" in config:
+        if "psk" in config and "ssid" in config and not recover:
             if config.get("wifi_mode") == "client":
                 plain_passwd = config["psk"]
                 config["psk"] = get_wpa_psk(config["ssid"], plain_passwd)
@@ -302,9 +307,11 @@ class NetworkService(ServiceBase, NetworkMonitorMixIn):
 
     def apply_config(self, ifname, config, recoverable=False):
         if is_wireless(ifname) and recoverable:
+            hidden_ssid = config.get("scan_ssid") == "1"
             WirelessNetworkReviewer.add_reviewer(
                 ifname=ifname, old_config=self.get_config(ifname),
-                essid=config.get("ssid"), service=self)
+                essid=config.get("ssid"), hidden_ssid=hidden_ssid,
+                service=self)
 
         config = self.set_config(ifname, config)
         logger.debug(

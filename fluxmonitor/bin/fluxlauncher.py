@@ -86,12 +86,11 @@ def try_config_network(dryrun=False):
         if "device" in c.sections():
             device = dict(c.items("device"))
             s = device.get("serial")
-            if get_serial() != s:
+            if s and get_serial() != s:
                 print("Device serial not match")
                 return
         else:
-            print("Device section not found")
-            return
+            print("Device section not found, ignore")
 
         if "general" in c.sections():
             general_config = dict(c.items("general"))

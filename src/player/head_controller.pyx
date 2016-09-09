@@ -546,7 +546,6 @@ cdef class UserExt(BaseExt):
         if not m.startswith("USER/"):
             raise HeadTypeError("USER", m)
         super(UserExt, self).hello(**kw)
-        self.status_ref = {"module": m}
 
     def generate_command(self, cmd):
         return create_chksum_cmd("1 %s", cmd)
