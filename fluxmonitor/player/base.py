@@ -155,6 +155,10 @@ class BaseExecutor(object):
     def is_closed(self):
         return self.status_id and (self.status_id & ~192) == 0
 
+    def close(self):
+        self.__mbio.close()
+        self.__hbio.close()
+
     def send_mainboard(self, msg):
         if self.__mbio.send(msg) != len(msg):
             raise Exception("DIE")
