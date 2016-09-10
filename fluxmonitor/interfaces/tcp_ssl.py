@@ -36,8 +36,8 @@ class SSLInterface(InterfaceBase):
 
 
 class SSLConnectionHandler(HandlerBase):
-    # send_watcher = None
-    # binary_mode = False
+    send_watcher = None
+    binary_mode = False
     delegate = None
     access_id = None
     ready = 0

@@ -1,26 +1,47 @@
 
 from pkg_resources import load_entry_point
+from signal import SIGTERM, SIGKILL
 from time import sleep, time
 import argparse
 import fcntl
 import errno
 import os
 
+PID_FLUXNETWORKD = '/var/run/fluxnetworkd.pid'
+PID_FLUXHALD = '/var/run/fluxhald.pid'
+PID_FLUXUSBD = '/var/run/fluxusbd.pid'
+PID_FLUXUPNPD = '/var/run/fluxupnpd.pid'
+PID_FLUXROBOTD = '/var/run/fluxrobotd.pid'
+PID_FLUXCAMERAD = '/var/run/fluxcamerad.pid'
+PID_FLUXCLOUDD = '/var/run/fluxcloudd.pid'
+
+
+PID_LIST = (
+    PID_FLUXNETWORKD,
+    PID_FLUXHALD,
+    PID_FLUXUSBD,
+    PID_FLUXUPNPD,
+    PID_FLUXROBOTD,
+    PID_FLUXCAMERAD,
+    PID_FLUXCLOUDD
+)
 
 SERVICE_LIST = (
     # Syntax: (service entry name", ("service", "startup", "params"))
-    ("fluxnetworkd", ('--pid', '/var/run/fluxnetworkd.pid',
+    ("fluxnetworkd", ('--pid', PID_FLUXNETWORKD,
                       '--log', '/var/log/fluxnetworkd.log', '--daemon')),
-    ("fluxhald", ('--pid', '/var/run/fluxhald.pid',
-                  '--log', '/var/log/fluxhald1.log', '--daemon')),
-    ("fluxusbd", ('--pid', '/var/run/fluxusbd.pid',
+    ("fluxhald", ('--pid', PID_FLUXHALD,
+                  '--log', '/var/log/fluxhald.log', '--daemon')),
+    ("fluxusbd", ('--pid', PID_FLUXUSBD,
                   '--log', '/var/log/fluxusbd.log', '--daemon')),
-    ("fluxupnpd", ('--pid', '/var/run/fluxupnpd.pid',
+    ("fluxupnpd", ('--pid', PID_FLUXUPNPD,
                    '--log', '/var/log/fluxupnpd.log', '--daemon')),
-    ("fluxrobotd", ('--pid', '/var/run/fluxrobotd.pid',
+    ("fluxrobotd", ('--pid', PID_FLUXROBOTD,
                     '--log', '/var/log/fluxrobotd.log', '--daemon')),
-    ("fluxcamerad", ('--pid', '/var/run/fluxcamerad.pid',
+    ("fluxcamerad", ('--pid', PID_FLUXCAMERAD,
                      '--log', '/var/log/fluxcamerad.log', '--daemon')),
+    ("fluxcloudd", ('--pid', PID_FLUXCLOUDD,
+                    '--log', '/var/log/fluxcloudd.log', '--daemon')),
 )
 
 
@@ -156,6 +177,26 @@ def check_running(service):
         return False
 
 
+def terminate_proc(pid):
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        return
+
+    try:
+        os.kill(pid, SIGTERM)
+        for i in range(30):
+            os.kill(pid, 0)
+            sleep(0.1)
+    except OSError:
+        return
+
+    try:
+        os.kill(pid, SIGKILL)
+    except OSError:
+        return
+
+
 def main(params=None):
     parser = argparse.ArgumentParser(description='flux launcher')
     parser.add_argument('--dryrun', dest='dryrun', action='store_const',
@@ -170,6 +211,21 @@ def main(params=None):
             init_rapi()
     except Exception:
         pass
+
+    for pidfile in PID_LIST:
+        try:
+            if os.path.exists(pidfile):
+                with open(pidfile) as f:
+                    pidstr = f.read()
+                    if pidstr.isdigit():
+                        pid = int(pidstr)
+                        if pid != os.getpid():
+                            terminate_proc(pid)
+
+                        if os.path.exists(pidfile):
+                            os.unlink(pidfile)
+        except Exception as e:
+            print(repr(e))
 
     for service, startup_params in SERVICE_LIST:
         ret = check_running(service)

@@ -11,7 +11,7 @@ from fluxmonitor.launcher import deamon_entry
 def main(params=None):
     parser = argparse.ArgumentParser(description='flux cloud deamon')
     parser.add_argument('-c', '--cloud', dest='cloud', type=str,
-                        default='https://cloud.flux3dp.com',
+                        default='https://neuron.fluxmach.com',
                         help='Set cloud endpoint')
 
     add_daemon_arguments("fluxcloudd", parser)

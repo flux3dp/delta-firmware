@@ -95,7 +95,7 @@ class CloudService(ServiceBase):
         serial = security.get_serial()
         uuidhex = security.get_uuid()
         model = get_model_id()
-        identify = security.get_identify()
+        identify_base64 = b2a_base64(security.get_identify())
 
         try:
             # === Require identify ===
@@ -103,7 +103,7 @@ class CloudService(ServiceBase):
             conn.post_request(url.path, {
                 "serial": serial, "uuid": uuidhex, "model": model,
                 "version": __version__, "publickey": publickey_base64,
-                "signature": identify
+                "signature": identify_base64
             })
             request_doc = conn.get_json_response()
             challange = a2b_base64(request_doc["challange"])
