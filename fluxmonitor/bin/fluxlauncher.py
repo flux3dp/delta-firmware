@@ -10,17 +10,23 @@ import os
 SERVICE_LIST = (
     # Syntax: (service entry name", ("service", "startup", "params"))
     ("fluxnetworkd", ('--pid', '/var/run/fluxnetworkd.pid',
-                      '--log', '/var/log/fluxnetworkd.log', '--daemon')),
+                      '--log', '/var/db/fluxmonitord/run/fluxnetworkd.log',
+                      '--daemon')),
     ("fluxhald", ('--pid', '/var/run/fluxhald.pid',
-                  '--log', '/var/log/fluxhald1.log', '--daemon')),
+                  '--log', '/var/db/fluxmonitord/run/fluxhald.log',
+                  '--daemon')),
     ("fluxusbd", ('--pid', '/var/run/fluxusbd.pid',
-                  '--log', '/var/log/fluxusbd.log', '--daemon')),
+                  '--log', '/var/db/fluxmonitord/run/fluxusbd.log',
+                  '--daemon')),
     ("fluxupnpd", ('--pid', '/var/run/fluxupnpd.pid',
-                   '--log', '/var/log/fluxupnpd.log', '--daemon')),
+                   '--log', '/var/db/fluxmonitord/run/fluxupnpd.log',
+                   '--daemon')),
     ("fluxrobotd", ('--pid', '/var/run/fluxrobotd.pid',
-                    '--log', '/var/log/fluxrobotd.log', '--daemon')),
+                    '--log', '/var/db/fluxmonitord/run/fluxrobotd.log',
+                    '--daemon')),
     ("fluxcamerad", ('--pid', '/var/run/fluxcamerad.pid',
-                     '--log', '/var/log/fluxcamerad.log', '--daemon')),
+                     '--log', '/var/db/fluxmonitord/run/fluxcamerad.log',
+                     '--daemon')),
 )
 
 
