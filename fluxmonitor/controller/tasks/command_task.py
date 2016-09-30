@@ -471,7 +471,7 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
                 s = Storage("general", "meta")
                 s["debug"] = args[0].encode("utf8")
                 handler.send_text("oracle")
-            elif cmd == "fetch_log" and allow_god_mode():
+            elif cmd == "fetch_log":
                 self.fetch_log(handler, *args)
             else:
                 logger.debug("Can not handle: %s" % repr(cmd))
@@ -513,8 +513,9 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
         handler.send_text("ok\n%s" % buf)
 
     def fetch_log(self, handler, path):
-        filename = os.path.abspath(os.path.join("/var/log", path))
-        if filename.startswith("/var/log"):
+        filename = os.path.abspath(
+            os.path.join("/var/db/fluxmonitord/run", path))
+        if filename.startswith("/var/db/fluxmonitord/run"):
             def cb(h):
                 handler.send_text("ok")
 

@@ -331,7 +331,10 @@ cdef class HeadController:
                 if er == 0 or self._ready == 0:
                     pass
                 elif er & 4:
-                    self._on_head_offline(HeadResetError)
+                    if er & 1024:
+                        self._on_head_offline(HeadCrashError)
+                    else:
+                        self._on_head_offline(HeadResetError)
                 elif self._ready >= 4 and er & self._error_level & ~7:
                     self._ready = 0
                     strer = str(er)
@@ -572,6 +575,13 @@ class HeadResetError(HeadError):
 
     def __init__(self):
         RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_RESET)
+
+
+class HeadCrashError(HeadError):
+    hw_error_code = 51
+
+    def __init__(self):
+        RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_RESET, "CRASH")
 
 
 class HeadTypeError(HeadError):
