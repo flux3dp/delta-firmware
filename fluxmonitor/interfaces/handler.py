@@ -17,6 +17,46 @@ logger = logging.getLogger(__name__)
 __handlers__ = set()
 
 
+class UDPHandler(object):
+    def __init__(self, kernel, endpoint):
+        self.kernel = kernel
+        self.endpoint = endpoint
+
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sock.setblocking(False)
+        self.watcher = kernel.loop.io(self.sock.fileno(), pyev.EV_READ,
+                                      self.on_recv)
+        self.watcher.start()
+        __handlers__.add(self)
+
+    def on_recv(self, watcher, revent):
+        try:
+            buf, endpoint = self.sock.recvfrom(4096)
+            self.on_message(buf, endpoint)
+        except Exception:
+            logger.exception("Unhandle error in udp handler")
+            self.on_error()
+
+    def send(self, buf):
+        self.sock.sendto(buf, self.endpoint)
+
+    def sendto(self, buf, endpoint):
+        self.sock.sendto(buf, endpoint)
+
+    def on_message(self, buf, endpoint):
+        pass
+
+    def close(self):
+        logger.debug("UDP Closed")
+        self.watcher.stop()
+        self.sock.close()
+        if self in __handlers__:
+            __handlers__.remove(self)
+
+    def on_error(self):
+        self.close()
+
+
 class TCPHandler(object):
     IDLE_TIMEOUT = 3600.  # Close conn if idel after seconds.
 

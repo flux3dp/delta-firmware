@@ -3,14 +3,14 @@ from binascii import b2a_base64, a2b_base64, a2b_hex
 from urlparse import urlparse
 import msgpack
 import logging
-import struct
 import socket
-import pyev
 
+from fluxmonitor.interfaces.cloud import CloudUdpSyncHander
 from fluxmonitor.misc.httpclient import get_connection
 from fluxmonitor.misc.systime import systime as time
 from fluxmonitor.halprofile import get_model_id
 from fluxmonitor.storage import Metadata, Storage
+from fluxmonitor.config import CAMERA_ENDPOINT
 from fluxmonitor import security, __version__
 
 from .base import ServiceBase
@@ -28,11 +28,11 @@ logger = logging.getLogger(__name__)
 
 
 class Session(object):
-    def __init__(self, sessionkey_hex, publickey_pem,
-                 expire_after):
+    def __init__(self, sessionkey_hex, expire_after, publickey, privatekey):
         self.sessionkey = a2b_hex(sessionkey_hex)
-        self.rsakey = security.RSAObject(publickey_pem)
         self.expire_at = time() + expire_after - 60.0
+        self.publickey = publickey
+        self.privatekey = privatekey
 
     def fileno(self):
         return self.sock.fileno()
@@ -42,23 +42,31 @@ class Session(object):
         return (self.expire_at - time() < 30.0)
 
     def pack(self, message):
-        return self.sessionkey + self.rsakey.encrypt(message)
+        return self.sessionkey + self.publickey.encrypt(message)
+
+    def unpack(self, buf):
+        signdoc = self.privatekey.decrypt(buf)
+        if signdoc:
+            size = self.publickey.size()
+            signature, document = signdoc[:size], signdoc[size:]
+            if self.publickey.verify(document, signature):
+                return document
+            else:
+                logger.error("Bad session signature")
+        else:
+            logger.error("Bad session encrypt")
 
 
 class CloudService(ServiceBase):
     cloud_netloc = None
     metadata = None
     storage = None
-    session = None
-
-    udp_sock = None
-    udp_endpoint = None
+    udp_handler = None
 
     def __init__(self, options):
         super(CloudService, self).__init__(logger, options)
         self.storage = Storage("cloud")
         self.metadata = Metadata()
-        self.privatekey = security.get_private_key()
 
         if options.cloud.endswith("/"):
             self.cloud_netloc = options.cloud[:-1]
@@ -89,8 +97,7 @@ class CloudService(ServiceBase):
         conn = get_connection(url)
         logger.debug("Cloud connected")
 
-        pkey = self.privatekey
-
+        pkey = security.get_private_key()
         publickey_base64 = b2a_base64(pkey.export_pubkey_der())
         serial = security.get_serial()
         uuidhex = security.get_uuid()
@@ -158,7 +165,9 @@ class CloudService(ServiceBase):
             })
 
             doc = conn.get_json_response()
-            session = Session(doc["session"], doc["key"], doc["expire_after"])
+            session = Session(doc["session"], doc["expire_after"],
+                              security.RSAObject(doc["key"]),
+                              security.get_private_key)
             self.setup_session(session, doc["endpoint"], doc["timestemp"])
             logger.debug("Session request successed, session=%(session)s, "
                          "expire_after=%(expire_after)i", doc)
@@ -176,66 +185,33 @@ class CloudService(ServiceBase):
             raise RuntimeError("BEGIN_SESSION", "UNKNOWN_ERROR", e)
 
     def setup_session(self, session, endpoint, timestemp):
-        self.session = session
-        self.udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
         ipaddr = endpoint[0] \
             if isinstance(endpoint[0], str) else endpoint[0].encode()
-        self.udp_endpoint = (ipaddr, endpoint[1])
-        self.udp_watcher = self.loop.io(self.udp_sock, pyev.EV_READ,
-                                        self.on_udp_request)
-        self.udp_watcher.start()
-        self.udp_timestemp = timestemp
+
+        self.udp_handler = CloudUdpSyncHander(self, (ipaddr, endpoint[1]),
+                                              timestemp, session)
 
     def teardown_session(self):
-        if self.udp_watcher:
-            self.udp_watcher.stop()
-        self.udp_watcher = None
-        if self.udp_sock:
-            self.udp_sock.close()
-        self.udp_sock = None
-        self.session = None
-        self.udp_endpoint = None
+        if self.udp_handler:
+            self.udp_handler.close()
+            self.udp_handler = None
 
     def push_update(self):
-        flag = 0
-        message = msgpack.packb((flag, self.metadata.device_status))
+        flag = 0  # push device status flag
+        payload = msgpack.packb((flag, self.metadata.device_status))
 
         try:
-            payload = self.session.pack(message)
-            self.udp_sock.sendto(payload, self.udp_endpoint)
+            self.udp_handler.send(payload)
+            logger.warning("PUSH..")
         except socket.gaierror:
             raise
         except OSError:
             logger.exception("Push message failed, teardown session")
             self.teardown_session()
 
-    def on_udp_request(self, watcher, revent):
-        try:
-            buf = self.udp_sock.recv(1024)
-            if buf == "\x00":
-                return
-            elif buf.startswith("\x01"):
-                data = self.privatekey.decrypt(buf[1:])
-                timestemp = struct.unpack("<d", data[:8])
-                if timestemp > self.udp_timestemp:
-                    self.udp_timestemp = timestemp
-                    request = msgpack.unpackb(data[8:])
-                    self.handle_request(request)
-                else:
-                    logger.error("UDP Timestemp error. Current %f buf got %f",
-                                 self.udp_timestemp, timestemp)
-            else:
-                logger.error("Unknown udp payload prefix: %s", buf[0])
-        except Exception:
-            logger.exception("UDP payload error.")
-
-    def handle_request(self, request):
-        pass
-
     def on_timer(self, watcher, revent):
         try:
-            if self.session and self.session.is_expired is False:
+            if self.udp_handler and not self.udp_handler.session.is_expired:
                 self.push_update()
             else:
                 self.begin_session()
@@ -245,4 +221,14 @@ class CloudService(ServiceBase):
             logger.exception("Unhandle error")
 
     def on_shutdown(self):
+        pass
+
+    def require_camera(self, camera_id, endpoint, token):
+        payload = msgpack.packb((0x80, camera_id, endpoint, token))
+        s = socket.socket(socket.AF_UNIX)
+        s.connect(CAMERA_ENDPOINT)
+        s.send(payload)
+        s.close()
+
+    def require_control(self, endpoint, token):
         pass
