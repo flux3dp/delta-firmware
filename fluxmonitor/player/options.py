@@ -55,17 +55,17 @@ class Options(object):
         self.play_bufsize = 10
 
         storage = Storage("general", "meta")
-        if self.correction is None:
-            self.correction = ensure_value(
-                storage.readall("auto_correction"), "A")
+        self.correction = ensure_value(
+            storage.readall("auto_correction"),
+            self.correction or "A")
 
-        if self.filament_detect is None:
-            self.filament_detect = ensure_value(
-                storage.readall("filament_detect"), "Y")
+        self.filament_detect = ensure_value(
+            storage.readall("filament_detect"),
+            self.filament_detect or "Y")
 
-        if self.head_error_level is None:
-            self.head_error_level = parse_int(
-                storage.readall("head_error_level"), 4095)
+        self.head_error_level = parse_int(
+            storage.readall("head_error_level"),
+            self.head_error_level or 4095)
 
         self.autoresume = storage["autoresume"] == "Y"
 
