@@ -113,8 +113,8 @@ class PinMappingShared(object):
     TOOLHEAD_POWER_OFF = GPIO.LOW
 
     _last_mainboard_sig = GPIO.LOW
-    _head_enabled = True
-    _head_power_stat = TOOLHEAD_POWER_OFF
+    _head_enabled = False
+    _head_power_stat = TOOLHEAD_POWER_ON
     _head_power_timer = 0
 
     def __init__(self, metadata):
@@ -128,6 +128,7 @@ class PinMappingShared(object):
         for pin in self.PIN_NOT_DEFINED:
             GPIO.setup(pin, GPIO.IN)
 
+        self._head_power_timer = time()
         self.on_timer()
 
     @property
@@ -291,11 +292,13 @@ class PinMappingShared(object):
 
 
 class PinMappingV0(PinMappingShared):
+    version = 0
+
     USB_SERIAL = 15
     USB_SERIAL_ON = GPIO.HIGH
     USB_SERIAL_OFF = GPIO.LOW
 
-    _usb_serial_stat = USB_SERIAL_OFF
+    _usb_serial_stat = USB_SERIAL_ON
 
     def __init__(self, metadata):
         super(PinMappingV0, self).__init__(metadata)
@@ -323,13 +326,13 @@ class PinMappingV0(PinMappingShared):
         if toolhead_operating:
             if self.usb_serial_power is True:
                 logger.debug("Headboard ON / USB OFF")
-                self._head_enabled = True
                 self.usb_serial_power = False
+                self._head_enabled = True
         else:
             if self.usb_serial_power is False:
                 logger.debug("Headboard OFF / USB ON")
+                self.usb_serial_power = True
                 self._head_enabled = False
-                self.usb_serial_power = False
 
         if self._head_enabled:
             if self.toolhead_power is False:
@@ -341,9 +344,13 @@ class PinMappingV0(PinMappingShared):
 
 
 class PinMappingV1(PinMappingShared):
+    version = 1
+
     V24_POWER = 15
     V24_POWER_ON = GPIO.HIGH
     V24_POWER_OFF = GPIO.LOW
+
+    _v24_stat = V24_POWER_OFF
 
     def __init__(self, metadata):
         super(PinMappingV1, self).__init__(metadata)
@@ -367,12 +374,14 @@ class PinMappingV1(PinMappingShared):
                 logger.debug("24v Off")
 
     def update_toolhead_ctrl(self, toolhead_operating):
-        if toolhead_operating > 0:
+        if toolhead_operating:
             if self._head_enabled is False:
                 self._head_enabled = self.toolhead_power = True
         else:
-            if self._head_enabled is True:
+            if self.v24_power is True:
                 self.v24_power = False
+
+            if self._head_enabled is True:
                 self._head_enabled = False
                 logger.debug("Head Power delay off")
                 self._head_power_timer = time()
