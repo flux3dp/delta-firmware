@@ -17,6 +17,7 @@ class UartHalBase(object):
     support_hal = []
 
     def __init__(self, kernel):
+        self.kernel = kernel
         self.storage = Storage("general", "mainboard")
 
         self.mainboard = self.create_socket(
@@ -75,10 +76,10 @@ class UartHalBase(object):
                 self.reconnect()
                 watcher.data.send("ok")
             elif cmd == "reset_mb":
-                self.reset_mainboard(watcher.loop)
+                self.reset_mainboard()
                 watcher.data.send("ok")
             elif cmd == "reset_hb":
-                self.reset_headboard(watcher.loop)
+                self.reset_headboard()
                 watcher.data.send("ok")
             elif cmd == "update_head_fw":
                 def cb(message):
@@ -86,7 +87,7 @@ class UartHalBase(object):
                 self.update_head_fw(cb)
                 watcher.data.send("ok")
             elif cmd == "update_fw":
-                self.update_fw(watcher.loop)
+                self.update_fw()
                 watcher.data.send("ok")
 
         except RuntimeError as e:
@@ -168,6 +169,9 @@ class UartHalBase(object):
         pass
 
     def sendto_pc(self, buf):
+        pass
+
+    def start(self):
         pass
 
     def close(self):
