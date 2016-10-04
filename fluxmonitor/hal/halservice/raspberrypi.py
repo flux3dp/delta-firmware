@@ -179,7 +179,10 @@ class UartHal(UartHalBase, BaseOnSerial):
         self.connect_uart()
 
     def update_head_fw(self, cb):
+        self.disconnect_uart()
+        sleep(0.1)
         self.gpio.update_hbfw(cb)
+        self.connect_uart()
 
     def send_button_event(self, event_buffer):
         for w in self.control_watchers:

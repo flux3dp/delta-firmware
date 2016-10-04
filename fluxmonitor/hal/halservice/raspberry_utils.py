@@ -149,12 +149,15 @@ class PinMappingShared(object):
                 logger.debug("Head Power Off")
 
     def update_hbfw(self, stage_cb=lambda m: None):
+        raspi_uart = Serial(port="/dev/ttyAMA0", baudrate=115200,
+                            stopbits=1, xonxoff=0, rtscts=0, timeout=0)
+
         def wait_ack(stage):
             t = time()
             while time() - t < 5.0:
-                rl = select((self.raspi_uart, ), (), (), 5.0)[0]
+                rl = select((raspi_uart, ), (), (), 5.0)[0]
                 if rl:
-                    ret = self.raspi_uart.read(1)
+                    ret = raspi_uart.read(1)
                     if ret == 'y':
                         return
                     elif ret == '\x1f':
@@ -165,8 +168,8 @@ class PinMappingShared(object):
             raise RuntimeError(NO_RESPONSE, stage)
 
         def send_cmd(cmd, stage):
-            self.raspi_uart.write(chr(cmd))
-            self.raspi_uart.write(chr(cmd ^ 0xFF))
+            raspi_uart.write(chr(cmd))
+            raspi_uart.write(chr(cmd ^ 0xFF))
             wait_ack(stage)
             sleep(0.1)
 
@@ -177,7 +180,7 @@ class PinMappingShared(object):
             return chr(crc)
 
         def bootloader_hello():
-            self.raspi_uart.write('\x7f')
+            raspi_uart.write('\x7f')
             wait_ack("HELLO")
 
         logger.debug("Update head fw")
@@ -198,7 +201,7 @@ class PinMappingShared(object):
             # Bootstrap
             stage_cb(b"B")
 
-            self.raspi_uart.parity = PARITY_EVEN
+            raspi_uart.parity = PARITY_EVEN
 
             GPIO.output(self.TOOLHEAD_POWER, self.TOOLHEAD_POWER_OFF)
             GPIO.output(self.TOOLHEAD_BOOT, GPIO.HIGH)
@@ -207,10 +210,10 @@ class PinMappingShared(object):
             GPIO.output(self.TOOLHEAD_POWER, self.TOOLHEAD_POWER_ON)
             sleep(0.5)
 
-            self.raspi_uart.setRTS(0)
-            self.raspi_uart.setDTR(0)
+            raspi_uart.setRTS(0)
+            raspi_uart.setDTR(0)
             sleep(0.1)
-            self.raspi_uart.setDTR(1)
+            raspi_uart.setDTR(1)
             sleep(0.5)
 
             # Hello
@@ -223,9 +226,9 @@ class PinMappingShared(object):
                 bootloader_hello()
 
             send_cmd(0x00, "G_VR")
-            l = ord(self.raspi_uart.read())
-            version = self.raspi_uart.read(1)
-            a = self.raspi_uart.read(l)
+            l = ord(raspi_uart.read())
+            version = raspi_uart.read(1)
+            a = raspi_uart.read(l)
             logger.debug("VER %s", repr(a))
             wait_ack("G_VRL")
             logger.debug("Update head: bootloader ver=%s", version)
@@ -238,8 +241,8 @@ class PinMappingShared(object):
             send_cmd(0x44, "G_ERASE")
             cmd = struct.pack(">H", pages - 1)
             cmd += "".join([struct.pack(">H", i) for i in xrange(pages)])
-            self.raspi_uart.write(cmd)
-            self.raspi_uart.write(crc8(cmd))
+            raspi_uart.write(cmd)
+            raspi_uart.write(crc8(cmd))
             wait_ack("G_E")
 
             # Write
@@ -250,12 +253,12 @@ class PinMappingShared(object):
                 l = min(size - offset, 128)
                 send_cmd(0x31, "G_WINIT")
                 addr = struct.pack(">I", 0x08000000 + offset)
-                self.raspi_uart.write(addr)
-                self.raspi_uart.write(crc8(addr))
+                raspi_uart.write(addr)
+                raspi_uart.write(crc8(addr))
                 wait_ack("G_WREADY")
                 payload = chr(l - 1) + fw[offset:offset + l]
-                self.raspi_uart.write(payload)
-                self.raspi_uart.write(crc8(payload))
+                raspi_uart.write(payload)
+                raspi_uart.write(crc8(payload))
                 wait_ack("G_WDONE")
                 offset += l
 
@@ -265,7 +268,8 @@ class PinMappingShared(object):
             GPIO.output(self.TOOLHEAD_POWER, self.TOOLHEAD_POWER_OFF)
             sleep(0.5)
             GPIO.output(self.TOOLHEAD_POWER, self._head_power_stat)
-            self.raspi_uart.parity = PARITY_NONE
+            raspi_uart.parity = PARITY_NONE
+            raspi_uart.close()
 
         logger.debug("Update fw end")
 
