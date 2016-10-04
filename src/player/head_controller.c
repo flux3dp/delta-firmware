@@ -1209,7 +1209,6 @@ static const char __pyx_k_name[] = "__name__";
 static const char __pyx_k_self[] = "self";
 static const char __pyx_k_test[] = "__test__";
 static const char __pyx_k_warn[] = "warn";
-static const char __pyx_k_CRASH[] = "CRASH";
 static const char __pyx_k_LASER[] = "LASER";
 static const char __pyx_k_close[] = "close";
 static const char __pyx_k_debug[] = "debug";
@@ -1341,7 +1340,6 @@ static PyObject *__pyx_kp_s_1_s;
 static PyObject *__pyx_kp_s_BAD_TEMP;
 static PyObject *__pyx_kp_s_BUSY_s;
 static PyObject *__pyx_kp_s_Bad_logic;
-static PyObject *__pyx_n_s_CRASH;
 static PyObject *__pyx_kp_s_Drop_message_s;
 static PyObject *__pyx_kp_s_ER;
 static PyObject *__pyx_n_s_ER_2;
@@ -13174,7 +13172,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadResetEr
  *     hw_error_code = 51
  * 
  *     def __init__(self):             # <<<<<<<<<<<<<<
- *         RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_RESET, "CRASH")
+ *         RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_RESET)
  * 
  */
 
@@ -13207,7 +13205,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadCrashEr
   /* "src/player/head_controller.pyx":584
  * 
  *     def __init__(self):
- *         RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_RESET, "CRASH")             # <<<<<<<<<<<<<<
+ *         RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_RESET)             # <<<<<<<<<<<<<<
  * 
  * 
  */
@@ -13229,7 +13227,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadCrashEr
       __pyx_t_6 = 1;
     }
   }
-  __pyx_t_7 = PyTuple_New(4+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 584, __pyx_L1_error)
+  __pyx_t_7 = PyTuple_New(3+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 584, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   if (__pyx_t_5) {
     __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_5); __pyx_t_5 = NULL;
@@ -13241,9 +13239,6 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadCrashEr
   PyTuple_SET_ITEM(__pyx_t_7, 1+__pyx_t_6, __pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_4);
   PyTuple_SET_ITEM(__pyx_t_7, 2+__pyx_t_6, __pyx_t_4);
-  __Pyx_INCREF(__pyx_n_s_CRASH);
-  __Pyx_GIVEREF(__pyx_n_s_CRASH);
-  PyTuple_SET_ITEM(__pyx_t_7, 3+__pyx_t_6, __pyx_n_s_CRASH);
   __pyx_t_3 = 0;
   __pyx_t_4 = 0;
   __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 584, __pyx_L1_error)
@@ -13256,7 +13251,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadCrashEr
  *     hw_error_code = 51
  * 
  *     def __init__(self):             # <<<<<<<<<<<<<<
- *         RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_RESET, "CRASH")
+ *         RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_RESET)
  * 
  */
 
@@ -15274,7 +15269,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_BAD_TEMP, __pyx_k_BAD_TEMP, sizeof(__pyx_k_BAD_TEMP), 0, 0, 1, 0},
   {&__pyx_kp_s_BUSY_s, __pyx_k_BUSY_s, sizeof(__pyx_k_BUSY_s), 0, 0, 1, 0},
   {&__pyx_kp_s_Bad_logic, __pyx_k_Bad_logic, sizeof(__pyx_k_Bad_logic), 0, 0, 1, 0},
-  {&__pyx_n_s_CRASH, __pyx_k_CRASH, sizeof(__pyx_k_CRASH), 0, 0, 1, 1},
   {&__pyx_kp_s_Drop_message_s, __pyx_k_Drop_message_s, sizeof(__pyx_k_Drop_message_s), 0, 0, 1, 0},
   {&__pyx_kp_s_ER, __pyx_k_ER, sizeof(__pyx_k_ER), 0, 0, 1, 0},
   {&__pyx_n_s_ER_2, __pyx_k_ER_2, sizeof(__pyx_k_ER_2), 0, 0, 1, 1},
@@ -15670,7 +15664,7 @@ static int __Pyx_InitCachedConstants(void) {
  *     hw_error_code = 51
  * 
  *     def __init__(self):             # <<<<<<<<<<<<<<
- *         RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_RESET, "CRASH")
+ *         RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_RESET)
  * 
  */
   __pyx_tuple__28 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__28)) __PYX_ERR(0, 583, __pyx_L1_error)
@@ -16339,7 +16333,7 @@ PyMODINIT_FUNC PyInit__head_controller(void)
  *     hw_error_code = 51
  * 
  *     def __init__(self):             # <<<<<<<<<<<<<<
- *         RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_RESET, "CRASH")
+ *         RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_RESET)
  * 
  */
   __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_11fluxmonitor_6player_16_head_controller_14HeadCrashError_1__init__, 0, __pyx_n_s_HeadCrashError___init, NULL, __pyx_n_s_fluxmonitor_player__head_control, __pyx_d, ((PyObject *)__pyx_codeobj__29)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 583, __pyx_L1_error)

@@ -581,7 +581,7 @@ class HeadCrashError(HeadError):
     hw_error_code = 51
 
     def __init__(self):
-        RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_RESET, "CRASH")
+        RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_RESET)
 
 
 class HeadTypeError(HeadError):
