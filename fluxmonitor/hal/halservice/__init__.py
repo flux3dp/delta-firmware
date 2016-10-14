@@ -16,7 +16,7 @@ def get_halservice(require_model=None):
         from .smoothie import UartHal
         return UartHal
     elif require_model == halprofile.MODEL_D1:
-        from .raspberry_1 import UartHal
+        from .raspberrypi import UartHal
         return UartHal
 
     raise RuntimeError("NOT IMPLEMENT")
