@@ -55,7 +55,7 @@ RSA* get_rescue_machine_rsakey() {
         }
     }
 
-    keyobj = create_rsa(1024);
+    keyobj = create_rsa(2048);
     pybuf = export_pem(keyobj, 0);
 
     // PY: storage.open("key.pem", "w")

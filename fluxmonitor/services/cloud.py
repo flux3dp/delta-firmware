@@ -1,11 +1,13 @@
 
-from binascii import b2a_base64, a2b_base64, a2b_hex
+from binascii import b2a_base64
 from urlparse import urlparse
+from OpenSSL import crypto
+from select import select
 import msgpack
 import logging
 import socket
+import json
 
-from fluxmonitor.interfaces.cloud import CloudUdpSyncHander
 from fluxmonitor.misc.httpclient import get_connection
 from fluxmonitor.misc.systime import systime as time
 from fluxmonitor.halprofile import get_model_id
@@ -27,46 +29,19 @@ logger = logging.getLogger(__name__)
 # DURATION_OF_NONHEAD_USE = "dn"
 
 
-class Session(object):
-    def __init__(self, sessionkey_hex, expire_after, publickey, privatekey):
-        self.sessionkey = a2b_hex(sessionkey_hex)
-        self.expire_at = time() + expire_after - 60.0
-        self.publickey = publickey
-        self.privatekey = privatekey
-
-    def fileno(self):
-        return self.sock.fileno()
-
-    @property
-    def is_expired(self):
-        return (self.expire_at - time() < 30.0)
-
-    def pack(self, message):
-        return self.sessionkey + self.publickey.encrypt(message)
-
-    def unpack(self, buf):
-        signdoc = self.privatekey.decrypt(buf)
-        if signdoc:
-            size = self.publickey.size()
-            signature, document = signdoc[:size], signdoc[size:]
-            if self.publickey.verify(document, signature):
-                return document
-            else:
-                logger.error("Bad session signature")
-        else:
-            logger.error("Bad session encrypt")
-
-
 class CloudService(ServiceBase):
     cloud_netloc = None
     metadata = None
     storage = None
-    udp_handler = None
+
+    push_timer = 0
+    aws_client = None
 
     def __init__(self, options):
         super(CloudService, self).__init__(logger, options)
         self.storage = Storage("cloud")
         self.metadata = Metadata()
+        self.uuidhex = security.get_uuid()
 
         if options.cloud.endswith("/"):
             self.cloud_netloc = options.cloud[:-1]
@@ -75,46 +50,38 @@ class CloudService(ServiceBase):
 
     def on_start(self):
         logger.info("Cloud service started")
-        self.timer = self.loop.timer(5., 5., self.on_timer)
+        self.timer = self.loop.timer(3., 3., self.on_timer)
         self.timer.start()
 
-    @property
-    def require_identify_url(self):
-        return urlparse("%s/axon/require_identify" % self.cloud_netloc)
+    def require_identify(self):
+        logger.debug("Require identify")
 
-    @property
-    def identify_url(self):
-        return urlparse("%s/axon/identify" % self.cloud_netloc)
-
-    @property
-    def session_url(self):
-        return urlparse("%s/axon/begin_session" % self.cloud_netloc)
-
-    def exec_identify(self):
-        logger.debug("Exec identify")
-
-        url = self.require_identify_url
+        url = urlparse("%s/axon/require_identify" % self.cloud_netloc)
         conn = get_connection(url)
-        logger.debug("Cloud connected")
 
         pkey = security.get_private_key()
         publickey_base64 = b2a_base64(pkey.export_pubkey_der())
         serial = security.get_serial()
-        uuidhex = security.get_uuid()
         model = get_model_id()
         identify_base64 = b2a_base64(security.get_identify())
 
         try:
-            # === Require identify ===
             logger.debug("Require identify request sent")
             conn.post_request(url.path, {
-                "serial": serial, "uuid": uuidhex, "model": model,
+                "serial": serial, "uuid": self.uuidhex, "model": model,
                 "version": __version__, "publickey": publickey_base64,
                 "signature": identify_base64
             })
-            request_doc = conn.get_json_response()
-            challange = a2b_base64(request_doc["challange"])
-            signature = pkey.sign(challange)
+            resp = conn.get_json_response()
+
+            if resp.get("status") == "ok":
+                return resp["token"].encode(), resp["subject"]
+            elif resp.get("status") == "error":
+                raise RuntimeWarning(*resp["error"])
+            else:
+                logger.error("require_identify response unknown response: %s",
+                             resp)
+                raise RuntimeWarning("RESPONSE_ERROR")
         except socket.gaierror as e:
             raise RuntimeError("REQUIRE_IDENTIFY", "DNS_ERROR", e)
         except socket.error as e:
@@ -125,94 +92,160 @@ class CloudService(ServiceBase):
             logger.exception("Error in require identify")
             raise RuntimeError("REQUIRE_IDENTIFY", "UNKNOWN_ERROR", e)
 
-        try:
-            # === Identify ===
-            logger.debug("Identify request sent")
-            url = self.identify_url
-            conn.post_request(url.path, {
-                "uuid": uuidhex, "challange": request_doc["challange"],
-                "signature": b2a_base64(signature),
-                "metadata": {"version": __version__}
-            })
-            identify_doc = conn.get_json_response()
-            self.storage["token"] = identify_doc["token"]
-            logger.debug("Identify suucessed")
-        except socket.gaierror as e:
-            raise RuntimeError("IDENTIFY", "DNS_ERROR", e)
-        except socket.error as e:
-            raise RuntimeError("IDENTIFY", "CONNECTION_ERROR", e)
-        except RuntimeWarning as e:
-            raise RuntimeError("IDENTIFY", *e.args)
-        except Exception as e:
-            logger.exception("Error in identify")
-            raise RuntimeError("IDENTIFY", "UNKNOWN_ERROR", e)
+    def get_identify(self, token, request_asn1):
+        logger.debug("Get identify")
 
-    def begin_session(self):
-        if not self.storage["token"]:
-            self.exec_identify()
-
+        url = urlparse("%s/axon/identify" % self.cloud_netloc)
+        conn = get_connection(url)
         uuidhex = security.get_uuid()
 
-        url = self.session_url
-
         try:
-            conn = get_connection(url)
-
-            logger.debug("Begin session request")
+            logger.debug("Get identify request sent")
             conn.post_request(url.path, {
-                "uuid": uuidhex, "token": self.storage["token"],
-                "v": __version__
+                "uuid": uuidhex, "token": token, "x509_request": request_asn1,
+                "metadata": {"version": __version__}
             })
+            resp = conn.get_json_response()
 
-            doc = conn.get_json_response()
-            session = Session(doc["session"], doc["expire_after"],
-                              security.RSAObject(doc["key"]),
-                              security.get_private_key)
-            self.setup_session(session, doc["endpoint"], doc["timestemp"])
-            logger.debug("Session request successed, session=%(session)s, "
-                         "expire_after=%(expire_after)i", doc)
-
+            if resp.get("status") == "ok":
+                return resp
+            elif resp.get("status") == "error":
+                raise RuntimeWarning(*resp["error"])
+            else:
+                logger.error("get identify response unknown response: %s",
+                             resp)
+                raise RuntimeWarning("RESPONSE_ERROR")
         except socket.gaierror as e:
-            raise RuntimeError("BEGIN_SESSION", "DNS_ERROR", e)
+            raise RuntimeError("GET_IDENTIFY", "DNS_ERROR", e)
         except socket.error as e:
-            raise RuntimeError("BEGIN_SESSION", "CONNECTION_ERROR", e)
+            raise RuntimeError("GET_IDENTIFY", "CONNECTION_ERROR", e)
         except RuntimeWarning as e:
-            if e.args[0] == "BAD_TOKEN":
-                del self.storage["token"]
-            raise RuntimeError("BEGIN_SESSION", *e.args)
+            raise RuntimeError("GET_IDENTIFY", *e.args)
         except Exception as e:
-            logger.exception("Error in begin session")
-            raise RuntimeError("BEGIN_SESSION", "UNKNOWN_ERROR", e)
+            logger.exception("Error in get identify")
+            raise RuntimeError("GET_IDENTIFY", "UNKNOWN_ERROR", e)
 
-    def setup_session(self, session, endpoint, timestemp):
-        ipaddr = endpoint[0] \
-            if isinstance(endpoint[0], str) else endpoint[0].encode()
+    def generate_certificate_request(self, subject_list):
+        csr = crypto.X509Req()
+        subj = csr.get_subject()
+        for name, value in subject_list:
+            if name == "CN":
+                add_result = crypto._lib.X509_NAME_add_entry_by_NID(
+                    subj._name, 13, crypto._lib.MBSTRING_UTF8,
+                    value.encode('utf-8'), -1, -1, 0)
+                if not add_result:
+                    crypto._raise_current_error()
+            else:
+                setattr(subj, name, value)
 
-        self.udp_handler = CloudUdpSyncHander(self, (ipaddr, endpoint[1]),
-                                              timestemp, session)
+        fxkey = security.get_private_key()
+        opensslkey = crypto.load_privatekey(crypto.FILETYPE_ASN1,
+                                            fxkey.export_der())
+        self.storage["key.pem"] = fxkey.export_pem()
+        csr.set_pubkey(opensslkey)
+        csr.sign(opensslkey, "sha256")
+        return crypto.dump_certificate_request(crypto.FILETYPE_PEM, csr)
 
-    def teardown_session(self):
-        if self.udp_handler:
-            self.udp_handler.close()
-            self.udp_handler = None
+    def fetch_identify(self):
+        logger.debug("Exec identify")
+
+        token, subject_list = self.require_identify()
+        logger.debug("require identify return token=%s, subject=%s",
+                     token, subject_list)
+
+        request_asn1 = self.generate_certificate_request(subject_list)
+        doc = self.get_identify(token, request_asn1)
+        logger.debug("get identify return %s", doc)
+
+        self.storage["token"] = token
+        self.storage["endpoint"] = doc["endpoint"]
+        self.storage["client_id"] = doc["client_id"]
+        self.storage["certificate_reqs.pem"] = doc["certificate_reqs"]
+        self.storage["certificate.pem"] = doc["certificate"]
 
     def push_update(self):
-        flag = 0  # push device status flag
-        payload = msgpack.packb((flag, self.metadata.device_status))
+        c = self.aws_client.getMQTTConnection()
+
+        payload = json.dumps(
+            {"state": {"reported": self.metadata.format_device_status}})
+        c.publish(self._push_topic, payload, 0)
+
+    def aws_on_request_callback(self, client, userdata, message):
+        request = message.topic.split("/", 3)[-1]
+        logger.debug("IoT request: %s", request)
+        response_topic = "device/%s/response/%s" % (self.aws_token, request)
 
         try:
-            self.udp_handler.send(payload)
-            logger.warning("PUSH..")
-        except socket.gaierror:
-            raise
-        except OSError:
-            logger.exception("Push message failed, teardown session")
-            self.teardown_session()
+            payload = json.loads(message.payload)
+        except ValueError:
+            logger.error("IoT request payload error: %s", message.payload)
+            client.publish(response_topic, message.payload)
+            return
+
+        if payload.get("uuid") != self.uuidhex:
+            client.publish(response_topic, json.dumps({
+                "status": "reject", "cmd_index": payload.get("cmd_index")}))
+            return
+
+        try:
+            if request == "getchu":
+                pass
+            elif request == "camera":
+                self.require_camera(payload["camera_id"], payload["endpoint"],
+                                    payload["token"])
+                client.publish(response_topic, json.dumps({
+                    "status": "ok", "cmd_index": payload.get("cmd_index")}))
+        except Exception:
+            logger.exception("Handle aws request error")
+            client.publish(response_topic, json.dumps({
+                "status": "error", "cmd_index": payload.get("cmd_index")}))
+
+    def begin_session(self):
+        if not self.storage["certificate.pem"]:
+            try:
+                self.fetch_identify()
+            except RuntimeError as e:
+                logger.error(e)
+                return
+        self.setup_session()
+
+    def setup_session(self):
+        from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTShadowClient
+        ipaddr, port = self.storage["endpoint"].split(":")
+
+        client = AWSIoTMQTTShadowClient(self.storage["client_id"])
+        client.configureEndpoint(ipaddr, int(port))
+        client.configureCredentials(
+            self.storage.get_path("certificate_reqs.pem"),
+            self.storage.get_path("key.pem"),
+            self.storage.get_path("certificate.pem"))
+        client.configureConnectDisconnectTimeout(10)
+        client.configureMQTTOperationTimeout(5)
+        client.connect()
+
+        conn = client.getMQTTConnection()
+        conn.subscribe("device/%s/request/camera" % self.storage["token"], 1,
+                       self.aws_on_request_callback)
+
+        self.aws_client = client
+        self.aws_token = self.storage["token"]
+        self._push_topic = "$aws/things/%s/shadow/update" % (
+            self.storage["client_id"])
+
+    def teardown_session(self):
+        if self.aws_client:
+            try:
+                self.aws_client.disconnect()
+            except Exception:
+                logger.exception("Error while disconnect from aws")
+            self.aws_client = None
 
     def on_timer(self, watcher, revent):
         try:
-            if self.udp_handler and not self.udp_handler.session.is_expired:
-                self.push_update()
+            if self.aws_client:
+                if time() - self.push_timer > 5:
+                    self.push_timer = time()
+                    self.push_update()
             else:
                 self.begin_session()
         except RuntimeError as e:
@@ -228,6 +261,10 @@ class CloudService(ServiceBase):
         s = socket.socket(socket.AF_UNIX)
         s.connect(CAMERA_ENDPOINT)
         s.send(payload)
+        rl = select((s, ), (), (), 0.25)[0]
+        if rl:
+            logger.debug("Require camera return %s",
+                         msgpack.unpackb(s.recv(4096)))
         s.close()
 
     def require_control(self, endpoint, token):

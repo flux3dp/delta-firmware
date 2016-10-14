@@ -114,6 +114,8 @@ class CameraUnixStreamHandler(MsgpackMixIn, UnixStreamHandler):
                 elif cmd == CMD_CLOUD_CONNECTION:
                     endpoint = request[2]
                     token = request[3]
+                    logger.debug("Recive connect2cloud request, endpoint=%s",
+                                 endpoint)
                     ret = self.kernel.on_connect2cloud(camera_id, endpoint,
                                                        token)
                     self.send_payload(("ok", ret))
