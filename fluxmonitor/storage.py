@@ -2,6 +2,7 @@
 from random import choice
 from shutil import rmtree
 from time import time
+import msgpack
 import struct
 import os
 
@@ -99,6 +100,8 @@ class Metadata(object):
         # 128 ~ 384: nickname, end with char \x00
         # 384 ~ 512: plate_correction (current user 96 bytes)
         # 1024 ~ 2048: Shared rsakey
+        # 2048 ~ 2176: Cloud Status (128)
+        # 2176 ~ 2208: Cloud Hash (32)
         # 3072: Wifi status code
         # 3584 ~ 4096: Device status
         self.shm = sysv_ipc.SharedMemory(13000, sysv_ipc.IPC_CREAT,
@@ -194,6 +197,30 @@ class Metadata(object):
     def shared_der_rsakey(self, val):
         h = struct.pack("<BfH", 128, time(), len(val))
         self.shm.write(h + val, 1024)
+
+    @property
+    def cloud_status(self):
+        buf = self.shm.read(128, 2048)
+        l = ord(buf[0])
+        if l > 0:
+            return msgpack.unpackb(buf[1:ord(buf[0]) + 1], use_list=False)
+        else:
+            return None
+
+    @cloud_status.setter
+    def cloud_status(self, val):
+        buf = msgpack.packb(val)
+        if len(buf) > 127:
+            raise SystemError("%s is too large to store", val)
+        self.shm.write(chr(len(buf)) + buf, 2048)
+
+    @property
+    def cloud_hash(self):
+        return self.shm.read(32, 2176)
+
+    @cloud_hash.setter
+    def cloud_hash(self, val):
+        self.shm.write(val[:32], 2176)
 
     def _cache_nickname(self, val):
         self.shm.write(val, 128)

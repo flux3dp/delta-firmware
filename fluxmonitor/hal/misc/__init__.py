@@ -13,12 +13,16 @@ SERIAL = get_serial()
 
 
 def get_deviceinfo(metadata=None):
-    nickname = metadata.nickname if metadata else None
-
-    info = {
-        "version": version, "model": halprofile.get_model_id(),
-        "uuid": UUID_HEX, "serial": SERIAL, "nickname": nickname
-    }
-
+    if metadata:
+        info = {
+            "version": version, "model": halprofile.get_model_id(),
+            "uuid": UUID_HEX, "serial": SERIAL, "nickname": metadata.nickname,
+            "cloud": metadata.cloud_status
+        }
+    else:
+        info = {
+            "version": version, "model": halprofile.get_model_id(),
+            "uuid": UUID_HEX, "serial": SERIAL
+        }
     info.update(_get_deviceinfo())
     return info

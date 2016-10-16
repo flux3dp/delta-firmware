@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 
 from tempfile import NamedTemporaryFile
+from binascii import b2a_base64
 from io import StringIO, BytesIO
 from errno import errorcode
 from md5 import md5
@@ -467,6 +468,8 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
             elif cmd == "maintain":
                 # TODO: going tobe removed
                 self.dispatch_task_cmd(handler, "maintain")
+            elif cmd == "cloud_validation_code":
+                self.cloud_validation_code(handler)
             elif cmd == "oracle":
                 s = Storage("general", "meta")
                 s["debug"] = args[0].encode("utf8")
@@ -511,6 +514,9 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
         buf = "\n".join(
             ("%s:%s" % kv for kv in get_deviceinfo(self.settings).items()))
         handler.send_text("ok\n%s" % buf)
+
+    def cloud_validation_code(self, handler):
+        handler.send_text("ok %s" % b2a_base64(self.settings.cloud_hash))
 
     def fetch_log(self, handler, path):
         filename = os.path.abspath(

@@ -1,5 +1,5 @@
 
-from binascii import b2a_base64
+from binascii import a2b_base64, b2a_base64
 from urlparse import urlparse
 # from OpenSSL import crypto
 from select import select
@@ -7,6 +7,7 @@ import msgpack
 import logging
 import socket
 import json
+import os
 
 from fluxmonitor.misc.httpclient import get_connection
 from fluxmonitor.misc.systime import systime as time
@@ -43,6 +44,7 @@ class CloudService(ServiceBase):
         super(CloudService, self).__init__(logger, options)
         self.storage = Storage("cloud")
         self.metadata = Metadata()
+        self.metadata.cloud_status = (False, ("INIT", ))
         self.uuidhex = security.get_uuid()
 
         if options.cloud.endswith("/"):
@@ -217,9 +219,12 @@ class CloudService(ServiceBase):
         self._notify_last_ts = now
 
     def aws_on_request_callback(self, client, userdata, message):
-        request = message.topic.split("/", 3)[-1]
-        logger.debug("IoT request: %s", request)
-        response_topic = "device/%s/response/%s" % (self.aws_token, request)
+        # incommint topic format: "device/{token}/request/{action}"
+        # response topic format: "device/{token}/response/{action}"
+
+        action = message.topic.split("/", 3)[-1]
+        logger.debug("IoT request: %s", action)
+        response_topic = "device/%s/response/%s" % (self.aws_token, action)
 
         try:
             payload = json.loads(message.payload)
@@ -233,30 +238,49 @@ class CloudService(ServiceBase):
                 "status": "reject", "cmd_index": payload.get("cmd_index")}))
             return
 
+        cmd_index = payload.get("cmd_index")
+
         try:
-            if request == "getchu":
-                pass
-            elif request == "camera":
+            if action == "getchu":
+                try:
+                    current_hash = self.metadata.cloud_hash
+                    access_id, signature = payload.get("validate_message")
+                    client_key = security.get_keyobj(access_id=access_id)
+                    if client_key.verify(current_hash, a2b_base64(signature)):
+                        client.publish(response_topic, json.dumps({
+                            "status": "ok", "cmd_index": cmd_index}))
+                    else:
+                        client.publish(response_topic, json.dumps({
+                            "status": "reject", "cmd_index": cmd_index}))
+                finally:
+                    self.metadata.cloud_hash = os.urandom(32)
+            elif action == "monitor":
+                self._notify_aggressive = time() + 180
+                client.publish(response_topic, json.dumps({
+                    "status": "ok", "cmd_index": cmd_index}))
+            elif action == "camera":
                 self.require_camera(payload["camera_id"], payload["endpoint"],
                                     payload["token"])
                 client.publish(response_topic, json.dumps({
-                    "status": "ok", "cmd_index": payload.get("cmd_index")}))
+                    "status": "ok", "cmd_index": cmd_index}))
+
         except Exception:
             logger.exception("Handle aws request error")
             client.publish(response_topic, json.dumps({
-                "status": "error", "cmd_index": payload.get("cmd_index")}))
+                "status": "error", "cmd_index": cmd_index}))
 
     def begin_session(self):
         if not self.storage["certificate.pem"]:
-            try:
-                self.fetch_identify()
-            except RuntimeError as e:
-                logger.error(e)
-                return
+            self.fetch_identify()
+
         self.setup_session()
+        self.metadata.cloud_status = (True, ())
 
     def setup_session(self):
         from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTShadowClient
+        from AWSIoTPythonSDK.core.protocol.mqttCore import (
+            connectTimeoutException)
+
         ipaddr, port = self.storage["endpoint"].split(":")
 
         client = AWSIoTMQTTShadowClient(self.storage["client_id"])
@@ -267,7 +291,11 @@ class CloudService(ServiceBase):
             self.storage.get_path("certificate.pem"))
         client.configureConnectDisconnectTimeout(10)
         client.configureMQTTOperationTimeout(5)
-        client.connect()
+
+        try:
+            client.connect()
+        except (connectTimeoutException, socket.gaierror, socket.error):
+            raise RuntimeError("SESSION", "CONNECTION_ERROR")
 
         conn = client.getMQTTConnection()
         conn.subscribe("device/%s/request/camera" % self.storage["token"], 1,
@@ -282,6 +310,7 @@ class CloudService(ServiceBase):
         self.timer.set(2.2, 2.2)
         self.timer.reset()
         self.timer.start()
+        self.metadata.cloud_hash = os.urandom(32)
 
     def teardown_session(self):
         if self.aws_client:
@@ -302,9 +331,11 @@ class CloudService(ServiceBase):
             else:
                 self.begin_session()
         except RuntimeError as e:
-            logger.error("%s", e)
+            logger.error(e)
+            self.metadata.cloud_status = (False, e.args)
         except Exception:
             logger.exception("Unhandle error")
+            self.metadata.cloud_status = (False, ("UNKNOWN_ERROR", ))
 
     def on_shutdown(self):
         pass
