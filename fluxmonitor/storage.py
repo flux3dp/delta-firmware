@@ -235,10 +235,11 @@ class Metadata(object):
     @property
     def format_device_status(self):
         buf = self.device_status
-        timestemp, st_id, progress, head_type, err_label = \
+        timestamp, st_id, progress, head_type, err_label = \
             struct.unpack("dif16s32s", buf[:64])
-        return {"timestemp": timestemp, "st_id": st_id, "progress": progress,
-                "head_type": head_type, "err_label": err_label}
+        return {"timestamp": timestamp, "st_id": st_id, "progress": progress,
+                "head_type": head_type.rstrip('\x00'),
+                "err_label": err_label.rstrip('\x00')}
 
     def update_device_status(self, st_id, progress, head_type,
                              err_label=""):

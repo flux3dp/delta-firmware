@@ -5,7 +5,7 @@ from time import time
 import unittest
 import pytest
 
-from fluxmonitor.security.passwd import validate_timestemp, reset_timestemp
+from fluxmonitor.security.passwd import validate_timestamp, reset_timestamp
 from fluxmonitor.security import _security
 from fluxmonitor import security
 
@@ -41,17 +41,17 @@ class MiscSecurityTest(unittest.TestCase):
         self.assertTrue(security.is_trusted_remote(keyobj=keyobj))
         self.assertTrue(security.is_trusted_remote(access_id=access_id))
 
-    def test_validate_timestemp(self):
+    def test_validate_timestamp(self):
         t = time()
-        self.assertFalse(validate_timestemp((t - 40, b"a" * 128)))
-        self.assertFalse(validate_timestemp((t - 40, b"a" * 128)))
+        self.assertFalse(validate_timestamp((t - 40, b"a" * 128)))
+        self.assertFalse(validate_timestamp((t - 40, b"a" * 128)))
 
-        self.assertTrue(validate_timestemp((t, b"a" * 128)))
-        self.assertFalse(validate_timestemp((t, b"a" * 128)))
-        reset_timestemp()
+        self.assertTrue(validate_timestamp((t, b"a" * 128)))
+        self.assertFalse(validate_timestamp((t, b"a" * 128)))
+        reset_timestamp()
 
-        self.assertTrue(validate_timestemp((60, b"c" * 128), now=60))
-        self.assertTrue(validate_timestemp((100, b"c" * 128), now=100))
+        self.assertTrue(validate_timestamp((60, b"c" * 128), now=60))
+        self.assertTrue(validate_timestamp((100, b"c" * 128), now=100))
 
     def test_password(self):
         self.assertFalse(security.has_password())

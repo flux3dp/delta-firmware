@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 class Robot(ServiceBase):
     _exclusive_component = None
 
-    # This is a timestemp to recoard last exclusive quit at.
+    # This is a timestamp to recoard last exclusive quit at.
     # This data use to prevent autoplay when user double click at load/unload
     # filament.
     # First click: Terminate load/unload filament.

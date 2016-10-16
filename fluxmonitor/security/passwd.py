@@ -52,11 +52,11 @@ def validate_password(password):
         return True
 
 
-def validate_timestemp(timestemp, now=None):
+def validate_timestamp(timestamp, now=None):
     global __ts_time, __ts_salt
     if now is None:
         now = time()
-    t, salt = timestemp
+    t, salt = timestamp
 
     if abs(t - now) > 15:
         return False
@@ -76,7 +76,7 @@ def validate_timestemp(timestemp, now=None):
             return True
 
 
-def reset_timestemp():
+def reset_timestamp():
     global __ts_time, __ts_salt
     __ts_salt = []
     __ts_time = []
