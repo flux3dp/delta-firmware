@@ -1,7 +1,7 @@
 
 from binascii import b2a_base64
 from urlparse import urlparse
-from OpenSSL import crypto
+# from OpenSSL import crypto
 from select import select
 import msgpack
 import logging
@@ -34,7 +34,9 @@ class CloudService(ServiceBase):
     metadata = None
     storage = None
 
-    push_timer = 0
+    _notify_last_st = {"st_id": None}
+    _notify_last_ts = 0
+    _notify_aggressive = 0
     aws_client = None
 
     def __init__(self, options):
@@ -126,25 +128,48 @@ class CloudService(ServiceBase):
             raise RuntimeError("GET_IDENTIFY", "UNKNOWN_ERROR", e)
 
     def generate_certificate_request(self, subject_list):
-        csr = crypto.X509Req()
-        subj = csr.get_subject()
-        for name, value in subject_list:
-            if name == "CN":
-                add_result = crypto._lib.X509_NAME_add_entry_by_NID(
-                    subj._name, 13, crypto._lib.MBSTRING_UTF8,
-                    value.encode('utf-8'), -1, -1, 0)
-                if not add_result:
-                    crypto._raise_current_error()
-            else:
-                setattr(subj, name, value)
+        from subprocess import Popen, PIPE
 
         fxkey = security.get_private_key()
-        opensslkey = crypto.load_privatekey(crypto.FILETYPE_ASN1,
-                                            fxkey.export_der())
         self.storage["key.pem"] = fxkey.export_pem()
-        csr.set_pubkey(opensslkey)
-        csr.sign(opensslkey, "sha256")
-        return crypto.dump_certificate_request(crypto.FILETYPE_PEM, csr)
+        subject_str = "/" + "/".join(("=".join(i) for i in subject_list))
+
+        proc = Popen(["openssl", "req", "-new", "-key",
+                      self.storage.get_path("key.pem"), "-subj",
+                      subject_str, "-keyform", "pem", "-nodes", "-sha256"],
+                     stdin=PIPE, stderr=PIPE, stdout=PIPE)
+        stdoutdata, stderrdata = proc.communicate(input="")
+
+        while proc.poll() is None:
+            pass
+        if proc.returncode > 0:
+            error = stdoutdata if stdoutdata else stderrdata
+            if error:
+                error = error.decode("utf8")
+            else:
+                error = "Process return %i" % proc.returncode
+            raise SystemError(error)
+        else:
+            return stdoutdata
+        # csr = crypto.X509Req()
+        # subj = csr.get_subject()
+        # for name, value in subject_list:
+        #     if name == "CN":
+        #         add_result = crypto._lib.X509_NAME_add_entry_by_NID(
+        #             subj._name, 13, crypto._lib.MBSTRING_UTF8,
+        #             value.encode('utf-8'), -1, -1, 0)
+        #         if not add_result:
+        #             crypto._raise_current_error()
+        #     else:
+        #         setattr(subj, name, value)
+
+        # fxkey = security.get_private_key()
+        # opensslkey = crypto.load_privatekey(crypto.FILETYPE_ASN1,
+        #                                     fxkey.export_der())
+        # self.storage["key.pem"] = fxkey.export_pem()
+        # csr.set_pubkey(opensslkey)
+        # csr.sign(opensslkey, "sha256")
+        # return crypto.dump_certificate_request(crypto.FILETYPE_PEM, csr)
 
     def fetch_identify(self):
         logger.debug("Exec identify")
@@ -163,12 +188,33 @@ class CloudService(ServiceBase):
         self.storage["certificate_reqs.pem"] = doc["certificate_reqs"]
         self.storage["certificate.pem"] = doc["certificate"]
 
-    def push_update(self):
+    def notify_up(self):
+        c = self.aws_client.getMQTTConnection()
+        payload = json.dumps({"state": {"reported": {"version": __version__}}})
+        c.publish(self._notify_topic, payload, 1)
+
+    def notify_update(self, new_st, now):
+        new_st_id = new_st["st_id"]
+
+        if self._notify_last_st["st_id"] == new_st_id:
+            if self._notify_last_ts > self._notify_aggressive:
+                # notify aggressive is invalid
+                if now - self._notify_last_ts < 90:
+                    # update every 90 seconds
+                    return
+            else:
+                # notify aggressive is valid
+                if new_st_id <= 0 and now - self._notify_last_ts < 90:
+                    # update every 90 seconds if device is idle or occupy
+                    return
+
         c = self.aws_client.getMQTTConnection()
 
         payload = json.dumps(
-            {"state": {"reported": self.metadata.format_device_status}})
-        c.publish(self._push_topic, payload, 0)
+            {"state": {"reported": new_st}})
+        c.publish(self._notify_topic, payload, 0)
+        self._notify_last_st = new_st
+        self._notify_last_ts = now
 
     def aws_on_request_callback(self, client, userdata, message):
         request = message.topic.split("/", 3)[-1]
@@ -229,8 +275,13 @@ class CloudService(ServiceBase):
 
         self.aws_client = client
         self.aws_token = self.storage["token"]
-        self._push_topic = "$aws/things/%s/shadow/update" % (
+        self._notify_topic = "$aws/things/%s/shadow/update" % (
             self.storage["client_id"])
+        self.notify_up()
+        self.timer.stop()
+        self.timer.set(2.2, 2.2)
+        self.timer.reset()
+        self.timer.start()
 
     def teardown_session(self):
         if self.aws_client:
@@ -239,13 +290,15 @@ class CloudService(ServiceBase):
             except Exception:
                 logger.exception("Error while disconnect from aws")
             self.aws_client = None
+        self.timer.stop()
+        self.timer.set(5.0, 5.0)
+        self.timer.reset()
+        self.timer.start()
 
     def on_timer(self, watcher, revent):
         try:
             if self.aws_client:
-                if time() - self.push_timer > 5:
-                    self.push_timer = time()
-                    self.push_update()
+                self.notify_update(self.metadata.format_device_status, time())
             else:
                 self.begin_session()
         except RuntimeError as e:

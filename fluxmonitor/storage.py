@@ -11,6 +11,7 @@ from fluxmonitor.hal.usbmount import get_usbmount_hal
 from fluxmonitor.err_codes import NOT_EXIST, BAD_PARAMS
 from fluxmonitor.config import USERSPACE, general_config
 
+
 class Storage(object):
     def __init__(self, *args):
         self.path = os.path.join(general_config["db"], *args)
@@ -84,7 +85,7 @@ NICKNAMES = ["Apple", "Apricot", "Avocado", "Banana", "Bilberry", "Blackberry",
              "Satsuma", "Star fruit", "Strawberry", "Tamarillo", "Ugli fruit"]
 
 
-class CommonMetadata(object):
+class Metadata(object):
     shm = None
 
     def __init__(self):
@@ -244,9 +245,6 @@ class CommonMetadata(object):
         buf = struct.pack("dif16s32s", time(), st_id, progress, head_type,
                           err_label[:32])
         self.shm.write(buf, 3584)
-
-
-Metadata = CommonMetadata
 
 
 class UserSpace(object):
