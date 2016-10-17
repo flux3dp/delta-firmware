@@ -84,6 +84,14 @@ class TCPHandler(object):
             self.watcher.start()
         __handlers__.add(self)
 
+    @property
+    def alive(self):
+        return self.sock is not None
+
+    @property
+    def is_timeout(self):
+        return T.time_since_update(self) > self.IDLE_TIMEOUT
+
     def send(self, buf):
         self.sock.send(buf)
 
@@ -326,6 +334,10 @@ class TextBinaryProtocol(object):
             else:
                 watcher.data = (length, sent_length, stream, callback)
 
+        except IOError as e:
+            logger.debug("Send error: %s", e)
+            watcher.stop()
+            self.on_error()
         except Exception:
             logger.exception("Unknow error")
             watcher.stop()
@@ -350,12 +362,15 @@ class TextBinaryProtocol(object):
                 self._on_message()
             else:
                 self.close()
+        except ssl.SSLError as e:
+            logger.debug("SSL Connection error: %s", e)
+            self.on_error()
         except OSError as e:
             logger.warning("Recv error: %s", e)
-            self.close()
+            self.on_error()
         except Exception:
             logger.exception("Unhandle error")
-            self.close()
+            self.on_error()
 
     def on_binary(self, buf):
         pass

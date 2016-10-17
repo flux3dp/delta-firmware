@@ -69,7 +69,7 @@ class CameraService(ServiceBase):
             try:
                 h.next_frame()
             except Exception:
-                h.close()
+                h.on_error()
                 logger.exception("Error at next frame in timer")
 
     def add_to_live_queue(self, handler):

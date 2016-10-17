@@ -58,11 +58,15 @@ class CameraProtocol(TextBinaryProtocol):
                 self.next_frame()
 
     def next_frame(self):
-        logger.debug("Next frame")
-        self.ts, imageobj = self.kernel.live(0)
-        mimetype, length, stream = imageobj
-        self.send(UINT_PACKER.pack(length))
-        self.begin_send(stream, length, self.on_frame_sent)
+        try:
+            logger.debug("Next frame")
+            self.ts, imageobj = self.kernel.live(0)
+            mimetype, length, stream = imageobj
+            self.send(UINT_PACKER.pack(length))
+            self.begin_send(stream, length, self.on_frame_sent)
+        except IOError as e:
+            logger.debug("%s", e)
+            self.close()
 
     def on_close(self, handler):
         pass
@@ -70,7 +74,7 @@ class CameraProtocol(TextBinaryProtocol):
 
 class CameraTcpHandler(CameraProtocol, SSLServerSideHandler):
     def on_authorized(self):
-        super(SSLServerSideHandler, self).on_authorized()
+        super(CameraTcpHandler, self).on_authorized()
         self.on_ready()
 
 
