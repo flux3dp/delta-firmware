@@ -1,4 +1,6 @@
 
+from AWSIoTPythonSDK.core.protocol.mqttCore import (
+    publishQueueDisabledException)
 from binascii import a2b_base64, b2a_base64
 from urlparse import urlparse
 # from OpenSSL import crypto
@@ -217,9 +219,13 @@ class CloudService(ServiceBase):
 
         payload = json.dumps(
             {"state": {"reported": new_st}})
-        c.publish(self._notify_topic, payload, 0)
-        self._notify_last_st = new_st
-        self._notify_last_ts = now
+
+        try:
+            c.publish(self._notify_topic, payload, 0)
+            self._notify_last_st = new_st
+            self._notify_last_ts = now
+        except publishQueueDisabledException:
+            logger.debug("publishQueueDisabledException raise in notify")
 
     def aws_on_request_callback(self, client, userdata, message):
         # incommint topic format: "device/{token}/request/{action}"

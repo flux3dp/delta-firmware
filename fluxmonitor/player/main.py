@@ -55,7 +55,11 @@ class Player(ServiceBase):
         self.timer_watcher = self.loop.timer(0.8, 0.8, self.on_timer)
         self.timer_watcher.start()
 
-        taskfile = open(options.taskfile, "rb")
+        try:
+            taskfile = open(options.taskfile, "rb")
+        except IOError:
+            raise SystemError("Can not open task file.")
+
         taskloader = TaskLoader(taskfile)
 
         exec_opt = None
@@ -133,6 +137,11 @@ class Player(ServiceBase):
     def on_mainboard_message(self, watcher, revent):
         try:
             buf = watcher.data.recv(4096)
+        except IOError:
+            logger.exception("Mainboard socket I/O error")
+            return
+
+        try:
             if not buf:
                 logger.error("Mainboard connection broken")
                 self.executor.abort("CONTROL_FAILED", "MB_CONN_BROKEN")
@@ -147,11 +156,16 @@ class Player(ServiceBase):
             for msg in messages:
                 self.executor.on_mainboard_message(msg)
         except Exception:
-            logger.exception("Mainboard Failed")
+            logger.exception("Process mainboard message error")
 
     def on_headboard_message(self, watcher, revent):
         try:
             buf = watcher.data.recv(4096)
+        except IOError:
+            logger.exception("Headboard socket I/O error")
+            return
+
+        try:
             if not buf:
                 logger.error("Headboard connection broken")
                 self.executor.abort("CONTROL_FAILED", "HB_CONN_BROKEN")
@@ -166,7 +180,7 @@ class Player(ServiceBase):
             for msg in messages:
                 self.executor.on_headboard_message(msg)
         except Exception:
-            logger.exception("Headboard Failed")
+            logger.exception("Process toolhead message error")
 
     def on_cmd_message(self, watcher, revent):
         try:

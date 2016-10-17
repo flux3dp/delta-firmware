@@ -125,6 +125,8 @@ class CameraUnixStreamHandler(MsgpackMixIn, UnixStreamHandler):
                     self.send_payload(("ok", ret))
                 else:
                     self.send_payload(("er", "UNKNOWN_COMMAND"))
+            except RuntimeError as e:
+                self.send_payload(("er", ) + e.args)
             except Exception:
                 logger.exception("Error while exec camera unixsock cmd")
                 self.send_payload(("er", "UNKNOWN_ERROR"))

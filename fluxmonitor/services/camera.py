@@ -96,7 +96,10 @@ class CameraService(ServiceBase):
         img = cv2.imdecode(np.fromstring(camera.imagefile[2].getvalue(),
                                          np.uint8),
                            cv2.CV_LOAD_IMAGE_COLOR)
-        return sc.check(img)
+        if img:
+            return sc.check(img)
+        else:
+            raise RuntimeError("HARDWARE_ERROR")
 
     def get_bias(self, camera_id):
         # API for client

@@ -184,7 +184,7 @@ class PlayerManager(object):
             raise RuntimeError(RESOURCE_BUSY)
         except socket.error as e:
             st = self.meta.format_device_status
-            if st_id == 128 and time() - st["timestamp"] < 15:
+            if st["st_id"] == 128 and time() - st["timestamp"] < 15:
                 raise RuntimeError(RESOURCE_BUSY)
 
             logger.error("Player socket error: %s", e)
