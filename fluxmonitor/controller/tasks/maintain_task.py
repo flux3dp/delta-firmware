@@ -251,8 +251,12 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
 
         def on_macro_running():
             if isinstance(self._macro, macro.WaitHeadMacro):
-                st = self.head_ctrl.status()
-                handler.send_text("CTRL HEATING %.1f" % st.get("rt")[index])
+                rt = self.head_ctrl.status().get("rt")
+                if rt:
+                    try:
+                        handler.send_text("CTRL HEATING %.1f" % rt[index])
+                    except IndexError:
+                        pass
 
         self._macro = macro.WaitHeadMacro(on_heating_done,
                                           "H%i%.1f" % (index, temp))

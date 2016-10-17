@@ -112,6 +112,9 @@ class TCPHandler(object):
                 self.on_error()
             else:
                 self.on_connected()
+        except IOError as e:
+            logger.debug("%s", e)
+            self.on_error()
         except Exception:
             logger.exception("Unhandle error")
             self.on_error()
@@ -163,6 +166,9 @@ class SSLHandler(TCPHandler):
             self.watcher.stop()
             self.watcher.set(self.sock.fileno(), pyev.EV_WRITE)
             self.watcher.start()
+        except IOError as e:
+            logger.debug("%s", e)
+            self.on_error()
         except Exception:
             logger.exception("Unhandle error")
             self.on_error()
@@ -223,10 +229,12 @@ class SSLServerSideHandler(SSLHandler):
             else:
                 logger.debug("Connection closed")
                 self.close()
-
+        except IOError as e:
+            logger.debug("%s", e)
+            self.on_error()
         except Exception:
             logger.exception("Unhandle error")
-            self.close()
+            self.on_error()
 
     def on_ssl_connected(self):
         super(SSLServerSideHandler, self).on_ssl_connected()
@@ -266,6 +274,9 @@ class CloudHandler(SSLHandler):
             self.watcher.set(self.sock.fileno(), pyev.EV_READ)
             self.watcher.callback = self._on_complete_cloud_handshake
             self.watcher.start()
+        except IOError as e:
+            logger.debug("%s", e)
+            self.on_error()
         except Exception:
             logger.exception("Unhandle error")
             self.on_error()
@@ -284,6 +295,9 @@ class CloudHandler(SSLHandler):
             else:
                 logger.debug("Cloud connection during handshake")
                 self.close()
+        except IOError as e:
+            logger.debug("%s", e)
+            self.on_error()
         except Exception:
             logger.exception("Unhandle error")
             self.on_error()
@@ -388,7 +402,10 @@ class TextBinaryProtocol(object):
                 # Try unpack
                 l = SHORT_PACKER.unpack_from(self._buf)[0]
                 if l > 4094:
-                    logger.error("Text payload too large, disconnect.")
+                    logger.error("Text payload too large (%i), disconnect.", l)
+                    self.close()
+                if l < 3:
+                    logger.error("Text payload too short (%i), disconnect.", l)
                     self.close()
                 if self._buffered > l:
                     payload = self._bufview[2:l].tobytes()
