@@ -516,7 +516,8 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
         handler.send_text("ok\n%s" % buf)
 
     def cloud_validation_code(self, handler):
-        handler.send_text("ok %s" % b2a_base64(self.settings.cloud_hash))
+        handler.send_text("ok %s %s" % (Storage("cloud")["token"],
+                                        b2a_base64(self.settings.cloud_hash)))
 
     def fetch_log(self, handler, path):
         filename = os.path.abspath(
