@@ -307,7 +307,7 @@ class CloudService(ServiceBase):
             raise RuntimeError("SESSION", "CONNECTION_ERROR")
 
         conn = client.getMQTTConnection()
-        conn.subscribe("device/%s/request/camera" % self.storage["token"], 1,
+        conn.subscribe("device/%s/request/+" % self.storage["token"], 1,
                        self.aws_on_request_callback)
 
         self.aws_client = client
