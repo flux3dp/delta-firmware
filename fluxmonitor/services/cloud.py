@@ -54,8 +54,11 @@ class CloudService(ServiceBase):
 
     def on_start(self):
         logger.info("Cloud service started")
-        self.timer = self.loop.timer(3., 3., self.on_timer)
-        self.timer.start()
+        if security.get_serial() == "XXXXXXXXXX":
+            logger.error("Serial invalid, cloud deamon will be silenced.")
+        else:
+            self.timer = self.loop.timer(3., 3., self.on_timer)
+            self.timer.start()
 
     def require_identify(self):
         logger.debug("Require identify")
