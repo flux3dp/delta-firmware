@@ -164,9 +164,16 @@ class UartHal(UartHalBase, BaseOnSerial):
 
     def reset_mainboard(self):
         self.disconnect_uart()
-        sleep(0.1)
+        sleep(0.3)
         GPIOUtils.reset_mainboard()
-        sleep(0.1)
+        sleep(0.3)
+        # Ensure mainboard is back
+        while True:
+            try:
+                GPIOUtils.get_mainboard_port()
+                break
+            except Exception:
+                sleep(0.02)
         self.connect_uart()
 
     def reset_headboard(self):
@@ -179,11 +186,14 @@ class UartHal(UartHalBase, BaseOnSerial):
         self.connect_uart()
 
     def update_head_fw(self, cb):
-        self.disconnect_uart()
-        sleep(0.1)
-        self.gpio.update_hbfw(cb)
-        self.connect_uart()
+        try:
+            logger.debug("Begin update toolhead fw")
+            self.disconnect_uart()
+            sleep(0.1)
+            self.gpio.update_hbfw(cb)
+            logger.debug("Complete update toolhead fw")
+        finally:
+            self.connect_uart()
 
     def send_button_event(self, event_buffer):
-        for w in self.control_watchers:
-            w.data.send(event_buffer)
+        self.kernel.on_button_event(event_buffer.rstrip())

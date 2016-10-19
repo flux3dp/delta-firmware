@@ -10,9 +10,10 @@ except ImportError:
     cv2 = None
     ScanChecking = None
 
+from fluxmonitor.interfaces.camera_internal import CameraUnixStreamInterface
 from fluxmonitor.interfaces.camera import (CameraTcpInterface,
-                                           CameraCloudHandler,
-                                           CameraUnixStreamInterface)
+                                           CameraCloudHandler)
+
 
 from fluxmonitor.hal.camera import Cameras
 from .base import ServiceBase
@@ -96,10 +97,10 @@ class CameraService(ServiceBase):
         img = cv2.imdecode(np.fromstring(camera.imagefile[2].getvalue(),
                                          np.uint8),
                            cv2.CV_LOAD_IMAGE_COLOR)
-        if img:
-            return sc.check(img)
-        else:
+        if img is None:
             raise RuntimeError("HARDWARE_ERROR")
+        else:
+            return sc.check(img)
 
     def get_bias(self, camera_id):
         # API for client

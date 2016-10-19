@@ -44,6 +44,7 @@ class CameraInterface(object):
             raise SystemError(SUBSYSTEM_ERROR, NO_RESPONSE)
 
     def recv_binary(self, length):
+        self.sock.send("\x00")
         l = 0
         f = BytesIO()
         while l < length:

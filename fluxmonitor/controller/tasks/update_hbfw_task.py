@@ -1,17 +1,24 @@
 from tempfile import TemporaryFile
-from select import select
+# from select import select
 import logging
-import socket
+# import socket
 
-from fluxmonitor.err_codes import PROTOCOL_ERROR, SUBSYSTEM_ERROR, \
-    TIMEOUT, UNKNOWN_ERROR
-from fluxmonitor.config import HALCONTROL_ENDPOINT
+from fluxmonitor.interfaces.hal_internal import HalControlClientHandler
+from fluxmonitor.err_codes import (PROTOCOL_ERROR,
+                                   SUBSYSTEM_ERROR,
+                                   TIMEOUT,
+                                   UNKNOWN_ERROR)
+from fluxmonitor.misc.systime import systime as time
+# from fluxmonitor.config import HALCONTROL_ENDPOINT
 from fluxmonitor.storage import Storage
 
 logger = logging.getLogger(__name__)
 
 
 class UpdateHbFwTask(object):
+    timer_watcher = None
+    hal_handler = None
+
     def __init__(self, stack, handler, length):
         self.stack = stack
         self.tmpfile = TemporaryFile()
@@ -19,7 +26,12 @@ class UpdateHbFwTask(object):
         handler.binary_mode = True
 
     def on_exit(self):
-        pass
+        if self.timer_watcher:
+            self.timer_watcher.stop()
+            self.timer_watcher = None
+        if self.hal_handler:
+            self.hal_handler.close()
+            self.hal_handler = None
 
     def on_text(self, message, handler):
         raise SystemError(PROTOCOL_ERROR, "UPLOADING_BINARY")
@@ -45,73 +57,59 @@ class UpdateHbFwTask(object):
                 with s.open("head.bin", "wb") as f:
                     f.write(self.tmpfile.read())
 
-                logging.info("Head fireware uploaded, start processing")
+                logger.info("Head fireware uploaded, start processing")
                 handler.send_text("ok")
                 self.process_update(handler)
 
-                self.stack.exit_task(self, True)
+                # self.stack.exit_task(self, True)
         except RuntimeError as e:
             handler.send_text(("error %s" % e.args[0]).encode())
         except Exception:
             logger.exception("Unhandle Error")
-            handler.send_text("error %s" % UNKNOWN_ERROR)
+            handler.send_text("error " + UNKNOWN_ERROR)
 
     def process_update(self, handler):
-        try:
-            s = socket.socket(socket.AF_UNIX)
-            s.connect(HALCONTROL_ENDPOINT)
-            s.send("update_head_fw")
-            stage = 0
-            while True:
-                rl = select((s, ), (), (), 15.0)[0]
-                if not rl:
-                    handler.send_text(b"er " + TIMEOUT.encode())
-                    return
-                if stage == 0:
-                    buf = s.recv(1)
-                    if buf in "BHE":
-                        logger.debug("STAGE: %s", buf)
-                        handler.send_text("CTRL INIT")
-                    elif buf == "W":
-                        stage = 1
-                        logger.debug("STAGE: RTG")
-                        handler.send_text("CTRL RTG")
-                    elif buf == "e":
-                        buf += s.recv(4096)
-                        logger.debug("ERR: %s", buf)
-                        if buf.startswith("er "):
-                            handler.send_text("error " + buf[3:])
-                        else:
-                            handler.send_text("error " + UNKNOWN_ERROR + " " +
-                                              buf)
-                        return
-                    else:
-                        handler.send_text("error " + UNKNOWN_ERROR)
-                elif stage == 1:
-                    buf = s.recv(8, socket.MSG_WAITALL)
-                    if buf.startswith("er "):
-                        buf += s.recv(4096)
-                        handler.send_text("error " + buf[3:])
-                        return
+        shared_st = {"ts": time(), "closed": False}
 
-                    left = int(buf, 16)
+        def on_timer(watcher, revent):
+            if time() - shared_st["ts"] > 15 and shared_st["closed"] is False:
+                handler.send_text("er " + TIMEOUT)
+                self.stack.exit_task(self, False)
+
+        def on_callback(params, hal_handler):
+            shared_st["ts"] = time()
+
+            if params[0] == "ok":
+                handler.send_text("ok")
+                self.stack.exit_task(self, True)
+            elif params[0] == "proc":
+                if "BHE" in params[1]:
+                    logger.debug("STAGE: %s", params[1])
+                    handler.send_text("CTRL INIT")
+                elif params[1] == "W":
+                    logger.debug("STAGE: RTG")
+                    handler.send_text("CTRL RTG")
+                elif params[1][0] == "0":
+                    left = int(params[1], 16)
                     logger.debug("WRITE: %i", left)
                     handler.send_text("CTRL WRITE %i" % left)
-                    if left == 0:
-                        stage = 2
-                else:
-                    buf = s.recv(8)
-                    if buf == "ok":
-                        logger.debug("done")
-                        handler.send_text("ok")
-                    elif buf.startswith("er "):
-                        handler.send_text("error " + buf[3:])
-                    else:
-                        handler.send_text("error " + UNKNOWN_ERROR + " " + buf)
-                    return
+            elif params[0] == "ok":
+                handler.send_text("ok")
+                shared_st["closed"] = True
+                self.stack.exit_task(self, True)
+            elif params[0] == "error":
+                handler.send_text("er " + " ".join(params[1:]))
+                shared_st["closed"] = True
+                self.stack.exit_task(self, False)
 
-        except socket.error as e:
-            logger.warn("Socket error: %s", e)
-            raise RuntimeError(SUBSYSTEM_ERROR)
-        finally:
-            s.close()
+        def on_hal_close(*args):
+            handler.send_text("error %s" % SUBSYSTEM_ERROR)
+            self.stack.exit_task(self, True)
+
+        self.timer_watcher = self.stack.loop.timer(3, 3, on_timer)
+        self.timer_watcher.start()
+
+        self.hal_handler = HalControlClientHandler(
+            self.stack, on_close_callback=on_hal_close)
+
+        self.hal_handler.request_update_toolhead(on_callback)

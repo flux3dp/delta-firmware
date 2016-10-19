@@ -15,21 +15,12 @@ from fluxmonitor.misc.httpclient import get_connection
 from fluxmonitor.misc.systime import systime as time
 from fluxmonitor.halprofile import get_model_id
 from fluxmonitor.storage import Metadata, Storage
-from fluxmonitor.config import CAMERA_ENDPOINT
+from fluxmonitor.config import CAMERA_ENDPOINT, ROBOT_ENDPOINT
 from fluxmonitor import security, __version__
 
 from .base import ServiceBase
 
 logger = logging.getLogger(__name__)
-# TOTAL_PRINT = "tp"
-# SUCCESSED_PRINT = "sp"
-# DURATION_OF_PRINT = "dp"
-# TOTAL_LASER_GRAVE = "tl"
-# SUCCESSED_LASER_GRAVE = "sl"
-# DURATION_OF_LASER_GRAVE = "dl"
-# TOTAL_NONHEAD_USE = "tn"
-# SUCCESSED_NONHEAD_USE = "sn"
-# DURATION_OF_NONHEAD_USE = "dn"
 
 
 class CloudService(ServiceBase):
@@ -197,7 +188,8 @@ class CloudService(ServiceBase):
 
     def notify_up(self):
         c = self.aws_client.getMQTTConnection()
-        payload = json.dumps({"state": {"reported": {"version": __version__}}})
+        payload = json.dumps({"state": {"reported": {
+            "version": __version__, "token": self.storage["token"]}}})
         c.publish(self._notify_topic, payload, 1)
 
     def notify_update(self, new_st, now):
@@ -272,7 +264,13 @@ class CloudService(ServiceBase):
                                     payload["token"])
                 client.publish(response_topic, json.dumps({
                     "status": "ok", "cmd_index": cmd_index}))
-
+            elif action == "control":
+                self.require_control(payload["endpoint"], payload["token"])
+                client.publish(response_topic, json.dumps({
+                    "status": "ok", "cmd_index": cmd_index}))
+            else:
+                client.publish(response_topic, json.dumps({
+                    "status": "error", "cmd_index": cmd_index}))
         except Exception:
             logger.exception("Handle aws request error")
             client.publish(response_topic, json.dumps({
@@ -361,4 +359,12 @@ class CloudService(ServiceBase):
         s.close()
 
     def require_control(self, endpoint, token):
-        pass
+        payload = msgpack.packb((0x80, endpoint, token))
+        s = socket.socket(socket.AF_UNIX)
+        s.connect(ROBOT_ENDPOINT)
+        s.send(payload)
+        rl = select((s, ), (), (), 0.25)[0]
+        if rl:
+            logger.debug("Require robot return %s",
+                         msgpack.unpackb(s.recv(4096)))
+        s.close()

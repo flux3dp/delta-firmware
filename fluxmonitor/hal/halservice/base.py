@@ -6,7 +6,7 @@ import os
 import pyev
 
 from fluxmonitor.config import MAINBOARD_ENDPOINT, HEADBOARD_ENDPOINT, \
-    HALCONTROL_ENDPOINT, PC_ENDPOINT
+    PC_ENDPOINT
 from fluxmonitor.storage import Storage
 
 logger = logging.getLogger("halservice.base")
@@ -29,14 +29,10 @@ class UartHalBase(object):
         self.pc = self.create_socket(
             loop=kernel.loop, path=PC_ENDPOINT,
             callback=self.on_connected_pc)
-        self.control = self.create_socket(
-            loop=kernel.loop, path=HALCONTROL_ENDPOINT,
-            callback=self.on_connected_control)
 
         self.mainboard_watchers = []
         self.headboard_watchers = []
         self.pc_watchers = []
-        self.control_watchers = []
 
     def create_socket(self, loop, path, callback=None):
         if os.path.exists(path):
@@ -48,56 +44,6 @@ class UartHalBase(object):
         w = loop.io(s, pyev.EV_READ, callback, s)
         w.start()
         return (w, s)
-
-    def on_connected_control(self, watcher, revent):
-        logger.debug("Connected to control")
-        request, _ = watcher.data.accept()
-        request.setblocking(False)
-        watcher = watcher.loop.io(request, pyev.EV_READ,
-                                  self.on_control_message, request)
-        watcher.start()
-        self.control_watchers.append(watcher)
-
-    def on_disconnect_control(self, watcher):
-        logger.debug("Disconnect from control")
-        watcher.stop()
-        watcher.data.close()
-        self.control_watchers.remove(watcher)
-
-    def on_control_message(self, watcher, revent):
-        try:
-            buf = watcher.data.recv(4096)
-            if not buf:
-                self.on_disconnect_control(watcher)
-                return
-
-            cmd = buf.decode("ascii").strip()
-            if cmd == "reconnect":
-                self.reconnect()
-                watcher.data.send("ok")
-            elif cmd == "reset_mb":
-                self.reset_mainboard()
-                watcher.data.send("ok")
-            elif cmd == "reset_hb":
-                self.reset_headboard()
-                watcher.data.send("ok")
-            elif cmd == "update_head_fw":
-                def cb(message):
-                    watcher.data.send(message)
-                self.update_head_fw(cb)
-                watcher.data.send("ok")
-            elif cmd == "update_fw":
-                self.update_fw()
-                watcher.data.send("ok")
-
-        except RuntimeError as e:
-            logger.debug("RuntimeError: %s", e)
-            watcher.data.send("er %s" % e.args[0])
-        except socket.error as e:
-            logger.debug("Socket error while process ctrl message: %s", e)
-        except Exception:
-            logger.exception("Unhandle error")
-            watcher.data.send("er UNKNOWN_ERROR")
 
     def on_connected_mainboard(self, watcher, revent):
         logger.debug("Connect to mainboard")
@@ -142,18 +88,26 @@ class UartHalBase(object):
         self.pc_watchers.remove(watcher)
 
     def on_sendto_mainboard(self, watcher, revent):
-        buf = watcher.data.recv(1024)
-        if buf:
-            self.sendto_mainboard(buf)
-        else:
+        try:
+            buf = watcher.data.recv(1024)
+            if buf:
+                self.sendto_mainboard(buf)
+            else:
+                self.on_disconnect_mainboard(watcher)
+        except IOError:
             self.on_disconnect_mainboard(watcher)
+            return
 
     def on_sendto_headboard(self, watcher, revent):
-        buf = watcher.data.recv(1024)
-        if buf:
-            self.sendto_headboard(buf)
-        else:
+        try:
+            buf = watcher.data.recv(1024)
+            if buf:
+                self.sendto_headboard(buf)
+            else:
+                self.on_disconnect_headboard(watcher)
+        except IOError:
             self.on_disconnect_headboard(watcher)
+            return
 
     def on_sendto_pc(self, watcher, revent):
         buf = watcher.data.recv(1024)
@@ -182,9 +136,6 @@ class UartHalBase(object):
             watcher.stop()
             watcher.data.close()
         for watcher in self.pc_watchers:
-            watcher.stop()
-            watcher.data.close()
-        for watcher in self.control_watchers:
             watcher.stop()
             watcher.data.close()
 

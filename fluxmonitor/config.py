@@ -45,6 +45,7 @@ PC_ENDPOINT = "/tmp/.pc"
 HALCONTROL_ENDPOINT = "/tmp/.halcontrol"
 
 CAMERA_ENDPOINT = "/tmp/.camera"
+ROBOT_ENDPOINT = "/tmp/.robot"
 PLAY_ENDPOINT = "/tmp/.player"
 
 SCAN_CAMERA_ID = None

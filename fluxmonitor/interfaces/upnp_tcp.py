@@ -1,19 +1,16 @@
 
 from binascii import a2b_hex as from_hex
-from weakref import proxy
 import logging
 import json
-import ssl
-
-import pyev
+import os
 
 from fluxmonitor.hal.nl80211.scan import scan as scan_wifi
 from fluxmonitor.err_codes import (UNKNOWN_ERROR, BAD_PARAMS, AUTH_ERROR,
                                    UNKNOWN_COMMAND)
 from fluxmonitor.security import (RSAObject, AccessControl, hash_password,
                                   get_uuid)
-from .tcp_ssl import SSLInterface, SSLConnectionHandler
-from .base import ConnectionClosedException
+from .listener import SSLInterface
+from .handler import SSLHandler, TextBinaryProtocol
 
 __all__ = ["UpnpTcpInterface", "UpnpTcpHandler"]
 logger = logging.getLogger(__name__)
@@ -27,51 +24,32 @@ class UpnpTcpInterface(SSLInterface):
         super(UpnpTcpInterface, self).__init__(kernel, endpoint)
 
     def create_handler(self, sock, endpoint):
-        h = UpnpTcpHandler(self.kernel, sock, endpoint, self.certfile,
-                           self.keyfile)
+        logger.debug("Incomming connection from %s", endpoint)
+        h = UpnpTcpHandler(self.kernel, endpoint, sock, server_side=True,
+                           certfile=self.certfile, keyfile=self.keyfile)
         return h
 
 
-class UpnpTcpHandler(SSLConnectionHandler):
+class UpnpTcpHandler(TextBinaryProtocol, SSLHandler):
     client_key = None
     authorized = False
+    randbytes = None
+
+    def on_connected(self):
+        self.sock.send(b"FLUX0003")
+        super(UpnpTcpHandler, self).on_connected()
+
+    def on_ssl_connected(self):
+        super(UpnpTcpHandler, self).on_ssl_connected()
+        self.randbytes = os.urandom(64)
+        self.sock.send(self.randbytes)
+        self.on_ready()
 
     @property
     def access_control(self):
         return AccessControl.instance()
 
-    def _on_ssl_handshake(self, watcher=None, revent=None):
-        if self.send_watcher:
-            self.send_watcher.stop()
-            self.send_watcher = None
-
-        try:
-            self.sock.do_handshake()
-            self.logger.debug("SSL READY")
-            self.sock.send(self.randbytes)
-
-            # SSL Handshake ready, prepare buffer
-            self._buf = bytearray(4096)
-            self._bufview = memoryview(self._buf)
-            self._buffered = 0
-            self._on_ready()
-
-        except ssl.SSLWantReadError:
-            pass
-        except ssl.SSLWantWriteError:
-            self.send_watcher = self.kernel.loop.io(
-                self.sock, pyev.EV_WRITE, self._do_ssl_handshake)
-        except Exception:
-            logger.exception("SSL handshake failed")
-            self.close()
-
-    def on_ready(self):
-        self.delegate = proxy(self)
-
-    def on_close(self, _):
-        pass
-
-    def on_text(self, message, _):
+    def on_text(self, message):
         if self.authorized:
             args = message.split("\x00")
             cmd = args.pop(0)
@@ -95,13 +73,13 @@ class UpnpTcpHandler(SSLConnectionHandler):
                     self.send_text("er " + UNKNOWN_COMMAND)
             except RuntimeError as e:
                 self.send_text("er " + " ".join(e.args))
-            except ConnectionClosedException as e:
+            except IOError as e:
                 logger.debug("Connection close: %s" % e)
-                self.close()
+                self.on_error()
             except Exception:
                 logger.exception("Unknown error during process command")
                 self.send_text("UNKNOWN_ERROR")
-                self.close()
+                self.on_error()
 
         elif self.client_key:
             try:
@@ -125,12 +103,12 @@ class UpnpTcpHandler(SSLConnectionHandler):
                         logger.debug("Remote password error")
                         self.send_text("error " + AUTH_ERROR)
                         self.close()
-            except ConnectionClosedException as e:
+            except IOError as e:
                 logger.debug("Connection close: %s" % e)
-                self.close()
+                self.on_error()
             except Exception:
                 self.send_text("error " + UNKNOWN_ERROR)
-                self.close()
+                self.on_error()
                 logger.exception("Error while parse rsa key")
 
         else:
@@ -145,12 +123,12 @@ class UpnpTcpHandler(SSLConnectionHandler):
             except TypeError:
                 self.send_text("error " + BAD_PARAMS)
                 self.close()
-            except ConnectionClosedException as e:
+            except IOError as e:
                 logger.debug("Connection close: %s" % e)
-                self.close()
+                self.on_error()
             except Exception:
                 self.send_text("error " + UNKNOWN_ERROR)
-                self.close()
+                self.on_error()
                 logger.exception("Error while parse rsa key")
 
     def on_add_trust(self, label, pem):

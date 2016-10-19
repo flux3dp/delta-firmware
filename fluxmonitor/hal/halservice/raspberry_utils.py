@@ -249,7 +249,7 @@ class PinMappingShared(object):
             stage_cb(b"W")
             offset = 0
             while offset < size:
-                stage_cb(("%08x" % (size - offset)).encode())
+                stage_cb(("%07x" % (size - offset)).encode())
                 l = min(size - offset, 128)
                 send_cmd(0x31, "G_WINIT")
                 addr = struct.pack(">I", 0x08000000 + offset)
