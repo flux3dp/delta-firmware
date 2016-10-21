@@ -101,12 +101,16 @@ class Player(ServiceBase):
 
     def place_recent_file(self, filename):
         space = UserSpace()
+        use_swap = False
         if not os.path.exists(space.get_path("SD", "Recent")):
             os.makedirs(space.get_path("SD", "Recent"))
 
-        if os.path.abspath(filename) == space.get_path("SD",
-                                                       "Recent/recent-1.fc"):
-            return
+        if os.path.abspath(filename). \
+                startswith(space.get_path("SD", "Recent/recent-")):
+            userspace_filename = "Recent/" + os.path.split(filename)[-1]
+            space.mv("SD", userspace_filename, "Recent/swap.fc")
+            filename = space.get_path("SD", "Recent/swap.fc")
+            use_swap = True
 
         def place_file(syntax, index):
             name = syntax % index
@@ -118,12 +122,14 @@ class Player(ServiceBase):
                     space.mv("SD", name, syntax % (index + 1))
 
         place_file("Recent/recent-%i.fc", 1)
-        if space.in_entry("SD", filename):
+        if use_swap:
+            space.mv("SD", "Recent/swap.fc", "Recent/recent-1.fc")
+        elif space.in_entry("SD", filename):
             os.link(filename,
-                    space.get_path("SD", "Recent/recent-%i.fc" % 1))
+                    space.get_path("SD", "Recent/recent-1.fc"))
         else:
             copyfile(filename,
-                     space.get_path("SD", "Recent/recent-%i.fc" % 1))
+                     space.get_path("SD", "Recent/recent-1.fc"))
         os.system("sync")
 
     def on_start(self):
