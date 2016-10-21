@@ -7,6 +7,7 @@ import fcntl
 import errno
 import os
 
+LOG_ROOT = '/var/db/fluxmonitord/run/'
 PID_FLUXNETWORKD = '/var/run/fluxnetworkd.pid'
 PID_FLUXHALD = '/var/run/fluxhald.pid'
 PID_FLUXUSBD = '/var/run/fluxusbd.pid'
@@ -29,19 +30,19 @@ PID_LIST = (
 SERVICE_LIST = (
     # Syntax: (service entry name", ("service", "startup", "params"))
     ("fluxnetworkd", ('--pid', PID_FLUXNETWORKD,
-                      '--log', '/var/log/fluxnetworkd.log', '--daemon')),
+                      '--log', LOG_ROOT + 'fluxnetworkd.log', '--daemon')),
     ("fluxhald", ('--pid', PID_FLUXHALD,
-                  '--log', '/var/log/fluxhald.log', '--daemon')),
+                  '--log', LOG_ROOT + 'fluxhald.log', '--daemon')),
     ("fluxusbd", ('--pid', PID_FLUXUSBD,
-                  '--log', '/var/log/fluxusbd.log', '--daemon')),
+                  '--log', LOG_ROOT + 'fluxusbd.log', '--daemon')),
     ("fluxupnpd", ('--pid', PID_FLUXUPNPD,
-                   '--log', '/var/log/fluxupnpd.log', '--daemon')),
+                   '--log', LOG_ROOT + 'fluxupnpd.log', '--daemon')),
     ("fluxrobotd", ('--pid', PID_FLUXROBOTD,
-                    '--log', '/var/log/fluxrobotd.log', '--daemon')),
+                    '--log', LOG_ROOT + 'fluxrobotd.log', '--daemon')),
     ("fluxcamerad", ('--pid', PID_FLUXCAMERAD,
-                     '--log', '/var/log/fluxcamerad.log', '--daemon')),
+                     '--log', LOG_ROOT + 'fluxcamerad.log', '--daemon')),
     ("fluxcloudd", ('--pid', PID_FLUXCLOUDD,
-                    '--log', '/var/log/fluxcloudd.log', '--daemon')),
+                    '--log', LOG_ROOT + 'fluxcloudd.log', '--daemon')),
 )
 
 

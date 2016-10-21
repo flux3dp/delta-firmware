@@ -52,7 +52,8 @@ class AutoResume(object):
                 self.__resume_timestamp = time()
                 self.__resume_counter += 1
 
-            if self.__resume_counter > 3:
+            # if self.__resume_counter > 3:
+            if False:
                 logger.error("Autoresume invalied because error occour more "
                              "then 3 times.")
             else:
