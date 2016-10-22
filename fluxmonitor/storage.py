@@ -88,21 +88,22 @@ NICKNAMES = ["Apple", "Apricot", "Avocado", "Banana", "Bilberry", "Blackberry",
 
 class Metadata(object):
     shm = None
+    _mversion = 0
 
     def __init__(self):
         self.storage = Storage("general", "meta")
 
         # Memory struct
-        # 0 ~ 16 bytes: Control flags...
-        #   0: nickname is loaded
-        #   1: plate_correction is loaded
+        # 0: Control flags...
+        #   bit8: nickname is loaded
+        # 1: Metadata Version
         #
         # 128 ~ 384: nickname, end with char \x00
-        # 384 ~ 512: plate_correction (current user 96 bytes)
         # 1024 ~ 2048: Shared rsakey
         # 2048 ~ 2176: Cloud Status (128)
         # 2176 ~ 2208: Cloud Hash (32)
         # 3072: Wifi status code
+        # 3576 ~ 3584: Task time cost (8, float)
         # 3584 ~ 4096: Device status
         self.shm = sysv_ipc.SharedMemory(13000, sysv_ipc.IPC_CREAT,
                                          size=4096, init_character='\x00')
@@ -112,27 +113,31 @@ class Metadata(object):
             self.shm.detach()
             self.shm = None
 
+    def verify_mversion(self):
+        # Return True if mversion is not change.
+        if self._mversion != self.mversion:
+            self._mversion = self.mversion
+            return False
+        else:
+            return True
+
+    @property
+    def mversion(self):
+        return ord(self.shm.read(1, 1))
+
+    def _add_mversion(self):
+        return chr((ord(self.shm.read(1, 1)) + 1) % 256)
+
     @property
     def plate_correction(self):
-        if ord(self.shm.read(1, 0)) & 64 == 64:
-            buf = self.shm.read(96, 384)
-            vals = struct.unpack("d" * 12, buf)
-            return dict(zip("XYZABCIJKRDH", vals))
-        else:
-            if self.storage.exists("adjust"):
-                with self.storage.open("adjust", "r") as f:
-                    try:
-                        vals = tuple((float(v) for v in f.read().split(" ")))
-                        buf = struct.pack('d' * 12, *vals)
-                        self.shm.write(buf, 384)
-
-                        flag = chr(ord(self.shm.read(1, 0)) | 64)
-                        self.shm.write(flag, 0)
-
-                        return dict(zip("XYZABCIJKRDH", vals))
-                    except Exception:
-                        # Ignore error and return default
-                        raise
+        if self.storage.exists("adjust"):
+            with self.storage.open("adjust", "r") as f:
+                try:
+                    vals = tuple((float(v) for v in f.read().split(" ")))
+                    return dict(zip("XYZABCIJKRDH", vals))
+                except Exception:
+                    # Ignore error and return default
+                    pass
 
         return {"X": 0, "Y": 0, "Z": 0, "A": 0, "B": 0, "C": 0,
                 "I": 0, "J": 0, "K": 0, "R": 96.70, "D": 190, "H": 240}
@@ -145,11 +150,6 @@ class Metadata(object):
         vals = tuple((v[k] for k in "XYZABCIJKRDH"))
         with self.storage.open("adjust", "w") as f:
             f.write(" ".join("%.2f" % i for i in vals))
-        buf = struct.pack('d' * 12, *vals)
-        self.shm.write(buf, 384)
-
-        flag = chr(ord(self.shm.read(1, 0)) | 64)
-        self.shm.write(flag, 0)
 
     @property
     def nickname(self):
@@ -174,8 +174,18 @@ class Metadata(object):
         with self.storage.open("nickname", "wb") as f:
             if isinstance(val, unicode):
                 val = val.encode("utf8")
+            else:
+                try:
+                    val.decode("utf8")
+                except UnicodeDecodeError:
+                    raise RuntimeError(BAD_PARAMS)
+
+            if len(val) > 128:
+                raise RuntimeError(BAD_PARAMS)
+
             f.write(val)
         self._cache_nickname(val)
+        self._add_mversion()
 
     @property
     def broadcast(self):
@@ -184,6 +194,7 @@ class Metadata(object):
     @broadcast.setter
     def broadcast(self, val):
         self.storage["broadcast"] = val
+        self._add_mversion()
 
     @property
     def shared_der_rsakey(self):

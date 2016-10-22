@@ -189,10 +189,14 @@ class CloudService(ServiceBase):
     def notify_up(self):
         c = self.aws_client.getMQTTConnection()
         payload = json.dumps({"state": {"reported": {
-            "version": __version__, "token": self.storage["token"]}}})
+            "version": __version__, "token": self.storage["token"],
+            "nickname": self.metadata.nickname}}})
         c.publish(self._notify_topic, payload, 1)
 
     def notify_update(self, new_st, now):
+        if self.metadata.verify_mversion() is False:
+            self.notify_up()
+
         new_st_id = new_st["st_id"]
 
         if self._notify_last_st["st_id"] == new_st_id:
