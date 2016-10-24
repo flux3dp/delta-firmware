@@ -1,7 +1,7 @@
 
 from binascii import b2a_hex as to_hex, a2b_hex as from_hex
 from struct import Struct
-from errno import EINPROGRESS
+from errno import EINPROGRESS, errorcode
 import msgpack
 import logging
 import socket
@@ -59,7 +59,7 @@ class SocketHandler(object):
     def _on_connecting(self, watcher, revent):
         try:
             if revent & pyev.EV_READ:
-                logger.debug("Async tcp connecting failed")
+                logger.debug("Async socket connecting failed")
                 self.on_error()
             else:
                 self.on_connected()
@@ -144,8 +144,9 @@ class UnixHandler(SocketHandler):
             self.sock = socket.socket(socket.AF_UNIX, sock_type)
             self.sock.setblocking(False)
 
-            ret = self.sock.connect_ex((endpoint))
-            assert ret == 0, "Async connect to endpoint error"
+            ret = self.sock.connect_ex(endpoint)
+            assert ret == 0, (errorcode.get(ret),
+                              "Async connect to endpoint error")
 
             self.watcher = kernel.loop.io(self.sock.fileno(),
                                           pyev.EV_READ | pyev.EV_WRITE,
@@ -157,10 +158,14 @@ class UnixHandler(SocketHandler):
     def address(self):
         return self.endpoint
 
-    def close(self):
+    def on_error(self):
+        logger.debug("%s socket error", self)
+        self.close(error=True)
+
+    def close(self, error=False):
         try:
-            if self.on_close_cb:
-                self.on_close_cb(self)
+            if self._on_close_cb:
+                self._on_close_cb(self, error)
         finally:
             super(UnixHandler, self).close()
 
@@ -240,7 +245,7 @@ class SSLServerSideHandler(SSLHandler):
                     else:
                         logger.debug("Unknown access id")
                         self.sock.send(MESSAGE_UNKNOWN_HOST)
-                        self.close()
+                        self.on_error()
                         return
 
                     length = 20 + self.remotekey.size()
@@ -257,10 +262,10 @@ class SSLServerSideHandler(SSLHandler):
                     else:
                         logger.debug("Protocol error")
                         self.sock.send(MESSAGE_PROTOCOL_ERROR)
-                        self.close()
+                        self.on_error()
             else:
                 logger.debug("Connection closed")
-                self.close()
+                self.on_error()
         except IOError as e:
             logger.debug("%s", e)
             self.on_error()
@@ -317,16 +322,15 @@ class CloudHandler(SSLHandler):
     def _on_complete_cloud_handshake(self, watcher, revent):
         try:
             buf = self.sock.recv(1)
-            if buf:
-                if buf == "\x00":
-                    self.on_cloud_connected()
-                else:
-                    logger.error("Cloud return value %x at handshake",
-                                 ord(buf))
-                    self.close()
+            if buf == b"\x00":
+                self.on_cloud_connected()
+            elif buf != b"":
+                logger.error("Cloud return value %x at handshake",
+                             ord(buf))
+                self.on_error()
             else:
                 logger.debug("Cloud connection during handshake")
-                self.close()
+                self.on_error()
         except IOError as e:
             logger.debug("%s", e)
             self.on_error()
@@ -428,7 +432,7 @@ class MsgpackProtocol(object):
                 for data in self.unpacker:
                     self.on_payload(data)
             else:
-                self.close()
+                self.on_error()
         except IOError as e:
             logger.debug("%s", e)
             self.on_error()
@@ -636,7 +640,6 @@ class OldAesServerSideHandler(TCPHandler):
                 self._on_handshake_identify(self.watcher.data)
             else:
                 self.on_error()
-                return
 
         except IOError as e:
             logger.debug("%s", e)

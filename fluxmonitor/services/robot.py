@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class Robot(ServiceBase):
+    _hal_control = None
     _cloud_conn = None
     _exclusive_component = None
 
@@ -36,7 +37,9 @@ class Robot(ServiceBase):
         self.metadata = Metadata()
         self.internl_interface = RobotUnixStreamInterface(self)
         self.tcp_interface = RobotTcpInterface(self)
-        self._connect_button_service()
+
+        self._hal_reset_timer = self.loop.timer(5, 0, self._connect2hal)
+        self._connect2hal()
 
         try:
             if options.taskfile:
@@ -59,16 +62,28 @@ class Robot(ServiceBase):
 
         self._cloud_conn = RobotCloudHandler(self, endpoint, token, on_close)
 
-    def _connect_button_service(self):
+    def _connect2hal(self, watcher=None, revent=None):
+        def close_callback(hal_control, error):
+            self._hal_control = None
+            if error:
+                self._hal_reset_timer.set(5, 0)
+                self._hal_reset_timer.start()
+
         try:
-            self.button_control = HalControlClientHandler(
-                self, on_button_event_callback=self.on_button_trigger)
-        except Exception:
-            if logger.getEffectiveLevel() <= logging.DEBUG:
-                logger.exception("Button control interface launch failed")
+            h = HalControlClientHandler(
+                self, on_button_event_callback=self.on_button_trigger,
+                on_close_callback=close_callback)
+            self._hal_control = h
+
+        except Exception as e:
+            # TODO: change logger level
+            if isinstance(e, AssertionError):
+                logger.error("HAL connecting error: %s", e.args[0])
             else:
-                logger.warn("Button control interface launch failed")
-            self.button_control = None
+                logger.error("HAL connecting error: %s", e)
+            self._hal_control = None
+            self._hal_reset_timer.set(5, 0)
+            self._hal_reset_timer.start()
 
     def on_button_trigger(self, event, handler):
         logger.debug("Button trigger: %s", event)
@@ -115,9 +130,9 @@ class Robot(ServiceBase):
         self.internl_interface.close()
         self.internl_interface = None
 
-        if self.button_control:
-            self.button_control.close()
-            self.button_control = None
+        if self._hal_control:
+            self._hal_control.close()
+            self._hal_control = None
 
     def power_management(self):
         if self.metadata.wifi_status & 1:

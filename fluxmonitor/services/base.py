@@ -29,15 +29,6 @@ class ServiceBase(object):
         self.loop.start()
         self.on_shutdown()
 
-    def on_connected(self, handler):
-        pass
-
-    def on_disconnected(self, handler):
-        pass
-
-    def each_loop(self):
-        raise RuntimeError("each_loop not implement")
-
     def on_start(self):
         raise RuntimeError("start not implement")
 
