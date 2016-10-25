@@ -81,6 +81,9 @@ class HalControlClientHandler(MsgpackProtocol, UnixHandler):
         elif tp == 1 and self._on_btn_ev_cb:
             self._on_btn_ev_cb(payload[1], self)
 
+    def request_update_atmel(self):
+        self.send_payload(("update_fw", False))
+
     def request_update_toolhead(self, callback):
         self.send_payload(("update_head_fw", True))
         self._temp_callback = callback

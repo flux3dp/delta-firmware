@@ -183,6 +183,7 @@ class UartHal(UartHalBase, BaseOnSerial):
         self.disconnect_uart()
         sleep(0.1)
         GPIOUtils.update_mbfw()
+        sleep(0.2)
         self.connect_uart()
 
     def update_head_fw(self, cb):

@@ -37,9 +37,7 @@ class Robot(ServiceBase):
         self.metadata = Metadata()
         self.internl_interface = RobotUnixStreamInterface(self)
         self.tcp_interface = RobotTcpInterface(self)
-
         self._hal_reset_timer = self.loop.timer(5, 0, self._connect2hal)
-        self._connect2hal()
 
         try:
             if options.taskfile:
@@ -121,6 +119,7 @@ class Robot(ServiceBase):
                 self.power_management()
 
     def on_start(self):
+        self._connect2hal()
         device_startup()
 
     def on_shutdown(self):
