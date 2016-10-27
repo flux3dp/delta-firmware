@@ -1,4 +1,5 @@
 
+from multiprocessing.reduction import send_handle
 from pkg_resources import resource_string
 from errno import ENOENT, ENOTSOCK
 from select import select
@@ -8,11 +9,13 @@ import socket
 import struct
 import json
 
+import msgpack
 import pyev
 
 from fluxmonitor.hal.nl80211.config import get_wlan_ssid
 from fluxmonitor.hal.nl80211.scan import scan as wifiscan
 from fluxmonitor.hal.net.monitor import Monitor as NetworkMonitor
+from fluxmonitor.hal.usbcabel import USBCabel
 from fluxmonitor.misc import network_config_encoder as NCE  # noqa
 from fluxmonitor.security.passwd import set_password
 from fluxmonitor.security.access_control import is_rsakey, get_keyobj, \
@@ -20,7 +23,8 @@ from fluxmonitor.security.access_control import is_rsakey, get_keyobj, \
 from fluxmonitor.security.misc import randstr
 from fluxmonitor.hal.misc import get_deviceinfo
 from fluxmonitor.storage import Storage, Metadata
-from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT, uart_config
+from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT, ROBOT_ENDPOINT
+from fluxmonitor.config import uart_config
 from fluxmonitor.err_codes import UNKNOWN_ERROR
 from fluxmonitor import security
 from fluxmonitor import __version__ as VERSION  # noqa
@@ -57,6 +61,34 @@ class UsbService(ServiceBase):
         super(UsbService, self).__init__(logger)
         self.timer_watcher = self.loop.timer(0, 30, self.on_timer)
         self.timer_watcher.start()
+
+        # >>>>>>>
+        import signal
+        self.uw = self.loop.signal(signal.SIGUSR2, self.start_pl25a1)
+        self.uw.start()
+        # <<<<<<<
+
+    def start_pl25a1(self, w, r):
+        try:
+            logger.debug("Launch pl25a1")
+            usbcabel = USBCabel()
+            usbcabel.start()
+
+            try:
+                payload = msgpack.packb((0x81, ))
+                s = socket.socket(socket.AF_UNIX)
+                s.connect(ROBOT_ENDPOINT)
+                s.send(payload)
+                send_handle(s, usbcabel.sock.fileno(), 0)
+                rl = select((s, ), (), (), 0.25)[0]
+                if rl:
+                    logger.debug("Require robot return %s",
+                                 msgpack.unpackb(s.recv(4096)))
+                s.close()
+            finally:
+                usbcabel.sock.close()
+        except Exception:
+            logger.exception("Unknown error")
 
     def connect_usb_serial(self):
         try:

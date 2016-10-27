@@ -1,5 +1,8 @@
 
+from multiprocessing.reduction import recv_handle
+from select import select
 import logging
+import socket
 
 from fluxmonitor.config import ROBOT_ENDPOINT
 from .listener import UnixStreamInterface
@@ -7,6 +10,7 @@ from .handler import MsgpackProtocol, UnixHandler
 
 logger = logging.getLogger(__name__)
 CMD_CLOUD_CONNECTION = 0x80
+CMD_USBCABEL_CONNECTION = 0x81
 
 
 class RobotUnixStreamInterface(UnixStreamInterface):
@@ -34,12 +38,23 @@ class RobotUnixStreamHandler(MsgpackProtocol, UnixHandler):
                                  endpoint)
                     ret = self.kernel.on_connect2cloud(endpoint, token)
                     self.send_payload(("ok", ret))
+                    self.close()
+
+                elif cmd == CMD_USBCABEL_CONNECTION:
+                    select((self.sock, ), (), (), 0.05)
+                    fd = recv_handle(self.sock)
+                    usbsock = socket.fromfd(fd, socket.AF_UNIX,
+                                            socket.SOCK_STREAM)
+                    self.kernel.on_connect2usb(usbsock)
+                    self.send_payload(("ok", ))
+                    self.close()
+
                 else:
                     self.send_payload(("er", "UNKNOWN_COMMAND"))
             except RuntimeError as e:
                 self.send_payload(("er", ) + e.args)
             except Exception:
-                logger.exception("Error while exec camera unixsock cmd")
+                logger.exception("Error in internal socket")
                 self.send_payload(("er", "UNKNOWN_ERROR"))
                 self.close()
         else:
