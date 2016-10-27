@@ -563,7 +563,7 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
 
     def on_z_probe(self, handler, x, y):
         try:
-            if self.known_position and x ** 2 + y ** 2 < 4901:
+            if self.known_position and x ** 2 + y ** 2 <= 7225:
                 cmd = "G30X%.5fY%.5f" % (x, y)
                 self.append_cmd(TARGET_MAINBOARD, cmd)
 
