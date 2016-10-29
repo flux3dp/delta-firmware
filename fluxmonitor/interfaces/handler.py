@@ -498,8 +498,17 @@ class TextBinaryProtocol(object):
         self.watcher.callback = self.on_recv
         self.watcher.start()
 
+    @property
+    def on_recv(self):
+        # Note: ssl wrapped socket has a special behavior,
+        # read python ssl module non-blocking sockets session for more details.
+        if hasattr(self.sock, "pending"):
+            return self.on_recv_ssl
+        else:
+            return self.on_recv_default
+
     @T.update_time
-    def on_recv(self, watcher, revent):
+    def on_recv_default(self, watcher, revent):
         try:
             l = self.sock.recv_into(self._bufview[self._buffered:])
             if l:
@@ -516,6 +525,11 @@ class TextBinaryProtocol(object):
         except Exception:
             logger.exception("Unhandle error")
             self.on_error()
+
+    def on_recv_ssl(self, watcher, revent):
+        self.on_recv_default(watcher, revent)
+        while self.sock.pending():
+            self.on_recv_default(watcher, revent)
 
     def on_binary(self, buf):
         pass
