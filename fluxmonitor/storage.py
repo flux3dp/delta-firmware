@@ -126,7 +126,7 @@ class Metadata(object):
         return ord(self.shm.read(1, 1))
 
     def _add_mversion(self):
-        return chr((ord(self.shm.read(1, 1)) + 1) % 256)
+        self.shm.write(chr((ord(self.shm.read(1, 1)) + 1) % 256), 1)
 
     @property
     def plate_correction(self):
@@ -194,6 +194,15 @@ class Metadata(object):
     @broadcast.setter
     def broadcast(self, val):
         self.storage["broadcast"] = val
+        self._add_mversion()
+
+    @property
+    def enable_cloud(self):
+        return self.storage["enable_cloud"]
+
+    @enable_cloud.setter
+    def enable_cloud(self, val):
+        self.storage["enable_cloud"] = val
         self._add_mversion()
 
     @property

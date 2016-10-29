@@ -328,6 +328,9 @@ class ConfigMixIn(object):
         "broadcast": {
             "type": str, "enum": ("L", "A", "N"),
             "key": "broadcast"},
+        "enable_cloud": {
+            "type": str, "enum": ("A", "N"),
+            "key": "enable_cloud"},
         "replay": {
             "type": str, "enum": ("Y", "N"),
             "key": "replay"},
@@ -360,7 +363,10 @@ class ConfigMixIn(object):
             if "enum" in struct and val not in struct["enum"]:
                 raise RuntimeError(BAD_PARAMS)
 
-            storage[struct["key"]] = val
+            if hasattr(self.settings, struct["key"]):
+                setattr(self.settings, struct["key"], val)
+            else:
+                storage[struct["key"]] = val
         elif key == "nickname":
             self.settings.nickname = val
         else:
@@ -370,7 +376,10 @@ class ConfigMixIn(object):
         storage = Storage("general", "meta")
         if key in self.__VALUES:
             struct = self.__VALUES[key]
-            return storage[struct["key"]]
+            if hasattr(self.settings, struct["key"]):
+                return getattr(self.settings, struct["key"])
+            else:
+                return storage[struct["key"]]
         elif key == "nickname":
             return self.settings.nickname
         else:
@@ -380,7 +389,10 @@ class ConfigMixIn(object):
         storage = Storage("general", "meta")
         if key in self.__VALUES:
             struct = self.__VALUES[key]
-            del storage[struct["key"]]
+            if hasattr(self.settings, struct["key"]):
+                delattr(self.settings, struct["key"])
+            else:
+                del storage[struct["key"]]
         else:
             raise RuntimeError(BAD_PARAMS)
 

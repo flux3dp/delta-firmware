@@ -24,6 +24,8 @@ logger = logging.getLogger(__name__)
 
 
 class CloudService(ServiceBase):
+    config_ts = -1
+    config_enable = None
     cloud_netloc = None
     metadata = None
     storage = None
@@ -37,7 +39,6 @@ class CloudService(ServiceBase):
         super(CloudService, self).__init__(logger, options)
         self.storage = Storage("cloud")
         self.metadata = Metadata()
-        self.metadata.cloud_status = (False, ("INIT", ))
         self.uuidhex = security.get_uuid()
 
         if options.cloud.endswith("/"):
@@ -337,10 +338,23 @@ class CloudService(ServiceBase):
 
     def on_timer(self, watcher, revent):
         try:
-            if self.aws_client:
-                self.notify_update(self.metadata.format_device_status, time())
+            if self.config_ts != self.metadata.mversion:
+                self.config_ts = self.metadata.mversion
+                self.config_enable = self.metadata.enable_cloud == "A"
+                if self.config_enable is False:
+                    self.metadata.cloud_status = (False, "DISABLE")
+
+            if self.config_enable:
+                if self.aws_client:
+                    self.notify_update(self.metadata.format_device_status,
+                                       time())
+                else:
+                    self.begin_session()
             else:
-                self.begin_session()
+                if self.aws_client:
+                    self.aws_client.disconnect()
+                    self.aws_client = None
+
         except RuntimeError as e:
             logger.error(e)
             self.metadata.cloud_status = (False, e.args)
