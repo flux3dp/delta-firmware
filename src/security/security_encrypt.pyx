@@ -31,6 +31,8 @@ cdef extern from "libflux_crypto/flux_crypto.h":
     object decrypt_message(RSA*, const unsigned char*, int)
     object sign_message(RSA*, const unsigned char*, int)
     int verify_message(RSA*, const unsigned char*, int, const unsigned char*, int)
+    object sign_message_sha256(RSA*, const unsigned char*, int)
+    int verify_message_sha256(RSA*, const unsigned char*, int, const unsigned char*, int)
 
 
 cdef class AESObject:
@@ -178,6 +180,16 @@ cdef class RSAObject:
         else:
             raise RuntimeError("Public Key can not sign")
 
+    cpdef sign_sha256(self, message):
+        if self.privatekey == 1:
+            return sign_message_sha256(self.rsakey, message, len(message))
+        else:
+            raise RuntimeError("Public Key can not sign")
+
     cpdef verify(self, message, sig):
+        return verify_message(self.rsakey, message, len(message),
+                              sig, len(sig)) == 1
+
+    cpdef verify_sha256(self, message, sig):
         return verify_message(self.rsakey, message, len(message),
                               sig, len(sig)) == 1

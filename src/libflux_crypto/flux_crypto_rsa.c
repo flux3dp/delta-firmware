@@ -153,6 +153,25 @@ PyObject* decrypt_message(RSA* key, const unsigned char* message, int length) {
     return result;
 }
 
+PyObject* sign_message_sha256(RSA* key, const unsigned char* message, int length) {
+    unsigned int keysize = RSA_size(key);
+    unsigned char *sigret = malloc(keysize);
+
+    unsigned char hash[20];
+    SHA1(message, length, (unsigned char (*) [20])(&hash));
+    int ret = RSA_sign(NID_sha256, hash, 20, sigret, &keysize, key);
+    PyObject* result;
+
+    if(ret == 1) {
+        result = Py_BuildValue("s#", sigret, keysize);
+    } else {
+        result = Py_BuildValue("s", "");
+    }
+
+    free(sigret);
+    return result;
+}
+
 PyObject* sign_message(RSA* key, const unsigned char* message, int length) {
     unsigned int keysize = RSA_size(key);
     unsigned char *sigret = malloc(keysize);
@@ -170,6 +189,15 @@ PyObject* sign_message(RSA* key, const unsigned char* message, int length) {
 
     free(sigret);
     return result;
+}
+
+int verify_message_sha256(RSA *key, const unsigned char* message, int length,
+                   unsigned char *sigbuf, int siglen) {
+    unsigned char hash[20];
+    SHA1(message, length, (unsigned char (*) [20])(&hash));
+    int ret = RSA_verify(NID_sha256, hash, 20, sigbuf, siglen, key);
+
+    return ret;
 }
 
 int verify_message(RSA *key, const unsigned char* message, int length,
