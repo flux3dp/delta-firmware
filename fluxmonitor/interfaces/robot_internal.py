@@ -41,14 +41,18 @@ class RobotUnixStreamHandler(MsgpackProtocol, UnixHandler):
                     self.close()
 
                 elif cmd == CMD_USBCABEL_CONNECTION:
-                    select((self.sock, ), (), (), 0.05)
-                    fd = recv_handle(self.sock)
-                    usbsock = socket.fromfd(fd, socket.AF_UNIX,
-                                            socket.SOCK_STREAM)
-                    self.kernel.on_connect2usb(usbsock)
-                    self.send_payload(("ok", ))
-                    self.close()
-
+                    self.send(b"F")
+                    rl = select((self.sock, ), (), (), 0.1)[0]
+                    if rl:
+                        fd = recv_handle(self.sock)
+                        usbsock = socket.fromfd(fd, socket.AF_UNIX,
+                                                socket.SOCK_STREAM)
+                        self.kernel.on_connect2usb(usbsock)
+                        self.send(b"X")
+                        self.close()
+                    else:
+                        self.send(b"I")
+                        self.close()
                 else:
                     self.send_payload(("er", "UNKNOWN_COMMAND"))
             except RuntimeError as e:

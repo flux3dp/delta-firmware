@@ -103,6 +103,11 @@ setup(
         ),
         Extension("fluxmonitor.hal.camera._v4l2_camera", sources=[
             "src/v4l2_camera/v4l2_camera.pyx",
-            "src/v4l2_camera/v4l2_camera_module.cpp"], language="c++")
+            "src/v4l2_camera/v4l2_camera_module.cpp"], language="c++"),
+        Extension("fluxmonitor.hal._usbcable", sources=[
+            "src/usbcable/usb_txrx.c",
+            "src/usbcable/usbcable.pyx"],
+            # include_dirs=["/usr/local/include/libusb-1.0/"],
+            libraries=["usb"])
     ]
 )

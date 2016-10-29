@@ -99,6 +99,10 @@ setup(
         ),
         Extension("fluxmonitor.hal.camera._v4l2_camera", sources=[
             "src/v4l2_camera/v4l2_camera_module.cpp",
-            "src/v4l2_camera/v4l2_camera.cpp"], language="c++")
+            "src/v4l2_camera/v4l2_camera.cpp"], language="c++"),
+        Extension("fluxmonitor.hal._usbcable", sources=[
+            "src/usbcable/usb_txrx.c",
+            "src/usbcable/usbcable.c"],
+            libraries=["usb-1.0"])
     ]
 )
