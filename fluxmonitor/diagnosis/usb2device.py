@@ -75,3 +75,10 @@ def usb2camera(usb_serial, ttl=100):
 
 def enable_console():
     return os.system("systemctl start serial-getty@ttyUSB0.service")
+
+
+def enable_ssh():
+    os.system("dpkg-reconfigure openssh-server")
+    os.system("systemctl enable ssh.service")
+    os.system("systemctl start ssh.service")
+    return os.system("systemctl start serial-getty@ttyUSB0.service")

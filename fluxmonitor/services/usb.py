@@ -47,6 +47,7 @@ REQ_MAINBOARD_TUNNEL = 0x80
 REQ_PHOTO = 0x81
 REQ_STORE_DATA = 0x82
 REQ_ENABLE_CONSOLE = 0x83
+REQ_ENABLE_SSH = 0x84
 
 
 class UsbService(ServiceBase):
@@ -125,6 +126,7 @@ class UsbIO(object):
             REQ_PHOTO: self.on_take_pic,
             REQ_STORE_DATA: self.on_store_data,
             REQ_ENABLE_CONSOLE: self.on_enable_console,
+            REQ_ENABLE_SSH: self.on_enable_ssh
         }
 
     def fileno(self):
@@ -401,6 +403,22 @@ class UsbIO(object):
                 self.send_response(REQ_ENABLE_CONSOLE, False, str(ret))
         else:
             self.send_response(REQ_ENABLE_CONSOLE, False, "Signature Error")
+
+    def on_enable_ssh(self, buf):
+        pem = resource_string("fluxmonitor", "data/develope.pem")
+        rsakey = get_keyobj(pem=pem)
+
+        salt, signature = buf.split(b"$", 1)
+
+        if rsakey.verify(salt + self._vector, signature):
+            from fluxmonitor.diagnosis.usb2device import enable_ssh
+            ret = enable_ssh()
+            if ret == 0:
+                self.send_response(REQ_ENABLE_SSH, True, MSG_OK)
+            else:
+                self.send_response(REQ_ENABLE_SSH, False, str(ret))
+        else:
+            self.send_response(REQ_ENABLE_SSH, False, "Signature Error")
 
     def close(self):
         self.sock.close()
