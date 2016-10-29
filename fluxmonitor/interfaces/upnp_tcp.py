@@ -142,7 +142,7 @@ class UpnpTcpHandler(TextBinaryProtocol, SSLHandler):
             self.send_text("error OPERATION_ERROR")
             return
 
-        self.access_control.add(keyobj, label=label)
+        self.access_control.add(keyobj, label=label, type="U")
         self.send_text("ok")
 
     def on_list_trust(self):
