@@ -20,7 +20,6 @@ logger = logging.getLogger(__name__)
 
 class Robot(ServiceBase):
     _hal_control = None
-    _cloud_conn = None
     _exclusive_component = None
 
     # This is a timestamp to recoard last exclusive quit at.
@@ -38,6 +37,7 @@ class Robot(ServiceBase):
         self.internl_interface = RobotUnixStreamInterface(self)
         self.tcp_interface = RobotTcpInterface(self)
         self._hal_reset_timer = self.loop.timer(5, 0, self._connect2hal)
+        self._cloud_conn = set()
 
         try:
             if options.taskfile:
@@ -51,14 +51,11 @@ class Robot(ServiceBase):
             logger.exception("Error while setting task at init")
 
     def on_connect2cloud(self, endpoint, token):
-        if self._cloud_conn:
-            self._cloud_conn.close()
-            self._cloud_conn = None
+        def on_close(handler, *args):
+            self._cloud_conn.remove(handler)
 
-        def on_close(agent):
-            self._cloud_conn = None
-
-        self._cloud_conn = RobotCloudHandler(self, endpoint, token, on_close)
+        c = RobotCloudHandler(self, endpoint, token, on_close)
+        self._cloud_conn.add(c)
 
     def _connect2hal(self, watcher=None, revent=None):
         def close_callback(hal_control, error):
