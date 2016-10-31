@@ -91,7 +91,7 @@ class UartHal(UartHalBase, BaseOnSerial):
                 sleep(0.005)
 
     def sendto_pc(self, buf):
-        if not self.head_enabled:
+        if not self.gpio._head_enabled:
             self.raspi_uart.write(buf)
 
     def reconnect(self):
