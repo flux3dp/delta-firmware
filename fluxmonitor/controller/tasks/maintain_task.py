@@ -418,7 +418,8 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         self.timer_watcher.stop()
 
     def on_timer(self, watcher, revent):
-        self.meta.update_device_status(self.st_id, 0, "N/A", "")
+        self.meta.update_device_status(self.st_id, 0, "N/A",
+                                       self.handler.address)
 
         try:
             self.main_ctrl.patrol(self)

@@ -438,6 +438,9 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
                 pass
 
     def on_timer(self, watcher, revent):
+        self.meta.update_device_status(self.st_id, 0, "N/A",
+                                       self.handler.address)
+
         self.send_udp0()
         if not self._ready & 2:
             self.send_udp1(self.head_ctrl)
