@@ -218,9 +218,6 @@ def main(params=None):
     from fluxmonitor.halprofile import CURRENT_MODEL # noqa
     from fluxmonitor import security  # noqa # init security property
 
-    if os.path.exists("/var/db/fluxmonitord/run") is False:
-        os.mkdir("/var/db/fluxmonitord/run")
-
     try:
         if CURRENT_MODEL == 'delta-1':
             init_rapi()
