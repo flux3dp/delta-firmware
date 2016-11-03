@@ -6,8 +6,9 @@ import socket
 from fluxmonitor.controller.tasks.play_manager import PlayerManager
 from fluxmonitor.controller.tasks.play_manager import poweroff_led, clean_led
 from fluxmonitor.controller.startup import device_startup
-from fluxmonitor.interfaces.hal_internal import HalControlClientHandler
 from fluxmonitor.interfaces.robot_internal import RobotUnixStreamInterface
+from fluxmonitor.interfaces.hal_internal import HalControlClientHandler
+from fluxmonitor.interfaces.usb_internal import USBHandler
 from fluxmonitor.interfaces.robot import RobotTcpInterface, RobotCloudHandler
 from fluxmonitor.services.base import ServiceBase
 from fluxmonitor.misc.systime import systime as time
@@ -49,6 +50,10 @@ class Robot(ServiceBase):
                 self.autoplay()
         except Exception:
             logger.exception("Error while setting task at init")
+
+    def on_connect2usb(self, sock):
+        logger.debug("Launch usb interface")
+        self.usbhandler = USBHandler(self, "USB", sock)
 
     def on_connect2cloud(self, endpoint, token):
         def on_close(handler, *args):

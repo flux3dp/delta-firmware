@@ -1,5 +1,5 @@
 
-from pkg_resources import load_entry_point
+from pkg_resources import load_entry_point, resource_string
 from signal import SIGTERM, SIGKILL
 from time import sleep, time
 import argparse
@@ -154,6 +154,17 @@ def try_config_network(dryrun=False):
 def init_rapi():
     if not os.path.exists("/var/gcode/userspace"):
         os.mkdir("/var/gcode/userspace")
+    if not os.path.exists("/var/db/fluxmonitord/run"):
+        os.mkdir("/var/db/fluxmonitord/run")
+
+    if not os.path.exists("/var/db/fluxmonitord/boot_ver") or \
+            open("/var/db/fluxmonitord/boot_ver").read() != "1":
+        udev = resource_string("fluxmonitor", "data/rapi/udev-99-flux.rules")
+        with open("/etc/udev/rules.d/99-flux.rules", "w") as f:
+            f.write(udev)
+        open("/var/db/fluxmonitord/boot_ver", "w").write("1")
+        os.system("udevadm control --reload")
+        os.systen("sync")
 
 
 def check_running(service):
