@@ -371,8 +371,6 @@ class CloudService(ServiceBase):
                 if self.aws_client:
                     self.notify_update(self.metadata.format_device_status,
                                        time())
-                    import IPython
-                    IPython.embed()
                 else:
                     self.begin_session()
             else:
