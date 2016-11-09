@@ -30,13 +30,23 @@ class CloudService(ServiceBase):
     metadata = None
     storage = None
 
+    _notify_up_required = False
     _notify_last_st = {"st_id": None}
     _notify_last_ts = 0
     _notify_aggressive = 0
+    _notify_retry_counter = 0
     aws_client = None
 
     def __init__(self, options):
         super(CloudService, self).__init__(logger, options)
+
+        mqttlogger = logging.getLogger(
+            "AWSIoTPythonSDK.core.protocol.mqttCore")
+        if logger.getEffectiveLevel() < logging.INFO:
+            mqttlogger.setLevel(logging.DEBUG)
+        else:
+            mqttlogger.setLevel(logging.WARNING)
+
         self.storage = Storage("cloud")
         self.metadata = Metadata()
         self.uuidhex = security.get_uuid()
@@ -187,8 +197,7 @@ class CloudService(ServiceBase):
         self.storage["certificate_reqs.pem"] = doc["certificate_reqs"]
         self.storage["certificate.pem"] = doc["certificate"]
 
-    def notify_up(self):
-        c = self.aws_client.getMQTTConnection()
+    def notify_up(self, c):
         payload = json.dumps({"state": {"reported": {
             "version": __version__, "token": self.storage["token"],
             "nickname": self.metadata.nickname}}})
@@ -196,7 +205,7 @@ class CloudService(ServiceBase):
 
     def notify_update(self, new_st, now):
         if self.metadata.verify_mversion() is False:
-            self.notify_up()
+            self._notify_up_required = True
 
         new_st_id = new_st["st_id"]
 
@@ -217,12 +226,12 @@ class CloudService(ServiceBase):
         payload = json.dumps(
             {"state": {"reported": new_st}})
 
-        try:
-            c.publish(self._notify_topic, payload, 0)
-            self._notify_last_st = new_st
-            self._notify_last_ts = now
-        except publishQueueDisabledException:
-            logger.debug("publishQueueDisabledException raise in notify")
+        if self._notify_up_required:
+            self.notify_up(c)
+            self._notify_up_required = False
+        c.publish(self._notify_topic, payload, 0)
+        self._notify_last_st = new_st
+        self._notify_last_ts = now
 
     def aws_on_request_callback(self, client, userdata, message):
         # incommint topic format: "device/{token}/request/{action}"
@@ -317,7 +326,7 @@ class CloudService(ServiceBase):
         self.aws_token = self.storage["token"]
         self._notify_topic = "$aws/things/%s/shadow/update" % (
             self.storage["client_id"])
-        self.notify_up()
+        self.notify_up(conn)
         self.timer.stop()
         self.timer.set(2.2, 2.2)
         self.timer.reset()
@@ -328,9 +337,23 @@ class CloudService(ServiceBase):
         if self.aws_client:
             try:
                 self.aws_client.disconnect()
+                self.aws_client = None
             except Exception:
-                logger.exception("Error while disconnect from aws")
-            self.aws_client = None
+                logger.exception("AWS panic while disconnect from aws, "
+                                 "make a ugly bugfix")
+                try:
+                    conn = self.aws_client.getMQTTConnection()
+                    if conn._mqttCore._pahoClient._thread.isAlive():
+                        logger.error("MQTT thread alive, remove directly")
+                        conn._mqttCore._pahoClient._thread_terminate = True
+                        conn._mqttCore._pahoClient._sock.close()
+                        self.aws_client = None
+                    else:
+                        logger.error("MQTT thread closed, remove directly")
+                        self.aws_client = None
+                except Exception:
+                    logger.exception("AWS panic ugly bugfix failed")
+
         self.timer.stop()
         self.timer.set(5.0, 5.0)
         self.timer.reset()
@@ -340,21 +363,30 @@ class CloudService(ServiceBase):
         try:
             if self.config_ts != self.metadata.mversion:
                 self.config_ts = self.metadata.mversion
-                self.config_enable = self.metadata.enable_cloud == "A"
+                self.config_enable = (self.metadata.enable_cloud == "A")
                 if self.config_enable is False:
-                    self.metadata.cloud_status = (False, "DISABLE")
+                    self.metadata.cloud_status = (False, ("DISABLE", ))
 
             if self.config_enable:
                 if self.aws_client:
                     self.notify_update(self.metadata.format_device_status,
                                        time())
+                    import IPython
+                    IPython.embed()
                 else:
                     self.begin_session()
             else:
                 if self.aws_client:
-                    self.aws_client.disconnect()
-                    self.aws_client = None
+                    self.teardown_session()
 
+            self._notify_retry_counter = 0
+        except publishQueueDisabledException:
+            self.metadata.cloud_status = (False, ("SESSION",
+                                                  "CONNECTION_ERROR"))
+            self._notify_retry_counter += 1
+            logger.debug("publishQueueDisabledException raise in notify")
+            if self._notify_retry_counter > 10:
+                self.teardown_session()
         except RuntimeError as e:
             logger.error(e)
             self.metadata.cloud_status = (False, e.args)
