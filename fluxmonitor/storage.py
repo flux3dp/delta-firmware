@@ -205,6 +205,11 @@ class Metadata(object):
         self.storage["enable_cloud"] = val
         self._add_mversion()
 
+    @enable_cloud.deleter
+    def enable_cloud(self):
+        del self.storage["enable_cloud"]
+        self._add_mversion()
+
     @property
     def shared_der_rsakey(self):
         buf = self.shm.read(1024, 1024)
