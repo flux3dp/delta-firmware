@@ -519,7 +519,7 @@ class TextBinaryProtocol(object):
         except ssl.SSLError as e:
             logger.debug("SSL Connection error: %s", e)
             self.on_error()
-        except OSError as e:
+        except IOError as e:
             logger.warning("Recv error: %s", e)
             self.on_error()
         except Exception:
