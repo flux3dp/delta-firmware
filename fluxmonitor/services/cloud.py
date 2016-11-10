@@ -335,22 +335,23 @@ class CloudService(ServiceBase):
 
     def teardown_session(self):
         if self.aws_client:
+            conn = self.aws_client.getMQTTConnection()
             try:
-                self.aws_client.disconnect()
-                self.aws_client = None
+                if conn._mqttCore._pahoClient._thread.isAlive():
+                    self.aws_client.disconnect()
+                    self.aws_client = None
+                else:
+                    logger.error("MQTT thread closed, remove directly")
+                    self.aws_client = None
+
             except Exception:
                 logger.exception("AWS panic while disconnect from aws, "
                                  "make a ugly bugfix")
                 try:
-                    conn = self.aws_client.getMQTTConnection()
-                    if conn._mqttCore._pahoClient._thread.isAlive():
-                        logger.error("MQTT thread alive, remove directly")
-                        conn._mqttCore._pahoClient._thread_terminate = True
+                    conn._mqttCore._pahoClient._thread_terminate = True
+                    if conn._mqttCore._pahoClient._sock:
                         conn._mqttCore._pahoClient._sock.close()
-                        self.aws_client = None
-                    else:
-                        logger.error("MQTT thread closed, remove directly")
-                        self.aws_client = None
+                    return
                 except Exception:
                     logger.exception("AWS panic ugly bugfix failed")
 
