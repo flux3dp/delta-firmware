@@ -113,7 +113,7 @@ class CameraService(ServiceBase):
         cv2.imwrite('/home/pi/tmp1.jpg', img)
 
         if flag:
-            return ScanChecking.get_bias(points)
+            return float(ScanChecking.get_bias(points))
         else:
             return 'nan'
 

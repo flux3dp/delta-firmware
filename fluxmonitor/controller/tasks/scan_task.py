@@ -80,7 +80,7 @@ class CameraInterface(object):
 
     def get_bias(self):
         self.sock.send(msgpack.packb((2, 0)))
-        return " ".join(self.recv_object())
+        return " ".join(("%s" % i for i in self.recv_object()))
 
     def compute_cab(self, step):
         if step == 'O':
@@ -89,7 +89,7 @@ class CameraInterface(object):
             self.sock.send(msgpack.packb((4, 0)))
         elif step == 'R':
             self.sock.send(msgpack.packb((5, 0)))
-        return " ".join(self.recv_object())
+        return " ".join(("%s" % i for i in self.recv_object()))
 
     def close(self):
         self.sock.close()
