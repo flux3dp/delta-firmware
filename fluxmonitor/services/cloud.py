@@ -198,7 +198,7 @@ class CloudService(ServiceBase):
         self.storage["certificate.pem"] = doc["certificate"]
 
     def notify_up(self, c):
-        payload = json.dumps({"state": {"reported": {
+        payload = json.dumps({"state": {"desired": {
             "version": __version__, "token": self.storage["token"],
             "nickname": self.metadata.nickname}}})
         c.publish(self._notify_topic, payload, 1)
