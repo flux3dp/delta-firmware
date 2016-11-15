@@ -239,10 +239,10 @@ class NetworkService(ServiceBase, NetworkMonitorMixIn):
                     return json.load(f)
             except Exception:
                 logger.exception("Read network config error")
-        else:
-            c = create_default_config(ifname)
-            self.set_config(ifname, c)
-            return c
+
+        c = create_default_config(ifname)
+        self.set_config(ifname, c)
+        return c
 
     def update_network_led(self, host_flag=None):
         """Return True if network is read"""
