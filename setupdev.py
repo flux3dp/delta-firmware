@@ -91,12 +91,16 @@ setup(
         ),
         Extension(
             'fluxmonitor.player._head_controller', sources=[
+                "src/player/misc.c",
                 "src/player/head_controller.pyx"],
             define_macros=DEFAULT_MACROS,
+            extra_compile_args=["-Wno-unused-function"],
             libraries=LD_TIME, extra_objects=[], include_dirs=["src"]
         ),
         Extension(
             'fluxmonitor.player._main_controller', sources=[
+                "src/player/misc.c",
+                "src/player/main_controller_misc.c",
                 "src/player/main_controller.pyx"],
             define_macros=DEFAULT_MACROS,
             libraries=LD_TIME, extra_objects=[], include_dirs=["src"]

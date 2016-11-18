@@ -226,7 +226,7 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
     udp_sock = None  # UDP socket to send status
     handler = None  # Client TCP connection object
     known_position = None  # Is toolhead position is known or not
-    main_ctrl = None  # Mainborad Controller
+    mainboard = None  # Mainborad Controller
     head_ctrl = None  # Headboard Controller
     head_resp_stack = None  # Toolhead raw rasponse stack
 
@@ -242,22 +242,22 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
 
         def on_mainboard_ready(ctrl):
             self._ready |= 1
-            self.main_ctrl.send_cmd("X8F", self)
-            self.main_ctrl.send_cmd("T0", self)
-            self.main_ctrl.send_cmd("G90", self)
-            self.main_ctrl.send_cmd("G92E0", self)
+            self.mainboard.send_cmd("X8F")
+            self.mainboard.send_cmd("T0")
+            self.mainboard.send_cmd("G90")
+            self.mainboard.send_cmd("G92E0")
             handler.send_text("ok")
 
-        self.main_ctrl = MainController(executor=self, bufsize=14,
-                                        ready_callback=on_mainboard_ready)
-        self.head_ctrl = HeadController(executor=self, error_level=0,
-                                        required_module="N/A",
-                                        ready_callback=self.on_toolhead_ready)
+        self.mainboard = MainController(
+            self._uart_mb.fileno(), bufsize=14,
+            empty_callback=self.on_mainboard_empty,
+            sendable_callback=self.on_mainboard_sendable,
+            ctrl_callback=self.on_mainboard_result)
+        self.toolhead = HeadController(
+            self._uart_hb.fileno(),
+            msg_callback=self.toolhead_message_callback)
+
         self.unpacker = Unpacker()
-
-        self.main_ctrl.callback_msg_empty = self.on_mainboard_empty
-        self.main_ctrl.callback_msg_sendable = self.on_mainboard_sendable
-
         self.timer_watcher = stack.loop.timer(0.85, 0.85, self.on_timer)
         self.timer_watcher.start()
 
@@ -266,13 +266,19 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
 
     @property
     def buflen(self):
-        return len(self.cmd_queue) + self.main_ctrl.buffered_cmd_size
+        return len(self.cmd_queue) + self.mainboard.buffered_cmd_size
 
     def on_mainboard_empty(self, caller):
         self.fire()
 
     def on_mainboard_sendable(self, caller):
         self.fire()
+
+    def toolhead_message_callback(self, sender, data):
+        if data and self.head_resp_stack is not None and \
+                len(self.head_resp_stack) <= 32:
+            self.head_resp_stack.append(data)
+            self.send_udp1(sender)
 
     def on_binary(self, buf, handler):
         self.unpacker.feed(buf)
@@ -305,65 +311,45 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
         if self.cmd_queue:
             target, cmd = self.cmd_queue[0]
             if target == TARGET_MAINBOARD:
-                if self.main_ctrl.queue_full:
+                if self.mainboard.queue_full:
                     return
                 else:
                     self.cmd_queue.popleft()
-                    self.main_ctrl.send_cmd(cmd, self)
+                    self.mainboard.send_cmd(cmd)
             elif target == TARGET_TOOLHEAD:
-                if self.main_ctrl.buffered_cmd_size == 0:
-                    if self.head_ctrl.is_busy:
-                        return
-                    else:
+                if self.mainboard.buffered_cmd_size == 0:
+                    if self.toolhead.sendable():
                         self.cmd_queue.popleft()
-                        self.head_ctrl.send_cmd(cmd, self)
+                        # TODO
+                        self.toolhead.send_cmd(cmd, self)
                 else:
                     return
 
-    def send_mainboard(self, msg):
-        self._uart_mb.send(msg)
+    # def send_mainboard(self, msg):
+    #     self._uart_mb.send(msg)
 
-    def send_headboard(self, msg):
-        self._uart_hb.send(msg)
+    # def send_headboard(self, msg):
+    #     self._uart_hb.send(msg)
 
     def on_mainboard_message(self, watcher, revent):
         try:
-            buf = watcher.data.recv(1024)
-            if not buf:
-                logger.error("Mainboard connection broken")
-                self.stack.exit_task(self)
-                return
-
-            for msg in self.recv_from_mainboard(buf):
-                if msg.startswith("DATA "):
-                    self.on_mainboard_result(msg)
-                else:
-                    self.main_ctrl.on_message(msg, self)
-                    self.fire()
-
+            self.mainboard.handle_recv()
+        except IOError:
+            logger.error("Mainboard connection broken")
+            self.stack.exit_task(self)
             self.send_udp0()
         except Exception:
             logger.exception("Unhandle Error")
 
     def on_headboard_message(self, watcher, revent):
         try:
-            buf = watcher.data.recv(1024)
-            if not buf:
-                logger.error("Headboard connection broken")
-                self.stack.exit_task(self)
-                return
-
-            h = self.head_ctrl
-
-            for payload in self.recv_from_headboard(buf):
-                msg = h.on_message(payload, self)
-                if msg and self.head_resp_stack is not None and \
-                        len(self.head_resp_stack) <= 32:
-                    self.head_resp_stack.append(msg)
-
-            self.send_udp1(h)
-
+            self.toolhead.handle_recv()
             self.fire()
+
+        except IOError:
+            logger.error("Headboard connection broken")
+            self.stack.exit_task(self)
+
         except (HeadResetError, HeadOfflineError, HeadTypeError):
             self._ready &= ~2
 
@@ -373,7 +359,7 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
         except Exception:
             logger.exception("Unhandle Error")
 
-    def on_mainboard_result(self, message):
+    def on_mainboard_result(self, controller, message):
         # Note: message will be...
         #   "DATA HOME 12.3 -23.2 122.3"
         if message.startswith("DATA HOME"):
@@ -407,21 +393,21 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
             except socket.error:
                 pass
 
-    def send_udp1(self, head_ctrl):
+    def send_udp1(self, toolhead):
         if self.udp_sock:
             try:
                 if self.head_resp_stack is not None:
                     buf = packb((2, "", 0, len(self.head_resp_stack)))
                     self.udp_sock.send(buf)
 
-                if head_ctrl.ready:
-                    buf = packb((1, "", 0, head_ctrl.errcode,
-                                head_ctrl.status()))
+                if toolhead.ready:
+                    buf = packb((1, "", 0, toolhead.error_code,
+                                toolhead.status))
                     self.udp_sock.send(buf)
 
-                elif head_ctrl.ready_flag > 0:
-                    buf = packb((1, "", 0, -1, {}))
-                    self.udp_sock.send(buf)
+                # elif toolhead.ready_flag > 0:
+                #     buf = packb((1, "", 0, -1, {}))
+                #     self.udp_sock.send(buf)
 
                 else:
                     buf = packb((1, "", 0, -2, {}))
@@ -443,10 +429,10 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
 
         self.send_udp0()
         if not self._ready & 2:
-            self.send_udp1(self.head_ctrl)
+            self.send_udp1(self.toolhead)
 
         try:
-            self.main_ctrl.patrol(self)
+            self.mainboard.patrol(self)
         except RuntimeError as e:
             logger.info("%s", e)
 
@@ -480,9 +466,15 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
         if self.timer_watcher:
             self.timer_watcher.stop()
             self.timer_watcher = None
-        if self.main_ctrl:
-            self.main_ctrl.close(self)
-            self.main_ctrl = None
+
+        if self.toolhead:
+            if self.toolhead.ready:
+                self.toolhead.shutdown()
+            self.toolhead = None
+
+        if self.mainboard:
+            self.mainboard.close()
+            self.mainboard = None
 
         self.handler.binary_mode = False
 

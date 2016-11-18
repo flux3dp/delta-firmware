@@ -20,6 +20,7 @@ def fast_read_meta(filename):
 
             # Load metadata
             meta_size = UINT_PACKER.unpack(f.read(4))[0]
+            assert meta_size < 65536, "METADATA_TOO_LARGE"
             meta_buf = f.read(meta_size)
             meta_crc32 = INT_PACKER.unpack(f.read(4))[0]
             assert meta_crc32 == crc32(meta_buf, 0), "METADATA_CRC32_ERROR"

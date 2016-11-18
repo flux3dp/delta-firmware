@@ -45,7 +45,12 @@ int DeviceController::feed(int fd, command_cb_t callback, void* data) {
 
   if(cmd & 128) {
     // G1
-    float f = 0, x = NAN, y = NAN, z = NAN, e[3] = {NAN, NAN, NAN};
+    float f = 0,
+          x = NAN,
+          y = NAN,
+          z = NAN,
+          e[3] = {NAN, NAN, NAN};
+
     int e_counter = 0;
     int t;
     int illegal = 0;
@@ -226,7 +231,7 @@ inline int DeviceController::G1(command_cb_t callback, void* data,
 
     length =  sqrt(dx*dx + dy*dy + dz*dz);
     if(isnan(length)) {
-      fprintf(stderr, "length got nan\n");
+      fprintf(stderr, "length got nan (%f, %f, %f)\n", dx, dy, dz);
     } else {
       fsm.traveled += length;
     }
