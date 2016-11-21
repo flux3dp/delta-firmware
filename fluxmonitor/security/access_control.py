@@ -128,7 +128,7 @@ def is_trusted_remote(access_id=None, pem=None, der=None, keyobj=None):
 
 
 def add_trusted_keyobj(keyobj, label=None):
-    return _access_control.add(keyobj, label)
+    return _access_control.add(keyobj, label=label)
 
 
 def untrust_all():
