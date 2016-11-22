@@ -68,7 +68,6 @@ class CloudService(ServiceBase):
         logger.debug("Require identify")
 
         url = urlparse("%s/axon/require_identify" % self.cloud_netloc)
-        conn = get_connection(url)
 
         pkey = security.get_private_key()
         publickey_base64 = b2a_base64(pkey.export_pubkey_der())
@@ -77,6 +76,7 @@ class CloudService(ServiceBase):
         identify_base64 = b2a_base64(security.get_identify())
 
         try:
+            conn = get_connection(url)
             logger.debug("Require identify request sent")
             conn.post_request(url.path, {
                 "serial": serial, "uuid": self.uuidhex, "model": model,
@@ -107,10 +107,10 @@ class CloudService(ServiceBase):
         logger.debug("Get identify")
 
         url = urlparse("%s/axon/identify" % self.cloud_netloc)
-        conn = get_connection(url)
         uuidhex = security.get_uuid()
 
         try:
+            conn = get_connection(url)
             logger.debug("Get identify request sent")
             conn.post_request(url.path, {
                 "uuid": uuidhex, "token": token, "x509_request": request_asn1,
@@ -198,7 +198,7 @@ class CloudService(ServiceBase):
         self.storage["certificate.pem"] = doc["certificate"]
 
     def notify_up(self, c):
-        payload = json.dumps({"state": {"desired": {
+        payload = json.dumps({"state": {"reported": {
             "version": __version__, "token": self.storage["token"],
             "nickname": self.metadata.nickname}}})
         c.publish(self._notify_topic, payload, 1)
