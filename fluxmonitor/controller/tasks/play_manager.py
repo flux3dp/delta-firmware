@@ -62,9 +62,10 @@ class PlayerManager(object):
 
             self.playinfo = ff.metadata, ff.image_buf
 
+            # TODO: remove debug
             cmd = ["fluxplayer", "-c", PLAY_ENDPOINT, "--task", taskfile,
                    "--log", storage.get_path("fluxplayerd.log"), "--pid",
-                   storage.get_path("fluxplayerd.pid")]
+                   storage.get_path("fluxplayerd.pid"), "--debug"]
             if logger.getEffectiveLevel() <= 10:
                 cmd += ["--debug"]
 

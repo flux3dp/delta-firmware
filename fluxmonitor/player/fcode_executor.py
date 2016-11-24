@@ -4,18 +4,21 @@ import logging
 
 from fluxmonitor.diagnosis.god_mode import allow_god_mode
 from fluxmonitor.misc.systime import systime as time
-from fluxmonitor.err_codes import UNKNOWN_ERROR, EXEC_BAD_COMMAND
+from fluxmonitor.err_codes import (UNKNOWN_ERROR, EXEC_BAD_COMMAND,
+                                   SUBSYSTEM_ERROR)
 from fluxmonitor.hal.tools import reset_hb
-from fluxmonitor.config import MAINBOARD_RETRY_TTL
 
 from .base import BaseExecutor
-from .base import ST_STARTING, ST_RUNNING, ST_COMPLETED, ST_ABORTED  # noqa
-from .base import ST_COMPLETING
+from .base import (
+    ST_STARTING, ST_RUNNING, ST_COMPLETED, ST_COMPLETING)
+
 from ._device_fsm import PyDeviceFSM
-from .macro import StartupMacro, CorrectionMacro, ZprobeMacro, WaitHeadMacro
+from .macro import (StartupMacro, WaitHeadMacro, CorrectionMacro, ZprobeMacro,
+                    ControlHeaterMacro, ControlToolheadMacro)
 
 from .main_controller import MainController
-from .head_controller import HeadController
+from .head_controller import (HeadController, check_toolhead_errno,
+                              exec_command as exec_toolhead_cmd)
 
 logger = logging.getLogger(__name__)
 
@@ -62,9 +65,12 @@ class AutoResume(object):
 
 
 class FcodeExecutor(AutoResume, BaseExecutor):
-    debug = False  # Note: debug only use for unittest
-    main_ctrl = None
-    head_ctrl = None
+    mainboard = None
+    toolhead = None
+    macro = None
+    paused_macro = None
+    th_error_flag = 0xfffff
+
     # Subprocess to read contents
     _task_loader = None
     # Input is finished
@@ -72,34 +78,26 @@ class FcodeExecutor(AutoResume, BaseExecutor):
     # Gcode parser
     _fsm = None
     _mb_stashed = False
-
     _cmd_queue = None
 
     def __init__(self, mainboard_io, headboard_io, task_loader, options):
         super(FcodeExecutor, self).__init__(mainboard_io, headboard_io)
-
         self._task_loader = task_loader
-
         self.options = options
-
         self._padding_bufsize = max(options.play_bufsize * 2, 64)
 
-        self.main_ctrl = MainController(
-            executor=self, bufsize=options.play_bufsize,
-            ready_callback=self.on_controller_ready,
-            retry_ttl=MAINBOARD_RETRY_TTL
-        )
+        self.mainboard = MainController(
+            sock_fd=self._mbsock.fileno(), bufsize=options.play_bufsize,
+            empty_callback=self._on_mb_empty,
+            sendable_callback=self._on_mb_sendable,
+            ctrl_callback=self._on_mb_ctrl)
 
-        self.head_ctrl = HeadController(
-            executor=self, ready_callback=self.on_controller_ready,
-            required_module=options.head,
-            error_level=self.options.head_error_level
-        )
-        self.head_ctrl.bootstrap(self)
+        self.mainboard.bootstrap(self._on_mainboard_ready)
 
-        self.main_ctrl.callback_msg_empty = self._on_mainboard_empty
-        self.main_ctrl.callback_msg_sendable = self._on_mainboard_sendable
+        self.toolhead = HeadController(sock_fd=self._thsock.fileno(),
+                                       required_module=options.head)
 
+        self.th_error_flag = self.options.head_error_level
         self._fsm = PyDeviceFSM(max_x=self.options.max_x,
                                 max_y=self.options.max_y,
                                 max_z=self.options.max_z)
@@ -119,164 +117,158 @@ class FcodeExecutor(AutoResume, BaseExecutor):
     def position(self):
         return self._fsm.get_position()
 
-    def close(self):
-        self._task_loader.close()
-        self.main_ctrl.close(self)
-        self.head_ctrl.close(self)
-        super(FcodeExecutor, self).close()
-
     def get_status(self):
-        st = self.head_ctrl.status()
+        st = self.toolhead.status
         st.update(super(FcodeExecutor, self).get_status())
         return st
 
-    def on_controller_ready(self, controller):
-        logging.debug("Controller %s ready", controller)
-        if self.main_ctrl.ready and self.head_ctrl.ready:
-            if self.status_id & 32:
-                return
+    def _on_mainboard_ready(self, mainboard):
+        # status_id should be (4, 6, 18)
+        self.toolhead.bootstrap(self._on_toolhead_ready)
 
-            if self.status_id == 6:
+    def _on_toolhead_ready(self, toolhead):
+        # status_id should be (4, 6, 18)
+        # Mainboard should be ready
+        def callback(toolhead):
+            if self.toolhead.allset:
+                self._on_toolhead_recovered_and_allset(self.toolhead)
+            else:
+                m = WaitHeadMacro(self._on_toolhead_recovered_and_allset)
+                m.start(self)
+
+        if self.status_id & ST_RUNNING:
+            self.toolhead.recover(callback)
+        else:
+            self._on_toolhead_recovered_and_allset(self.toolhead)
+
+    def _on_toolhead_recovered_and_allset(self, *args):
+        # status_id should be (4, 6, 18)
+        # Mainboard should be ready
+        # Toolhead should be ready
+        # Toolhead status should be allset
+        if self.status_id == 4 or self.status_id == 6:
+            self.started()
+        elif self.status_id == 18:
+            if self._mb_stashed:
+                self.mainboard.send_cmd("C2F")
+                self._mb_stashed = False
+            else:
                 self.resumed()
-
-            if self.status_id == 4:  # if status_id == ST_STARTING
-                self.started()
-            else:
-                self._process_resume()
-
-    def on_macro_complete(self):
-        logging.debug("Macro complete: %s", self.macro)
-        macro = self.macro
-        self.macro = None
-        if isinstance(macro, StartupMacro):
-            assert not self._cmd_queue
-
-            self._cmd_queue = deque()
-            self._fsm.set_max_exec_time(0.1)
-
-            if self.options.correction in ("A", "H"):
-                self.macro = WaitHeadMacro(self.on_preheating_complete,
-                                           "H0170")
-                if self.status_id == ST_RUNNING:
-                    logging.debug("Start macro: WaitHeadMacro(\"H0170\")")
+                if self.macro:
                     self.macro.start(self)
-            else:
-                self.fire()
-
-        elif isinstance(macro, CorrectionMacro):
-            self.macro = ZprobeMacro(self.on_macro_complete)
-            if self.status_id == ST_RUNNING:
-                logging.debug("Start macro: %s", self.macro)
-                self.macro.start(self)
-
-        elif isinstance(macro, ZprobeMacro):
-            self.fire()
-
-        elif isinstance(macro, WaitHeadMacro):
-            self.fire()
-
+                else:
+                    self.fire()
         else:
-            self.fire()
+            logger.error("Unknown action for status %i in "
+                         "on_toolhead_recovered_and_allset", self.status_id)
 
-    def on_preheating_complete(self):
-        logging.debug("Macro complete: %s", self.macro)
+    def _clear_macro(self):
         self.macro = None
-        if self.options.correction == "A":
-            logging.debug("Run macro: CorrectionMacro")
-            self.macro = CorrectionMacro(self.on_macro_complete)
-            logging.debug("Start macro: %s", self.macro)
-            self.macro.start(self)
-        elif self.options.correction == "H":
-            logging.debug("Run macro: ZprobeMacro")
-            self.macro = ZprobeMacro(self.on_macro_complete)
-            logging.debug("Start macro: %s", self.macro)
-            self.macro.start(self)
-        else:
-            self.fire()
+        self.fire()
 
     def started(self):
         super(FcodeExecutor, self).started()
-        self.macro = StartupMacro(self.on_macro_complete, self.options)
+
+        def callback():
+            logging.debug("StartupMacro completed.")
+            self.macro = None
+            self._cmd_queue = deque()
+            self._fsm.set_max_exec_time(0.1)
+            if self.options.correction in ("A", "H"):
+                self.do_correction()
+            else:
+                self.fire()
+
+        self.macro = StartupMacro(callback, self.options)
+        logging.debug("StartupMacro start.")
         self.macro.start(self)
 
-    def _process_pause(self):
+    def do_correction(self):
+        def correction_ready():
+            logging.debug("ZprobeMacro start.")
+            self.macro = ZprobeMacro(self._clear_macro)
+            self.macro.start(self)
+
+        def toolhead_ready():
+            logging.debug("ControlHeaterMacro completed.")
+            if self.options.correction == "A":
+                logging.debug("CorrectionMacro start.")
+                self.macro = CorrectionMacro(correction_ready)
+                self.macro.start(self)
+            elif self.options.correction == "H":
+                logging.debug("ZprobeMacro start.")
+                self.macro = ZprobeMacro(self._clear_macro)
+                self.macro.start(self)
+            else:
+                self.fire()
+
+        self.macro = ControlHeaterMacro(toolhead_ready, 0, 170)
+        logging.debug("ControlHeaterMacro start.")
+        self.macro.start(self)
+
+    def _handle_pause(self):
+        # Call only when (status_id == 38 or 50) AND mainboard command queue is
+        # becomming EMPTY
         if self.error_symbol:
             errcode = getattr(self.error_symbol, "hw_error_code", 69)
         else:
             errcode = 80
 
         if self.status_id & 4:
-            self.main_ctrl.send_cmd("X5S%i" % errcode, self)
+            self.mainboard.send_cmd("X5S%i" % errcode)
             self.paused()
 
-        elif self.main_ctrl.buffered_cmd_size == 0:
+        elif self.mainboard.buffered_cmd_size == 0:
             if self.macro:
-                self.main_ctrl.send_cmd("X5S%i" % errcode, self)
-                self.paused()
-                self.macro.giveup()
+                self.mainboard.send_cmd("X5S%i" % errcode)
+                if self.macro.giveup(self):
+                    self.paused()
+                else:
+                    logger.debug("Waitting for macro giving up.")
             elif self._mb_stashed:
                 self.paused()
             else:
                 if self.error_symbol:
-                    self.main_ctrl.send_cmd("C2E%i" % errcode, self)
+                    self.mainboard.send_cmd("C2E%i" % errcode)
                 else:
-                    self.main_ctrl.send_cmd("C2E1", self)
+                    self.mainboard.send_cmd("C2E1")
                 self._mb_stashed = True
-
-    def _process_resume(self):
-        if self.main_ctrl.ready and self.head_ctrl.ready:
-            if self.main_ctrl.buffered_cmd_size == 0:
-                if self.head_ctrl.allset:
-                    if self._mb_stashed:
-                        self.main_ctrl.send_cmd("C2F", self)
-                        self._mb_stashed = False
-                    else:
-                        self.resumed()
-                        if self.status_id & 4:
-                            self.started()
-                        else:
-                            if self.macro:
-                                self.macro.start(self)
-                            else:
-                                self.fire()
-                else:
-                    def on_allset():
-                        self.on_controller_ready(self.head_ctrl)
-
-                    m = WaitHeadMacro(on_allset)
-                    m.start(self)
 
     def pause(self, symbol=None):
         if BaseExecutor.pause(self, symbol):
-            self._process_pause()
+            if self.mainboard.buffered_cmd_size == 0:
+                self._handle_pause()
             return True
         else:
             return False
 
     def resume(self):
         if BaseExecutor.resume(self):
-            self.main_ctrl.send_cmd("X5S0", self)
-
-            if self.main_ctrl.ready and self.head_ctrl.ready:
-                self._process_resume()
-            else:
-                if not self.main_ctrl.ready:
-                    self.main_ctrl.bootstrap(self)
-                if not self.head_ctrl.ready:
-                    self.head_ctrl.bootstrap(self)
+            self.mainboard.send_cmd("X5S0")
+            self.mainboard.bootstrap(self._on_mainboard_ready)
             return True
         else:
             return False
 
-    def abort(self, symbol=None):
-        if BaseExecutor.abort(self, symbol):
-            self.close()
-            return True
-        else:
-            return False
+    def _cb_feed_command(self, *args):
+        self._cmd_queue.append(args)
 
     def fire(self):
-        if not self.macro and self.status_id == ST_RUNNING:
+        if self.status_id == ST_RUNNING and self._eof:
+            if self._task_loader.exitcode is not None and \
+                    self._task_loader.exitcode > 0:
+                raise SystemError(UNKNOWN_ERROR, SUBSYSTEM_ERROR, "TASKLOADER")
+
+            self.status_id = ST_COMPLETING
+            fsm = self._fsm
+            x, y, z = fsm.get_x(), fsm.get_y(), fsm.get_z()
+            if x == x and y == y and z <= 200:
+                self.mainboard.send_cmd("G1F10392X0Y0Z205")
+            else:
+                self.status_id = ST_COMPLETED
+                self.close()
+
+        elif self.status_id == ST_RUNNING and not self.macro:
             while (not self._eof) and len(self._cmd_queue) < 24:
                 ret = self._fsm.feed(self._task_loader.fileno(),
                                      self._cb_feed_command)
@@ -290,27 +282,27 @@ class FcodeExecutor(AutoResume, BaseExecutor):
             while self._cmd_queue:
                 target = self._cmd_queue[0][1]
                 if target == 1:
-                    if self.main_ctrl.queue_full:
+                    if self.mainboard.queue_full:
                         return
                     else:
                         cmd = self._cmd_queue.popleft()[0]
-                        self.main_ctrl.send_cmd(cmd, self)
+                        self.mainboard.send_cmd(cmd)
                 elif target == 2:
-                    if self.main_ctrl.buffered_cmd_size == 0:
-                        if self.head_ctrl.is_busy:
-                            return
-                        else:
+                    if self.mainboard.buffered_cmd_size == 0:
+                        if self.toolhead.sendable:
                             cmd = self._cmd_queue.popleft()[0]
-                            self.head_ctrl.send_cmd(cmd, self)
+                            exec_toolhead_cmd(self.toolhead, cmd)
+                        else:
+                            return
                     else:
                         return
 
                 elif target == 4:
-                    if self.main_ctrl.buffered_cmd_size == 0:
-                        if not self.head_ctrl.is_busy:
+                    if self.mainboard.buffered_cmd_size == 0:
+                        if self.toolhead.sendable:
                             cmd = self._cmd_queue.popleft()[0]
-                            self.macro = WaitHeadMacro(self.on_macro_complete,
-                                                       cmd)
+                            self.macro = ControlToolheadMacro(
+                                self._clear_macro, cmd)
                             self.macro.start(self)
                     return
                 elif target == 8:
@@ -323,99 +315,99 @@ class FcodeExecutor(AutoResume, BaseExecutor):
                 else:
                     raise SystemError(UNKNOWN_ERROR, "TARGET=%i" % target)
 
-            if self.main_ctrl.buffered_cmd_size is 0:
-                self._on_mainboard_empty(self.main_ctrl)
-
-    def _cb_feed_command(self, *args):
-        self._cmd_queue.append(args)
-
-    def _on_mainboard_empty(self, sender):
+    def _on_mb_empty(self, sender):
         if self.status_id & 34 == 34:  # PAUSING
-            self._process_pause()
+            self._handle_pause()
         elif self.status_id & 2 and self.status_id < 32:  # RESUMING
-            self._process_resume()
+            logger.debug("Mainboard queue empty during resuming")
+        elif self.status_id == 48:  # PAUSED
+            if self.paused_macro:
+                self.paused_macro.on_command_empty(self)
         elif self.macro:
             self.macro.on_command_empty(self)
-        elif self.status_id == ST_RUNNING and self._eof and \
-                not self._cmd_queue:
-            self.status_id = ST_COMPLETING
-            fsm = self._fsm
-            x, y, z = fsm.get_x(), fsm.get_y(), fsm.get_z()
-            if x == x and y == y and z <= 200:
-                self.main_ctrl.send_cmd("G1F6000X0Y0Z205", self)
-            else:
-                self.status_id = ST_COMPLETED
-                self.close()
-
         elif self.status_id == ST_COMPLETING:
             self.status_id = ST_COMPLETED
             self.close()
         else:
             self.fire()
 
-    def _on_mainboard_sendable(self, sender):
-        if self.macro:
+    def _on_mb_sendable(self, sender):
+        if self.status_id == 48:
+            if self.paused_macro:
+                self.paused_macro.on_command_empty(self)
+        elif self.status_id & 16 and self.macro:
             self.macro.on_command_sendable(self)
         else:
             self.fire()
 
-    def on_mainboard_message(self, msg):
-        try:
-            if self.macro:
-                self.macro.on_mainboard_message(msg, self)
+    def _on_mb_ctrl(self, sender, data):
+        if self.status_id == 48:
+            if self.paused_macro:
+                self.paused_macro.on_command_empty(self)
 
-            self.main_ctrl.on_message(msg, self)
-            self.fire()
-        except RuntimeError as err:
-            if not self.pause(err):
-                logger.warn("Error occour: %s" % repr(err.args))
+        elif self.macro:
+            self.macro.on_ctrl_message(sender, data)
+
+        if data == "STASH_POP":
+            if self.status_id == 18:
+                self.resumed()
+                self.fire()
+            else:
+                logger.error("Recv stash pop at status: %i", self.status_id)
+        else:
+            logger.debug("ctrl: %s", data)
+
+    def on_mainboard_recv(self):
+        try:
+            self.mainboard.handle_recv()
+        except RuntimeError as er:
+            if not self.pause(er):
+                logger.warn("Error occour: %s" % repr(er.args))
         except SystemError as err:
             self.abort(err)
         except Exception as err:
-            if self.debug:
-                raise
             logger.exception("Error while processing mainboard message")
             if allow_god_mode():
                 self.abort(err)
             else:
                 self.abort(RuntimeError(UNKNOWN_ERROR, "MAINBAORD_ERROR"))
+            raise
 
-    def on_headboard_message(self, msg):
+    def on_toolhead_recv(self):
         try:
-            if self.macro:
-                self.macro.on_headboard_message(msg, self)
+            self.toolhead.handle_recv()
+            if self.status_id == ST_RUNNING:
+                check_toolhead_errno(self.toolhead, self.th_error_flag)
 
-            self.head_ctrl.on_message(msg, self)
-            self.fire()
-        except RuntimeError as err:
+        except RuntimeError as er:
             # TODO: cut toolhead 5v because pwm issue
-            if err.args[:2] == ('HEAD_ERROR', 'HARDWARE_FAILURE'):
+            if er.args[:2] == ('HEAD_ERROR', 'HARDWARE_FAILURE'):
                 reset_hb()
 
-            if not self.pause(err):
-                logger.warn("Error occour: %s" % repr(err.args))
-        except SystemError as err:
-            self.abort(err)
-        except Exception as err:
-            if self.debug:
-                raise
+            if not self.pause(er):
+                logger.warn("Error occour: %s" % repr(er.args))
+
+        except SystemError as er:
+            self.abort(er)
+
+        except Exception as er:
             logger.exception("Error while processing headboard message")
             if allow_god_mode():
-                self.abort(err)
+                self.abort(er)
             else:
                 self.abort(RuntimeError(UNKNOWN_ERROR, "HEADBOARD_ERROR"))
+            raise
 
     # def load_filament(self, extruder_id):
     #     self.send_mainboard("@\n")
     #
     # def eject_filament(self, extruder_id):
     #     pass
-    #
 
     def on_loop(self):
         try:
-            self.main_ctrl.patrol(self)
-            self.head_ctrl.patrol(self)
+            self.mainboard.patrol()
+            self.toolhead.patrol()
 
         except RuntimeError as err:
             if not self.pause(err):
@@ -424,10 +416,14 @@ class FcodeExecutor(AutoResume, BaseExecutor):
         except SystemError as err:
             self.abort(err)
         except Exception as err:
-            if self.debug:
-                raise
             logger.exception("Error while processing loop")
             if allow_god_mode():
                 self.abort(err)
             else:
                 self.abort(RuntimeError(UNKNOWN_ERROR, "LOOP_ERROR"))
+            raise
+
+    def close(self):
+        self._task_loader.close()
+        self.mainboard.close()
+        self.toolhead.shutdown()

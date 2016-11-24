@@ -5,7 +5,6 @@ import logging
 import socket
 import json
 import os
-import re
 
 import pyev
 
@@ -13,7 +12,7 @@ from fluxmonitor.storage import Metadata, UserSpace
 from fluxmonitor.services.base import ServiceBase
 
 from .fcode_executor import FcodeExecutor
-from .connection import create_mainboard_socket, create_headboard_socket
+from .connection import create_mainboard_socket, create_toolhead_socket
 from .options import Options
 from .misc import TaskLoader
 
@@ -23,7 +22,8 @@ logger = logging.getLogger("")
 
 def parse_float(str_val):
     try:
-        return float(str_val)
+        val = float(str_val)
+        return float("NAN") if val == 0 else val
     except (ValueError, TypeError):
         return float("NAN")
 
@@ -42,14 +42,14 @@ class Player(ServiceBase):
         self.prepare_control_socket(options.control_endpoint)
         self.meta = Metadata()
 
-        main_sock = create_mainboard_socket()
-        head_sock = create_headboard_socket()
+        m_sock = create_mainboard_socket()
+        t_sock = create_toolhead_socket()
 
-        self.main_watcher = self.loop.io(main_sock, pyev.EV_READ,
-                                         self.on_mainboard_message, main_sock)
+        self.main_watcher = self.loop.io(m_sock, pyev.EV_READ,
+                                         self.on_mainboard_recv, m_sock)
         self.main_watcher.start()
-        self.head_watcher = self.loop.io(head_sock, pyev.EV_READ,
-                                         self.on_headboard_message, head_sock)
+        self.head_watcher = self.loop.io(t_sock, pyev.EV_READ,
+                                         self.on_toolhead_recv, t_sock)
         self.head_watcher.start()
 
         self.timer_watcher = self.loop.timer(0.8, 0.8, self.on_timer)
@@ -74,12 +74,11 @@ class Player(ServiceBase):
             except Exception:
                 logger.exception("Can not place recent file")
 
-        self.executor = FcodeExecutor(main_sock, head_sock, taskloader,
-                                      exec_opt)
+        self.executor = FcodeExecutor(m_sock, t_sock, taskloader, exec_opt)
 
         self.travel_dist = parse_float(taskloader.metadata.get("TRAVEL_DIST"))
         self.time_cose = parse_float(taskloader.metadata.get("TIME_COST"))
-        self.avg_speed = self.travel_dist / self.time_cose
+        # self.avg_speed = self.travel_dist / self.time_cose
 
     def prepare_control_socket(self, endpoint):
         if not endpoint:
@@ -140,51 +139,15 @@ class Player(ServiceBase):
         self.cmd_watcher.data.close()
         self.cmd_watcher = None
 
-    def on_mainboard_message(self, watcher, revent):
+    def on_mainboard_recv(self, watcher, revent):
         try:
-            buf = watcher.data.recv(4096)
-        except IOError:
-            logger.exception("Mainboard socket I/O error")
-            return
-
-        try:
-            if not buf:
-                logger.error("Mainboard connection broken")
-                self.executor.abort("CONTROL_FAILED", "MB_CONN_BROKEN")
-
-            if self._mb_swap:
-                self._mb_swap += buf.decode("ascii", "ignore")
-            else:
-                self._mb_swap = buf.decode("ascii", "ignore")
-
-            messages = re.split("\r\n|\n", self._mb_swap)
-            self._mb_swap = messages.pop()
-            for msg in messages:
-                self.executor.on_mainboard_message(msg)
+            self.executor.on_mainboard_recv()
         except Exception:
             logger.exception("Process mainboard message error")
 
-    def on_headboard_message(self, watcher, revent):
+    def on_toolhead_recv(self, watcher, revent):
         try:
-            buf = watcher.data.recv(4096)
-        except IOError:
-            logger.exception("Headboard socket I/O error")
-            return
-
-        try:
-            if not buf:
-                logger.error("Headboard connection broken")
-                self.executor.abort("CONTROL_FAILED", "HB_CONN_BROKEN")
-
-            if self._hb_swap:
-                self._hb_swap += buf.decode("ascii", "ignore")
-            else:
-                self._hb_swap = buf.decode("ascii", "ignore")
-
-            messages = re.split("\r\n|\n", self._hb_swap)
-            self._hb_swap = messages.pop()
-            for msg in messages:
-                self.executor.on_headboard_message(msg)
+            self.executor.on_toolhead_recv()
         except Exception:
             logger.exception("Process toolhead message error")
 
@@ -253,6 +216,7 @@ class Player(ServiceBase):
                 watcher.stop()
             prog = self.executor.traveled / self.travel_dist
             self.meta.update_device_status(self.executor.status_id, prog,
-                                           self.executor.head_ctrl.module, err)
+                                           self.executor.toolhead.module_name,
+                                           err)
         except Exception:
             logger.exception("Unhandler Error")

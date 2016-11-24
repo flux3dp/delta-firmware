@@ -11,35 +11,20 @@ class StartupMacro(object):
         if options:
             self.filament_detect = options.filament_detect == "Y"
 
-    def start(self, executor):
+    def start(self, k):
         # Select extruder 0
-        executor.main_ctrl.send_cmd("T0", executor)
+        k.mainboard.send_cmd("T0")
         # Absolute Positioning
-        executor.main_ctrl.send_cmd("G90", executor)
+        k.mainboard.send_cmd("G90")
         # Set E to 0
-        executor.main_ctrl.send_cmd("G92E0", executor)
+        k.mainboard.send_cmd("G92E0")
         # Home
-        executor.main_ctrl.send_cmd("G28+", executor)
+        k.mainboard.send_cmd("G28+")
 
         if self.filament_detect:
-            executor.main_ctrl.send_cmd("X8O", executor)
+            k.mainboard.send_cmd("X8O")
         else:
-            executor.main_ctrl.send_cmd("X8F", executor)
+            k.mainboard.send_cmd("X8F")
 
-    def giveup(self):
-        pass
-
-    def on_command_empty(self, executor):
+    def on_command_empty(self, k):
         self._on_success_cb()
-
-    def on_command_sendable(self, executor):
-        pass
-
-    def on_mainboard_message(self, msg, executor):
-        pass
-
-    def on_headboard_message(self, msg, executor):
-        pass
-
-    def on_patrol(self, executor):
-        pass

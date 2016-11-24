@@ -6,6 +6,7 @@ from fluxmonitor.err_codes import HARDWARE_ERROR, EXEC_CONVERGENCE_FAILED, \
     EXEC_ZPROBE_ERROR
 from fluxmonitor.storage import Metadata
 from fluxmonitor.misc import correction
+from .base import MacroBase
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +22,7 @@ def do_calibrate(meta, x, y, z):
     return "M666X%(X).4fY%(Y).4fZ%(Z).4f" % new_corr
 
 
-class CorrectionMacro(object):
+class CorrectionMacro(MacroBase):
     name = "CORRECTING"
 
     def __init__(self, on_success_cb, clean=False, ttl=6, threshold=0.05,
@@ -41,16 +42,34 @@ class CorrectionMacro(object):
         self.convergence = False
         self.round = 0
 
-    def on_command_empty(self, executor):
+    def start(self, k):
+        self._running = True
+        self.round = 0
+        if self._clean:
+            self.meta.plate_correction = {"X": 0, "Y": 0, "Z": 0, "H": 242}
+            k.mainboard.send_cmd("M666X0Y0Z0H242")
+        else:
+            k.mainboard.send_cmd("M666H242")
+
+    def giveup(self, k):
+        if self._running:
+            k.mainboard.send_cmd("G1F10392X0Y0Z200")
+            self._running = False
+            self.data = []
+            return False
+        else:
+            return True
+
+    def on_command_empty(self, k):
         if not self._running:
             return
         l = len(self.data)
         if l == 0:
             if self.round >= self.ttl:
                 self.meta.plate_correction = {"X": 0, "Y": 0, "Z": 0, "H": 242}
-                executor.main_ctrl.send_cmd("M666X0Y0Z0H242", executor)
-                executor.main_ctrl.send_cmd("G1F10000X0Y0Z230", executor)
-                executor.main_ctrl.send_cmd("G28+", executor)
+                k.mainboard.send_cmd("M666X0Y0Z0H242")
+                k.mainboard.send_cmd("G1F10392X0Y0Z230")
+                k.mainboard.send_cmd("G28+")
                 raise RuntimeError(HARDWARE_ERROR, EXEC_CONVERGENCE_FAILED)
 
             elif self.convergence:
@@ -58,12 +77,12 @@ class CorrectionMacro(object):
 
             else:
                 logger.debug("Correction Round: %i", self.round)
-                executor.main_ctrl.send_cmd("G30X-73.6122Y-42.5", executor)
+                k.mainboard.send_cmd("G30X-73.6122Y-42.5")
 
         elif l == 1:
-            executor.main_ctrl.send_cmd("G30X73.6122Y-42.5", executor)
+            k.mainboard.send_cmd("G30X73.6122Y-42.5")
         elif l == 2:
-            executor.main_ctrl.send_cmd("G30X0Y85", executor)
+            k.mainboard.send_cmd("G30X0Y85")
         elif l == 3:
             self.history.append(self.data)
             data = self.data
@@ -74,56 +93,32 @@ class CorrectionMacro(object):
                 logger.error("Correction input failed: %s", data)
                 # Re-run
                 self.round += 1
-                self.on_command_empty(executor)
+                self.on_command_empty(k)
             elif dd < self.threshold:
                 logger.info("Correction completed: %s", data)
                 self.convergence = True
 
                 if self.correct_at_final:
                     corr_str = do_calibrate(self.meta, *data)
-                    executor.main_ctrl.send_cmd(corr_str, executor)
-                executor.main_ctrl.send_cmd("G1F9000X0Y0Z30", executor)
+                    k.mainboard.send_cmd(corr_str)
+                k.mainboard.send_cmd("G1F10392X0Y0Z30")
 
             else:
                 corr_str = do_calibrate(self.meta, *data)
                 logger.debug("New Correction: %s" % corr_str)
-                executor.main_ctrl.send_cmd(corr_str, executor)
-
+                k.mainboard.send_cmd(corr_str)
                 self.round += 1
-                self.on_command_empty(executor)
 
-    def on_command_sendable(self, executor):
-        pass
-
-    def start(self, executor):
-        self._running = True
-        self.round = 0
-        if self._clean:
-            self.meta.plate_correction = {"X": 0, "Y": 0, "Z": 0, "H": 242}
-            executor.main_ctrl.send_cmd("M666X0Y0Z0H242", executor)
-        else:
-            executor.main_ctrl.send_cmd("M666H242", executor)
-
-    def giveup(self):
-        self._running = False
-        self.data = []
-
-    def on_mainboard_message(self, msg, executor):
-        if msg.startswith("DATA ZPROBE "):
-            str_probe = msg.rsplit(" ", 1)[-1]
+    def on_ctrl_message(self, k, data):
+        if data.startswith("DATA ZPROBE "):
+            str_probe = data.rsplit(" ", 1)[-1]
             val = float(str_probe)
             if val <= -50:
                 # Clean fsr
                 self.data = []
-                executor.main_ctrl.send_cmd("G1F9000X0Y0Z230", executor)
+                k.mainboard.send_cmd("G1F9000X0Y0Z230")
                 raise RuntimeError(HARDWARE_ERROR, EXEC_ZPROBE_ERROR)
 
             self.data.append(val)
-        elif msg.startswith("DEBUG "):
-            self.debug_logs.append(msg[6:])
-
-    def on_headboard_message(self, msg, executor):
-        pass
-
-    def on_patrol(self, executor):
-        pass
+        elif data.startswith("DEBUG "):
+            self.debug_logs.append(data[6:])
