@@ -65,7 +65,7 @@ class PlayerManager(object):
             # TODO: remove debug
             cmd = ["fluxplayer", "-c", PLAY_ENDPOINT, "--task", taskfile,
                    "--log", storage.get_path("fluxplayerd.log"), "--pid",
-                   storage.get_path("fluxplayerd.pid"), "--debug"]
+                   storage.get_path("fluxplayerd.pid")]
             if logger.getEffectiveLevel() <= 10:
                 cmd += ["--debug"]
 
@@ -161,6 +161,14 @@ class PlayerManager(object):
 
     def abort(self):
         self.sock.send("ABORT")
+        return self.sock.recv(4096)
+
+    def set_toolhead_operating(self):
+        self.sock.send("SET_TH_OPERATING")
+        return self.sock.recv(4096)
+
+    def set_toolhead_standby(self):
+        self.sock.send("SET_TH_STANDBY")
         return self.sock.recv(4096)
 
     def load_filament(self):

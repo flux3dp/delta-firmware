@@ -3,6 +3,8 @@ from .command import CommandMacro
 
 
 class LoadFilamentMacro(CommandMacro):
+    name = "LOAD_FILAMENT"
+
     def __init__(self, success_cb, index, detect, on_message=None):
         CommandMacro.__init__(self, success_cb, ("T%i" % index,
                                                  "C3+" if detect else "C3"),
@@ -13,5 +15,7 @@ class LoadFilamentMacro(CommandMacro):
 
 
 class UnloadFilamentMacro(CommandMacro):
+    name = "UNLOAD_FILAMENT"
+
     def __init__(self, success_cb, index):
         CommandMacro.__init__(self, success_cb, ("T%i" % index, "C4"))

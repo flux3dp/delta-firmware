@@ -38,6 +38,12 @@ class HalService(ServiceBase):
     def reset_headboard(self):
         self.hal.reset_headboard()
 
+    def toolhead_on(self):
+        self.hal.toolhead_on()
+
+    def toolhead_standby(self):
+        self.hal.toolhead_standby()
+
     def update_head_fw(self, callback):
         self.hal.update_head_fw(callback)
 

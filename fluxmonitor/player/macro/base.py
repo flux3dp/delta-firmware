@@ -1,5 +1,7 @@
 
 class MacroBase(object):
+    name = "Noname"
+
     def start(self, k):
         # Send any commands you want,
         # on_command_empty will be invoke when all yours commands are done.

@@ -217,6 +217,7 @@ def main(params=None):
 
     from fluxmonitor.halprofile import CURRENT_MODEL # noqa
     from fluxmonitor import security  # noqa # init security property
+    from fluxmonitor import __version__
 
     try:
         if CURRENT_MODEL == 'delta-1':
@@ -239,6 +240,8 @@ def main(params=None):
         except Exception as e:
             print(repr(e))
 
+    debug_mode = "a" in __version__
+
     for service, startup_params in SERVICE_LIST:
         ret = check_running(service)
         if ret:
@@ -254,7 +257,11 @@ def main(params=None):
         if pid == 0:
             # child
             entry = load_entry_point('fluxmonitor', 'console_scripts', service)
-            entry(startup_params)
+            if debug_mode:
+                entry(startup_params + ("--debug", ))
+            else:
+                entry(startup_params)
+
             break
         else:
             # parent, check whether servie started

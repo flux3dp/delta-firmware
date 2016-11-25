@@ -295,6 +295,14 @@ class PlayManagerMixIn(object):
         else:
             handler.send_text('{"st_id": 0, "st_label": "IDLE"}')
 
+    def __play_set_toolhead_operating(self, handler):
+        manager = self.__get_manager()
+        handler.send_text(manager.set_toolhead_operating())
+
+    def __play_set_toolhead_standby(self, handler):
+        manager = self.__get_manager()
+        handler.send_text(manager.set_toolhead_standby())
+
     def dispatch_playmanage_cmd(self, handler, cmd, *args):
         if cmd == "pause":
             self.__play_pause(handler)
@@ -310,6 +318,10 @@ class PlayManagerMixIn(object):
             self.__play_info(handler)
         elif cmd == "start":
             self.__start(handler)
+        elif cmd == "set_toolhead_operating":
+            self.__play_set_toolhead_operating(handler)
+        elif cmd == "set_toolhead_standby":
+            self.__play_set_toolhead_standby(handler)
         elif cmd == "load_filament":
             raise RuntimeError(UNKNOWN_COMMAND)
         elif cmd == "eject_filament":

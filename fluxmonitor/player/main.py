@@ -179,6 +179,16 @@ class Player(ServiceBase):
                     self.send_cmd_response(S, R, "ok")
                 else:
                     self.send_cmd_response(S, R, "error RESOURCE_BUSY")
+            elif cmd == "SET_TH_OPERATING":
+                if self.executor.set_toolhead_operation():
+                    self.send_cmd_response(S, R, "ok")
+                else:
+                    self.send_cmd_response(S, R, "error RESOURCE_BUSY")
+            elif cmd == "SET_TH_STANDBY":
+                if self.executor.set_toolhead_standby():
+                    self.send_cmd_response(S, R, "ok")
+                else:
+                    self.send_cmd_response(S, R, "error RESOURCE_BUSY")
             elif cmd == "LOAD_FILAMENT":
                 if self.executor.load_filament(int(args[1])):
                     self.send_cmd_response(S, R, "ok")
@@ -215,8 +225,9 @@ class Player(ServiceBase):
             if self.executor.is_closed():
                 watcher.stop()
             prog = self.executor.traveled / self.travel_dist
-            self.meta.update_device_status(self.executor.status_id, prog,
-                                           self.executor.toolhead.module_name,
-                                           err)
+
+            self.meta.update_device_status(
+                self.executor.status_id, prog,
+                self.executor.toolhead.module_name or "N/A", err)
         except Exception:
             logger.exception("Unhandler Error")

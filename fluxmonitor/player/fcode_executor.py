@@ -4,9 +4,10 @@ import logging
 
 from fluxmonitor.diagnosis.god_mode import allow_god_mode
 from fluxmonitor.misc.systime import systime as time
+from fluxmonitor.diagnosis.tracer import tracer
 from fluxmonitor.err_codes import (UNKNOWN_ERROR, EXEC_BAD_COMMAND,
                                    SUBSYSTEM_ERROR)
-from fluxmonitor.hal.tools import reset_hb
+from fluxmonitor.hal.tools import reset_hb, toolhead_on, toolhead_standby
 
 from .base import BaseExecutor
 from .base import (
@@ -21,6 +22,11 @@ from .head_controller import (HeadController, check_toolhead_errno,
                               exec_command as exec_toolhead_cmd)
 
 logger = logging.getLogger(__name__)
+
+STASHING_FLAG = 1
+STASHED_FLAG = 2
+TOOLHEAD_STANDINGBY_FLAG = 4
+TOOLHEAD_STANDBY_FLAG = 8
 
 
 class AutoResume(object):
@@ -77,7 +83,7 @@ class FcodeExecutor(AutoResume, BaseExecutor):
     _eof = False
     # Gcode parser
     _fsm = None
-    _mb_stashed = False
+    _pause_flags = 0
     _cmd_queue = None
 
     def __init__(self, mainboard_io, headboard_io, task_loader, options):
@@ -127,7 +133,7 @@ class FcodeExecutor(AutoResume, BaseExecutor):
         self.toolhead.bootstrap(self._on_toolhead_ready)
 
     def _on_toolhead_ready(self, toolhead):
-        # status_id should be (4, 6, 18)
+        # status_id should be (4, 6, 18, 48)
         # Mainboard should be ready
         def callback(toolhead):
             if self.toolhead.allset:
@@ -136,31 +142,66 @@ class FcodeExecutor(AutoResume, BaseExecutor):
                 m = WaitHeadMacro(self._on_toolhead_recovered_and_allset)
                 m.start(self)
 
+        if self.toolhead.module_name != "N/A":
+            logger.debug("Set toolhead mode: operating")
+            toolhead_on()
+
         if self.status_id & ST_RUNNING:
             self.toolhead.recover(callback)
         else:
             self._on_toolhead_recovered_and_allset(self.toolhead)
 
     def _on_toolhead_recovered_and_allset(self, *args):
-        # status_id should be (4, 6, 18)
+        # status_id should be (4, 6, 18, 48)
         # Mainboard should be ready
         # Toolhead should be ready
         # Toolhead status should be allset
+        self._pause_flags &= ~TOOLHEAD_STANDBY_FLAG
         if self.status_id == 4 or self.status_id == 6:
             self.started()
         elif self.status_id == 18:
-            if self._mb_stashed:
+            if self._pause_flags & STASHED_FLAG:
+                self._pause_flags &= ~STASHED_FLAG
                 self.mainboard.send_cmd("C2F")
-                self._mb_stashed = False
             else:
                 self.resumed()
-                if self.macro:
-                    self.macro.start(self)
-                else:
-                    self.fire()
+        elif self.status_id == 48:
+            logger.debug("Toolhead ready and all set during paused")
         else:
             logger.error("Unknown action for status %i in "
-                         "on_toolhead_recovered_and_allset", self.status_id)
+                         "on_toolhead_recovered_and_allset.", self.status_id)
+
+    def _pause_toolhead(self, sender=None):
+        if self.toolhead.ready:
+            if self.toolhead.sendable():
+                self._pause_flags |= TOOLHEAD_STANDINGBY_FLAG
+                self.toolhead.standby(self._toolhead_paused)
+                logger.debug("Standby toolhead.")
+            else:
+                logger.debug("Waitting toolhead complete command.")
+                self.toolhead.set_command_callback(self._pause_toolhead)
+        else:
+            logger.debug("Ignore standby toolhead because it is not ready.")
+            self._toolhead_paused()
+
+    def _toolhead_paused(self, sender=None):
+        if self.status_id == 50 or self.status_id == 48:
+            logger.debug("Toolhead standby completed.")
+            self._pause_flags &= ~TOOLHEAD_STANDINGBY_FLAG
+
+            if self.toolhead.ready:
+                self._pause_flags |= TOOLHEAD_STANDBY_FLAG
+            else:
+                self._pause_flags &= ~TOOLHEAD_STANDBY_FLAG
+
+            if self.status_id == 50:
+                self.paused()
+
+            logger.debug("Set toolhead mode: standby")
+            toolhead_standby()
+        else:
+            logger.error("Unknown action for status %i in toolhead_paused. ",
+                         self.status_id)
 
     def _clear_macro(self):
         self.macro = None
@@ -209,30 +250,67 @@ class FcodeExecutor(AutoResume, BaseExecutor):
     def _handle_pause(self):
         # Call only when (status_id == 38 or 50) AND mainboard command queue is
         # becomming EMPTY
+
         if self.error_symbol:
             errcode = getattr(self.error_symbol, "hw_error_code", 69)
         else:
             errcode = 80
 
-        if self.status_id & 4:
+        if self.status_id == 38:
             self.mainboard.send_cmd("X5S%i" % errcode)
             self.paused()
 
-        elif self.mainboard.buffered_cmd_size == 0:
-            if self.macro:
-                self.mainboard.send_cmd("X5S%i" % errcode)
-                if self.macro.giveup(self):
-                    self.paused()
-                else:
-                    logger.debug("Waitting for macro giving up.")
-            elif self._mb_stashed:
-                self.paused()
+        elif self.status_id == 50:
+            if self.mainboard.buffered_cmd_size:
+                logger.debug("Waitting mainboard command clear (caller=%s)",
+                             tracer)
             else:
-                if self.error_symbol:
-                    self.mainboard.send_cmd("C2E%i" % errcode)
+                if self.macro and self.macro.giveup(self) is False:
+                    logger.debug("Waitting macro giving up (caller=%s)",
+                                 tracer)
+                elif self._pause_flags & (STASHING_FLAG | STASHED_FLAG) == 0:
+                    # Ready for maincoard pause...
+
+                    self._pause_flags |= STASHING_FLAG
+                    stash_cmd = "C2"
+                    if self.error_symbol:
+                        stash_cmd += "E%i" % errcode
+                    else:
+                        stash_cmd += "E1"
+
+                    if self.macro:
+                        stash_cmd += "Z0"
+
+                    self.mainboard.send_cmd(stash_cmd)
                 else:
-                    self.mainboard.send_cmd("C2E1")
-                self._mb_stashed = True
+                    logger.debug("Nothing to do in handle_pause")
+        else:
+            logger.error("Unknown action for status %i in handle_pause.",
+                         self.status_id)
+
+    # public interface
+    def set_toolhead_operation(self):
+        if self.status_id == 48:
+            self.toolhead.bootstrap(self._on_toolhead_ready)
+            return True
+        else:
+            logger.warning("Can not set toolhead operation mode at status %i",
+                           self.status_id)
+            return False
+
+    # public interface
+    def set_toolhead_standby(self):
+        if self.status_id == 48 and self.toolhead.ready:
+            self._pause_toolhead()
+            return True
+        else:
+            return False
+
+    # def load_filament(self, extruder_id):
+    #     self.send_mainboard("@\n")
+    #
+    # def eject_filament(self, extruder_id):
+    #     pass
 
     def pause(self, symbol=None):
         if BaseExecutor.pause(self, symbol):
@@ -249,6 +327,14 @@ class FcodeExecutor(AutoResume, BaseExecutor):
             return True
         else:
             return False
+
+    def resumed(self):
+        BaseExecutor.resumed(self)
+        if self.macro:
+            logger.debug("Re-start macro: %s", self.macro.name)
+            self.macro.start(self)
+        else:
+            self.fire()
 
     def _cb_feed_command(self, *args):
         self._cmd_queue.append(args)
@@ -351,15 +437,24 @@ class FcodeExecutor(AutoResume, BaseExecutor):
         if data == "STASH_POP":
             if self.status_id == 18:
                 self.resumed()
-                self.fire()
             else:
-                logger.error("Recv stash pop at status: %i", self.status_id)
+                logger.error("Recv 'STASH_POP' at status: %i", self.status_id)
+        elif data == "STASH":
+            if self.status_id == 50:
+                self._pause_flags &= ~STASHING_FLAG
+                self._pause_flags |= STASHED_FLAG
+
+                self._pause_toolhead()
+            else:
+                logger.error("Recv 'STASH' at status: %i", self.status_id)
         else:
             logger.debug("ctrl: %s", data)
 
     def on_mainboard_recv(self):
         try:
             self.mainboard.handle_recv()
+        except IOError:
+            self.abort(SystemError(SUBSYSTEM_ERROR, "MAINBAORD_ERROR"))
         except RuntimeError as er:
             if not self.pause(er):
                 logger.warn("Error occour: %s" % repr(er.args))
@@ -378,8 +473,13 @@ class FcodeExecutor(AutoResume, BaseExecutor):
             self.toolhead.handle_recv()
             if self.status_id == ST_RUNNING:
                 check_toolhead_errno(self.toolhead, self.th_error_flag)
-
+        except IOError:
+            self.abort(SystemError(SUBSYSTEM_ERROR, "TOOLHEAD_ERROR"))
         except RuntimeError as er:
+            if not self.toolhead.ready:
+                self._pause_flags &= ~TOOLHEAD_STANDINGBY_FLAG
+                self._pause_flags |= TOOLHEAD_STANDINGBY_FLAG
+
             # TODO: cut toolhead 5v because pwm issue
             if er.args[:2] == ('HEAD_ERROR', 'HARDWARE_FAILURE'):
                 reset_hb()
@@ -395,14 +495,8 @@ class FcodeExecutor(AutoResume, BaseExecutor):
             if allow_god_mode():
                 self.abort(er)
             else:
-                self.abort(RuntimeError(UNKNOWN_ERROR, "HEADBOARD_ERROR"))
+                self.abort(RuntimeError(UNKNOWN_ERROR, "TOOLHEAD_ERROR"))
             raise
-
-    # def load_filament(self, extruder_id):
-    #     self.send_mainboard("@\n")
-    #
-    # def eject_filament(self, extruder_id):
-    #     pass
 
     def on_loop(self):
         try:
@@ -425,5 +519,18 @@ class FcodeExecutor(AutoResume, BaseExecutor):
 
     def close(self):
         self._task_loader.close()
-        self.mainboard.close()
-        self.toolhead.shutdown()
+        try:
+            self.mainboard.close()
+        except IOError as er:
+            logger.error("Mainboard close error: %s", er)
+        except Exception:
+            logger.exception("Mainboard close error")
+
+        try:
+            logger.debug("Set toolhead mode: standby")
+            toolhead_standby()
+            self.toolhead.shutdown()
+        except IOError as er:
+            logger.error("Toolhead shutdown error: %s", er)
+        except Exception:
+            logger.exception("Mainboard close error")

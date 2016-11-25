@@ -67,16 +67,8 @@ class UartHal(UartHalBase, BaseOnSerial):
     def hal_name(self):
         return "raspberrypi-%s" % self.gpio.version
 
-    def on_recvfrom_raspi_io_hw_v0(self, watcher, revent):
+    def on_recvfrom_raspi_io(self, watcher, revent):
         if self.gpio._head_enabled:
-            self.on_recvfrom_headboard(watcher, revent)
-        else:
-            self.on_recvfrom_pc(watcher, revent)
-
-    def on_recvfrom_raspi_io_hw_v1(self, watcher, revent):
-        if self.gpio._head_enabled:
-            if self.gpio.v24_power is False:
-                self.gpio.v24_power = True
             self.on_recvfrom_headboard(watcher, revent)
         else:
             self.on_recvfrom_pc(watcher, revent)
@@ -102,13 +94,9 @@ class UartHal(UartHalBase, BaseOnSerial):
         self.raspi_uart = Serial(port="/dev/ttyAMA0", baudrate=115200,
                                  stopbits=1, xonxoff=0, rtscts=0, timeout=0)
 
-        if self.gpio.version == 1:
-            callback = self.on_recvfrom_raspi_io_hw_v1
-        else:
-            callback = self.on_recvfrom_raspi_io_hw_v0
-
         self.raspi_io = self.kernel.loop.io(
-            self.raspi_uart, pyev.EV_READ, callback, self.raspi_uart)
+            self.raspi_uart, pyev.EV_READ, self.on_recvfrom_raspi_io,
+            self.raspi_uart)
         self.raspi_io.start()
 
         self.mainboard_uart = Serial(port=GPIOUtils.get_mainboard_port(),
@@ -195,6 +183,16 @@ class UartHal(UartHalBase, BaseOnSerial):
             logger.debug("Complete update toolhead fw")
         finally:
             self.connect_uart()
+
+    def toolhead_on(self):
+        if hasattr(self.gpio, "v24_power"):
+            if self.gpio.v24_power is False:
+                self.gpio.v24_power = True
+
+    def toolhead_standby(self):
+        if hasattr(self.gpio, "v24_power"):
+            if self.gpio.v24_power is True:
+                self.gpio.v24_power = False
 
     def send_button_event(self, event_buffer):
         self.kernel.on_button_event(event_buffer.rstrip())

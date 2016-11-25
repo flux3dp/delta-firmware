@@ -34,6 +34,10 @@ class HalControlHandler(MsgpackProtocol, UnixHandler):
                 self.kernel.reset_mainboard()
             elif cmd == "reset_hb":
                 self.kernel.reset_headboard()
+            elif cmd == "th_on":
+                self.kernel.toolhead_on()
+            elif cmd == "th_standby":
+                self.kernel.toolhead_standby()
             elif cmd == "update_head_fw":
                 def cb(message):
                     if resp:
@@ -41,6 +45,8 @@ class HalControlHandler(MsgpackProtocol, UnixHandler):
                 self.kernel.update_head_fw(cb)
             elif cmd == "update_fw":
                 self.kernel.update_main_fw()
+            elif cmd == "bye":
+                resp = False
 
             if resp:
                 self.send_payload((0, "ok",))
