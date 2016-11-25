@@ -375,7 +375,7 @@ class FcodeExecutor(AutoResume, BaseExecutor):
                         self.mainboard.send_cmd(cmd)
                 elif target == 2:
                     if self.mainboard.buffered_cmd_size == 0:
-                        if self.toolhead.sendable:
+                        if self.toolhead.sendable():
                             cmd = self._cmd_queue.popleft()[0]
                             exec_toolhead_cmd(self.toolhead, cmd)
                         else:
@@ -385,7 +385,7 @@ class FcodeExecutor(AutoResume, BaseExecutor):
 
                 elif target == 4:
                     if self.mainboard.buffered_cmd_size == 0:
-                        if self.toolhead.sendable:
+                        if self.toolhead.sendable():
                             cmd = self._cmd_queue.popleft()[0]
                             self.macro = ControlToolheadMacro(
                                 self._clear_macro, cmd)
@@ -473,6 +473,7 @@ class FcodeExecutor(AutoResume, BaseExecutor):
             self.toolhead.handle_recv()
             if self.status_id == ST_RUNNING:
                 check_toolhead_errno(self.toolhead, self.th_error_flag)
+            self.fire()
         except IOError:
             self.abort(SystemError(SUBSYSTEM_ERROR, "TOOLHEAD_ERROR"))
         except RuntimeError as er:
