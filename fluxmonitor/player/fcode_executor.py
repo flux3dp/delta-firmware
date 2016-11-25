@@ -432,7 +432,7 @@ class FcodeExecutor(AutoResume, BaseExecutor):
                 self.paused_macro.on_command_empty(self)
 
         elif self.macro:
-            self.macro.on_ctrl_message(sender, data)
+            self.macro.on_ctrl_message(self, data)
 
         if data == "STASH_POP":
             if self.status_id == 18:
