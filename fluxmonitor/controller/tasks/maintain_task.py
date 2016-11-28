@@ -17,6 +17,7 @@ from fluxmonitor.err_codes import (EXEC_HEAD_ERROR,
                                    UNKNOWN_COMMAND)
 from fluxmonitor.storage import Metadata
 from fluxmonitor.player import macro
+from fluxmonitor.hal import tools
 
 from .base import (CommandMixIn,
                    DeviceOperationMixIn,
@@ -67,10 +68,14 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         self.toolhead = HeadController(self._uart_hb.fileno())
 
         self.mainboard.bootstrap(on_mainboard_ready)
-        self.toolhead.bootstrap()
+        self.toolhead.bootstrap(self.on_toolhead_ready)
 
         self.timer_watcher = stack.loop.timer(1, 1, self.on_timer)
         self.timer_watcher.start()
+
+    def on_toolhead_ready(self, sender):
+        if sender.module_name and sender.module_name != "N/A":
+            tools.toolhead_on()
 
     def on_mainboard_message(self, watcher, revent):
         try:
@@ -94,6 +99,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
 
         except (HeadOfflineError, HeadResetError) as e:
             logger.debug("Head reset")
+            tools.toolhead_standby()
             self.toolhead.bootstrap()
             if self._macro:
                 self._on_macro_error(e)
@@ -414,6 +420,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
 
         except (HeadOfflineError, HeadResetError) as e:
             logger.info("%s", e)
+            tools.toolhead_standby()
             if self._macro:
                 self.on_macro_error(e)
             self.toolhead.bootstrap()
@@ -441,10 +448,14 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             self.handler.close()
 
     def clean(self):
-
         if self.timer_watcher:
             self.timer_watcher.stop()
             self.timer_watcher = None
+
+        try:
+            tools.toolhead_standby()
+        except Exception:
+            logger.exception("HAL control error while quit")
 
         try:
             if self.mainboard:
