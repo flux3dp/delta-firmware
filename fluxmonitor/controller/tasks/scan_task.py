@@ -8,8 +8,6 @@ import msgpack
 import socket
 
 from fluxmonitor.player.main_controller import MainController
-from fluxmonitor.player.head_controller import (
-    HeadController, HeadError, HeadOfflineError, HeadResetError)
 from fluxmonitor.err_codes import (
     SUBSYSTEM_ERROR, NO_RESPONSE, RESOURCE_BUSY, UNKNOWN_COMMAND)
 from fluxmonitor.storage import Storage, Metadata
@@ -98,8 +96,7 @@ class CameraInterface(object):
 class ScanTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
                CommandMixIn):
     st_id = -2
-    main_ctrl = None
-    head_ctrl = None
+    mainboard = None
     step_length = 0.45
 
     _macro = None
@@ -110,13 +107,8 @@ class ScanTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
 
         def on_mainboard_ready(ctrl):
             for cmd in ("G28", "G91", "M302", "M907 Y0.4", "T2"):
-                ctrl.send_cmd(cmd, self)
+                ctrl.send_cmd(cmd)
             handler.send_text("ok")
-
-        self.main_ctrl = MainController(executor=self, bufsize=14,
-                                        ready_callback=on_mainboard_ready)
-        self.head_ctrl = HeadController(executor=self, error_level=0,
-                                        ready_callback=lambda _: None)
 
         def on_mainboard_empty(sender):
             if self._macro:
@@ -126,37 +118,35 @@ class ScanTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             if self._macro:
                 self._macro.on_command_sendable(self)
 
-        self.main_ctrl.callback_msg_empty = on_mainboard_empty
-        self.main_ctrl.callback_msg_sendable = on_mainboard_sendable
+        def on_mainboard_ctrl(sender, data):
+            if self._macro:
+                self._macro.on_ctrl_message(self, data)
+
+        self.mainboard = MainController(
+            self._uart_mb.fileno(), bufsize=14,
+            empty_callback=on_mainboard_empty,
+            sendable_callback=on_mainboard_sendable,
+            ctrl_callback=on_mainboard_ctrl)
+        self.mainboard.bootstrap(on_mainboard_ready)
 
         self.metadata = Metadata()
         self.timer_watcher = stack.loop.timer(1, 1, self.on_timer)
         self.timer_watcher.start()
 
-    def send_mainboard(self, msg):
-        if self._uart_mb.send(msg) != len(msg):
-            raise Exception("DIE")
-
     def clean(self):
-        if self.main_ctrl:
-            self.main_ctrl.send_cmd("X1E0", self)
-        try:
-            if self.main_ctrl:
-                self.main_ctrl.close(self)
-                self.main_ctrl = None
-        except Exception:
-            logger.exception("Mainboard error while quit")
-
-        try:
-            if self.head_ctrl:
-                self.head_ctrl.close(self)
-                self.head_ctrl = None
-        except Exception:
-            logger.exception("Toolhead error while quit")
-
         if self.timer_watcher:
             self.timer_watcher.stop()
             self.timer_watcher = None
+
+        if self.mainboard:
+            self.mainboard.send_cmd("X1E0")
+
+        try:
+            if self.mainboard:
+                self.mainboard.close()
+                self.mainboard = None
+        except Exception:
+            logger.exception("Mainboard error while quit")
 
         if self.camera:
             self.camera.close()
@@ -349,45 +339,12 @@ class ScanTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
 
     def on_mainboard_message(self, watcher, revent):
         try:
-            buf = watcher.data.recv(1024)
-            if not buf:
-                logger.error("Mainboard connection broken")
-                self.stack.exit_task(self)
-
-            for msg in self.recv_from_mainboard(buf):
-                if self._macro:
-                    self._macro.on_mainboard_message(msg, self)
-                self.main_ctrl.on_message(msg, self)
+            self.mainboard.handle_recv()
+        except IOError:
+            logger.error("Mainboard connection broken")
+            self.stack.exit_task(self)
         except RuntimeError:
             pass
-        except Exception:
-            logger.exception("Unhandle Error")
-
-    def on_headboard_message(self, watcher, revent):
-        try:
-            buf = watcher.data.recv(1024)
-            if not buf:
-                logger.error("Headboard connection broken")
-                self.stack.exit_task(self)
-
-            for msg in self.recv_from_headboard(buf):
-                if self._macro:
-                    self._macro.on_headboard_message(msg, self)
-                self.head_ctrl.on_message(msg, self)
-        except (HeadOfflineError, HeadResetError) as e:
-            logger.debug("Head reset")
-            self.head_ctrl.bootstrap(self)
-            if self._macro:
-                self._on_macro_error(e)
-
-        except HeadError as e:
-            logger.info("Head Error: %s", e)
-
-        except SystemError as e:
-            logger.exception("Unhandle Error")
-            if self._macro:
-                self._on_macro_error(e)
-
         except Exception:
             logger.exception("Unhandle Error")
 
