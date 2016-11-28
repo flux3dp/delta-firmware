@@ -1,6 +1,8 @@
 
+from .base import MacroBase
 
-class StartupMacro(object):
+
+class StartupMacro(MacroBase):
     name = "STARTING"
 
     filament_detect = True

@@ -115,6 +115,14 @@ class FcodeExecutor(AutoResume, BaseExecutor):
         except Exception as e:
             self.abort(e)
 
+    def __repr__(self):
+        return ("<FcodeExecutor status_id=%i, macro=%s, pause_flags=%i, "
+                "eof=%s>" % (
+                    self.status_id,
+                    self.macro,
+                    self._pause_flags,
+                    self._eof))
+
     @property
     def traveled(self):
         return self._fsm.get_traveled()
@@ -157,7 +165,10 @@ class FcodeExecutor(AutoResume, BaseExecutor):
         # Toolhead should be ready
         # Toolhead status should be allset
         self._pause_flags &= ~TOOLHEAD_STANDBY_FLAG
-        if self.status_id == 4 or self.status_id == 6:
+        if self.status_id == 4:
+            self.started()
+        elif self.status_id == 6:
+            self.resumed()
             self.started()
         elif self.status_id == 18:
             if self._pause_flags & STASHED_FLAG:
@@ -362,8 +373,10 @@ class FcodeExecutor(AutoResume, BaseExecutor):
                     self._eof = True
                 elif ret == -1:
                     self.abort(RuntimeError(EXEC_BAD_COMMAND, "MOVE"))
+                    return
                 elif ret == -3:
                     self.abort(RuntimeError(EXEC_BAD_COMMAND, "MULTI_E"))
+                    return
 
             while self._cmd_queue:
                 target = self._cmd_queue[0][1]
