@@ -354,3 +354,6 @@ class UserSpace(object):
             os.remove(self.get_path(entry, path))
         except OSError:
             pass
+
+
+metadata = Metadata()
