@@ -10,7 +10,7 @@ import socket
 from fluxmonitor.player.main_controller import MainController
 from fluxmonitor.err_codes import (
     SUBSYSTEM_ERROR, NO_RESPONSE, RESOURCE_BUSY, UNKNOWN_COMMAND)
-from fluxmonitor.storage import Storage, Metadata
+from fluxmonitor.storage import Storage, metadata
 from fluxmonitor.config import CAMERA_ENDPOINT
 from fluxmonitor.player import macro
 
@@ -129,7 +129,6 @@ class ScanTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             ctrl_callback=on_mainboard_ctrl)
         self.mainboard.bootstrap(on_mainboard_ready)
 
-        self.metadata = Metadata()
         self.timer_watcher = stack.loop.timer(1, 1, self.on_timer)
         self.timer_watcher.start()
 
@@ -151,7 +150,7 @@ class ScanTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         if self.camera:
             self.camera.close()
             self.camera = None
-        self.metadata.update_device_status(0, 0, "N/A", "")
+        metadata.update_device_status(0, 0, "N/A", "")
 
     def make_gcode_cmd(self, cmd):
         def cb():
@@ -349,4 +348,4 @@ class ScanTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             logger.exception("Unhandle Error")
 
     def on_timer(self, watcher, revent):
-        self.metadata.update_device_status(self.st_id, 0, "N/A", "")
+        metadata.update_device_status(self.st_id, 0, "N/A", "")

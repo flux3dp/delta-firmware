@@ -15,7 +15,7 @@ from fluxmonitor.misc.pidfile import load_pid
 from fluxmonitor.err_codes import FILE_BROKEN, NOT_SUPPORT, UNKNOWN_ERROR, \
     RESOURCE_BUSY, SUBSYSTEM_ERROR
 from fluxmonitor.config import PLAY_ENDPOINT, PLAY_SWAP
-from fluxmonitor.storage import Storage, Metadata
+from fluxmonitor.storage import Storage, metadata
 
 logger = logging.getLogger("Player")
 
@@ -37,7 +37,6 @@ class PlayerManager(object):
     def __init__(self, loop, taskfile, terminated_callback=None,
                  copyfile=False):
         storage = Storage("run")
-        self.meta = Metadata()
         s = create_mainboard_socket()
 
         oldpid = load_pid(storage.get_path("fluxplayerd.pid"))
@@ -74,7 +73,7 @@ class PlayerManager(object):
             child_watcher = loop.child(proc.pid, False, self.on_process_dead,
                                        terminated_callback)
             child_watcher.start()
-            self.meta.update_device_status(1, 0, "N/A", err_label="")
+            metadata.update_device_status(1, 0, "N/A", err_label="")
 
             self.child_watcher = child_watcher
             self.proc = proc
@@ -109,7 +108,7 @@ class PlayerManager(object):
                 s.settimeout(1.0)
                 self._sock = s
             except socket.error:
-                st = self.meta.format_device_status
+                st = metadata.format_device_status
 
                 if time() - st["timestamp"] < 15:
                     if st["st_id"] == 1:
@@ -129,7 +128,7 @@ class PlayerManager(object):
         except OSError:
             pass
 
-        self.meta.update_device_status(0, 0, "N/A", err_label="")
+        metadata.update_device_status(0, 0, "N/A", err_label="")
         watcher.stop()
         if watcher.data:
             watcher.data(self)
@@ -141,15 +140,15 @@ class PlayerManager(object):
 
     @property
     def is_running(self):
-        return self.meta.device_status_id == ST_RUNNING
+        return metadata.device_status_id == ST_RUNNING
 
     @property
     def is_paused(self):
-        return (self.meta.device_status_id & (ST_PAUSED + 2)) == ST_PAUSED
+        return (metadata.device_status_id & (ST_PAUSED + 2)) == ST_PAUSED
 
     @property
     def is_terminated(self):
-        return self.meta.device_status_id in (ST_COMPLETED, ST_ABORTED)
+        return metadata.device_status_id in (ST_COMPLETED, ST_ABORTED)
 
     def pause(self):
         self.sock.send("PAUSE")
@@ -184,7 +183,7 @@ class PlayerManager(object):
             self.sock.send("REPORT")
             return self.sock.recv(4096)
         except RuntimeError:
-            st_id = self.meta.device_status_id
+            st_id = metadata.device_status_id
             if st_id == 1:
                 return '{"st_label": "INIT", "st_id": 1}'
             elif st_id in (64, 128):
@@ -192,7 +191,7 @@ class PlayerManager(object):
         except SystemError:
             raise RuntimeError(RESOURCE_BUSY)
         except socket.error as e:
-            st = self.meta.format_device_status
+            st = metadata.format_device_status
             if st["st_id"] == 128 and time() - st["timestamp"] < 15:
                 raise RuntimeError(RESOURCE_BUSY)
 

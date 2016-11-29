@@ -13,7 +13,7 @@ from fluxmonitor.interfaces.robot import RobotTcpInterface, RobotCloudHandler
 from fluxmonitor.services.base import ServiceBase
 from fluxmonitor.misc.systime import systime as time
 from fluxmonitor.err_codes import RESOURCE_BUSY, EXEC_OPERATION_ERROR
-from fluxmonitor.storage import UserSpace, Metadata, Storage
+from fluxmonitor.storage import UserSpace, Storage, metadata
 from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT
 
 logger = logging.getLogger(__name__)
@@ -34,7 +34,6 @@ class Robot(ServiceBase):
     def __init__(self, options):
         ServiceBase.__init__(self, logger, options)
 
-        self.metadata = Metadata()
         self.internl_interface = RobotUnixStreamInterface(self)
         self.tcp_interface = RobotTcpInterface(self)
         self._hal_reset_timer = self.loop.timer(5, 0, self._connect2hal)
@@ -136,15 +135,15 @@ class Robot(ServiceBase):
             self._hal_control = None
 
     def power_management(self):
-        if self.metadata.wifi_status & 1:
+        if metadata.wifi_status & 1:
             # Power On
             logger.debug("Power On")
-            self.metadata.wifi_status &= ~1
+            metadata.wifi_status &= ~1
             clean_led()
         else:
             # Power Off
             logger.debug("Power Off")
-            self.metadata.wifi_status |= 1
+            metadata.wifi_status |= 1
             poweroff_led()
 
         try:

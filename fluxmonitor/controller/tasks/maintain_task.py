@@ -15,7 +15,7 @@ from fluxmonitor.err_codes import (EXEC_HEAD_ERROR,
                                    SUBSYSTEM_ERROR,
                                    TOO_LARGE,
                                    UNKNOWN_COMMAND)
-from fluxmonitor.storage import Metadata
+from fluxmonitor.storage import metadata
 from fluxmonitor.player import macro
 from fluxmonitor.hal import tools
 
@@ -35,8 +35,6 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
 
     def __init__(self, stack, handler):
         super(MaintainTask, self).__init__(stack, handler)
-        self.meta = Metadata()
-
         self._ready = 0
         self._busy = False
 
@@ -352,8 +350,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
                 logger.error("H ERROR: %f" % h)
                 raise ValueError("INPUT_FAILED")
 
-            cm = Metadata()
-            cm.plate_correction = {"H": h}
+            metadata.plate_correction = {"H": h}
             self.mainboard.send_cmd("M666H%.4f" % h, self)
             handler.send_text("continue")
             handler.send_text("ok 0")
@@ -408,8 +405,8 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         self.timer_watcher.stop()
 
     def on_timer(self, watcher, revent):
-        self.meta.update_device_status(self.st_id, 0, "N/A",
-                                       self.handler.address)
+        metadata.update_device_status(self.st_id, 0, "N/A",
+                                      self.handler.address)
 
         try:
             self.mainboard.patrol()
@@ -473,4 +470,4 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         except Exception:
             logger.exception("Toolhead error while quit")
 
-        self.meta.update_device_status(0, 0, "N/A", "")
+        metadata.update_device_status(0, 0, "N/A", "")
