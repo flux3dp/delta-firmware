@@ -19,7 +19,7 @@ from fluxmonitor.err_codes import (UNKNOWN_COMMAND, NOT_EXIST, TOO_LARGE,
                                    HARDWARE_FAILURE)
 from fluxmonitor.diagnosis.god_mode import allow_god_mode
 from fluxmonitor.hal.misc import get_deviceinfo
-from fluxmonitor.storage import Storage, Metadata, UserSpace
+from fluxmonitor.storage import Storage, UserSpace, metadata
 from fluxmonitor.misc import mimetypes
 
 from .base import CommandMixIn
@@ -89,7 +89,7 @@ class FileManagerMixIn(object):
     def fileinfo(self, handler, entry, path):
         abspath = self.storage_dispatch(entry, path, require_file=True)
         if mimetypes.guess_type(abspath)[0] == mimetypes.MIMETYPE_FCODE:
-            metadata, images = fast_read_meta(abspath)
+            f_metadata, images = fast_read_meta(abspath)
 
             imagestack = list(images)
 
@@ -100,9 +100,9 @@ class FileManagerMixIn(object):
                     handler.async_send_binary("image/png", len(img),
                                               BytesIO(img), imagesender)
                 else:
-                    metadata["size"] = os.path.getsize(abspath)
+                    f_metadata["size"] = os.path.getsize(abspath)
                     handler.send_text("ok %s" % "\x00".join(
-                        "%s=%s" % (k, v)for k, v in metadata.items()))
+                        "%s=%s" % (k, v)for k, v in f_metadata.items()))
             imagesender()
 
         else:
@@ -268,7 +268,7 @@ class PlayManagerMixIn(object):
 
     def __play_info(self, handler):
         manager = self.__get_manager()
-        metadata, imgbuf = manager.playinfo
+        f_metadata, imgbuf = manager.playinfo
 
         def end_img(h):
             h.send_text("ok")
@@ -280,7 +280,7 @@ class PlayManagerMixIn(object):
             else:
                 h.send_text("ok")
 
-        metabuf = json.dumps(metadata)
+        metabuf = json.dumps(f_metadata)
         handler.async_send_binary("text/json", len(metabuf), BytesIO(metabuf),
                                   end_meta__send_img)
 
@@ -342,6 +342,14 @@ class ConfigMixIn(object):
         "replay": {
             "type": str, "enum": ("Y", "N"),
             "key": "replay"},
+        "backlash": {
+            "type": float, "max": 0.5, "min": 0,
+            "key": "backlash",
+        },
+        "enable_backlash": {
+            "type": str, "enum": ("Y", "N"),
+            "key": "enable_backlash"
+        }
     }
 
     def dispatch_config_cmd(self, handler, cmd, *args):
@@ -366,17 +374,21 @@ class ConfigMixIn(object):
             struct = self.__VALUES[key]
 
             # Check input correct
-            struct["type"](val)
+            cval = struct["type"](val)
             # Check enum
-            if "enum" in struct and val not in struct["enum"]:
+            if "enum" in struct and cval not in struct["enum"]:
+                raise RuntimeError(BAD_PARAMS)
+            if "min" in struct and cval < struct["min"]:
+                raise RuntimeError(BAD_PARAMS)
+            if "max" in struct and cval > struct["max"]:
                 raise RuntimeError(BAD_PARAMS)
 
-            if hasattr(self.settings, struct["key"]):
-                setattr(self.settings, struct["key"], val)
+            if hasattr(metadata, struct["key"]):
+                setattr(metadata, struct["key"], val)
             else:
                 storage[struct["key"]] = val
         elif key == "nickname":
-            self.settings.nickname = val
+            metadata.nickname = val
         else:
             raise RuntimeError(BAD_PARAMS)
 
@@ -384,12 +396,12 @@ class ConfigMixIn(object):
         storage = Storage("general", "meta")
         if key in self.__VALUES:
             struct = self.__VALUES[key]
-            if hasattr(self.settings, struct["key"]):
-                return getattr(self.settings, struct["key"])
+            if hasattr(metadata, struct["key"]):
+                return getattr(metadata, struct["key"])
             else:
                 return storage[struct["key"]]
         elif key == "nickname":
-            return self.settings.nickname
+            return metadata.nickname
         else:
             raise RuntimeError(BAD_PARAMS)
 
@@ -397,8 +409,8 @@ class ConfigMixIn(object):
         storage = Storage("general", "meta")
         if key in self.__VALUES:
             struct = self.__VALUES[key]
-            if hasattr(self.settings, struct["key"]):
-                delattr(self.settings, struct["key"])
+            if hasattr(metadata, struct["key"]):
+                delattr(metadata, struct["key"])
             else:
                 del storage[struct["key"]]
         else:
@@ -443,7 +455,6 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
 
     def __init__(self, stack):
         self.stack = stack
-        self.settings = Metadata()
         self.user_space = UserSpace()
 
     def dispatch_cmd(self, handler, cmd, *args):
@@ -532,12 +543,12 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
 
     def deviceinfo(self, handler):
         buf = "\n".join(
-            ("%s:%s" % kv for kv in get_deviceinfo(self.settings).items()))
+            ("%s:%s" % kv for kv in get_deviceinfo(metadata).items()))
         handler.send_text("ok\n%s" % buf)
 
     def cloud_validation_code(self, handler):
         handler.send_text("ok %s %s" % (Storage("cloud")["token"],
-                                        b2a_base64(self.settings.cloud_hash)))
+                                        b2a_base64(metadata.cloud_hash)))
 
     def fetch_log(self, handler, path):
         filename = os.path.abspath(
