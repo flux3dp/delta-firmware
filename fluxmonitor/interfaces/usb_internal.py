@@ -3,60 +3,63 @@
 #   Message length (<H), include this two bytes
 #   Channel (<B)
 #   Payload (any less then 1020 bytes)
-#   FIN (<B) (0xfe=msgpack, 0xff=binary, 0x80=binary ack)
+#   FIN (<B) 0xf0=msgpack, 0xff=binary, 0xc0=binary ack = Device Side
+#            0xb0=msgpack, 0xbf=binary, 0x80=binary ack = Client Size
 #
 # 2. Message:
 #   Message length = (2 + 1 + payload + 1)
 #
 # 3. Channel
 #   0xf0: reserved for channel management
-#   0xfd: reserved for client request handshake, fin always 0xfe
-#   0xfe: reserved for handshake ack, fin always 0xfe
-#   0xff: reserved for handshake, fin always 0xfe
+#   0xf1: reserved for channel management
+#   0xfc: reserved for client request handshake, fin always 0xb0
+#   0xfd: reserved for device complete handshake, fin always 0xf0
+#   0xfe: reserved for client handshake ack, fin always 0xb0
+#   0xff: reserved for handshake, fin always 0xf0
 #
 # 4. Handshake example
-#   Device: 0xff, {session: int,  ...(DEVICE INFORMATION)}, 0xfe
-#   Client: 0xff, {session: int, ...(CLIENT INFOAMTION)}), 0xfe
-#   Device: 0xfe, {session: int}), 0xfe
+#   Device: 0xff, {session: int,  ...(DEVICE INFORMATION)}, 0xf0
+#   Client: 0xfe, {session: int, ...(CLIENT INFOAMTION)}), 0xb0
+#   Device: 0xfd, {session: int}), 0xf0
 #
-#   Client: 0xfd, None, 0xfe
-#   Device: 0xff, {session: int,  ...(DEVICE INFORMATION)}, 0xfe
+#   Client: 0xfc, None, 0xb0
+#   Device: 0xff, {session: int,  ...(DEVICE INFORMATION)}, 0xf0
 #
 # 5. Channel example
-#   Client: 0xf0, {"channel": 0, "action": "open"}, 0xfe
-#   Device: 0xf0, {"channel": 0, "action": "open", "status": "ok"}, 0xfe
+#   Client: 0xf0, {"channel": 0, "action": "open"}, 0xb0
+#   Device: 0xf1, {"channel": 0, "action": "open", "status": "ok"}, 0xf0
 #
 #   action: "open", "close"
 #
 # 6. Control example (Create channel 0x00 first)
-#   Client: 0x00, ("REQUEST", PARAM0, PARAM1, ...)), 0xfe
-#   Device: 0x00, ("ok", RET0, RET1, ...)), 0xfe
+#   Client: 0x00, ("REQUEST", PARAM0, PARAM1, ...)), 0xb0
+#   Device: 0x00, ("ok", RET0, RET1, ...)), 0xf0
 #
-#   Client: 0x00, ("REQUEST", PARAM0, PARAM1, ...)), 0xfe
-#   Device: 0x00, ("error", ("ERR_1", "ERR_2"), ...)), 0xfe
+#   Client: 0x00, ("REQUEST", PARAM0, PARAM1, ...)), 0xb0
+#   Device: 0x00, ("error", ("ERR_1", "ERR_2"), ...)), 0xf0
 #
 # 7. Binary example
-#   Client: 0x00, ("upload", "binary/fcode", 12345)), 0xfe
-#   Device: 0x00, ("continue", )), 0xfe
+#   Client: 0x00, ("upload", "binary/fcode", 12345)), 0xb0
+#   Device: 0x00, ("continue", )), 0xf0
 #   Client: 0x00, b"data1", 0xff
 #   Device: 0x00, b"", 0x80  <======= ACK
 #   Client: 0x00, b"data2", 0xff
 #   Device: 0x00, b"", 0x80  <======= ACK
-#   Device: 0x00, ("ok", RET0, RET1, ...)), 0xfe
+#   Device: 0x00, ("ok", RET0, RET1, ...)), 0xf0
 #
-#   Client: 0x00, ("download", "myfile/xxx.fc")), 0xfe
-#   Device: 0x00, ("binary", "binary/fcode", 42342)), 0xfe
+#   Client: 0x00, ("download", "myfile/xxx.fc")), 0xb0
+#   Device: 0x00, ("binary", "binary/fcode", 42342)), 0xf0
 #   Device: 0x00, b"data1", 0xff
 #   Client: 0x00, b"", 0x80  <======= ACK
 #   Device: 0x00, b"data2", 0xff
 #   Client: 0x00, b"", 0x80  <======= ACK
-#   Device: 0x00, ("ok", )), 0xfe
+#   Device: 0x00, ("ok", )), 0xf0
 #
 # 8. Error case
 #   When
 #     a. message length > 1024 OR message length == 0
-#     b. fin flag error (not 0x80, 0xfe, 0xff)
-#     c. payload can not unpack when fin flag=0xfe
+#     b. fin flag error (not in list)
+#     c. payload can not unpack when fin flag=(0xf0, 0xb0)
 #
 #   Close all channel
 #   Send 16 zero bytes
@@ -154,22 +157,22 @@ class USBProtocol(object):
     def _on_handshake(self, chl_idx, buf, fin):
         logger.debug("on_handshake channel=0x%02x, fin=0x%02x", chl_idx, fin)
 
-        if fin != 0xfe:
-            logger.debug("Fin error (0x%02x!=0xfe) in handshake", fin)
+        if fin != 0xb0:
+            logger.debug("Fin error (0x%02x!=0xb0) in handshake", fin)
             return
 
-        if chl_idx == 0xff:
+        if chl_idx == 0xfe:
             data = msgpack.unpackb(buf.tobytes())
             if data.get("session") == self._proto_session:
                 self.client_profile = data
                 logger.debug("Client handshake complete: %s", data)
 
-                self.send_payload(0xfe, {"session": self._proto_session})
+                self.send_payload(0xfd, {"session": self._proto_session})
                 self._proto_handshake = True
                 self.on_handshake_complete()
             else:
                 logger.debug("Handshake session error")
-        elif chl_idx == 0xfd:
+        elif chl_idx == 0xfc:
             logger.debug("Resend handshake")
             self.send_handshake()
         else:
@@ -177,32 +180,34 @@ class USBProtocol(object):
 
     def _on_message(self, chl_idx, buf, fin):
         if chl_idx < 0x80:
-            if fin == 0xfe:
+            if fin == 0xb0:
                 self.on_payload(chl_idx, msgpack.unpackb(buf.tobytes()))
-            elif fin == 0xff:
+            elif fin == 0xbf:
                 self.on_binary(chl_idx, buf)
             elif fin == 0x80:
                 self._feed_binary(self.watcher)
             else:
                 raise USBProtocolError("Bad fin 0x%x" % fin)
         elif chl_idx == 0xf0:
-            if fin != 0xfe:
+            if fin != 0xb0:
                 raise USBProtocolError("Bad fin for channel 0xf0")
             data = msgpack.unpackb(buf.tobytes())
             self._control_channel(data.get("channel"), data.get("action"))
+        elif chl_idx == 0xfc:
+            raise USBProtocolError("Recv channel 0xfc, reset session")
         else:
             raise USBProtocolError("Bad channel 0x%x" % chl_idx)
 
     def _control_channel(self, chl_idx, action):
         st = None
-        if chl_idx >= 0 and chl_idx < 128:
+        if chl_idx >= 0 and chl_idx < 0x80:
             if action == "open":
                 st = "ok" if self.open_channel(chl_idx) else "error"
             elif action == "close":
                 st = "ok" if self.close_channel(chl_idx) else "error"
         else:
             st = "error"
-        self.send_payload(0xf0, {"channel": chl_idx, "action": action,
+        self.send_payload(0xf1, {"channel": chl_idx, "action": action,
                                  "status": st})
 
     def _feed_binary(self, watcher, revent=None):
@@ -281,11 +286,11 @@ class USBProtocol(object):
 
     def send_payload(self, chl_idx, obj):
         payload = msgpack.packb(obj)
-        buf = HEAD_PACKER.pack(len(payload) + 4, chl_idx) + payload + b"\xfe"
+        buf = HEAD_PACKER.pack(len(payload) + 4, chl_idx) + payload + b"\xf0"
         self.sock.send(buf)
 
     def send_binary_ack(self, chl_idx):
-        buf = HEAD_PACKER.pack(4, chl_idx) + b"\x80"
+        buf = HEAD_PACKER.pack(4, chl_idx) + b"\xc0"
         self.sock.send(buf)
 
     def begin_send(self, chl_idx, stream, length, complete_callback):
@@ -348,7 +353,7 @@ class Channel(object):
         return "USB#%i" % (self.index)
 
     def send_text(self, string):
-        self.protocol.send_payload(self.index, (string, ))
+        self.protocol.send_payload(self.index, string, )
 
     def async_send_binary(self, mimetype, length, stream, cb):
         self.protocol.send_payload(self.index,

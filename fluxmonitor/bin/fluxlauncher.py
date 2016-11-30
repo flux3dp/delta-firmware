@@ -154,6 +154,8 @@ def try_config_network(dryrun=False):
 def init_rapi():
     if not os.path.exists("/var/gcode/userspace"):
         os.mkdir("/var/gcode/userspace")
+    if not os.path.exists("/var/db/fluxmonitord"):
+        os.mkdir("/var/db/fluxmonitord")
     if not os.path.exists("/var/db/fluxmonitord/run"):
         os.mkdir("/var/db/fluxmonitord/run")
 
@@ -222,8 +224,8 @@ def main(params=None):
     try:
         if CURRENT_MODEL == 'delta-1':
             init_rapi()
-    except Exception:
-        pass
+    except Exception as e:
+        print(e)
 
     for pidfile in PID_LIST:
         try:
