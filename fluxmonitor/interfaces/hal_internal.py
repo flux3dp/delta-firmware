@@ -32,8 +32,10 @@ class HalControlHandler(MsgpackProtocol, UnixHandler):
                 self.kernel.reconnect()
             elif cmd == "reset_mb":
                 self.kernel.reset_mainboard()
-            elif cmd == "reset_hb":
-                self.kernel.reset_headboard()
+            elif cmd == "th_pow_on":
+                self.kernel.toolhead_power_on()
+            elif cmd == "th_pow_off":
+                self.kernel.toolhead_power_off()
             elif cmd == "th_on":
                 self.kernel.toolhead_on()
             elif cmd == "th_standby":

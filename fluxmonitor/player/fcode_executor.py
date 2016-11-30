@@ -7,7 +7,8 @@ from fluxmonitor.misc.systime import systime as time
 from fluxmonitor.diagnosis.tracer import tracer
 from fluxmonitor.err_codes import (UNKNOWN_ERROR, EXEC_BAD_COMMAND,
                                    SUBSYSTEM_ERROR)
-from fluxmonitor.hal.tools import reset_hb, toolhead_on, toolhead_standby
+from fluxmonitor.hal.tools import (toolhead_on, toolhead_standby,
+                                   toolhead_power_on, toolhead_power_off)
 
 from .base import BaseExecutor
 from .base import (
@@ -85,6 +86,7 @@ class FcodeExecutor(AutoResume, BaseExecutor):
     _fsm = None
     _pause_flags = 0
     _cmd_queue = None
+    _fucking_toolhead_power_management_control_flag = True
 
     def __init__(self, mainboard_io, headboard_io, task_loader, options):
         super(FcodeExecutor, self).__init__(mainboard_io, headboard_io)
@@ -138,6 +140,7 @@ class FcodeExecutor(AutoResume, BaseExecutor):
 
     def _on_mainboard_ready(self, mainboard):
         # status_id should be (4, 6, 18)
+        toolhead_power_on()
         self.toolhead.bootstrap(self._on_toolhead_ready)
 
     def _on_toolhead_ready(self, toolhead):
@@ -302,6 +305,8 @@ class FcodeExecutor(AutoResume, BaseExecutor):
     # public interface
     def set_toolhead_operation(self):
         if self.status_id == 48:
+            self._fucking_toolhead_power_management_control_flag = False
+            toolhead_power_on()
             self.toolhead.bootstrap(self._on_toolhead_ready)
             return True
         else:
@@ -312,6 +317,7 @@ class FcodeExecutor(AutoResume, BaseExecutor):
     # public interface
     def set_toolhead_standby(self):
         if self.status_id == 48 and self.toolhead.ready:
+            self._fucking_toolhead_power_management_control_flag = True
             self._pause_toolhead()
             return True
         else:
@@ -325,6 +331,8 @@ class FcodeExecutor(AutoResume, BaseExecutor):
 
     def pause(self, symbol=None):
         if BaseExecutor.pause(self, symbol):
+            if not self.toolhead.ready:
+                toolhead_power_off()
             if self.mainboard.buffered_cmd_size == 0:
                 self._handle_pause()
             return True
@@ -494,9 +502,8 @@ class FcodeExecutor(AutoResume, BaseExecutor):
                 self._pause_flags &= ~TOOLHEAD_STANDINGBY_FLAG
                 self._pause_flags |= TOOLHEAD_STANDINGBY_FLAG
 
-            # TODO: cut toolhead 5v because pwm issue
             if er.args[:2] == ('HEAD_ERROR', 'HARDWARE_FAILURE'):
-                reset_hb()
+                self.toolhead.reset()
 
             if not self.pause(er):
                 logger.warn("Error occour: %s" % repr(er.args))
@@ -516,6 +523,19 @@ class FcodeExecutor(AutoResume, BaseExecutor):
         try:
             self.mainboard.patrol()
             self.toolhead.patrol()
+
+            if self.status_id == 48:
+                if self._fucking_toolhead_power_management_control_flag:
+                    if self.toolhead.ready:
+                        if self.toolhead.module_name == "EXTRUDER":
+                            if self.toolhead.status:
+                                if "rt" in self.toolhead.status:
+                                    if self.toolhead.status["rt"]:
+                                        if self.toolhead.status["rt"][0] > 50:
+                                            return
+                        logger.debug("Ohh, the poor 5V is dead")
+                        self.toolhead.reset()
+                        toolhead_power_off()
 
         except RuntimeError as err:
             if not self.pause(err):

@@ -184,6 +184,16 @@ class UartHal(UartHalBase, BaseOnSerial):
         finally:
             self.connect_uart()
 
+    def toolhead_power_on(self):
+        if len(self.headboard_watchers) == 0:
+            logger.error("Reject toolhead power on because there is no exist"
+                         " toolhead session.")
+        else:
+            self.gpio.toolhead_power = True
+
+    def toolhead_power_off(self):
+        self.gpio.toolhead_power = False
+
     def toolhead_on(self):
         if hasattr(self.gpio, "v24_power"):
             if self.gpio.v24_power is False:

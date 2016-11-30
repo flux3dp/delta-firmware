@@ -157,6 +157,15 @@ cdef class HeadController:
         if callback:
             callback(self)
 
+    cpdef void reset(self):
+        self._st_flag = ST_INIT
+        self.module_name = None
+        self.status = {"module": self.module_name}
+        self.profile = {"TYPE": self.module_name}
+        self.error_code = 0
+        if self.required_module is None:
+            self.ext = None
+
     def shutdown(self, callback=None):
         if self._st_flag != ST_RUNNING:
             raise RuntimeError(EXEC_OPERATION_ERROR)
@@ -391,13 +400,7 @@ cdef class HeadController:
                 self._ready_callback = None
 
     cdef void _on_head_offline(self, error_klass) except *:
-        self._st_flag = ST_INIT
-        self.module_name = None
-        self.status = {"module": self.module_name}
-        self.profile = {"TYPE": self.module_name}
-        self.error_code = 0
-        if self.required_module is None:
-            self.ext = None
+        self.reset()
         raise error_klass()
 
 

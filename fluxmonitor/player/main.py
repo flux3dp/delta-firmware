@@ -77,8 +77,9 @@ class Player(ServiceBase):
         self.executor = FcodeExecutor(m_sock, t_sock, taskloader, exec_opt)
 
         self.travel_dist = parse_float(taskloader.metadata.get("TRAVEL_DIST"))
+        if self.travel_dist == 0:
+            self.travel_dist = float("NAN")
         self.time_cose = parse_float(taskloader.metadata.get("TIME_COST"))
-        # self.avg_speed = self.travel_dist / self.time_cose
 
     def prepare_control_socket(self, endpoint):
         if not endpoint:
