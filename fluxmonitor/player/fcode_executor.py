@@ -561,9 +561,10 @@ class FcodeExecutor(AutoResume, BaseExecutor):
             logger.exception("Mainboard close error")
 
         try:
-            logger.debug("Set toolhead mode: standby")
-            toolhead_standby()
-            self.toolhead.shutdown()
+            if self.toolhead.ready:
+                logger.debug("Set toolhead mode: standby")
+                toolhead_standby()
+                self.toolhead.shutdown()
         except IOError as er:
             logger.error("Toolhead shutdown error: %s", er)
         except Exception:
