@@ -5,9 +5,10 @@ import logging
 from fluxmonitor.misc.systime import systime
 
 from .listener import SSLInterface
-from .handler import (TextBinaryProtocol, SSLServerSideHandler, CloudHandler)
+from .handler import (TextBinaryProtocol, SSLServerSideHandler, CloudHandler,
+                      UnixHandler)
 
-__all__ = ["CameraTcpInterface"]
+__all__ = ["CameraTcpInterface", "CameraUnixHandler"]
 UNIX_CMD_PACKER = Struct("@BB")
 UINT_PACKER = Struct("<I")
 BYTE_PACKER = Struct("@B")
@@ -36,8 +37,10 @@ class CameraProtocol(TextBinaryProtocol):
     def on_text(self, text):
         if text == "f":
             if systime() - self.ts <= self.kernel.SPF:
+                logger.debug("Require frame (put into queue)")
                 self.kernel.add_to_live_queue(self)
             else:
+                logger.debug("Require frame")
                 self.next_frame()
         elif text == "s+":
             self.streaming = True
@@ -72,6 +75,12 @@ class CameraProtocol(TextBinaryProtocol):
 class CameraTcpHandler(CameraProtocol, SSLServerSideHandler):
     def on_authorized(self):
         super(CameraTcpHandler, self).on_authorized()
+        self.on_ready()
+
+
+class CameraUnixHandler(CameraProtocol, UnixHandler):
+    def on_connected(self):
+        super(CameraUnixHandler, self).on_connected()
         self.on_ready()
 
 

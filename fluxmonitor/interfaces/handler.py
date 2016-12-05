@@ -480,11 +480,11 @@ class TextBinaryProtocol(object):
                 watcher.data = (length, sent_length, stream, callback)
 
         except IOError as e:
-            logger.debug("Send error: %s", e)
+            logger.debug("%r Async send error: %s", self, e)
             watcher.stop()
             self.on_error()
         except Exception:
-            logger.exception("Unknow error")
+            logger.exception("%r Unknow error", self)
             watcher.stop()
             self.on_error()
 

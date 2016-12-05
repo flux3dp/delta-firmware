@@ -76,9 +76,9 @@ import random
 import pyev
 
 from fluxmonitor.interfaces.handler import UnixHandler
-from fluxmonitor.interfaces.robot import ServiceStack
 from fluxmonitor.hal.misc import get_deviceinfo
 from fluxmonitor.storage import Metadata
+from .usb_channels import CameraChannel, RobotChannel
 
 global logger
 logger = None
@@ -195,20 +195,21 @@ class USBProtocol(object):
             if fin != 0xb0:
                 raise USBProtocolError("Bad fin for channel 0xf0")
             data = msgpack.unpackb(buf.tobytes())
-            self._control_channel(data.get("channel"), data.get("action"))
+            self._control_channel(data.get("channel"), data.get("action"),
+                                  data.get("type", "robot"))
         elif chl_idx == 0xfc:
             raise USBProtocolError("Recv channel 0xfc, reset session")
         else:
             raise USBProtocolError("Bad channel 0x%x" % chl_idx)
 
-    def _control_channel(self, chl_idx, action):
+    def _control_channel(self, chl_idx, action, tp=None):
         logger.debug("Channel operation: index=%i, action=%s", chl_idx, action)
         st = None
         if chl_idx >= 0 and chl_idx < 0x80:
             if action == "open":
-                st = "ok" if self.open_channel(chl_idx) else "error"
+                st = self.open_channel(chl_idx, tp)
             elif action == "close":
-                st = "ok" if self.close_channel(chl_idx) else "error"
+                st = self.close_channel(chl_idx)
         else:
             st = "error"
         self.send_payload(0xf1, {"channel": chl_idx, "action": action,
@@ -328,28 +329,35 @@ class USBRobotProtocol(USBProtocol):
                 c.close()
         self.channels = [None for i in xrange(8)]
 
-    def open_channel(self, channel_idx):
+    def open_channel(self, channel_idx, channel_type):
         if channel_idx >= 8:
             logger.debug("Can not create channel at index %i", channel_idx)
-            return False
+            return "BAD_PARAMS"
         if self.channels[channel_idx]:
             logger.debug("Channel %i is already opened", channel_idx)
-            return False
+            return "RESOURCE_BUSY"
         logger.debug("Channel %i opened", channel_idx)
-        self.channels[channel_idx] = Channel(channel_idx, self)
-        return True
+
+        if channel_type == "camera":
+            try:
+                self.channels[channel_idx] = CameraChannel(channel_idx, self)
+            except IOError:
+                return "SUBSYSTEM_ERROR"
+        else:
+            self.channels[channel_idx] = RobotChannel(channel_idx, self)
+        return "ok"
 
     def close_channel(self, channel_idx):
         if channel_idx >= 8:
             logger.debug("Can not close channel at index %i", channel_idx)
-            return False
+            return "BAD_PARAMS"
         if self.channels[channel_idx] is None:
             logger.debug("Channel %i is not opened", channel_idx)
-            return False
+            return "RESOURCE_BUSY"
         logger.debug("Channel %i closed", channel_idx)
         self.channels[channel_idx].close()
         self.channels[channel_idx] = None
-        return True
+        return "ok"
 
     def on_payload(self, channel_idx, payload):
         self.channels[channel_idx].on_payload(payload)
@@ -360,50 +368,6 @@ class USBRobotProtocol(USBProtocol):
 
     def on_binary_ack(self, channel_idx):
         self.channels[channel_idx].on_binary_ack()
-
-
-class Channel(object):
-    interface = "USB"
-    binary_mode = False
-
-    def __init__(self, index, protocol):
-        self.index = index
-        self.protocol = protocol
-        self.stack = ServiceStack(self.protocol.kernel)
-        self._binary_ack = 0
-
-    @property
-    def address(self):
-        return "USB#%i" % (self.index)
-
-    def send_text(self, string):
-        self.protocol.send_payload(self.index, string)
-
-    def send_binary(self, buf):
-        self.protocol.send_binary(self.index, buf)
-
-    def async_send_binary(self, mimetype, length, stream, cb):
-        self.protocol.send_payload(self.index,
-                                   "binary %s %i" % (mimetype, length))
-        self.protocol.begin_send(self.index, stream, length, cb)
-
-    def on_payload(self, obj):
-        self.stack.on_text(" ".join("%s" % i for i in obj), self)
-
-    def on_binary(self, buf):
-        self._binary_ack += 1
-        self.stack.on_binary(buf, self)
-        if self._binary_ack <= 0:
-            logger.error("binary ack=%i after send", self._binary_ack)
-        elif self._binary_ack > 16:
-            logger.error("binary ack=%i", self._binary_ack)
-
-    def on_binary_ack(self):
-        self._binary_ack -= 1
-
-    def close(self):
-        self.stack.on_close(self)
-        self.stack = None
 
 
 class USBHandler(USBRobotProtocol, UnixHandler):
