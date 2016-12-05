@@ -257,6 +257,7 @@ class FcodeExecutor(AutoResume, BaseExecutor):
             else:
                 self.fire()
 
+        self.mainboard.send_cmd("G1F6000E-10")
         self.macro = ControlHeaterMacro(toolhead_ready, 0, 170)
         logging.debug("ControlHeaterMacro start.")
         self.macro.start(self)
@@ -297,7 +298,10 @@ class FcodeExecutor(AutoResume, BaseExecutor):
 
                     self.mainboard.send_cmd(stash_cmd)
                 else:
-                    logger.debug("Nothing to do in handle_pause")
+                    if self.toolhead_ready:
+                        logger.debug("Nothing to do in handle_pause")
+                    else:
+                        self.paused()
         else:
             logger.error("Unknown action for status %i in handle_pause.",
                          self.status_id)
