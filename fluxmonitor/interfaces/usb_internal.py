@@ -185,7 +185,10 @@ class USBProtocol(object):
             elif fin == 0xbf:
                 self.on_binary(chl_idx, buf)
             elif fin == 0x80:
-                self._feed_binary(self.watcher)
+                if self.watcher.data:
+                    self._feed_binary(self.watcher)
+                else:
+                    self.on_binary_ack(chl_idx)
             else:
                 raise USBProtocolError("Bad fin 0x%x" % fin)
         elif chl_idx == 0xf0:
@@ -199,6 +202,7 @@ class USBProtocol(object):
             raise USBProtocolError("Bad channel 0x%x" % chl_idx)
 
     def _control_channel(self, chl_idx, action):
+        logger.debug("Channel operation: index=%i, action=%s", chl_idx, action)
         st = None
         if chl_idx >= 0 and chl_idx < 0x80:
             if action == "open":
@@ -284,9 +288,16 @@ class USBProtocol(object):
     def on_binary(self, chl_idx, buf):
         pass
 
+    def on_binary_ack(self, chl_idx):
+        pass
+
     def send_payload(self, chl_idx, obj):
         payload = msgpack.packb(obj)
         buf = HEAD_PACKER.pack(len(payload) + 4, chl_idx) + payload + b"\xf0"
+        self.sock.send(buf)
+
+    def send_binary(self, chl_idx, data):
+        buf = HEAD_PACKER.pack(len(data) + 4, chl_idx) + data + b"\xff"
         self.sock.send(buf)
 
     def send_binary_ack(self, chl_idx):
@@ -315,21 +326,27 @@ class USBRobotProtocol(USBProtocol):
         for c in self.channels:
             if c:
                 c.close()
-        self.channels = [None, None, None, None]
+        self.channels = [None for i in xrange(8)]
 
     def open_channel(self, channel_idx):
-        if channel_idx > 4:
+        if channel_idx >= 8:
+            logger.debug("Can not create channel at index %i", channel_idx)
             return False
         if self.channels[channel_idx]:
+            logger.debug("Channel %i is already opened", channel_idx)
             return False
+        logger.debug("Channel %i opened", channel_idx)
         self.channels[channel_idx] = Channel(channel_idx, self)
         return True
 
     def close_channel(self, channel_idx):
-        if channel_idx > 4:
+        if channel_idx >= 8:
+            logger.debug("Can not close channel at index %i", channel_idx)
             return False
         if self.channels[channel_idx] is None:
+            logger.debug("Channel %i is not opened", channel_idx)
             return False
+        logger.debug("Channel %i closed", channel_idx)
         self.channels[channel_idx].close()
         self.channels[channel_idx] = None
         return True
@@ -341,19 +358,29 @@ class USBRobotProtocol(USBProtocol):
         self.send_binary_ack(channel_idx)
         self.channels[channel_idx].on_binary(buf)
 
+    def on_binary_ack(self, channel_idx):
+        self.channels[channel_idx].on_binary_ack()
+
 
 class Channel(object):
+    interface = "USB"
+    binary_mode = False
+
     def __init__(self, index, protocol):
         self.index = index
         self.protocol = protocol
         self.stack = ServiceStack(self.protocol.kernel)
+        self._binary_ack = 0
 
     @property
     def address(self):
         return "USB#%i" % (self.index)
 
     def send_text(self, string):
-        self.protocol.send_payload(self.index, string, )
+        self.protocol.send_payload(self.index, string)
+
+    def send_binary(self, buf):
+        self.protocol.send_binary(self.index, buf)
 
     def async_send_binary(self, mimetype, length, stream, cb):
         self.protocol.send_payload(self.index,
@@ -364,7 +391,15 @@ class Channel(object):
         self.stack.on_text(" ".join("%s" % i for i in obj), self)
 
     def on_binary(self, buf):
+        self._binary_ack += 1
         self.stack.on_binary(buf, self)
+        if self._binary_ack <= 0:
+            logger.error("binary ack=%i after send", self._binary_ack)
+        elif self._binary_ack > 16:
+            logger.error("binary ack=%i", self._binary_ack)
+
+    def on_binary_ack(self):
+        self._binary_ack -= 1
 
     def close(self):
         self.stack.on_close(self)

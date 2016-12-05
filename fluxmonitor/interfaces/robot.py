@@ -11,6 +11,8 @@ logger = logging.getLogger(__name__)
 
 
 class RobotTcpInterface(TcpInterface):
+    interface = "TCP"
+
     def __init__(self, kernel, endpoint=("", 23811)):
         super(RobotTcpInterface, self).__init__(kernel, endpoint)
 

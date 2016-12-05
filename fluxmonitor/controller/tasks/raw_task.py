@@ -20,7 +20,10 @@ class RawTask(DeviceOperationMixIn):
         try:
             buf = watcher.data.recv(4096)
             if buf:
-                self.handler.send(buf)
+                if self.handler.interface == "TCP":
+                    self.handler.send_text(buf)
+                else:
+                    self.handler.send_binary(buf)
             else:
                 self.on_dead("DISCONNECTED")
         except Exception as e:
@@ -30,7 +33,10 @@ class RawTask(DeviceOperationMixIn):
         try:
             buf = watcher.data.recv(4096)
             if buf:
-                self.handler.send(buf)
+                if self.handler.interface == "TCP":
+                    self.handler.send(buf)
+                else:
+                    self.handler.send_text(buf)
             else:
                 self.on_dead("DISCONNECTED")
         except Exception as e:
@@ -40,6 +46,9 @@ class RawTask(DeviceOperationMixIn):
         raise SystemError(PROTOCOL_ERROR, "RAW_MODE")
 
     def on_binary(self, buf, handler):
+        if isinstance(buf, memoryview):
+            buf = buf.tobytes()
+
         if buf.startswith(b"+"):
             self._uart_mb.send(buf[1:])
         elif buf.startswith(b"-"):
@@ -48,8 +57,9 @@ class RawTask(DeviceOperationMixIn):
             self._uart_hb.send(buf)
         elif buf == b"quit":
             handler.binary_mode = False
-            handler.send(b"\x00" * 64)
-            handler.send(b"\x01")
+            if self.handler.interface == "TCP":
+                handler.send(b"\x00" * 64)
+                handler.send(b"\x01")
             handler.send_text(b"ok")
             self.stack.exit_task(self, True)
         else:
