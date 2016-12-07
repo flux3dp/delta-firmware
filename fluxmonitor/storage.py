@@ -149,7 +149,29 @@ class Metadata(object):
 
         vals = tuple((v[k] for k in "XYZABCIJKRDH"))
         with self.storage.open("adjust", "w") as f:
-            f.write(" ".join("%.2f" % i for i in vals))
+            f.write(" ".join("%.4f" % i for i in vals))
+
+    @property
+    def backlash(self):
+        if self.storage.exists("backlash"):
+            with self.storage.open("backlash", "r") as f:
+                try:
+                    vals = tuple((float(v) for v in f.read().split(" ")))
+                    return dict(zip("ABC", vals))
+                except Exception:
+                    # Ignore error and return default
+                    pass
+
+        return {"A": 10, "B": 10, "C": 10}
+
+    @backlash.setter
+    def backlash(self, val):
+        v = self.backlash
+        v.update(val)
+
+        vals = tuple((v[k] for k in "ABC"))
+        with self.storage.open("backlash", "w") as f:
+            f.write(" ".join("%.4f" % i for i in vals))
 
     @property
     def nickname(self):

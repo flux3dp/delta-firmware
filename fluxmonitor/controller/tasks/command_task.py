@@ -342,28 +342,25 @@ class ConfigMixIn(object):
         "replay": {
             "type": str, "enum": ("Y", "N"),
             "key": "replay"},
-        "backlash": {
-            "type": float, "max": 0.5, "min": 0,
-            "key": "backlash",
-        },
         "enable_backlash": {
             "type": str, "enum": ("Y", "N"),
             "key": "enable_backlash"
         }
     }
 
-    def dispatch_config_cmd(self, handler, cmd, *args):
+    def dispatch_config_cmd(self, handler, cmd, key, *args):
+        val = " ".join(args)
         if cmd == "set":
-            self.__config_set(args[0], args[1])
+            self.__config_set(key, val)
             handler.send_text("ok")
         elif cmd == "get":
-            val = self.__config_get(args[0])
+            val = self.__config_get(key)
             if val is not None:
                 handler.send_text("ok VAL %s" % val)
             else:
                 handler.send_text("ok EMPTY")
         elif cmd == "del":
-            self.__config_del(args[0])
+            self.__config_del(key)
             handler.send_text("ok")
         else:
             raise RuntimeError(UNKNOWN_COMMAND)
@@ -387,6 +384,33 @@ class ConfigMixIn(object):
                 setattr(metadata, struct["key"], val)
             else:
                 storage[struct["key"]] = val
+        elif key == "backlash":
+            d = {}
+            for kv in val.split(" "):
+                if ":" in kv:
+                    k, sv = kv.split(":")
+                    try:
+                        v = float(sv)
+                        if k in "ABC" and v >= 0 and v <= 100:
+                            d[k] = v
+                    except ValueError:
+                        pass
+            metadata.backlash = d
+
+        elif key == "leveling":
+            d = {}
+            for kv in val.split(" "):
+                if ":" in kv:
+                    k, sv = kv.split(":")
+                    try:
+                        v = float(sv)
+                        if k in "XYZ" and v <= 0 and v >= -2:
+                            d[k] = v
+                        elif k == "H" and v > 100 and v < 244:
+                            d[k] = v
+                    except ValueError:
+                        pass
+            metadata.plate_correction = d
         elif key == "nickname":
             metadata.nickname = val
         else:
@@ -400,6 +424,13 @@ class ConfigMixIn(object):
                 return getattr(metadata, struct["key"])
             else:
                 return storage[struct["key"]]
+        elif key == "backlash":
+            return " ".join("%s:%.4f" % (k, v)
+                            for k, v in metadata.backlash.items())
+        elif key == "leveling":
+            return " ".join("%s:%.4f" % (k, v)
+                            for k, v in metadata.plate_correction.items()
+                            if k in "XYZH")
         elif key == "nickname":
             return metadata.nickname
         else:

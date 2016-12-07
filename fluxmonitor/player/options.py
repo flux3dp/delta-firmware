@@ -1,5 +1,5 @@
 
-from fluxmonitor.storage import Storage
+from fluxmonitor.storage import Storage, metadata
 from fluxmonitor.config import DEVICE_POSITION_LIMIT
 
 __all__ = ["Options"]
@@ -29,32 +29,48 @@ class Options(object):
     max_x = inf
     max_y = inf
     max_z = inf
+    backlash_config = None
 
     def __init__(self, taskloader=None, head=None):
+        storage = Storage("general", "meta")
+
         if taskloader:
             self.__load_from_metadata__(taskloader.metadata)
         if head:
             self.head = head
-        self.__load_form_local__()
+        self.__load_form_local__(storage)
 
-    def __load_from_metadata__(self, metadata):
-        self.head = metadata.get("HEAD_TYPE")
+        if taskloader:
+            self.config_backlash(storage, taskloader.metadata)
+        else:
+            self.config_backlash(storage)
+
+    def config_backlash(self, storage, task_metadata={}):
+        c = storage["enable_backlash"]
+        if not c:
+            c = task_metadata.get("BACKLASH", "N")
+        if c == "Y":
+            self.backlash_config = metadata.backlash
+        else:
+            self.backlash_config = {"A": 0, "B": 0, "C": 0}
+
+    def __load_from_metadata__(self, task_metadata):
+        self.head = task_metadata.get("HEAD_TYPE")
         if self.head:
             self.head = self.head.upper()
-        self.correction = metadata.get("CORRECTION")
-        self.filament_detect = metadata.get("FILAMENT_DETECT")
+        self.correction = task_metadata.get("CORRECTION")
+        self.filament_detect = task_metadata.get("FILAMENT_DETECT")
 
         self.head_error_level = parse_int(
-            metadata.get("HEAD_ERROR_LEVEL"), None)
+            task_metadata.get("HEAD_ERROR_LEVEL"), None)
 
-        self.max_x = parse_int(metadata.get("MAX_X"), inf)
-        self.max_y = parse_int(metadata.get("MAX_Y"), inf)
-        self.max_z = parse_int(metadata.get("MAX_Z"), inf)
+        self.max_x = parse_int(task_metadata.get("MAX_X"), inf)
+        self.max_y = parse_int(task_metadata.get("MAX_Y"), inf)
+        self.max_z = parse_int(task_metadata.get("MAX_Z"), inf)
 
-    def __load_form_local__(self):
+    def __load_form_local__(self, storage):
         self.play_bufsize = 10
 
-        storage = Storage("general", "meta")
         self.correction = ensure_value(
             storage.readall("auto_correction"),
             self.correction or "A")
