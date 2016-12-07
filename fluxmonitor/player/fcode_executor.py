@@ -298,7 +298,7 @@ class FcodeExecutor(AutoResume, BaseExecutor):
 
                     self.mainboard.send_cmd(stash_cmd)
                 else:
-                    if self.toolhead_ready:
+                    if self.toolhead.ready:
                         logger.debug("Nothing to do in handle_pause")
                     else:
                         self.paused()

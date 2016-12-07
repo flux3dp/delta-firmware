@@ -37,7 +37,7 @@ class StartupMacro(MacroBase):
         else:
             k.main_ctrl.send_cmd("M711 J0.5 K0.5 L0.5 A0 B0 C0")
 
-    def giveup(self):
+    def giveup(self, k):
         pass
 
     def on_command_empty(self, k):
