@@ -12,6 +12,8 @@
 # 3. Channel
 #   0xf0: reserved for channel management
 #   0xf1: reserved for channel management
+#   0xfa: reserved for client ping, fin is random
+#   0xfb: reserved for client pong, fin must same as ping
 #   0xfc: reserved for client request handshake, fin always 0xb0
 #   0xfd: reserved for device complete handshake, fin always 0xf0
 #   0xfe: reserved for client handshake ack, fin always 0xb0
@@ -157,6 +159,11 @@ class USBProtocol(object):
     def _on_handshake(self, chl_idx, buf, fin):
         logger.debug("on_handshake channel=0x%02x, fin=0x%02x", chl_idx, fin)
 
+        if chl_idx == 0xfa:
+            logger.debug("Recv ping but not handshaked")
+            self.send_handshake()
+            return
+
         if fin != 0xb0:
             logger.debug("Fin error (0x%02x!=0xb0) in handshake", fin)
             return
@@ -197,6 +204,8 @@ class USBProtocol(object):
             data = msgpack.unpackb(buf.tobytes())
             self._control_channel(data.get("channel"), data.get("action"),
                                   data.get("type", "robot"))
+        elif chl_idx == 0xfa:
+            self._handle_ping(fin)
         elif chl_idx == 0xfc:
             raise USBProtocolError("Recv channel 0xfc, reset session")
         else:
@@ -214,6 +223,9 @@ class USBProtocol(object):
             st = "error"
         self.send_payload(0xf1, {"channel": chl_idx, "action": action,
                                  "status": st})
+
+    def _handle_ping(self, fin):
+        self.send_payload(0xfb, None, fin)
 
     def _feed_binary(self, watcher, revent=None):
         try:
@@ -317,12 +329,12 @@ class USBProtocol(object):
             complete_callback(self)
 
 
-class USBRobotProtocol(USBProtocol):
+class USBChannelProtocol(USBProtocol):
     channels = []
     stack = None
 
     def initial_session(self):
-        super(USBRobotProtocol, self).initial_session()
+        super(USBChannelProtocol, self).initial_session()
 
         for c in self.channels:
             if c:
@@ -336,15 +348,17 @@ class USBRobotProtocol(USBProtocol):
         if self.channels[channel_idx]:
             logger.debug("Channel %i is already opened", channel_idx)
             return "RESOURCE_BUSY"
-        logger.debug("Channel %i opened", channel_idx)
 
-        if channel_type == "camera":
-            try:
-                self.channels[channel_idx] = CameraChannel(channel_idx, self)
-            except IOError:
-                return "SUBSYSTEM_ERROR"
-        else:
-            self.channels[channel_idx] = RobotChannel(channel_idx, self)
+        try:
+            if channel_type == "camera":
+                c = CameraChannel(channel_idx, self)
+            else:
+                c = RobotChannel(channel_idx, self)
+        except IOError:
+            return "SUBSYSTEM_ERROR"
+
+        self.channels[channel_idx] = c
+        logger.debug("Channel %s opened", c)
         return "ok"
 
     def close_channel(self, channel_idx):
@@ -354,9 +368,11 @@ class USBRobotProtocol(USBProtocol):
         if self.channels[channel_idx] is None:
             logger.debug("Channel %i is not opened", channel_idx)
             return "RESOURCE_BUSY"
-        logger.debug("Channel %i closed", channel_idx)
-        self.channels[channel_idx].close()
+
+        c = self.channels[channel_idx]
         self.channels[channel_idx] = None
+        c.close()
+        logger.debug("Channel %s closed", c)
         return "ok"
 
     def on_payload(self, channel_idx, payload):
@@ -370,7 +386,7 @@ class USBRobotProtocol(USBProtocol):
         self.channels[channel_idx].on_binary_ack()
 
 
-class USBHandler(USBRobotProtocol, UnixHandler):
+class USBHandler(USBChannelProtocol, UnixHandler):
     usbcabel = None
 
     def on_connected(self):

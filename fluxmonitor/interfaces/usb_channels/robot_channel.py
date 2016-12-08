@@ -19,6 +19,9 @@ class RobotChannel(object):
     def address(self):
         return "USB#%i" % (self.index)
 
+    def __str__(self):
+        return "<RobotChannel@%i>" % (self.index)
+
     def send_text(self, string):
         self.protocol.send_payload(self.index, string)
 

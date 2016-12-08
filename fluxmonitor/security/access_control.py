@@ -111,7 +111,7 @@ class AccessControl(object):
     def is_rsakey(self, pem=None, der=None):
         return is_rsakey(pem, der)
 
-_access_control = AccessControl()
+_access_control = AccessControl.instance
 
 
 def get_keyobj(pem=None, der=None, access_id=None):

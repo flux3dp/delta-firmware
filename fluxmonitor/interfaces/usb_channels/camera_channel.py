@@ -20,6 +20,9 @@ class CameraChannel(object):
         self.watcher.start()
         logger.debug("Camera channel opened")
 
+    def __str__(self):
+        return "<CameraChannel@%i>" % (self.index)
+
     def handle_sock_recv(self, *args):
         try:
             b = self.sock.recv(256)

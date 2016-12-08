@@ -34,6 +34,7 @@ class UpnpTcpHandler(TextBinaryProtocol, SSLHandler):
     client_key = None
     authorized = False
     randbytes = None
+    access_control = AccessControl.instance()
 
     def on_connected(self):
         self.sock.send(b"FLUX0003")
@@ -44,10 +45,6 @@ class UpnpTcpHandler(TextBinaryProtocol, SSLHandler):
         self.randbytes = os.urandom(64)
         self.sock.send(self.randbytes)
         self.on_ready()
-
-    @property
-    def access_control(self):
-        return AccessControl.instance()
 
     def on_text(self, message):
         if self.authorized:
