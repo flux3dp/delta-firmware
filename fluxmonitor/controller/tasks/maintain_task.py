@@ -275,7 +275,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             self._macro.start(self)
 
         def on_macro_error(error):
-            self._macro.giveup()
+            self._macro.giveup(self)
             self._macro = self._on_macro_error = self._on_macro_running = None
             self._busy = False
             handler.send_text("error %s" % " ".join(error.args))
@@ -302,7 +302,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             self._busy = False
 
         def on_macro_error(error):
-            self._macro.giveup()
+            self._macro.giveup(self)
             self._macro = self._on_macro_error = self._on_macro_running = None
             handler.send_text("error %s" % " ".join(error.args))
             self._busy = False
@@ -323,7 +323,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             self._busy = False
 
         def on_macro_error(error):
-            self._macro.giveup()
+            self._macro.giveup(self)
             self._macro = self._on_macro_error = self._on_macro_running = None
             self._busy = False
             handler.send_text("error %s" % " ".join(error.args))
@@ -364,7 +364,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             self._busy = False
 
         def on_macro_error(error):
-            self._macro.giveup()
+            self._macro.giveup(self)
             self._macro = self._on_macro_error = self._on_macro_running = None
             self._busy = False
             handler.send_text("error %s" % " ".join(error.args))
