@@ -36,6 +36,7 @@ DEVICE_POSITION_LIMIT = (172, 172, 212)
 
 HEAD_POWER_TIMEOUT = 30
 
+CONFIGURE_ENDPOINT = "/tmp/.configure"
 MAINBOARD_ENDPOINT = "/tmp/.mainboard"
 HEADBOARD_ENDPOINT = "/tmp/.headboard"
 PC_ENDPOINT = "/tmp/.pc"

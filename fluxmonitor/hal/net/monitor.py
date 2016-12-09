@@ -83,13 +83,14 @@ class Monitor(object):
 
         return status
 
-    def get_ipaddresses(self):
+    def get_ipaddresses(self, ifname="wlan0"):
         addresses = []
         for addr in self.ipr.get_addr():
             info = dict(addr['attrs'])
-            addr = info.get('IFA_ADDRESS')
-            if addr and addr != "127.0.0.1" and addr != "::1":
-                addresses.append(addr)
+            if info.get("IFA_LABEL") == ifname:
+                addr = info.get('IFA_ADDRESS')
+                if addr and addr != "127.0.0.1" and addr != "::1":
+                    addresses.append(addr)
         return addresses
 
     def close(self):

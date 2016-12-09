@@ -4,16 +4,17 @@ import logging
 import json
 import os
 
-from fluxmonitor.hal.nl80211.scan import scan as scan_wifi
 from fluxmonitor.err_codes import (UNKNOWN_ERROR, BAD_PARAMS, AUTH_ERROR,
                                    UNKNOWN_COMMAND)
 from fluxmonitor.security import (RSAObject, AccessControl, hash_password,
-                                  get_uuid)
+                                  get_uuid, validate_password)
 from .listener import SSLInterface
 from .handler import SSLHandler, TextBinaryProtocol
+from .usb_config_client import UsbConfigInternalClient
 
 __all__ = ["UpnpTcpInterface", "UpnpTcpHandler"]
 logger = logging.getLogger(__name__)
+access_control = AccessControl.instance()
 UUID_BIN = from_hex(get_uuid())
 
 
@@ -34,7 +35,8 @@ class UpnpTcpHandler(TextBinaryProtocol, SSLHandler):
     client_key = None
     authorized = False
     randbytes = None
-    access_control = AccessControl.instance()
+    client = None
+    client_ready = False
 
     def on_connected(self):
         self.sock.send(b"FLUX0003")
@@ -46,28 +48,93 @@ class UpnpTcpHandler(TextBinaryProtocol, SSLHandler):
         self.sock.send(self.randbytes)
         self.on_ready()
 
-    def on_text(self, message):
-        if self.authorized:
-            args = message.split("\x00")
-            cmd = args.pop(0)
+    def on_upnp_authorized(self):
+        self.client = UsbConfigInternalClient(
+            self.kernel,
+            on_connected_callback=self.on_subsystem_ready,
+            on_close_callback=self.on_subsystem_closed)
+        self.client.payload_callback = self.on_subsystem_response
+        self.authorized = True
+
+    def on_subsystem_ready(self, *args):
+        self.client_ready = True
+        self.send_text("ok")
+
+    def on_subsystem_closed(self, handler, error):
+        if self.client_ready:
+            logger.debug("Subsystem closed")
+            self.client_ready = False
+            self.on_error()
+
+    def on_subsystem_response(self, handler, obj):
+        st = obj["status"]
+        if st == "ok":
+            self.send_text("ok")
+        elif st == "error":
+            self.send_text("error " + " ".join(obj["error"]))
+        elif st == "data":
+            self.send_text("data " + json.dumps(obj["data"]))
+
+    def close(self):
+        super(UpnpTcpHandler, self).close()
+        if self.client_ready:
+            self.client_ready = False
+            self.client.close()
+
+    def process_request(self, cmd, *args):
+        if cmd == "passwd":
+            if len(args) == 2:
+                old_password, new_password = args
+                self.client.set_password(old_password, new_password)
+            else:
+                old_password, new_password, clean_acl = args
+                self.client.set_password(old_password, new_password,
+                                         clean_acl == "Y")
+        elif cmd == "add_trust":
+            label, pem = args
+            self.client.add_trust(label, pem)
+        elif cmd == "list_trust":
+            self.client.list_trust()
+        elif cmd == "remove_trust":
+            self.client.remove_trust(args[0])
+        elif cmd == "network":
+            raw_config = {}
+            for pair in args:
+                if "=" not in pair:
+                    continue
+                k, v = pair.split("=")
+                raw_config[k] = v
+
+            if "ifname" not in raw_config:
+                raw_config["ifname"] = "wlan0"
 
             try:
-                if cmd == "passwd":
-                    self.on_passwd(*args)
-                elif cmd == "add_trust":
-                    self.on_add_trust(*args)
-                elif cmd == "list_trust":
-                    self.on_list_trust(*args)
-                elif cmd == "remove_trust":
-                    self.on_remove_trust(*args)
-                elif cmd == "network":
-                    self.on_network(*args)
-                elif cmd == "rename":
-                    self.on_rename(*args)
-                elif cmd == "scan_wifi":
-                    self.on_scan_wifi(*args)
-                else:
-                    self.send_text("er " + UNKNOWN_COMMAND)
+                request_data = self.client.validate_network_config(raw_config)
+            except KeyError as e:
+                raise RuntimeError("BAD_PARAMS", e.args[0])
+
+            try:
+                def callback():
+                    self.send_text("ok")
+
+                self.client.send_network_config(request_data, callback)
+            except IOError:
+                raise RuntimeError("SUBSYSTEM_ERROR")
+
+        elif cmd == "rename":
+            self.client.set_nickname(args[0])
+        elif cmd == "scan_wifi":
+            self.client.scan_wifi()
+        else:
+            self.send_text("error " + UNKNOWN_COMMAND)
+
+    def on_text(self, message):
+        if self.client_ready:
+            args = message.split("\x00")
+            cmd = args.pop(0)
+            try:
+                self.process_request(cmd, *args)
+
             except RuntimeError as e:
                 self.send_text("er " + " ".join(e.args))
             except IOError as e:
@@ -77,25 +144,25 @@ class UpnpTcpHandler(TextBinaryProtocol, SSLHandler):
                 logger.exception("Unknown error during process command")
                 self.send_text("UNKNOWN_ERROR")
                 self.on_error()
-
+        elif self.authorized:
+            logger.error("Recv request before subsystem ready, close conn")
+            self.send_text("PROTOCOL_ERROR")
+            self.on_error()
         elif self.client_key:
             try:
-                if self.access_control.is_trusted(keyobj=self.client_key):
+                if access_control.is_trusted(keyobj=self.client_key):
                     document = hash_password(UUID_BIN, self.randbytes)
                     if self.client_key.verify(document, from_hex(message)):
-                        logger.debug("Remote sign ok")
-                        self.send_text("ok")
-                        self.authorized = True
+                        logger.debug("Remote sign ok, connect to subsystem")
+                        self.on_upnp_authorized()
                     else:
                         logger.debug("Remote sign error")
                         self.send_text("error " + AUTH_ERROR)
                         self.close()
                 else:
-                    if self.kernel.on_auth(self.client_key, message,
-                                           add_key=False):
+                    if validate_password(message.decode("utf8")):
                         logger.debug("Remote password ok")
-                        self.send_text("ok")
-                        self.authorized = True
+                        self.on_upnp_authorized()
                     else:
                         logger.debug("Remote password error")
                         self.send_text("error " + AUTH_ERROR)
@@ -111,7 +178,7 @@ class UpnpTcpHandler(TextBinaryProtocol, SSLHandler):
         else:
             try:
                 self.client_key = k = RSAObject(pem=message)
-                if self.access_control.is_trusted(keyobj=k):
+                if access_control.is_trusted(keyobj=k):
                     logger.debug("Remote need sign")
                     self.send_text("sign")
                 else:
@@ -127,79 +194,3 @@ class UpnpTcpHandler(TextBinaryProtocol, SSLHandler):
                 self.send_text("error " + UNKNOWN_ERROR)
                 self.on_error()
                 logger.exception("Error while parse rsa key")
-
-    def on_add_trust(self, label, pem):
-        try:
-            keyobj = RSAObject(pem=pem)
-        except TypeError:
-            self.send_text("error BAD_PARAMS")
-            return
-
-        if self.access_control.is_trusted(keyobj=keyobj):
-            self.send_text("error OPERATION_ERROR")
-            return
-
-        self.access_control.add(keyobj, label=label, type="U")
-        self.send_text("ok")
-
-    def on_list_trust(self):
-        for record in self.access_control.list():
-            payload = "\x00".join(("%s=%s" % pair for pair in record.items()))
-            self.send_text("data " + payload)
-        self.send_text("ok")
-
-    def on_remove_trust(self, access_id):
-        if self.access_control.remove(access_id):
-            self.send_text("ok")
-        else:
-            self.send_text("error NOT_FOUND")
-
-    def on_passwd(self, old_password, new_password, clean_acl="Y"):
-        try:
-            if self.kernel.on_modify_passwd(self.client_key, old_password,
-                                            new_password, clean_acl == "Y"):
-                self.send_text("ok")
-            else:
-                self.send_text("error " + AUTH_ERROR)
-        except Exception:
-            logger.exception("Upnp tcp on_passwd error")
-            self.send_text("error " + UNKNOWN_ERROR)
-
-    def on_network(self, *raw_config):
-        config = {}
-        for pair in raw_config:
-            if "=" not in pair:
-                continue
-            k, v = pair.split("=")
-            config[k] = v
-
-        try:
-            if "ifname" in config:
-                if config["ifname"] not in ["wlan0", "wlan1", "len0", "len1"]:
-                    raise RuntimeError(BAD_PARAMS, "ifname")
-            else:
-                config["ifname"] = "wlan0"
-
-            self.kernel.on_modify_network(config)
-        except RuntimeError as e:
-            self.send_text("error " + " ".join(e.args))
-
-        except KeyError as e:
-            self.send_text("error " + BAD_PARAMS + " " + e.args[0])
-
-        except Exception:
-            logger.exception("Upnp tcp on_network error")
-            self.send_text("error " + UNKNOWN_ERROR)
-
-    def on_rename(self, new_name):
-        if new_name:
-            self.kernel.on_rename_device(new_name)
-            self.send_text("ok")
-        else:
-            self.send_text("error " + BAD_PARAMS)
-
-    def on_scan_wifi(self):
-        for r in scan_wifi():
-            self.send_text("data " + json.dumps(r))
-
-        self.send_text("ok")

@@ -80,7 +80,7 @@ import pyev
 from fluxmonitor.interfaces.handler import UnixHandler
 from fluxmonitor.hal.misc import get_deviceinfo
 from fluxmonitor.storage import Metadata
-from .usb_channels import CameraChannel, RobotChannel
+from .usb_channels import CameraChannel, ConfigChannel, RobotChannel
 
 global logger
 logger = None
@@ -352,6 +352,8 @@ class USBChannelProtocol(USBProtocol):
         try:
             if channel_type == "camera":
                 c = CameraChannel(channel_idx, self)
+            elif channel_type == "config":
+                c = ConfigChannel(channel_idx, self)
             else:
                 c = RobotChannel(channel_idx, self)
         except IOError:

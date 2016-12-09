@@ -61,12 +61,14 @@ def validate_options(orig):
     options = {}
 
     if b"ifname" in orig:
-        options["ifname"] = _b2s(orig[b"ifname"])
+        options["ifname"] = ifname = _b2s(orig[b"ifname"])
+        if ifname not in ("wlan0", "wlan1", "len0", "len1"):
+            raise KeyError("ifname")
 
-    method = orig.get(b"method")
-    if method == b"dhcp":
+    method = orig.get("method")
+    if method == "dhcp":
         options["method"] = "dhcp"
-    elif method == b"static":
+    elif method == "static":
         ons = orig[b"ns"]
         if not isinstance(ons, list):
             ns = _b2s(orig[b"ns"]).split(",")

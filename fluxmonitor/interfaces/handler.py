@@ -122,14 +122,16 @@ class TCPHandler(SocketHandler):
 
 
 class UnixHandler(SocketHandler):
+    on_connected_cb = None
     on_close_cb = None
 
     @T.update_time
     def __init__(self, kernel, endpoint, sock=None, dgram=False,
-                 on_close_callback=None):
+                 on_connected_callback=None, on_close_callback=None):
         self.kernel = kernel
         self.endpoint = endpoint
         self.dgram = dgram
+        self._on_connected_cb = on_connected_callback
         self._on_close_cb = on_close_callback
 
         if sock:
@@ -145,8 +147,9 @@ class UnixHandler(SocketHandler):
             self.sock.setblocking(False)
 
             ret = self.sock.connect_ex(endpoint)
-            assert ret == 0, (errorcode.get(ret),
-                              "Async connect to endpoint error")
+            if ret != 0:
+                raise IOError("Async connect to endpoint error: %s" %
+                              errorcode.get(ret))
 
             self.watcher = kernel.loop.io(self.sock.fileno(),
                                           pyev.EV_READ | pyev.EV_WRITE,
@@ -157,6 +160,11 @@ class UnixHandler(SocketHandler):
     @property
     def address(self):
         return self.endpoint
+
+    def on_connected(self):
+        super(UnixHandler, self).on_connected()
+        if self._on_connected_cb:
+            self._on_connected_cb(self)
 
     def on_error(self):
         logger.debug("%s socket error", self)

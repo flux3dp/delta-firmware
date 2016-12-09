@@ -53,7 +53,7 @@ class AccessControl(object):
         return sha1(keyobj.export_pubkey_der()).hexdigest()
 
     def add(self, keyobj, **kw):
-        access_id = get_access_id(keyobj=keyobj)
+        access_id = self.get_access_id(keyobj=keyobj)
 
         with self.storage.open(access_id, "w") as f:
             f.write(keyobj.export_pubkey_pem())
@@ -111,7 +111,7 @@ class AccessControl(object):
     def is_rsakey(self, pem=None, der=None):
         return is_rsakey(pem, der)
 
-_access_control = AccessControl.instance
+_access_control = AccessControl.instance()
 
 
 def get_keyobj(pem=None, der=None, access_id=None):

@@ -13,8 +13,6 @@ from fluxmonitor.interfaces.upnp_tcp import UpnpTcpInterface
 from fluxmonitor.misc.systime import systime as time
 from fluxmonitor.halprofile import get_model_id
 from fluxmonitor.storage import Storage, Metadata
-from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT
-from fluxmonitor.misc import network_config_encoder as NCE  # noqa
 
 from fluxmonitor import __version__ as VERSION  # noqa
 from fluxmonitor import security
@@ -230,9 +228,6 @@ class UpnpService(ServiceBase):
 
         self.upnp_tcp = UpnpTcpInterface(self)
 
-        self.task_signal = self.loop.async(self.on_delay_task)
-        self.task_signal.start()
-
         self.nw_monitor = NetworkMonitor()
         self.nw_monitor_watcher = self.loop.io(self.nw_monitor, pyev.EV_READ,
                                                self.on_network_changed)
@@ -252,39 +247,9 @@ class UpnpService(ServiceBase):
                 self._try_close_upnp_sock()
             self._try_open_upnp_sock()
 
-    def on_auth(self, keyobj, passwd, add_key=True):
-        passwd = passwd.decode("utf8")
-        access_id = security.get_access_id(keyobj=keyobj)
-
-        if security.validate_password(passwd):
-            if add_key:
-                security.add_trusted_keyobj(keyobj)
-            return access_id
-        else:
-            return None
-
-    def on_modify_passwd(self, keyobj, old_passwd, new_passwd, reset_acl):
-        ret = security.validate_and_set_password(new_passwd, old_passwd,
-                                                 reset_acl)
-        if ret:
-            security.add_trusted_keyobj(keyobj)
-
-        return ret
-
-    def on_modify_network(self, raw_config):
-        config = NCE.validate_options(raw_config)
-        nw_config = ("config_network" + "\x00" +
-                     NCE.to_bytes(config)).encode()
-
-        self.task_signal.data = DelayNetworkConfigure(nw_config)
-        self.task_signal.send()
-
     def on_network_changed(self, watcher, revent):
         if self.nw_monitor.read():
             self.update_network_status(closeorig=True)
-
-    def on_rename_device(self, new_name):
-        self.meta.nickname = new_name
 
     def _try_open_upnp_sock(self):
         try:
@@ -344,19 +309,3 @@ class UpnpService(ServiceBase):
             self.mcst[0].send_notify()
         if self.bcst:
             self.bcst[0].send_notify()
-
-    def on_delay_task(self, watcher, revent):
-        if watcher.data:
-            watcher.data.fire()
-            watcher.data = None
-
-
-class DelayNetworkConfigure(object):
-    def __init__(self, config):
-        self.config = config
-
-    def fire(self):
-        sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-        sock.connect(NETWORK_MANAGE_ENDPOINT)
-        sock.send(self.config)
-        sock.close()

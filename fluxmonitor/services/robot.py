@@ -8,7 +8,7 @@ from fluxmonitor.controller.tasks.play_manager import poweroff_led, clean_led
 from fluxmonitor.controller.startup import device_startup
 from fluxmonitor.interfaces.robot_internal import RobotUnixStreamInterface
 from fluxmonitor.interfaces.hal_internal import HalControlClientHandler
-from fluxmonitor.interfaces.usb_internal import USBHandler
+from fluxmonitor.interfaces.usb2pc import USBHandler
 from fluxmonitor.interfaces.robot import RobotTcpInterface, RobotCloudHandler
 from fluxmonitor.services.base import ServiceBase
 from fluxmonitor.misc.systime import systime as time

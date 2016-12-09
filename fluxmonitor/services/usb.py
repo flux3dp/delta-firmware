@@ -22,6 +22,7 @@ from fluxmonitor.security.passwd import set_password
 from fluxmonitor.security.access_control import is_rsakey, get_keyobj, \
     add_trusted_keyobj, untrust_all
 from fluxmonitor.security.misc import randstr
+from fluxmonitor.interfaces.usb_config import UsbConfigInternalInterface
 from fluxmonitor.hal.misc import get_deviceinfo
 from fluxmonitor.storage import Storage, Metadata
 from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT, ROBOT_ENDPOINT
@@ -65,6 +66,8 @@ class UsbService(ServiceBase):
         super(UsbService, self).__init__(logger)
         self.timer_watcher = self.loop.timer(0, 30, self.on_timer)
         self.timer_watcher.start()
+
+        self.internal_ifce = UsbConfigInternalInterface(self)
 
         self.udev_signal = self.loop.signal(SIGUSR2, self.udev_notify)
         self.udev_signal.start()
@@ -166,7 +169,7 @@ class UsbService(ServiceBase):
         pass
 
     def on_shutdown(self):
-        pass
+        self.internal_ifce.close()
 
     def on_timer(self, watcher, revent):
         if not self.usb:

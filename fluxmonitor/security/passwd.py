@@ -3,7 +3,6 @@ from hashlib import sha1
 from hmac import HMAC
 
 from fluxmonitor.storage import Storage
-from .access_control import untrust_all
 from .misc import randstr
 
 _storage = Storage("security", "private")
@@ -15,17 +14,6 @@ def hash_password(salt, paragraph):
 
 def has_password():
     return _storage.exists("password")
-
-
-def validate_and_set_password(password, old_password, reset_acl=True):
-    if validate_password(old_password):
-        set_password(password)
-        if reset_acl:
-            untrust_all()
-
-        return True
-    else:
-        return False
 
 
 def set_password(password):
