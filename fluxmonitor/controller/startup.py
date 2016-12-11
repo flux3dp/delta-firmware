@@ -4,7 +4,7 @@ import logging
 import socket
 import re
 
-from fluxmonitor.config import uart_config
+from fluxmonitor.config import MAINBOARD_ENDPOINT, HEADBOARD_ENDPOINT
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +14,7 @@ def device_startup():
     mb = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     mb.settimeout(1.5)
     try:
-        mb.connect(uart_config["mainboard"])
+        mb.connect(MAINBOARD_ENDPOINT)
         mb.send("G28+\n")
         mb.recv(1024)
     except socket.timeout:
@@ -37,7 +37,7 @@ def _try_clean_head_status():
     hb = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     hb.settimeout(1.5)
     try:
-        hb.connect(uart_config["headboard"])
+        hb.connect(HEADBOARD_ENDPOINT)
 
         hb.send("1 HELLO *115\n")
 

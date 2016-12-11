@@ -1,4 +1,9 @@
 
+from select import select
+from errno import errorcode
+import socket
+
+from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT
 
 try:
     unicode
@@ -128,3 +133,25 @@ def _b2s(input):
         return input
     else:
         raise TypeError(input, input.__class__)
+
+
+def build_network_config_request(config):
+    validated_config = validate_options(config)
+    request_data = ("config_network" + "\x00" +
+                    to_bytes(validated_config)).encode()
+    return request_data
+
+
+def send_network_config_request(request_data, before_send_callback=None):
+    sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+    sock.setblocking(False)
+    ret = sock.connect_ex(NETWORK_MANAGE_ENDPOINT)
+    if ret != 0:
+        raise IOError("Async connect to endpoint error: %s" %
+                      errorcode.get(ret))
+    select((), (sock, ), (), 0.05)
+    if before_send_callback:
+        before_send_callback()
+
+    sock.send(request_data)
+    sock.close()

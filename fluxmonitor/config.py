@@ -39,7 +39,7 @@ HEAD_POWER_TIMEOUT = 30
 CONFIGURE_ENDPOINT = "/tmp/.configure"
 MAINBOARD_ENDPOINT = "/tmp/.mainboard"
 HEADBOARD_ENDPOINT = "/tmp/.headboard"
-PC_ENDPOINT = "/tmp/.pc"
+UART_ENDPOINT = "/tmp/.pc"
 HALCONTROL_ENDPOINT = "/tmp/.halcontrol"
 
 CAMERA_ENDPOINT = "/tmp/.camera"

@@ -1,9 +1,6 @@
 
-from select import select
-from errno import errorcode
-import socket
-
-from fluxmonitor.config import CONFIGURE_ENDPOINT, NETWORK_MANAGE_ENDPOINT
+from fluxmonitor.security.misc import randstr
+from fluxmonitor.config import CONFIGURE_ENDPOINT
 from fluxmonitor.misc import network_config_encoder as NCE  # noqa
 from .handler import MsgpackProtocol, UnixHandler
 
@@ -14,6 +11,7 @@ class UsbConfigInternalClient(MsgpackProtocol, UnixHandler):
     def __init__(self, kernel, endpoint=CONFIGURE_ENDPOINT, sock=None,
                  **kw):
         UnixHandler.__init__(self, kernel, endpoint, sock, False, **kw)
+        self.vector = randstr(8)
 
     def on_connected(self):
         super(UsbConfigInternalClient, self).on_connected()
@@ -50,22 +48,18 @@ class UsbConfigInternalClient(MsgpackProtocol, UnixHandler):
     def scan_wifi(self):
         self.send_request("scan_wifi")
 
+    def get_vector(self):
+        self.on_payload({"status": "ok", "result": self.vector})
+
+    def enable_tty(self, signature):
+        self.send_request("_enable_tty", self.vector, signature)
+
+    def enable_ssh(self, signature):
+        self.send_request("_enable_ssh", self.vector, signature)
+
     def validate_network_config(self, config):
-        validated_config = NCE.validate_options(config)
-        request_data = ("config_network" + "\x00" +
-                        NCE.to_bytes(validated_config)).encode()
-        return request_data
+        return NCE.build_network_config_request(config)
 
     def send_network_config(self, request_data, before_send_callback=None):
-        sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-        sock.setblocking(False)
-        ret = sock.connect_ex(NETWORK_MANAGE_ENDPOINT)
-        if ret != 0:
-            raise IOError("Async connect to endpoint error: %s" %
-                          errorcode.get(ret))
-        select((), (sock, ), (), 0.05)
-        if before_send_callback:
-            before_send_callback()
-
-        sock.send(request_data)
-        sock.close()
+        return NCE.send_network_config_request(request_data,
+                                               before_send_callback)

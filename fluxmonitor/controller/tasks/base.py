@@ -7,8 +7,8 @@ import re
 
 import pyev
 
-from fluxmonitor.config import uart_config, DEBUG
 from fluxmonitor.err_codes import SUBSYSTEM_ERROR, NO_RESPONSE, UNKNOWN_ERROR
+from fluxmonitor.config import MAINBOARD_ENDPOINT, HEADBOARD_ENDPOINT, DEBUG
 
 logger = logging.getLogger(__name__)
 
@@ -94,16 +94,14 @@ class DeviceOperationMixIn(object):
         try:
             if not mb:
                 mb = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-                logger.info("Connect to mainboard %s",
-                            uart_config["mainboard"])
-                mb.connect(uart_config["mainboard"])
+                logger.info("Connect to mainboard %s", MAINBOARD_ENDPOINT)
+                mb.connect(MAINBOARD_ENDPOINT)
             self._uart_mb = mb
 
             if not hb:
                 hb = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-                logger.info("Connect to headboard %s",
-                            uart_config["headboard"])
-                hb.connect(uart_config["headboard"])
+                logger.info("Connect to headboard %s", HEADBOARD_ENDPOINT)
+                hb.connect(HEADBOARD_ENDPOINT)
             self._uart_hb = hb
 
             if enable_watcher:
@@ -116,7 +114,7 @@ class DeviceOperationMixIn(object):
                 self._hb_watcher.start()
 
         except socket.error as err:
-            logger.exception("Connect to %s failed" % uart_config["mainboard"])
+            logger.exception("Connect to %s failed", MAINBOARD_ENDPOINT)
             self._disconnect()
 
             if err.args[0] in [ECONNREFUSED, ENOENT]:

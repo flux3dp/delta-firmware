@@ -1,11 +1,13 @@
 
+from pkg_resources import resource_string
+from binascii import a2b_base64
 import logging
 
 from fluxmonitor.hal.net.monitor import Monitor as NetworkMonitor
 from fluxmonitor.hal.nl80211.config import get_wlan_ssid
 from fluxmonitor.hal.nl80211.scan import scan as scan_wifi
 from fluxmonitor.security import (AccessControl, validate_password,
-                                  set_password, RSAObject)
+                                  set_password, get_keyobj, RSAObject)
 from fluxmonitor.storage import metadata
 from fluxmonitor.err_codes import (AUTH_ERROR, NOT_FOUND,
                                    UNKNOWN_COMMAND, UNKNOWN_ERROR)
@@ -18,6 +20,13 @@ logger = logging.getLogger(__name__)
 
 
 class ConfigureTools(object):
+    @classmethod
+    def uart_set_password(cls, password, pem):
+        # Note: special case
+        set_password(password)
+        access_control.remove_all()
+        cls.request_add_trust("noname", pem)
+
     @classmethod
     def request_set_nickname(cls, nickname):
         metadata.nickname = nickname
@@ -38,9 +47,12 @@ class ConfigureTools(object):
     @classmethod
     def request_add_trust(cls, label, pem):
         keyobj = RSAObject(pem=pem)
-        if access_control.is_trusted(keyobj=keyobj):
-            raise RuntimeError("OPERATION_ERROR")
-        access_control.add(keyobj, label=label)
+        if keyobj:
+            if access_control.is_trusted(keyobj=keyobj):
+                raise RuntimeError("OPERATION_ERROR")
+            access_control.add(keyobj, label=label)
+        else:
+            raise RuntimeError("BAD_PARAMS")
 
     @classmethod
     def request_remove_trust(cls, access_id):
@@ -64,6 +76,34 @@ class ConfigureTools(object):
     @classmethod
     def request_scan_wifi(cls):
         return scan_wifi()
+
+    # diagnosis api
+    @classmethod
+    def request__enable_tty(cls, salt, signature):
+        pem = resource_string("fluxmonitor", "data/develope.pem")
+        rsakey = get_keyobj(pem=pem)
+
+        if rsakey.verify(salt, a2b_base64(signature)):
+            from fluxmonitor.diagnosis.usb2device import enable_console
+            ret = enable_console()
+            if ret != 0:
+                raise RuntimeError("EXEC_ERROR_%s" % ret)
+        else:
+            raise RuntimeError("SIGNATURE_ERROR")
+
+    # diagnosis api
+    @classmethod
+    def request__enable_ssh(cls, salt, signature):
+        pem = resource_string("fluxmonitor", "data/develope.pem")
+        rsakey = get_keyobj(pem=pem)
+
+        if rsakey.verify(salt, a2b_base64(signature)):
+            from fluxmonitor.diagnosis.usb2device import enable_ssh
+            ret = enable_ssh()
+            if ret != 0:
+                raise RuntimeError("EXEC_ERROR_%s" % ret)
+        else:
+            raise RuntimeError("SIGNATURE_ERROR")
 
 
 class UsbConfigInternalInterface(UnixStreamInterface):

@@ -7,7 +7,7 @@ import os
 
 from fluxmonitor.err_codes import PROTOCOL_ERROR, SUBSYSTEM_ERROR, \
     FILE_BROKEN, UNKNOWN_ERROR
-from fluxmonitor.config import FIRMWARE_UPDATE_PATH, uart_config
+from fluxmonitor.config import FIRMWARE_UPDATE_PATH, HALCONTROL_ENDPOINT
 from fluxmonitor.storage import Storage
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,6 @@ class UpdateFwTask(object):
                 handler.binary_mode = False
 
                 self.tmpfile.file.flush()
-                
                 self.tmpfile.seek(0)
                 s = Storage("update_fw")
                 with s.open("upload.fxfw", "wb") as f:
@@ -67,7 +66,7 @@ class UpdateFwTask(object):
     def send_upload_request(self):
         try:
             s = socket.socket(socket.AF_UNIX)
-            s.connect(uart_config["control"])
+            s.connect(HALCONTROL_ENDPOINT)
             s.send("update_fw")
         except socket.error:
             raise RuntimeError(SUBSYSTEM_ERROR)
