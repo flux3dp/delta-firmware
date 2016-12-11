@@ -30,8 +30,9 @@ class ZprobeMacro(MacroBase):
 
     def start(self, k):
         self._running = True
-        self.meta.plate_correction = {"H": 242}
-        k.mainboard.send_cmd("M666H242")
+        if self.clean:
+            self.meta.plate_correction = {"H": 242}
+            k.mainboard.send_cmd("M666H242")
         k.mainboard.send_cmd("G30X0Y0")
 
     def giveup(self, k):

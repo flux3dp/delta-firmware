@@ -241,7 +241,7 @@ class FcodeExecutor(AutoResume, BaseExecutor):
     def do_correction(self):
         def correction_ready():
             logging.debug("ZprobeMacro start.")
-            self.macro = ZprobeMacro(self._clear_macro)
+            self.macro = ZprobeMacro(self._clear_macro, clean=True)
             self.macro.start(self)
 
         def toolhead_ready():
