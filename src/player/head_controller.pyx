@@ -489,9 +489,11 @@ cdef class ExtruderExt:
 
     def set_heater(self, int heater_id, float temperature):
         if temperature < 0:
-            raise RuntimeError(EXEC_OPERATION_ERROR, "BAD TEMP")
+            raise SystemError(EXEC_OPERATION_ERROR, "BAD_TEMPERATURE",
+                               str(temperature))
         elif temperature > 280:
-            raise SystemError(EXEC_OPERATION_ERROR, "BAD TEMP")
+            raise SystemError(EXEC_OPERATION_ERROR, "BAD_TEMPERATURE",
+                              str(temperature))
 
         self._temperatures[heater_id] = temperature
         cdef char* buf
