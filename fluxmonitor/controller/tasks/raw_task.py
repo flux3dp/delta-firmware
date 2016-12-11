@@ -21,7 +21,7 @@ class RawTask(DeviceOperationMixIn):
             buf = watcher.data.recv(4096)
             if buf:
                 if self.handler.interface == "TCP":
-                    self.handler.send_text(buf)
+                    self.handler.send(buf)
                 else:
                     self.handler.send_binary(buf)
             else:

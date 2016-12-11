@@ -11,8 +11,6 @@ logger = logging.getLogger(__name__)
 
 
 class RobotTcpInterface(TcpInterface):
-    interface = "TCP"
-
     def __init__(self, kernel, endpoint=("", 23811)):
         super(RobotTcpInterface, self).__init__(kernel, endpoint)
 
@@ -41,6 +39,8 @@ class RobotProtocol(TextBinaryProtocol):
 
 
 class RobotTcpHandler(RobotProtocol, OldAesServerSideHandler):
+    interface = "TCP"
+
     def on_authorized(self):
         self.stack = ServiceStack(self.kernel)
         super(RobotTcpHandler, self).on_authorized()
@@ -48,6 +48,8 @@ class RobotTcpHandler(RobotProtocol, OldAesServerSideHandler):
 
 
 class RobotCloudHandler(RobotProtocol, CloudHandler):
+    interface = "TCP"
+
     def on_cloud_connected(self):
         self.stack = ServiceStack(self.kernel)
         super(RobotCloudHandler, self).on_cloud_connected()
