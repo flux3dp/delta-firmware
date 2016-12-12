@@ -8,7 +8,7 @@ import os
 
 import pyev
 
-from fluxmonitor.storage import Metadata, UserSpace
+from fluxmonitor.storage import UserSpace, Storage, metadata
 from fluxmonitor.services.base import ServiceBase
 
 from .fcode_executor import FcodeExecutor
@@ -29,7 +29,7 @@ def parse_float(str_val):
 
 
 class Player(ServiceBase):
-    _mb_swap = _hb_swap = None
+    postback_url = None
 
     def __init__(self, options):
         super(Player, self).__init__(logger)
@@ -40,7 +40,6 @@ class Player(ServiceBase):
             logger.error("Can not renice process to -5")
 
         self.prepare_control_socket(options.control_endpoint)
-        self.meta = Metadata()
 
         m_sock = create_mainboard_socket()
         t_sock = create_toolhead_socket()
@@ -80,6 +79,7 @@ class Player(ServiceBase):
         if self.travel_dist == 0:
             self.travel_dist = float("NAN")
         self.time_cose = parse_float(taskloader.metadata.get("TIME_COST"))
+        self.postback_url = Storage("general", "meta")["player_postback_url"]
 
     def prepare_control_socket(self, endpoint):
         if not endpoint:
@@ -227,8 +227,15 @@ class Player(ServiceBase):
                 watcher.stop()
             prog = self.executor.traveled / self.travel_dist
 
-            self.meta.update_device_status(
+            metadata.update_device_status(
                 self.executor.status_id, prog,
                 self.executor.toolhead.module_name or "N/A", err)
+
+            if self.postback_url and self.executor.status_id in (128, 64):
+                if '"' not in self.postback_url:
+                    os.system(
+                        "curl -s -o /dev/null \"%s\"" % self.postback_url)
+                self.postback_url = None
+
         except Exception:
             logger.exception("Unhandler Error")

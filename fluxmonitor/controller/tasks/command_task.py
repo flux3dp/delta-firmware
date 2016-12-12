@@ -357,6 +357,9 @@ class ConfigMixIn(object):
         "enable_backlash": {
             "type": str, "enum": ("Y", "N"),
             "key": "enable_backlash"
+        },
+        "player_postback_url": {
+            "type": str, "key": "player_postback_url", "maxlen": 128
         }
     }
 
@@ -390,6 +393,8 @@ class ConfigMixIn(object):
             if "min" in struct and cval < struct["min"]:
                 raise RuntimeError(BAD_PARAMS)
             if "max" in struct and cval > struct["max"]:
+                raise RuntimeError(BAD_PARAMS)
+            if "maxlen" in struct and len(cval) > struct["maxlen"]:
                 raise RuntimeError(BAD_PARAMS)
 
             if hasattr(metadata, struct["key"]):
