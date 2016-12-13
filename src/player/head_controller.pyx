@@ -117,6 +117,7 @@ cdef class HeadController:
             self.cmdbuf_size = 0
 
         self._st_flag = ST_BOOTING
+        self.error_code = 0
         self.send_retry = 0
         self._send_hello()
         self._ready_callback = callback
