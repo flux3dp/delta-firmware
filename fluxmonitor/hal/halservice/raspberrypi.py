@@ -2,11 +2,11 @@
 from pkg_resources import resource_stream
 from serial import Serial, SerialException  # PARITY_EVEN, PARITY_NONE,
 from shutil import copyfileobj
+from select import select
 from time import sleep
 import logging
 import pyev
 
-# from fluxmonitor.misc.systime import systime as time
 from fluxmonitor.halprofile import MODEL_D1
 from fluxmonitor.storage import Metadata, Storage
 
@@ -203,6 +203,50 @@ class UartHal(UartHalBase, BaseOnSerial):
         if hasattr(self.gpio, "v24_power"):
             if self.gpio.v24_power is True:
                 self.gpio.v24_power = False
+
+    def diagnosis_mode(self):
+        self.gpio.set_toolhead_boot(False)
+        self.gpio.toolhead_power = False
+        if hasattr(self.gpio, "v24_power"):
+            self.gpio.v24_power = False
+        self.mainboard_uart.write("@DISABLE_LINECHECK\nX2O0\n")
+
+        ret = "UNKNOWN"
+        while True:
+            cmd = ""
+            rl = select((self.raspi_uart, ), (), (), 10.)[0]
+            if rl:
+                cmd += self.raspi_uart.read(4 - len(cmd))
+                if len(cmd) == 4:
+                    if cmd.startswith("BT"):
+                        self.gpio.set_toolhead_boot(cmd[2] == "H")
+                        self.raspi_uart.write("BOK\n")
+                    elif cmd.startswith("M2"):
+                        op = "X2O255\n" if cmd[2] == "H" else "X2O0\n"
+                        self.mainboard_uart.write(op)
+                        self.raspi_uart.write("MOK\n")
+                    elif cmd.startswith("5V"):
+                        self.gpio.toolhead_power = cmd[2] == "H"
+                        self.raspi_uart.write("5OK\n")
+                    elif cmd.startswith("24"):
+                        if hasattr(self.gpio, "v24_power"):
+                            self.gpio.v24_power = cmd[2] == "H"
+                        self.raspi_uart.write("POK\n")
+                    else:
+                        ret = "QUIT " + cmd.strip("\n")
+                        break
+
+                    cmd = ""
+            else:
+                ret = "TIMEOUT"
+                break
+
+        self.gpio.set_toolhead_boot(False)
+        self.gpio.toolhead_power = False
+        if hasattr(self.gpio, "v24_power"):
+            self.gpio.v24_power = False
+        self.mainboard_uart.write("X2O0\n")
+        return ret
 
     def send_button_event(self, event_buffer):
         self.kernel.on_button_event(event_buffer.rstrip())

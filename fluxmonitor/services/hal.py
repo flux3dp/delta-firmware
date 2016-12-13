@@ -48,6 +48,9 @@ class HalService(ServiceBase):
     def toolhead_standby(self):
         self.hal.toolhead_standby()
 
+    def diagnosis_mode(self):
+        return self.hal.diagnosis_mode()
+
     def update_head_fw(self, callback):
         self.hal.update_head_fw(callback)
 

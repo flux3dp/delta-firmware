@@ -47,6 +47,8 @@ class HalControlHandler(MsgpackProtocol, UnixHandler):
                 self.kernel.update_head_fw(cb)
             elif cmd == "update_fw":
                 self.kernel.update_main_fw()
+            elif cmd == "diagnosis_mode":
+                self.send_payload((0, self.kernel.diagnosis_mode(), ))
             elif cmd == "bye":
                 resp = False
 

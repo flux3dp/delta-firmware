@@ -111,6 +111,8 @@ class PinMappingShared(object):
 
     TOOLHEAD_POWER_ON = GPIO.HIGH
     TOOLHEAD_POWER_OFF = GPIO.LOW
+    TOOLHEAD_BOOT_ON = GPIO.HIGH
+    TOOLHEAD_BOOT_OFF = GPIO.LOW
 
     _last_mainboard_sig = GPIO.LOW
     _head_enabled = False
@@ -130,6 +132,10 @@ class PinMappingShared(object):
 
         self._head_power_timer = time()
         self.on_timer()
+
+    def set_toolhead_boot(self, o):
+        mode = self.TOOLHEAD_BOOT_ON if o else self.TOOLHEAD_BOOT_OFF
+        GPIO.output(self.TOOLHEAD_BOOT, mode)
 
     @property
     def toolhead_power(self):
