@@ -8,7 +8,7 @@ import os
 
 import pyev
 
-from fluxmonitor.storage import UserSpace, Storage, metadata
+from fluxmonitor.storage import UserSpace, metadata
 from fluxmonitor.services.base import ServiceBase
 
 from .fcode_executor import FcodeExecutor
@@ -29,8 +29,6 @@ def parse_float(str_val):
 
 
 class Player(ServiceBase):
-    postback_url = None
-
     def __init__(self, options):
         super(Player, self).__init__(logger)
 
@@ -79,7 +77,6 @@ class Player(ServiceBase):
         if self.travel_dist == 0:
             self.travel_dist = float("NAN")
         self.time_cose = parse_float(taskloader.metadata.get("TIME_COST"))
-        self.postback_url = Storage("general", "meta")["player_postback_url"]
 
     def prepare_control_socket(self, endpoint):
         if not endpoint:
@@ -230,12 +227,6 @@ class Player(ServiceBase):
             metadata.update_device_status(
                 self.executor.status_id, prog,
                 self.executor.toolhead.module_name or "N/A", err)
-
-            if self.postback_url and self.executor.status_id in (128, 64):
-                if '"' not in self.postback_url:
-                    os.system(
-                        "curl -s -o /dev/null \"%s\"" % self.postback_url)
-                self.postback_url = None
 
         except Exception:
             logger.exception("Unhandler Error")
