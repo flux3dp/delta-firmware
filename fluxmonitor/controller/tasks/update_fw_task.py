@@ -39,14 +39,18 @@ class UpdateFwTask(object):
                     self.tmpfile.write(buf)
                 else:
                     self.tmpfile.write(buf[:self.padding_length])
+                    logger.error("Recv data length error")
+
                 handler.binary_mode = False
 
+                logger.info("New firmware received")
                 self.tmpfile.file.flush()
                 self.tmpfile.seek(0)
                 s = Storage("update_fw")
                 with s.open("upload.fxfw", "wb") as f:
                     f.write(self.tmpfile.read())
                 ret = os.system("fxupdate.py --dryrun %s" % self.tmpfile.name)
+                logger.info("Firmware verify: %s", ret)
 
                 if ret:
                     handler.send_text("error %s" % FILE_BROKEN)

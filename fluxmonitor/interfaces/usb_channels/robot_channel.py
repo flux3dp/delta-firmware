@@ -13,7 +13,6 @@ class RobotChannel(object):
         self.index = index
         self.protocol = protocol
         self.stack = ServiceStack(self.protocol.kernel)
-        self._binary_ack = 0
 
     @property
     def address(self):
@@ -37,15 +36,10 @@ class RobotChannel(object):
         self.stack.on_text(" ".join("%s" % i for i in obj), self)
 
     def on_binary(self, buf):
-        self._binary_ack += 1
         self.stack.on_binary(buf, self)
-        if self._binary_ack <= 0:
-            logger.error("binary ack=%i after send", self._binary_ack)
-        elif self._binary_ack > 16:
-            logger.error("binary ack=%i", self._binary_ack)
 
     def on_binary_ack(self):
-        self._binary_ack -= 1
+        pass
 
     def close(self):
         self.stack.on_close(self)
