@@ -161,8 +161,8 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         elif cmd == "extruder_temp":
             self.do_change_extruder_temperature(handler, *args)
 
-        elif cmd == "x78":
-            self.do_x78(handler)
+        elif cmd == "diagnosis_sensor":
+            self.diagnosis_sensor(handler)
 
         elif cmd == "update_head":
             self.update_toolhead_fw(handler, *args)
@@ -174,15 +174,19 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             logger.debug("Can not handle: '%s'" % cmd)
             raise RuntimeError(UNKNOWN_COMMAND)
 
-    def do_x78(self, handler):
+    def diagnosis_sensor(self, handler):
         dataset = []
 
         def on_message_cb(msg):
-            dataset.append(msg)
+            if msg.startswith("DATA "):
+                kv = msg[5:].split(" ", 1)
+                if len(kv) == 2:
+                    dataset.append("%s=%s" % (kv[0], kv[1]))
+                else:
+                    dataset.append(kv)
 
         def on_success_cb():
-            handler.send_text("\n".join(dataset))
-            handler.send_text("ok")
+            handler.send_text("ok " + "\x00".join(dataset))
             self._macro = self._on_macro_error = self._on_macro_running = None
             self._busy = False
 
@@ -192,7 +196,8 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             handler.send_text("error %s" % " ".join(error.args))
             self._busy = False
 
-        self._macro = macro.CommandMacro(on_success_cb, ["X78"], on_message_cb)
+        self._macro = macro.CommandMacro(on_success_cb, ["M666L1"],
+                                         on_message_cb)
         self._on_macro_error = on_macro_error
         self._busy = True
         self._macro.start(self)
