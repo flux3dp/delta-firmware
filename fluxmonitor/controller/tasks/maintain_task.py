@@ -8,6 +8,7 @@ from fluxmonitor.player.head_controller import (HeadController,
                                                 HeadOfflineError,
                                                 HeadResetError,
                                                 HeadTypeError)
+
 from fluxmonitor.player.options import Options
 from fluxmonitor.hal.tools import reset_mb
 from fluxmonitor.err_codes import (EXEC_HEAD_ERROR,
@@ -166,6 +167,9 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
 
         elif cmd == "update_head":
             self.update_toolhead_fw(handler, *args)
+
+        elif cmd == "hal_diagnosis":
+            handler.send_text("ok " + tools.hal_diagnosis())
 
         elif cmd == "quit":
             self.stack.exit_task(self)
