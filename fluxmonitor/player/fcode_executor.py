@@ -16,7 +16,8 @@ from .base import (
 
 from ._device_fsm import PyDeviceFSM
 from .macro import (StartupMacro, WaitHeadMacro, CorrectionMacro, ZprobeMacro,
-                    ControlHeaterMacro, ControlToolheadMacro)
+                    ControlHeaterMacro, ControlToolheadMacro,
+                    LoadFilamentMacro, UnloadFilamentMacro)
 
 from .main_controller import MainController
 from .head_controller import (HeadController, check_toolhead_errno,
@@ -327,11 +328,40 @@ class FcodeExecutor(AutoResume, BaseExecutor):
         else:
             return False
 
-    # def load_filament(self, extruder_id):
-    #     self.send_mainboard("@\n")
-    #
-    # def eject_filament(self, extruder_id):
-    #     pass
+    def interrupt_load_filament(self):
+        if self.status_id == 48 and isinstance(self.paused_macro,
+                                               LoadFilamentMacro):
+            self.mainboard.send_cmd("@HOME_BUTTON_TRIGGER\n", raw=1)
+            return True
+        else:
+            return False
+
+    def load_filament(self, extruder_id):
+        if self.status_id == 48 and self.paused_macro is None:
+            def success_cb():
+                self.paused_macro = None
+                logger.debug("Load filament macro terminated")
+
+            self.paused_macro = LoadFilamentMacro(success_cb, extruder_id,
+                                                  self.options.filament_detect)
+            self.paused_macro.start(self)
+            logger.debug("Load filament macro started")
+            return True
+        else:
+            return False
+
+    def unload_filament(self, extruder_id):
+        if self.status_id == 48 and self.paused_macro is None:
+            def success_cb():
+                self.paused_macro = None
+                logger.debug("Unload filament macro terminated")
+
+            self.paused_macro = UnloadFilamentMacro(success_cb, extruder_id)
+            self.paused_macro.start(self)
+            logger.debug("Unload filament macro started")
+            return True
+        else:
+            return False
 
     def pause(self, symbol=None):
         if BaseExecutor.pause(self, symbol):
@@ -344,6 +374,9 @@ class FcodeExecutor(AutoResume, BaseExecutor):
             return False
 
     def resume(self):
+        if self.paused_macro:
+            return False
+
         if BaseExecutor.resume(self):
             self.mainboard.send_cmd("X5S0")
             self.mainboard.bootstrap(self._on_mainboard_ready)
@@ -454,7 +487,7 @@ class FcodeExecutor(AutoResume, BaseExecutor):
     def _on_mb_ctrl(self, sender, data):
         if self.status_id == 48:
             if self.paused_macro:
-                self.paused_macro.on_command_empty(self)
+                self.paused_macro.on_ctrl_message(self, data)
 
         elif self.macro:
             self.macro.on_ctrl_message(self, data)

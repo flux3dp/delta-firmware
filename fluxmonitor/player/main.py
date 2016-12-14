@@ -187,16 +187,27 @@ class Player(ServiceBase):
                     self.send_cmd_response(S, R, "ok")
                 else:
                     self.send_cmd_response(S, R, "error RESOURCE_BUSY")
+            elif cmd == "INTERRUPT_LOAD_FILAMENT":
+                if self.executor.interrupt_load_filament():
+                    return self.send_cmd_response(S, R, "ok")
+                else:
+                    self.send_cmd_response(S, R, "error RESOURCE_BUSY")
             elif cmd == "LOAD_FILAMENT":
-                if self.executor.load_filament(int(args[1])):
-                    self.send_cmd_response(S, R, "ok")
-                else:
-                    self.send_cmd_response(S, R, "error RESOURCE_BUSY")
-            elif cmd == "EJECT_FILAMENT":
-                if self.executor.eject_filament(int(args[1])):
-                    self.send_cmd_response(S, R, "ok")
-                else:
-                    self.send_cmd_response(S, R, "error RESOURCE_BUSY")
+                try:
+                    if self.executor.load_filament(int(args[1])):
+                        self.send_cmd_response(S, R, "ok")
+                    else:
+                        self.send_cmd_response(S, R, "error RESOURCE_BUSY")
+                except (ValueError, IndexError):
+                    self.send_cmd_response(S, R, "error BAD_PARAMS")
+            elif cmd == "UNLOAD_FILAMENT":
+                try:
+                    if self.executor.unload_filament(int(args[1])):
+                        self.send_cmd_response(S, R, "ok")
+                    else:
+                        self.send_cmd_response(S, R, "error RESOURCE_BUSY")
+                except (ValueError, IndexError):
+                    self.send_cmd_response(S, R, "error BAD_PARAMS")
             elif cmd == "QUIT":
                 if self.executor.is_closed():
                     self.send_cmd_response(S, R, "ok")
