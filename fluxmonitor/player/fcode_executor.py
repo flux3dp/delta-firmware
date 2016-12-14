@@ -86,6 +86,7 @@ class FcodeExecutor(AutoResume, BaseExecutor):
     # Gcode parser
     _fsm = None
     _pause_flags = 0
+    _stash_option = None
     _cmd_queue = None
     _fucking_toolhead_power_management_control_flag = True
 
@@ -177,6 +178,7 @@ class FcodeExecutor(AutoResume, BaseExecutor):
         elif self.status_id == 18:
             if self._pause_flags & STASHED_FLAG:
                 self._pause_flags &= ~STASHED_FLAG
+                self._stash_option = None
                 self.mainboard.send_cmd("C2F")
             else:
                 self.resumed()
@@ -296,7 +298,10 @@ class FcodeExecutor(AutoResume, BaseExecutor):
 
                     if self.macro:
                         stash_cmd += "Z0"
+                    elif self._stash_option:
+                        stash_cmd += self._stash_option
 
+                    logger.debug("Stash: %s", stash_cmd)
                     self.mainboard.send_cmd(stash_cmd)
                 else:
                     if self.toolhead.ready:
@@ -450,8 +455,8 @@ class FcodeExecutor(AutoResume, BaseExecutor):
                             self.macro.start(self)
                     return
                 elif target == 8:
+                    self._stash_option = self._cmd_queue.popleft()[0]
                     self.pause(RuntimeError("USER_OPERATION", "FROM_CODE"))
-                    self._cmd_queue.popleft()[0]
                     return
                 elif target == 128:
                     self.abort(RuntimeError(self._cmd_queue[0][0]))

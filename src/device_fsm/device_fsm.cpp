@@ -167,20 +167,20 @@ int DeviceController::feed(int fd, command_cb_t callback, void* data) {
     int block = cmd & 8;
     callback(_proc_buf, (block ? BLOCK_HEAD_MESSAGE : HEAD_MESSAGE), data);
     return l;
-  } else if(cmd == 6) {
-    // Raw Command
-    unsigned char val;
-    MACRO_READ(fd, &val, 1)
-    MACRO_READ(fd, _proc_buf, val)
-    _proc_buf[val] = 0;
+  // } else if(cmd == 6) {
+  //   // Raw Command
+  //   unsigned char val;
+  //   MACRO_READ(fd, &val, 1)
+  //   MACRO_READ(fd, _proc_buf, val)
+  //   _proc_buf[val] = 0;
 
-    if(cmd & 1)
-      callback(_proc_buf, HEAD_MESSAGE, data);
-    else
-      callback(_proc_buf, MAIN_MESSAGE, data);
-    return 1;
+  //   if(cmd & 1)
+  //     callback(_proc_buf, HEAD_MESSAGE, data);
+  //   else
+  //     callback(_proc_buf, MAIN_MESSAGE, data);
+  //   return 1;
   } else if(cmd == 5) {
-    callback("", PAUSE_MESSAGE, data);
+    callback("Z25", PAUSE_MESSAGE, data);
     return 1;
   } else if(cmd & 4) {
     // Sleep (G4)
@@ -190,8 +190,11 @@ int DeviceController::feed(int fd, command_cb_t callback, void* data) {
     callback(_proc_buf, MAIN_MESSAGE, data);
     return l;
   } else if((cmd & 3) == 3) {
-    // Relative Positioning (G91)
-    callback("G91", MAIN_MESSAGE, data);
+    // Pause with height
+    float val;
+    MACRO_READ(fd, &val, 4)
+    snprintf(_proc_buf, 32, "Z%.4f", val);
+    callback(_proc_buf, PAUSE_MESSAGE, data);
     return 1;
   } else if(cmd & 2) {
     // Absolute Positioning (G90)
