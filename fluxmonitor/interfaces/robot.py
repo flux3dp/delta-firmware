@@ -87,17 +87,18 @@ class ServiceStack(object):
         if self.this_task != task:
             raise Exception("Task not match")
 
+        current_task, callback = self.task_callstack.pop()
+
         try:
             task.on_exit()
         except Exception:
-            logger.exception("Exit %s" % self.this_task.__class__.__name__)
+            logger.exception("Exit %s", self.this_task.__class__.__name__)
 
         try:
-            current_task, callback = self.task_callstack.pop()
             callback(*return_args)
-            logger.debug("Exit %s" % self.this_task.__class__.__name__)
+            logger.debug("Exit %s", self.this_task.__class__.__name__)
         except Exception:
-            logger.exception("Exit %s" % self.this_task.__class__.__name__)
+            logger.exception("Exit %s", self.this_task.__class__.__name__)
         finally:
             self.this_task = current_task
 
