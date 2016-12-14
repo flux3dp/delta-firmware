@@ -245,6 +245,7 @@ class FcodeExecutor(AutoResume, BaseExecutor):
             self.macro.start(self)
 
         def toolhead_ready():
+            self.mainboard.send_cmd("G1F6000E-10")
             logging.debug("ControlHeaterMacro completed.")
             if self.options.correction == "A":
                 logging.debug("CorrectionMacro start.")
@@ -257,7 +258,6 @@ class FcodeExecutor(AutoResume, BaseExecutor):
             else:
                 self.fire()
 
-        self.mainboard.send_cmd("G1F6000E-10")
         self.macro = ControlHeaterMacro(toolhead_ready, 0, 170)
         logging.debug("ControlHeaterMacro start.")
         self.macro.start(self)
