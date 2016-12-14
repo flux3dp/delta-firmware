@@ -17,6 +17,7 @@ class WaitHeadMacro(MacroBase):
         k.toolhead.set_allset_callback(self.allset)
 
     def giveup(self, k):
+        k.mainboard.send_cmd("X5S0")
         k.toolhead.set_allset_callback(None)
 
     def send_cmd(self, k):
