@@ -62,7 +62,9 @@ class ZprobeMacro(MacroBase):
                 logger.error("Correction input failed: %s", data)
             else:
                 self.meta.plate_correction = {"H": new_h}
-                k.mainboard.send_cmd("M666H%.4f" % new_h)
+                corr_cmd = "M666H%.4f" % new_h
+                k.mainboard.send_cmd(corr_cmd)
+                logger.debug("Corr H: %s", corr_cmd)
 
             if abs(data) < self.threshold:
                 self.convergence = True

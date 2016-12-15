@@ -100,6 +100,7 @@ class CorrectionMacro(MacroBase):
 
                 if self.correct_at_final:
                     corr_str = do_calibrate(self.meta, *data)
+                    logger.debug("Corr: %s", corr_str)
                     k.mainboard.send_cmd(corr_str)
                 k.mainboard.send_cmd("G1F10392X0Y0Z30")
 
