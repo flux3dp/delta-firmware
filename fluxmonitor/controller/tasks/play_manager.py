@@ -170,12 +170,12 @@ class PlayerManager(object):
         self.sock.send("SET_TH_STANDBY")
         return self.sock.recv(4096)
 
-    def load_filament(self):
-        self.sock.send("LOAD_FILAMENT")
+    def load_filament(self, index):
+        self.sock.send("LOAD_FILAMENT %s" % index)
         return self.sock.recv(4096)
 
-    def eject_filament(self):
-        self.sock.send("EJECT_FILAMENT")
+    def unload_filament(self, index):
+        self.sock.send("UNLOAD_FILAMENT %s" % index)
         return self.sock.recv(4096)
 
     def report(self):
