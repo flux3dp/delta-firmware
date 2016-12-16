@@ -407,18 +407,18 @@ cdef class HeadController:
 
 cdef class ExtruderExt:
     cdef HeadController controller
-    cdef float _fanspeed
+    cdef double _fanspeed
     cdef int _req_num_of_extruder, _num_of_extruder
-    cdef float _req_max_temperature, _max_temperature
-    cdef float* _temperatures
+    cdef double _req_max_temperature, _max_temperature
+    cdef double* _temperatures
 
-    def __init__(self, int num_of_extruder=1, float max_temperature=235.0):
-        cdef float nan = float("NaN")
+    def __init__(self, int num_of_extruder=1, double max_temperature=235.0):
+        cdef double nan = float("NaN")
 
         self._req_num_of_extruder = num_of_extruder
         self._req_max_temperature = max_temperature
 
-        self._temperatures = <float*>malloc(num_of_extruder * sizeof(float))
+        self._temperatures = <double*>malloc(num_of_extruder * sizeof(double))
         self._fanspeed = nan
 
         cdef int i
@@ -488,7 +488,7 @@ cdef class ExtruderExt:
             self._temperatures[i] = 0
         self.do_recover()
 
-    def set_heater(self, int heater_id, float temperature):
+    def set_heater(self, int heater_id, double temperature):
         if temperature < 0:
             raise SystemError(EXEC_OPERATION_ERROR, "BAD_TEMPERATURE",
                                str(temperature))
@@ -501,7 +501,7 @@ cdef class ExtruderExt:
         cdef int size = build_toolhead_command(&buf, "H:%i T:%.1f", heater_id, temperature)
         self.controller.send_command(buf, size)
 
-    def set_fanspeed(self, int fan_id, float fan_speed):
+    def set_fanspeed(self, int fan_id, double fan_speed):
         self._fanspeed = f = max(min(1.0, fan_speed), 0)
 
         cdef char* buf

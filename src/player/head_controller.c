@@ -674,17 +674,17 @@ struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController {
  * 
  * cdef class ExtruderExt:             # <<<<<<<<<<<<<<
  *     cdef HeadController controller
- *     cdef float _fanspeed
+ *     cdef double _fanspeed
  */
 struct __pyx_obj_11fluxmonitor_6player_16_head_controller_ExtruderExt {
   PyObject_HEAD
   struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *controller;
-  float _fanspeed;
+  double _fanspeed;
   int _req_num_of_extruder;
   int _num_of_extruder;
-  float _req_max_temperature;
-  float _max_temperature;
-  float *_temperatures;
+  double _req_max_temperature;
+  double _max_temperature;
+  double *_temperatures;
 };
 
 
@@ -1487,7 +1487,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
 static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_3ext___get__(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self); /* proto */
 static int __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_3ext_2__set__(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
 static int __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_3ext_4__del__(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_self); /* proto */
-static int __pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt___init__(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_ExtruderExt *__pyx_v_self, int __pyx_v_num_of_extruder, float __pyx_v_max_temperature); /* proto */
+static int __pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt___init__(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_ExtruderExt *__pyx_v_self, int __pyx_v_num_of_extruder, double __pyx_v_max_temperature); /* proto */
 static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt_2__del__(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_ExtruderExt *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt_4set_controller(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_ExtruderExt *__pyx_v_self, struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_c); /* proto */
 static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt_6on_hello(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_ExtruderExt *__pyx_v_self, PyObject *__pyx_v_info); /* proto */
@@ -1496,8 +1496,8 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
 static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt_12do_recover(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_ExtruderExt *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt_14do_standby(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_ExtruderExt *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt_16do_shutdown(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_ExtruderExt *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt_18set_heater(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_ExtruderExt *__pyx_v_self, int __pyx_v_heater_id, float __pyx_v_temperature); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt_20set_fanspeed(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_ExtruderExt *__pyx_v_self, int __pyx_v_fan_id, float __pyx_v_fan_speed); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt_18set_heater(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_ExtruderExt *__pyx_v_self, int __pyx_v_heater_id, double __pyx_v_temperature); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt_20set_fanspeed(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_ExtruderExt *__pyx_v_self, int __pyx_v_fan_id, double __pyx_v_fan_speed); /* proto */
 static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt_22allset(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_ExtruderExt *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_8LaserExt_set_controller(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_LaserExt *__pyx_v_self, struct __pyx_obj_11fluxmonitor_6player_16_head_controller_HeadController *__pyx_v_c); /* proto */
 static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_8LaserExt_2on_hello(CYTHON_UNUSED struct __pyx_obj_11fluxmonitor_6player_16_head_controller_LaserExt *__pyx_v_self, PyObject *__pyx_v_info); /* proto */
@@ -7915,10 +7915,10 @@ static int __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_3e
 }
 
 /* "src/player/head_controller.pyx":415
- *     cdef float* _temperatures
+ *     cdef double* _temperatures
  * 
- *     def __init__(self, int num_of_extruder=1, float max_temperature=235.0):             # <<<<<<<<<<<<<<
- *         cdef float nan = float("NaN")
+ *     def __init__(self, int num_of_extruder=1, double max_temperature=235.0):             # <<<<<<<<<<<<<<
+ *         cdef double nan = float("NaN")
  * 
  */
 
@@ -7926,7 +7926,7 @@ static int __pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadController_3e
 static int __pyx_pw_11fluxmonitor_6player_16_head_controller_11ExtruderExt_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static int __pyx_pw_11fluxmonitor_6player_16_head_controller_11ExtruderExt_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   int __pyx_v_num_of_extruder;
-  float __pyx_v_max_temperature;
+  double __pyx_v_max_temperature;
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__init__ (wrapper)", 0);
@@ -7972,9 +7972,9 @@ static int __pyx_pw_11fluxmonitor_6player_16_head_controller_11ExtruderExt_1__in
       __pyx_v_num_of_extruder = ((int)1);
     }
     if (values[1]) {
-      __pyx_v_max_temperature = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_max_temperature == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 415, __pyx_L3_error)
+      __pyx_v_max_temperature = __pyx_PyFloat_AsDouble(values[1]); if (unlikely((__pyx_v_max_temperature == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 415, __pyx_L3_error)
     } else {
-      __pyx_v_max_temperature = ((float)235.0);
+      __pyx_v_max_temperature = ((double)235.0);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
@@ -7992,8 +7992,8 @@ static int __pyx_pw_11fluxmonitor_6player_16_head_controller_11ExtruderExt_1__in
   return __pyx_r;
 }
 
-static int __pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt___init__(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_ExtruderExt *__pyx_v_self, int __pyx_v_num_of_extruder, float __pyx_v_max_temperature) {
-  float __pyx_v_nan;
+static int __pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt___init__(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_ExtruderExt *__pyx_v_self, int __pyx_v_num_of_extruder, double __pyx_v_max_temperature) {
+  double __pyx_v_nan;
   int __pyx_v_i;
   int __pyx_r;
   __Pyx_RefNannyDeclarations
@@ -8003,8 +8003,8 @@ static int __pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt___ini
 
   /* "src/player/head_controller.pyx":416
  * 
- *     def __init__(self, int num_of_extruder=1, float max_temperature=235.0):
- *         cdef float nan = float("NaN")             # <<<<<<<<<<<<<<
+ *     def __init__(self, int num_of_extruder=1, double max_temperature=235.0):
+ *         cdef double nan = float("NaN")             # <<<<<<<<<<<<<<
  * 
  *         self._req_num_of_extruder = num_of_extruder
  */
@@ -8012,7 +8012,7 @@ static int __pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt___ini
   __pyx_v_nan = __pyx_t_1;
 
   /* "src/player/head_controller.pyx":418
- *         cdef float nan = float("NaN")
+ *         cdef double nan = float("NaN")
  * 
  *         self._req_num_of_extruder = num_of_extruder             # <<<<<<<<<<<<<<
  *         self._req_max_temperature = max_temperature
@@ -8025,22 +8025,22 @@ static int __pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt___ini
  *         self._req_num_of_extruder = num_of_extruder
  *         self._req_max_temperature = max_temperature             # <<<<<<<<<<<<<<
  * 
- *         self._temperatures = <float*>malloc(num_of_extruder * sizeof(float))
+ *         self._temperatures = <double*>malloc(num_of_extruder * sizeof(double))
  */
   __pyx_v_self->_req_max_temperature = __pyx_v_max_temperature;
 
   /* "src/player/head_controller.pyx":421
  *         self._req_max_temperature = max_temperature
  * 
- *         self._temperatures = <float*>malloc(num_of_extruder * sizeof(float))             # <<<<<<<<<<<<<<
+ *         self._temperatures = <double*>malloc(num_of_extruder * sizeof(double))             # <<<<<<<<<<<<<<
  *         self._fanspeed = nan
  * 
  */
-  __pyx_v_self->_temperatures = ((float *)malloc((__pyx_v_num_of_extruder * (sizeof(float)))));
+  __pyx_v_self->_temperatures = ((double *)malloc((__pyx_v_num_of_extruder * (sizeof(double)))));
 
   /* "src/player/head_controller.pyx":422
  * 
- *         self._temperatures = <float*>malloc(num_of_extruder * sizeof(float))
+ *         self._temperatures = <double*>malloc(num_of_extruder * sizeof(double))
  *         self._fanspeed = nan             # <<<<<<<<<<<<<<
  * 
  *         cdef int i
@@ -8068,10 +8068,10 @@ static int __pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt___ini
   }
 
   /* "src/player/head_controller.pyx":415
- *     cdef float* _temperatures
+ *     cdef double* _temperatures
  * 
- *     def __init__(self, int num_of_extruder=1, float max_temperature=235.0):             # <<<<<<<<<<<<<<
- *         cdef float nan = float("NaN")
+ *     def __init__(self, int num_of_extruder=1, double max_temperature=235.0):             # <<<<<<<<<<<<<<
+ *         cdef double nan = float("NaN")
  * 
  */
 
@@ -8967,7 +8967,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
  *             self._temperatures[i] = 0
  *         self.do_recover()             # <<<<<<<<<<<<<<
  * 
- *     def set_heater(self, int heater_id, float temperature):
+ *     def set_heater(self, int heater_id, double temperature):
  */
   __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_do_recover); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 489, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
@@ -9017,7 +9017,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
 /* "src/player/head_controller.pyx":491
  *         self.do_recover()
  * 
- *     def set_heater(self, int heater_id, float temperature):             # <<<<<<<<<<<<<<
+ *     def set_heater(self, int heater_id, double temperature):             # <<<<<<<<<<<<<<
  *         if temperature < 0:
  *             raise SystemError(EXEC_OPERATION_ERROR, "BAD_TEMPERATURE",
  */
@@ -9026,7 +9026,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
 static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_11ExtruderExt_19set_heater(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_11ExtruderExt_19set_heater(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   int __pyx_v_heater_id;
-  float __pyx_v_temperature;
+  double __pyx_v_temperature;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("set_heater (wrapper)", 0);
@@ -9063,7 +9063,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_11ExtruderExt
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
     __pyx_v_heater_id = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_heater_id == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 491, __pyx_L3_error)
-    __pyx_v_temperature = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_temperature == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 491, __pyx_L3_error)
+    __pyx_v_temperature = __pyx_PyFloat_AsDouble(values[1]); if (unlikely((__pyx_v_temperature == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 491, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
@@ -9080,7 +9080,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt_18set_heater(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_ExtruderExt *__pyx_v_self, int __pyx_v_heater_id, float __pyx_v_temperature) {
+static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt_18set_heater(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_ExtruderExt *__pyx_v_self, int __pyx_v_heater_id, double __pyx_v_temperature) {
   char *__pyx_v_buf;
   int __pyx_v_size;
   PyObject *__pyx_r = NULL;
@@ -9093,7 +9093,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
 
   /* "src/player/head_controller.pyx":492
  * 
- *     def set_heater(self, int heater_id, float temperature):
+ *     def set_heater(self, int heater_id, double temperature):
  *         if temperature < 0:             # <<<<<<<<<<<<<<
  *             raise SystemError(EXEC_OPERATION_ERROR, "BAD_TEMPERATURE",
  *                                str(temperature))
@@ -9102,7 +9102,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   if (__pyx_t_1) {
 
     /* "src/player/head_controller.pyx":493
- *     def set_heater(self, int heater_id, float temperature):
+ *     def set_heater(self, int heater_id, double temperature):
  *         if temperature < 0:
  *             raise SystemError(EXEC_OPERATION_ERROR, "BAD_TEMPERATURE",             # <<<<<<<<<<<<<<
  *                                str(temperature))
@@ -9130,7 +9130,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
     /* "src/player/head_controller.pyx":493
- *     def set_heater(self, int heater_id, float temperature):
+ *     def set_heater(self, int heater_id, double temperature):
  *         if temperature < 0:
  *             raise SystemError(EXEC_OPERATION_ERROR, "BAD_TEMPERATURE",             # <<<<<<<<<<<<<<
  *                                str(temperature))
@@ -9156,7 +9156,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
 
     /* "src/player/head_controller.pyx":492
  * 
- *     def set_heater(self, int heater_id, float temperature):
+ *     def set_heater(self, int heater_id, double temperature):
  *         if temperature < 0:             # <<<<<<<<<<<<<<
  *             raise SystemError(EXEC_OPERATION_ERROR, "BAD_TEMPERATURE",
  *                                str(temperature))
@@ -9258,14 +9258,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
  *         cdef int size = build_toolhead_command(&buf, "H:%i T:%.1f", heater_id, temperature)
  *         self.controller.send_command(buf, size)             # <<<<<<<<<<<<<<
  * 
- *     def set_fanspeed(self, int fan_id, float fan_speed):
+ *     def set_fanspeed(self, int fan_id, double fan_speed):
  */
   ((struct __pyx_vtabstruct_11fluxmonitor_6player_16_head_controller_HeadController *)__pyx_v_self->controller->__pyx_vtab)->send_command(__pyx_v_self->controller, __pyx_v_buf, __pyx_v_size); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 502, __pyx_L1_error)
 
   /* "src/player/head_controller.pyx":491
  *         self.do_recover()
  * 
- *     def set_heater(self, int heater_id, float temperature):             # <<<<<<<<<<<<<<
+ *     def set_heater(self, int heater_id, double temperature):             # <<<<<<<<<<<<<<
  *         if temperature < 0:
  *             raise SystemError(EXEC_OPERATION_ERROR, "BAD_TEMPERATURE",
  */
@@ -9288,7 +9288,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
 /* "src/player/head_controller.pyx":504
  *         self.controller.send_command(buf, size)
  * 
- *     def set_fanspeed(self, int fan_id, float fan_speed):             # <<<<<<<<<<<<<<
+ *     def set_fanspeed(self, int fan_id, double fan_speed):             # <<<<<<<<<<<<<<
  *         self._fanspeed = f = max(min(1.0, fan_speed), 0)
  * 
  */
@@ -9297,7 +9297,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
 static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_11ExtruderExt_21set_fanspeed(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_11ExtruderExt_21set_fanspeed(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   int __pyx_v_fan_id;
-  float __pyx_v_fan_speed;
+  double __pyx_v_fan_speed;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("set_fanspeed (wrapper)", 0);
@@ -9334,7 +9334,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_11ExtruderExt
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
     __pyx_v_fan_id = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_fan_id == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 504, __pyx_L3_error)
-    __pyx_v_fan_speed = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_fan_speed == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 504, __pyx_L3_error)
+    __pyx_v_fan_speed = __pyx_PyFloat_AsDouble(values[1]); if (unlikely((__pyx_v_fan_speed == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 504, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
@@ -9351,21 +9351,21 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt_20set_fanspeed(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_ExtruderExt *__pyx_v_self, int __pyx_v_fan_id, float __pyx_v_fan_speed) {
+static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt_20set_fanspeed(struct __pyx_obj_11fluxmonitor_6player_16_head_controller_ExtruderExt *__pyx_v_self, int __pyx_v_fan_id, double __pyx_v_fan_speed) {
   CYTHON_UNUSED double __pyx_v_f;
   char *__pyx_v_buf;
   int __pyx_v_size;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   long __pyx_t_1;
-  float __pyx_t_2;
+  double __pyx_t_2;
   double __pyx_t_3;
   double __pyx_t_4;
   __Pyx_RefNannySetupContext("set_fanspeed", 0);
 
   /* "src/player/head_controller.pyx":505
  * 
- *     def set_fanspeed(self, int fan_id, float fan_speed):
+ *     def set_fanspeed(self, int fan_id, double fan_speed):
  *         self._fanspeed = f = max(min(1.0, fan_speed), 0)             # <<<<<<<<<<<<<<
  * 
  *         cdef char* buf
@@ -9378,15 +9378,15 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   } else {
     __pyx_t_4 = __pyx_t_3;
   }
-  __pyx_t_3 = __pyx_t_4;
-  if (((__pyx_t_1 > __pyx_t_3) != 0)) {
+  __pyx_t_2 = __pyx_t_4;
+  if (((__pyx_t_1 > __pyx_t_2) != 0)) {
     __pyx_t_4 = __pyx_t_1;
   } else {
-    __pyx_t_4 = __pyx_t_3;
+    __pyx_t_4 = __pyx_t_2;
   }
-  __pyx_t_3 = __pyx_t_4;
-  __pyx_v_self->_fanspeed = __pyx_t_3;
-  __pyx_v_f = __pyx_t_3;
+  __pyx_t_2 = __pyx_t_4;
+  __pyx_v_self->_fanspeed = __pyx_t_2;
+  __pyx_v_f = __pyx_t_2;
 
   /* "src/player/head_controller.pyx":508
  * 
@@ -9409,7 +9409,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   /* "src/player/head_controller.pyx":504
  *         self.controller.send_command(buf, size)
  * 
- *     def set_fanspeed(self, int fan_id, float fan_speed):             # <<<<<<<<<<<<<<
+ *     def set_fanspeed(self, int fan_id, double fan_speed):             # <<<<<<<<<<<<<<
  *         self._fanspeed = f = max(min(1.0, fan_speed), 0)
  * 
  */
