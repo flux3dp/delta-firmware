@@ -139,7 +139,7 @@ int validate_toolhead_message_1(const char *begin, const char *end) {
 
 
 PyObject* parse_doubles(const char *begin, const char *end) {
-    double *numbers = (double*)malloc(sizeof(double) * ((end - begin) / 2) + 1);
+    volatile double *numbers = (double*)malloc(sizeof(double) * ((end - begin) / 2) + 1);
     int c = 0;
     char *ptr = (char*)begin;
 
@@ -150,7 +150,8 @@ PyObject* parse_doubles(const char *begin, const char *end) {
 
     PyObject *t = PyTuple_New(c);
     for(int i=0;i<c;i++) {
-        PyTuple_SetItem(t, i, PyFloat_FromDouble(numbers[i]));
+        volatile PyObject* pynum = PyFloat_FromDouble(numbers[i]);
+        PyTuple_SetItem(t, i, pynum);
     }
     free(numbers);
     return t;
