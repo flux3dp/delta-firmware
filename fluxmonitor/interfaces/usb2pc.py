@@ -234,7 +234,7 @@ class USBProtocol(object):
             if length == sent_length:
                 logger.debug("Binary sent")
                 watcher.data = None
-                callback(self)
+                callback(self.get_channel(chl_idx))
                 return
 
             bdata = stream.read(min(length - sent_length, 1020))
@@ -362,6 +362,9 @@ class USBChannelProtocol(USBProtocol):
         self.channels[channel_idx] = c
         logger.debug("Channel %s opened", c)
         return "ok"
+
+    def get_channel(self, channel_idx):
+        return self.channels[channel_idx]
 
     def close_channel(self, channel_idx):
         if channel_idx >= 8:
