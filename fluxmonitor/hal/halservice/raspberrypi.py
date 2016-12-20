@@ -232,6 +232,11 @@ class UartHal(UartHalBase, BaseOnSerial):
                         if hasattr(self.gpio, "v24_power"):
                             self.gpio.v24_power = cmd[2] == "H"
                         self.raspi_uart.write("POK\n")
+                    elif cmd == "QM1\n":
+                        if self.gpio.mio_1:
+                            self.raspi_uart.write("M1H\n")
+                        else:
+                            self.raspi_uart.write("M1L\n")
                     else:
                         ret = "QUIT " + cmd.strip("\n")
                         break

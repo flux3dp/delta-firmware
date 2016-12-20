@@ -108,6 +108,7 @@ class PinMappingShared(object):
     FRONT_BUTTON = 12
     RIO_1 = 3
     RIO_2 = 5
+    MIO_1 = 22
 
     TOOLHEAD_POWER_ON = GPIO.HIGH
     TOOLHEAD_POWER_OFF = GPIO.LOW
@@ -124,6 +125,7 @@ class PinMappingShared(object):
         GPIO.setup(self.TOOLHEAD_BOOT, GPIO.OUT, initial=GPIO.LOW)
         GPIO.setup(self.TOOLHEAD_POWER, GPIO.OUT,
                    initial=self._head_power_stat)
+        GPIO.setup(self.MIO_1, GPIO.IN)
         GPIO.setup(self.RIO_1, GPIO.OUT, initial=GPIO.LOW)
         GPIO.setup(self.RIO_2, GPIO.OUT, initial=GPIO.LOW)
 
@@ -132,6 +134,10 @@ class PinMappingShared(object):
 
         self._head_power_timer = time()
         self.on_timer()
+
+    @property
+    def mio_1(self):
+        return GPIO.input(self.MIO_1)
 
     def set_toolhead_boot(self, o):
         mode = self.TOOLHEAD_BOOT_ON if o else self.TOOLHEAD_BOOT_OFF
