@@ -42,5 +42,6 @@ class RobotChannel(object):
         pass
 
     def close(self):
-        self.stack.on_close(self)
-        self.stack = None
+        if self.stack:
+            self.stack.on_close(self)
+            self.stack = None
