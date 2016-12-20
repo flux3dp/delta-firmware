@@ -4,7 +4,6 @@ import logging
 
 from fluxmonitor.diagnosis.god_mode import allow_god_mode
 from fluxmonitor.misc.systime import systime as time
-from fluxmonitor.diagnosis.tracer import tracer
 from fluxmonitor.err_codes import (UNKNOWN_ERROR, EXEC_BAD_COMMAND,
                                    SUBSYSTEM_ERROR)
 from fluxmonitor.hal.tools import (toolhead_on, toolhead_standby,
@@ -280,12 +279,10 @@ class FcodeExecutor(AutoResume, BaseExecutor):
 
         elif self.status_id == 50:
             if self.mainboard.buffered_cmd_size:
-                logger.debug("Waitting mainboard command clear (caller=%s)",
-                             tracer)
+                logger.debug("Waitting mainboard command clear")
             else:
                 if self.macro and self.macro.giveup(self) is False:
-                    logger.debug("Waitting macro giving up (caller=%s)",
-                                 tracer)
+                    logger.debug("Waitting macro giving up")
                 elif self._pause_flags & (STASHING_FLAG | STASHED_FLAG) == 0:
                     # Ready for maincoard pause...
 

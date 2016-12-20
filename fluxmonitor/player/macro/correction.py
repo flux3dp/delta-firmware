@@ -53,7 +53,7 @@ class CorrectionMacro(MacroBase):
 
     def giveup(self, k):
         if self._running:
-            k.mainboard.send_cmd("G1F10392X0Y0Z200")
+            k.mainboard.send_cmd("G1F10392X0Y0Z220")
             self._running = False
             self.data = []
             return False
@@ -115,9 +115,7 @@ class CorrectionMacro(MacroBase):
             str_probe = data.rsplit(" ", 1)[-1]
             val = float(str_probe)
             if val <= -50:
-                # Clean fsr
-                self.data = []
-                k.mainboard.send_cmd("G1F9000X0Y0Z230")
+                self.giveup(k)
                 raise RuntimeError(HARDWARE_ERROR, EXEC_ZPROBE_ERROR)
 
             self.data.append(val)

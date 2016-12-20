@@ -37,7 +37,7 @@ class ZprobeMacro(MacroBase):
 
     def giveup(self, k):
         if self._running:
-            k.mainboard.send_cmd("G1F10392X0Y0Z200")
+            k.mainboard.send_cmd("G1F10392X0Y0Z220")
             self._running = False
             self.data = None
             return False
@@ -72,7 +72,7 @@ class ZprobeMacro(MacroBase):
                 return
 
             elif self.round >= self.ttl:
-                k.mainboard.send_cmd("G1F6000X0Y0Z210")
+                self.giveup(k)
                 raise RuntimeError(HARDWARE_ERROR, EXEC_CONVERGENCE_FAILED)
 
         self.round += 1
@@ -84,7 +84,7 @@ class ZprobeMacro(MacroBase):
             str_probe = data.rsplit(" ", 1)[-1]
             val = float(str_probe)
             if val <= -50:
-                k.mainboard.send_cmd("G1F6000X0Y0Z210")
+                self.giveup(k)
                 raise RuntimeError(HARDWARE_ERROR, EXEC_ZPROBE_ERROR)
             self.data = val
         elif data.startswith("DEBUG "):
