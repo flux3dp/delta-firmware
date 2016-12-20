@@ -243,6 +243,7 @@ int parse_dict(const char *begin, const char *terminator, PyObject* d) {
                     if(!find_quote) {
                         if(parse_numbers) {
                             parse_numbers = 0;
+                            buf[bufptr] = 0;
                             value = parse_doubles(buf, bufptr);
                         } else {
                             value = PyString_FromStringAndSize(buf, bufptr - buf);
