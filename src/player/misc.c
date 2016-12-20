@@ -243,7 +243,7 @@ int parse_dict(const char *begin, const char *terminator, PyObject* d) {
                     if(!find_quote) {
                         if(parse_numbers) {
                             parse_numbers = 0;
-                            buf[bufptr] = 0;
+                            bufptr[0] = 0;
                             value = parse_doubles(buf, bufptr);
                         } else {
                             value = PyString_FromStringAndSize(buf, bufptr - buf);
@@ -258,7 +258,13 @@ int parse_dict(const char *begin, const char *terminator, PyObject* d) {
             ptr++;
         }
         if(!found_val) {
-            value = PyString_FromStringAndSize(buf, bufptr - buf);
+            if(parse_numbers) {
+                parse_numbers = 0;
+                bufptr[0] = 0;
+                value = parse_doubles(buf, bufptr);
+            } else {
+                value = PyString_FromStringAndSize(buf, bufptr - buf);
+            }
         }
         if(key != NULL) {
             if(PyDict_SetItem(d, key, value ? value : Py_None) == -1) {
