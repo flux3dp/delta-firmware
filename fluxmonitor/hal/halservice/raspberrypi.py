@@ -145,14 +145,22 @@ class UartHal(UartHalBase, BaseOnSerial):
     def close(self):
         UartHalBase.close(self)
         self.btn_monitor.close()
+        self.hal.close()
         GPIOUtils.teardown()
+
+        while True:
+            try:
+                GPIOUtils.get_mainboard_port()
+                break
+            except Exception:
+                sleep(0.02)
 
     def on_loop(self):
         self.gpio.on_timer()
 
     def reset_mainboard(self):
         self.disconnect_uart()
-        sleep(0.75)
+        sleep(0.1)
         GPIOUtils.reset_mainboard()
         sleep(0.75)
         # Ensure mainboard is back

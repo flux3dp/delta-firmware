@@ -1,7 +1,7 @@
 
 from pkg_resources import load_entry_point, resource_string
 from signal import SIGTERM, SIGKILL
-from time import sleep, time
+from time import sleep
 import argparse
 import fcntl
 import errno
@@ -28,7 +28,7 @@ PID_LIST = (
 )
 
 SERVICE_LIST = (
-    # Syntax: (service entry name", ("service", "startup", "params"), PID)
+    # Syntax: (service entry name", ("service", "startup", "params"), pid file)
     ("fluxnetworkd", ('--log', LOG_ROOT + 'fluxnetworkd.log', '--daemon'),
      PID_FLUXNETWORKD),
     ("fluxhald", ('--log', LOG_ROOT + 'fluxhald.log', '--daemon'),
@@ -160,21 +160,26 @@ def init_rapi():
         os.mkdir("/var/db/fluxmonitord/run")
 
     if not os.path.exists("/var/db/fluxmonitord/boot_ver") or \
-            open("/var/db/fluxmonitord/boot_ver").read() != "1":
+            open("/var/db/fluxmonitord/boot_ver").read() != "2":
+
         udev = resource_string("fluxmonitor", "data/rapi/udev-99-flux.rules")
         with open("/etc/udev/rules.d/99-flux.rules", "w") as f:
             f.write(udev)
-        open("/var/db/fluxmonitord/boot_ver", "w").write("1")
+        fxupdate = resource_string("fluxmonitor", "data/rapi/fxupdate.pysource")  # noqa
+        with open("/usr/bin/fxupdate.py", "w") as f:
+            f.write(fxupdate)
+        fxlauncher = resource_string("fluxmonitor", "data/rapi/fxlauncher.pysource")  # noqa
+        with open("/usr/bin/fxlauncher.py", "w") as f:
+            f.write(fxlauncher)
+        open("/var/db/fluxmonitord/boot_ver", "w").write("2")
         os.system("udevadm control --reload")
         os.systen("sync")
 
 
-def check_running(service):
+def check_running(pidfile):
     try:
-        service_pic_file = '/var/run/' + service + '.pid'
-        f = os.open(service_pic_file, os.O_RDONLY | os.O_WRONLY, 0o644)
-        pid = open(service_pic_file, 'r').read()  # get process pid
-
+        f = os.open(pidfile, os.O_RDONLY | os.O_WRONLY, 0o644)
+        pid = open(pidfile, 'r').read()  # get process pid
         fcntl.lockf(f, fcntl.LOCK_NB | fcntl.LOCK_EX)
 
     except IOError as e:
@@ -199,9 +204,9 @@ def terminate_proc(pid):
 
     try:
         os.kill(pid, SIGTERM)
-        for i in range(30):
+        for i in range(50):
             os.kill(pid, 0)
-            sleep(0.1)
+            sleep(0.2)
     except OSError:
         return
 
@@ -273,20 +278,14 @@ def main(params=None):
 
             break
         else:
-            # parent, check whether servie started
-            start_t = time()
             while True:
-                success = check_running(service)
-                if success:
-                    print('start %s success' % service)
+                try:
+                    ret = os.waitpid(pid, os.P_NOWAIT)
+                    print('start %s with %i' % (service, ret[1]))
                     break
-
-                sleep(0.5)  # ?
-                print('waiting %s start' % service)
-                if time() - start_t > 10:
-                    print('%s starting timeout, not running' % service)
-                    success = False
-                    break
+                except OSError:
+                    print('waiting %s start' % service)
+                sleep(0.1)
 
     try_config_network(dryrun=options.dryrun)
 

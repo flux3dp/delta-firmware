@@ -48,6 +48,8 @@ class GPIOUtils(object):
 
     @classmethod
     def teardown(cls):
+        logger.debug("Teardown GPIO, reset mainboard")
+        cls.reset_mainboard()
         GPIO.cleanup()
 
     @classmethod
@@ -305,6 +307,10 @@ class PinMappingShared(object):
         if self._head_enabled is False and self.toolhead_power is True:
             if time() - self._head_power_timer > HEAD_POWER_TIMEOUT:
                 self.toolhead_power = False
+
+    def close(self):
+        GPIO.output(self.RIO_1, GPIO.LOW)
+        GPIO.output(self.RIO_2, GPIO.LOW)
 
 
 class PinMappingV0(PinMappingShared):

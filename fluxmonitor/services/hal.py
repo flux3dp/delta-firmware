@@ -67,6 +67,5 @@ class HalService(ServiceBase):
         self.hal.on_loop()
 
     def on_shutdown(self):
-        self.hal.reset_mainboard()
         self.hal.close()
         self.watch_timer.stop()
