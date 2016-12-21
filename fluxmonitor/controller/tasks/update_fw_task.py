@@ -58,7 +58,7 @@ class UpdateFwTask(object):
                     shutil.copyfile(self.tmpfile.name, FIRMWARE_UPDATE_PATH)
                     handler.send_text("ok")
                     handler.close()
-                    os.system("reboot")
+                    os.system("fluxlauncher --update &")
 
                 self.stack.exit_task(self, True)
         except RuntimeError as e:

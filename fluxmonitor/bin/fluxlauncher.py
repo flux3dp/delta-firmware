@@ -28,21 +28,21 @@ PID_LIST = (
 )
 
 SERVICE_LIST = (
-    # Syntax: (service entry name", ("service", "startup", "params"))
-    ("fluxnetworkd", ('--pid', PID_FLUXNETWORKD,
-                      '--log', LOG_ROOT + 'fluxnetworkd.log', '--daemon')),
-    ("fluxhald", ('--pid', PID_FLUXHALD,
-                  '--log', LOG_ROOT + 'fluxhald.log', '--daemon')),
-    ("fluxusbd", ('--pid', PID_FLUXUSBD,
-                  '--log', LOG_ROOT + 'fluxusbd.log', '--daemon')),
-    ("fluxupnpd", ('--pid', PID_FLUXUPNPD,
-                   '--log', LOG_ROOT + 'fluxupnpd.log', '--daemon')),
-    ("fluxrobotd", ('--pid', PID_FLUXROBOTD,
-                    '--log', LOG_ROOT + 'fluxrobotd.log', '--daemon')),
-    ("fluxcamerad", ('--pid', PID_FLUXCAMERAD,
-                     '--log', LOG_ROOT + 'fluxcamerad.log', '--daemon')),
-    ("fluxcloudd", ('--pid', PID_FLUXCLOUDD,
-                    '--log', LOG_ROOT + 'fluxcloudd.log', '--daemon')),
+    # Syntax: (service entry name", ("service", "startup", "params"), PID)
+    ("fluxnetworkd", ('--log', LOG_ROOT + 'fluxnetworkd.log', '--daemon'),
+     PID_FLUXNETWORKD),
+    ("fluxhald", ('--log', LOG_ROOT + 'fluxhald.log', '--daemon'),
+     PID_FLUXHALD),
+    ("fluxusbd", ('--log', LOG_ROOT + 'fluxusbd.log', '--daemon'),
+     PID_FLUXUSBD),
+    ("fluxupnpd", ('--log', LOG_ROOT + 'fluxupnpd.log', '--daemon'),
+     PID_FLUXUPNPD),
+    ("fluxrobotd", ('--log', LOG_ROOT + 'fluxrobotd.log', '--daemon'),
+     PID_FLUXROBOTD),
+    ("fluxcamerad", ('--log', LOG_ROOT + 'fluxcamerad.log', '--daemon'),
+     PID_FLUXCAMERAD),
+    ("fluxcloudd", ('--log', LOG_ROOT + 'fluxcloudd.log', '--daemon'),
+     PID_FLUXCLOUDD),
 )
 
 
@@ -215,6 +215,11 @@ def main(params=None):
     parser = argparse.ArgumentParser(description='flux launcher')
     parser.add_argument('--dryrun', dest='dryrun', action='store_const',
                         const=True, default=False, help='Connect to smoothie')
+    parser.add_argument('--update', dest='update', action='store_const',
+                        const=True, default=False,
+                        help='Stop all process and invoke fxlauncher for '
+                             'upgrade')
+
     options = parser.parse_args(params)
 
     from fluxmonitor.halprofile import CURRENT_MODEL # noqa
@@ -242,18 +247,20 @@ def main(params=None):
         except Exception as e:
             print(repr(e))
 
+    if options.update:
+        os.execl("/usr/bin/python2.7", "python2.7", "/usr/bin/fxlauncher.py")
+
     debug_mode = "a" in __version__
 
-    for service, startup_params in SERVICE_LIST:
-        ret = check_running(service)
-        if ret:
-            print('%s is already running\n' % service)
-            continue
-
+    for service, startup_params, pidfile in SERVICE_LIST:
+        startup_params = startup_params + ("--pid", pidfile)
         if options.dryrun:
             print('[Dryrun] Start service: %s (%s)' % (service,
                                                        startup_params))
             continue
+
+        if os.path.exists(pidfile):
+            os.unlink(pidfile)
 
         pid = os.fork()
         if pid == 0:

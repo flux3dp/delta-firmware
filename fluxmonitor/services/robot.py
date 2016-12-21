@@ -133,6 +133,8 @@ class Robot(ServiceBase):
         if self._hal_control:
             self._hal_control.close()
             self._hal_control = None
+        if isinstance(self._exclusive_component, PlayerManager):
+            self._exclusive_component.terminate()
 
     def power_management(self):
         if metadata.wifi_status & 1:
