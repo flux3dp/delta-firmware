@@ -121,6 +121,7 @@ def update_mbfw(fw_path, tty):
         GPIO.output(GPIO_MAINBOARD_POW_PIN, MAINBOARD_ON)
         sleep(1.0)
 
+        tty = get_mainboard_tty()
         cmd = "stty -F %s 1200" % tty
         logger.debug("EXEC '%s'", cmd)
         if os.system(cmd) != 0:

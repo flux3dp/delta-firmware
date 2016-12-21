@@ -152,9 +152,9 @@ class UartHal(UartHalBase, BaseOnSerial):
 
     def reset_mainboard(self):
         self.disconnect_uart()
-        sleep(0.3)
+        sleep(0.75)
         GPIOUtils.reset_mainboard()
-        sleep(0.3)
+        sleep(0.75)
         # Ensure mainboard is back
         while True:
             try:
