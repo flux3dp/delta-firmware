@@ -71,7 +71,17 @@ class AutoResume(object):
                 self.resume()
 
 
-class FcodeExecutor(AutoResume, BaseExecutor):
+class ToolheadPowerManagement(object):
+    def _set_toolhead_operating(self):
+        if self.options.head == "EXTRUDER":
+            toolhead_on()
+
+    def _set_toolhead_standby(self):
+        if self.options.head == "EXTRUDER":
+            toolhead_standby()
+
+
+class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
     mainboard = None
     toolhead = None
     macro = None
@@ -156,7 +166,7 @@ class FcodeExecutor(AutoResume, BaseExecutor):
 
         if self.toolhead.module_name != "N/A":
             logger.debug("Set toolhead mode: operating")
-            toolhead_on()
+            self._set_toolhead_operating()
 
         if self.status_id & ST_RUNNING:
             self.toolhead.recover(callback)
@@ -214,7 +224,7 @@ class FcodeExecutor(AutoResume, BaseExecutor):
                 self.paused()
 
             logger.debug("Set toolhead mode: standby")
-            toolhead_standby()
+            self._set_toolhead_standby()
         else:
             logger.error("Unknown action for status %i in toolhead_paused. ",
                          self.status_id)
@@ -602,7 +612,7 @@ class FcodeExecutor(AutoResume, BaseExecutor):
         try:
             if self.toolhead.ready:
                 logger.debug("Set toolhead mode: standby")
-                toolhead_standby()
+                self._set_toolhead_standby()
                 self.toolhead.shutdown()
         except IOError as er:
             logger.error("Toolhead shutdown error: %s", er)
