@@ -3,6 +3,7 @@ from multiprocessing.reduction import send_handle
 from errno import ENOENT, ENOTSOCK
 from select import select
 from signal import SIGUSR2
+from time import sleep
 import logging
 import socket
 
@@ -64,11 +65,15 @@ class UsbService(ServiceBase):
                 if rl:
                     ret = s.recv(1)
                 else:
-                    ret = b"\x00"
+                    logger.error("Error: robot endpoint resp usb init timeout")
+                    s.close()
+                    sleep(0.05)
+                    continue
 
                 if ret != b"F":
                     logger.error("Error: remote init return %s", repr(ret))
                     s.close()
+                    sleep(0.05)
                     continue
 
                 wl = select((), (s, ), (), 0.1)[1]
@@ -76,13 +81,17 @@ class UsbService(ServiceBase):
                     send_handle(s, usbcable.outside_sockfd, 0)
                 else:
                     logger.error("Error: Can not write")
+                    s.close()
+                    sleep(0.05)
                     continue
 
                 rl = select((s, ), (), (), 0.05)[0]
                 if rl:
                     ret = s.recv(1)
                 else:
-                    ret = b"\x00"
+                    logger.error("Error: robot endpoint resp usb fin timeout")
+                    s.close()
+                    sleep(0.05)
 
                 if ret != b"X":
                     logger.error("Error remote complete return %s", repr(ret))
