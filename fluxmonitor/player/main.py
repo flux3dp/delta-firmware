@@ -55,7 +55,11 @@ class Player(ServiceBase):
         self.timer_watcher = self.loop.timer(0.8, 0.8, self.on_timer)
         self.timer_watcher.start()
 
-        taskfile = open(options.taskfile, "rb")
+        try:
+            taskfile = open(options.taskfile, "rb")
+        except IOError:
+            raise SystemError("Can not open task file.")
+
         taskloader = TaskLoader(taskfile)
 
         exec_opt = None
@@ -97,12 +101,16 @@ class Player(ServiceBase):
 
     def place_recent_file(self, filename):
         space = UserSpace()
+        use_swap = False
         if not os.path.exists(space.get_path("SD", "Recent")):
             os.makedirs(space.get_path("SD", "Recent"))
 
-        if os.path.abspath(filename) == space.get_path("SD",
-                                                       "Recent/recent-1.fc"):
-            return
+        if os.path.abspath(filename). \
+                startswith(space.get_path("SD", "Recent/recent-")):
+            userspace_filename = "Recent/" + os.path.split(filename)[-1]
+            space.mv("SD", userspace_filename, "Recent/swap.fc")
+            filename = space.get_path("SD", "Recent/swap.fc")
+            use_swap = True
 
         def place_file(syntax, index):
             name = syntax % index
@@ -114,12 +122,14 @@ class Player(ServiceBase):
                     space.mv("SD", name, syntax % (index + 1))
 
         place_file("Recent/recent-%i.fc", 1)
-        if space.in_entry("SD", filename):
+        if use_swap:
+            space.mv("SD", "Recent/swap.fc", "Recent/recent-1.fc")
+        elif space.in_entry("SD", filename):
             os.link(filename,
-                    space.get_path("SD", "Recent/recent-%i.fc" % 1))
+                    space.get_path("SD", "Recent/recent-1.fc"))
         else:
             copyfile(filename,
-                     space.get_path("SD", "Recent/recent-%i.fc" % 1))
+                     space.get_path("SD", "Recent/recent-1.fc"))
         os.system("sync")
 
     def on_start(self):
@@ -133,6 +143,11 @@ class Player(ServiceBase):
     def on_mainboard_message(self, watcher, revent):
         try:
             buf = watcher.data.recv(4096)
+        except IOError:
+            logger.exception("Mainboard socket I/O error")
+            return
+
+        try:
             if not buf:
                 logger.error("Mainboard connection broken")
                 self.executor.abort("CONTROL_FAILED", "MB_CONN_BROKEN")
@@ -147,11 +162,16 @@ class Player(ServiceBase):
             for msg in messages:
                 self.executor.on_mainboard_message(msg)
         except Exception:
-            logger.exception("Mainboard Failed")
+            logger.exception("Process mainboard message error")
 
     def on_headboard_message(self, watcher, revent):
         try:
             buf = watcher.data.recv(4096)
+        except IOError:
+            logger.exception("Headboard socket I/O error")
+            return
+
+        try:
             if not buf:
                 logger.error("Headboard connection broken")
                 self.executor.abort("CONTROL_FAILED", "HB_CONN_BROKEN")
@@ -166,7 +186,7 @@ class Player(ServiceBase):
             for msg in messages:
                 self.executor.on_headboard_message(msg)
         except Exception:
-            logger.exception("Headboard Failed")
+            logger.exception("Process toolhead message error")
 
     def on_cmd_message(self, watcher, revent):
         try:

@@ -56,9 +56,11 @@ int rsakey_size(const RSA* key);
 //          error occour.
 PyObject* encrypt_message(RSA* key, const unsigned char* message, int length);
 PyObject* decrypt_message(RSA* key, const unsigned char* message, int length);
+PyObject* sign_message_sha256(RSA* key, const unsigned char* message, int length);
 PyObject* sign_message(RSA* key, const unsigned char* message, int length);
 
 // @return: 1 if message is ok, others are failed
+int verify_message_sha256(RSA*, const unsigned char*, int, const unsigned char*, int);
 int verify_message(RSA*, const unsigned char*, int, const unsigned char*, int);
 
 

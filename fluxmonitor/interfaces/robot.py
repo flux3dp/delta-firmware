@@ -3,9 +3,10 @@ from weakref import proxy
 import logging
 
 from fluxmonitor.controller.tasks.command_task import CommandTask
-from .tcp import TcpInterface, TcpConnectionHandler
+from .listener import TcpInterface
+from .handler import OldAesServerSideHandler, CloudHandler, TextBinaryProtocol
 
-__all__ = ["RobotTcpInterface", "RobotTcpConnectionHandler"]
+__all__ = ["RobotTcpInterface"]
 logger = logging.getLogger(__name__)
 
 
@@ -14,13 +15,41 @@ class RobotTcpInterface(TcpInterface):
         super(RobotTcpInterface, self).__init__(kernel, endpoint)
 
     def create_handler(self, sock, endpoint):
-        return RobotTcpConnectionHandler(self.kernel, sock, endpoint,
-                                         self.privatekey)
+        return RobotTcpHandler(self.kernel, endpoint, sock, self.privatekey)
 
 
-class RobotTcpConnectionHandler(TcpConnectionHandler):
-    def on_ready(self):
-        self.delegate = ServiceStack(self.kernel)
+class RobotProtocol(TextBinaryProtocol):
+    stack = None
+
+    def on_text(self, message):
+        self.stack.on_text(message, self)
+
+    def on_binary(self, buf):
+        self.stack.on_binary(buf, self)
+
+    def async_send_binary(self, mimetype, length, stream, cb):
+        self.send_text("binary %s %s" % (mimetype, length))
+        self.begin_send(stream, length, cb)
+
+    def close(self):
+        if self.stack:
+            self.stack.on_close(self)
+            self.stack = None
+        super(RobotProtocol, self).close()
+
+
+class RobotTcpHandler(RobotProtocol, OldAesServerSideHandler):
+    def on_authorized(self):
+        self.stack = ServiceStack(self.kernel)
+        super(RobotTcpHandler, self).on_authorized()
+        self.on_ready()  # RobotProtocol
+
+
+class RobotCloudHandler(RobotProtocol, CloudHandler):
+    def on_cloud_connected(self):
+        self.stack = ServiceStack(self.kernel)
+        super(RobotCloudHandler, self).on_cloud_connected()
+        self.on_ready()
 
 
 class ServiceStack(object):
@@ -34,7 +63,7 @@ class ServiceStack(object):
         self.this_task = cmd_task
 
     def __del__(self):
-        logger.debug("ServiceStack GC")
+        logger.debug("Robot service stack garbage collect")
 
     def on_text(self, message, handler):
         self.this_task.on_text(message, handler)

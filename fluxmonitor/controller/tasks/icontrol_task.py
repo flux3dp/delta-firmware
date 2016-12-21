@@ -55,21 +55,21 @@ logger = getLogger(__name__)
 #       * cmd_index: next command index should given
 #       * queued_size: command is waitting to be execute in system
 #
-#   (i:1, s:salt, i:timestemp, i:head_error_code, obj:headstatus)
+#   (i:1, s:salt, i:timestamp, i:head_error_code, obj:headstatus)
 #       * First integer 1 means it is a toolhead status message
 #       * salt: reserved
-#       * timestemp: reserved
+#       * timestamp: reserved
 #       * head_error_code:
 #           == -2: Head Offline
 #           == -1: Not ready
 #            == 0: Ready
 #             > 0: Follow toolhead error table
 #
-#   (i:2, s:salt, i:timestemp, ...)
+#   (i:2, s:salt, i:timestamp, ...)
 #       * Please assume array size is dynamic
 #       * First integer 2 means it is a user toolhead status message
 #       * salt: reserved
-#       * timestemp: reserved
+#       * timestamp: reserved
 #       * Element 3: Toolhead response message stack size
 
 CMD_G001 = 0x01
@@ -438,6 +438,9 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
                 pass
 
     def on_timer(self, watcher, revent):
+        self.meta.update_device_status(self.st_id, 0, "N/A",
+                                       self.handler.address)
+
         self.send_udp0()
         if not self._ready & 2:
             self.send_udp1(self.head_ctrl)
@@ -563,7 +566,7 @@ class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
 
     def on_z_probe(self, handler, x, y):
         try:
-            if self.known_position and x ** 2 + y ** 2 < 4901:
+            if self.known_position and x ** 2 + y ** 2 <= 7225:
                 cmd = "G30X%.5fY%.5f" % (x, y)
                 self.append_cmd(TARGET_MAINBOARD, cmd)
 

@@ -1,32 +1,48 @@
 
-from pkg_resources import load_entry_point
+from pkg_resources import load_entry_point, resource_string
+from signal import SIGTERM, SIGKILL
 from time import sleep, time
 import argparse
 import fcntl
 import errno
 import os
 
+LOG_ROOT = '/var/db/fluxmonitord/run/'
+PID_FLUXNETWORKD = '/var/run/fluxnetworkd.pid'
+PID_FLUXHALD = '/var/run/fluxhald.pid'
+PID_FLUXUSBD = '/var/run/fluxusbd.pid'
+PID_FLUXUPNPD = '/var/run/fluxupnpd.pid'
+PID_FLUXROBOTD = '/var/run/fluxrobotd.pid'
+PID_FLUXCAMERAD = '/var/run/fluxcamerad.pid'
+PID_FLUXCLOUDD = '/var/run/fluxcloudd.pid'
+
+
+PID_LIST = (
+    PID_FLUXNETWORKD,
+    PID_FLUXHALD,
+    PID_FLUXUSBD,
+    PID_FLUXUPNPD,
+    PID_FLUXROBOTD,
+    PID_FLUXCAMERAD,
+    PID_FLUXCLOUDD
+)
 
 SERVICE_LIST = (
     # Syntax: (service entry name", ("service", "startup", "params"))
-    ("fluxnetworkd", ('--pid', '/var/run/fluxnetworkd.pid',
-                      '--log', '/var/db/fluxmonitord/run/fluxnetworkd.log',
-                      '--daemon')),
-    ("fluxhald", ('--pid', '/var/run/fluxhald.pid',
-                  '--log', '/var/db/fluxmonitord/run/fluxhald.log',
-                  '--daemon')),
-    ("fluxusbd", ('--pid', '/var/run/fluxusbd.pid',
-                  '--log', '/var/db/fluxmonitord/run/fluxusbd.log',
-                  '--daemon')),
-    ("fluxupnpd", ('--pid', '/var/run/fluxupnpd.pid',
-                   '--log', '/var/db/fluxmonitord/run/fluxupnpd.log',
-                   '--daemon')),
-    ("fluxrobotd", ('--pid', '/var/run/fluxrobotd.pid',
-                    '--log', '/var/db/fluxmonitord/run/fluxrobotd.log',
-                    '--daemon')),
-    ("fluxcamerad", ('--pid', '/var/run/fluxcamerad.pid',
-                     '--log', '/var/db/fluxmonitord/run/fluxcamerad.log',
-                     '--daemon')),
+    ("fluxnetworkd", ('--pid', PID_FLUXNETWORKD,
+                      '--log', LOG_ROOT + 'fluxnetworkd.log', '--daemon')),
+    ("fluxhald", ('--pid', PID_FLUXHALD,
+                  '--log', LOG_ROOT + 'fluxhald.log', '--daemon')),
+    ("fluxusbd", ('--pid', PID_FLUXUSBD,
+                  '--log', LOG_ROOT + 'fluxusbd.log', '--daemon')),
+    ("fluxupnpd", ('--pid', PID_FLUXUPNPD,
+                   '--log', LOG_ROOT + 'fluxupnpd.log', '--daemon')),
+    ("fluxrobotd", ('--pid', PID_FLUXROBOTD,
+                    '--log', LOG_ROOT + 'fluxrobotd.log', '--daemon')),
+    ("fluxcamerad", ('--pid', PID_FLUXCAMERAD,
+                     '--log', LOG_ROOT + 'fluxcamerad.log', '--daemon')),
+    ("fluxcloudd", ('--pid', PID_FLUXCLOUDD,
+                    '--log', LOG_ROOT + 'fluxcloudd.log', '--daemon')),
 )
 
 
@@ -138,6 +154,17 @@ def try_config_network(dryrun=False):
 def init_rapi():
     if not os.path.exists("/var/gcode/userspace"):
         os.mkdir("/var/gcode/userspace")
+    if not os.path.exists("/var/db/fluxmonitord/run"):
+        os.mkdir("/var/db/fluxmonitord/run")
+
+    if not os.path.exists("/var/db/fluxmonitord/boot_ver") or \
+            open("/var/db/fluxmonitord/boot_ver").read() != "1":
+        udev = resource_string("fluxmonitor", "data/rapi/udev-99-flux.rules")
+        with open("/etc/udev/rules.d/99-flux.rules", "w") as f:
+            f.write(udev)
+        open("/var/db/fluxmonitord/boot_ver", "w").write("1")
+        os.system("udevadm control --reload")
+        os.systen("sync")
 
 
 def check_running(service):
@@ -162,6 +189,26 @@ def check_running(service):
         return False
 
 
+def terminate_proc(pid):
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        return
+
+    try:
+        os.kill(pid, SIGTERM)
+        for i in range(30):
+            os.kill(pid, 0)
+            sleep(0.1)
+    except OSError:
+        return
+
+    try:
+        os.kill(pid, SIGKILL)
+    except OSError:
+        return
+
+
 def main(params=None):
     parser = argparse.ArgumentParser(description='flux launcher')
     parser.add_argument('--dryrun', dest='dryrun', action='store_const',
@@ -176,6 +223,21 @@ def main(params=None):
             init_rapi()
     except Exception:
         pass
+
+    for pidfile in PID_LIST:
+        try:
+            if os.path.exists(pidfile):
+                with open(pidfile) as f:
+                    pidstr = f.read()
+                    if pidstr.isdigit():
+                        pid = int(pidstr)
+                        if pid != os.getpid():
+                            terminate_proc(pid)
+
+                        if os.path.exists(pidfile):
+                            os.unlink(pidfile)
+        except Exception as e:
+            print(repr(e))
 
     for service, startup_params in SERVICE_LIST:
         ret = check_running(service)

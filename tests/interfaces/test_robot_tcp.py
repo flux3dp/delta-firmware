@@ -25,6 +25,12 @@ class RobotTcpHandlerTest(unittest.TestCase):
 
         self.access_id = security.get_access_id(keyobj=keyobj)
 
+    def on_connected(self, handler):
+        pass
+
+    def on_disconnected(self, handler):
+        pass
+
     def test_on_handshake_identify(self):
         lc_sock, client_sock = socket.socketpair()
         pkey = security.RSAObject(keylength=512)

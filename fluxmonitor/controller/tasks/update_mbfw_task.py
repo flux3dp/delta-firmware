@@ -1,10 +1,9 @@
 from tempfile import TemporaryFile
 import logging
-import socket
 
+from fluxmonitor.interfaces.hal_internal import HalControlClientHandler
 from fluxmonitor.err_codes import PROTOCOL_ERROR, SUBSYSTEM_ERROR, \
     UNKNOWN_ERROR
-from fluxmonitor.config import HALCONTROL_ENDPOINT
 from fluxmonitor.storage import Storage
 
 logger = logging.getLogger(__name__)
@@ -57,9 +56,8 @@ class UpdateMbFwTask(object):
 
     def send_upload_request(self):
         try:
-            s = socket.socket(socket.AF_UNIX)
-            s.connect(HALCONTROL_ENDPOINT)
-            s.send("update_fw")
-            s.close()
-        except socket.error:
+            h = HalControlClientHandler(self.stack)
+            h.request_update_atmel()
+            h.close()
+        except IOError:
             raise RuntimeError(SUBSYSTEM_ERROR)

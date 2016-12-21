@@ -69,6 +69,7 @@ ENTRY_POINTS = {
         "fluxplayer=fluxmonitor.bin.fluxplayer:main",
         "fluxcamerad=fluxmonitor.bin.fluxcamera:main",
         "fluxrobotd=fluxmonitor.bin.fluxrobot:main",
+        "fluxcloudd=fluxmonitor.bin.fluxcloud:main",
         "fluxlauncher=fluxmonitor.bin.fluxlauncher:main",
 
         "fluxinit=fluxmonitor.bin.fluxinit:main"
@@ -136,8 +137,16 @@ if is_linux():
         os.environ["CFLAGS"] = "-std=c99"
 
 if is_darwin():
+    cflags = os.environ.get("CFLAGS", "") + " "
+    cxxflags = os.environ.get("CXXFLAGS", "") + " -std=c++11 "
+
+    mac_ver = [int(v) for v in platform.mac_ver()[0].split(".")]
+    if mac_ver[0] == 10 and mac_ver[1] > 10:
+        opensslarg = ("-L/usr/local/opt/openssl/lib "
+                      "-I/usr/local/opt/openssl/include")
+        cflags += opensslarg
+        cxxflags += opensslarg
+
     os.environ["ARCHFLAGS"] = "-arch x86_64"
-    if "CXXFLAGS" in os.environ:
-        os.environ["CXXFLAGS"] += " -std=c++11"
-    else:
-        os.environ["CXXFLAGS"] = "-std=c++11"
+    os.environ["CFLAGS"] = cflags.strip()
+    os.environ["CXXFLAGS"] = cxxflags.strip()

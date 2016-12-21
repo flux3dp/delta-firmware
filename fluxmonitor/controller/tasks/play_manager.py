@@ -101,8 +101,6 @@ class PlayerManager(object):
     @property
     def sock(self):
         if self._sock is None:
-            st = self.meta.format_device_status
-
             try:
                 s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
                 s.bind(mktemp())
@@ -112,7 +110,7 @@ class PlayerManager(object):
             except socket.error:
                 st = self.meta.format_device_status
 
-                if time() - st["timestemp"] < 15:
+                if time() - st["timestamp"] < 15:
                     if st["st_id"] == 1:
                         raise RuntimeError(RESOURCE_BUSY)
                 raise SystemError(SUBSYSTEM_ERROR)
@@ -177,16 +175,16 @@ class PlayerManager(object):
             self.sock.send("REPORT")
             return self.sock.recv(4096)
         except RuntimeError:
-            st = self.meta.format_device_status
-            if st["st_id"] == 1:
+            st_id = self.meta.device_status_id
+            if st_id == 1:
                 return '{"st_label": "INIT", "st_id": 1}'
-            elif st["st_id"] in (64, 128):
+            elif st_id in (64, 128):
                 return '{"st_label": "IDLE", "st_id": 0}'
         except SystemError:
             raise RuntimeError(RESOURCE_BUSY)
         except socket.error as e:
             st = self.meta.format_device_status
-            if st["st_id"] == 128 and time() - st["timestemp"] < 15:
+            if st["st_id"] == 128 and time() - st["timestamp"] < 15:
                 raise RuntimeError(RESOURCE_BUSY)
 
             logger.error("Player socket error: %s", e)

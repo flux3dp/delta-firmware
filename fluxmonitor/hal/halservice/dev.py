@@ -4,11 +4,11 @@ import os
 
 import pyev
 
-logger = logging.getLogger(__name__)
-
 from fluxmonitor.halprofile import MODEL_DARWIN_DEV, MODEL_LINUX_DEV
 from fluxmonitor.config import general_config
 from .base import UartHalBase
+
+logger = logging.getLogger(__name__)
 
 
 class UartHal(UartHalBase):
@@ -100,3 +100,24 @@ class UartHal(UartHalBase):
     def sendto_pc(self, buf):
         for w in self.fake_pc_watchers:
             w.data.send(buf)
+
+    def on_loop(self):
+        pass
+
+    def reconnect(self):
+        logger.info("Reconnet triggered")
+
+    def reset_mainboard(self):
+        logger.info("Reset mainboard triggered")
+
+    def reset_headboard(self):
+        logger.info("Reset toolhead triggered")
+
+    def update_fw(self):
+        logger.info("Update mainboard firmware triggered")
+        self.kernel.on_button_event("UPDATE_FW")
+
+    def update_head_fw(self, cb):
+        logger.info("Update toolhead firmware triggered")
+        cb("TRIGGER 1")
+        cb("TRIGGER 2")

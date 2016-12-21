@@ -1,18 +1,22 @@
 
+from multiprocessing.reduction import send_handle
 from pkg_resources import resource_string
 from errno import ENOENT, ENOTSOCK
 from select import select
+from signal import SIGUSR2
 from time import time
 import logging
 import socket
 import struct
 import json
 
+import msgpack
 import pyev
 
 from fluxmonitor.hal.nl80211.config import get_wlan_ssid
 from fluxmonitor.hal.nl80211.scan import scan as wifiscan
 from fluxmonitor.hal.net.monitor import Monitor as NetworkMonitor
+from fluxmonitor.hal.usbcable import USBCable, attached_usb_devices
 from fluxmonitor.misc import network_config_encoder as NCE  # noqa
 from fluxmonitor.security.passwd import set_password
 from fluxmonitor.security.access_control import is_rsakey, get_keyobj, \
@@ -20,7 +24,8 @@ from fluxmonitor.security.access_control import is_rsakey, get_keyobj, \
 from fluxmonitor.security.misc import randstr
 from fluxmonitor.hal.misc import get_deviceinfo
 from fluxmonitor.storage import Storage, Metadata
-from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT, uart_config
+from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT, ROBOT_ENDPOINT
+from fluxmonitor.config import uart_config
 from fluxmonitor.err_codes import UNKNOWN_ERROR
 from fluxmonitor import security
 from fluxmonitor import __version__ as VERSION  # noqa
@@ -47,16 +52,87 @@ REQ_MAINBOARD_TUNNEL = 0x80
 REQ_PHOTO = 0x81
 REQ_STORE_DATA = 0x82
 REQ_ENABLE_CONSOLE = 0x83
+REQ_ENABLE_SSH = 0x84
 
 
 class UsbService(ServiceBase):
     usb = None
     usb_watcher = None
+    usbcable = None
+    dirty_status = False
 
     def __init__(self, options):
         super(UsbService, self).__init__(logger)
         self.timer_watcher = self.loop.timer(0, 30, self.on_timer)
         self.timer_watcher.start()
+
+        self.udev_signal = self.loop.signal(SIGUSR2, self.udev_notify)
+        self.udev_signal.start()
+
+        if attached_usb_devices() > 0:
+            self.udev_notify()
+
+    def udev_notify(self, w=None, r=None):
+        logger.debug("udev changed, launch usb daemon")
+        if self.usbcable:
+            logger.debug("close exist usb instance")
+            self.usbcable.close()
+            self.usbcable = None
+
+        try:
+            usbcable = USBCable()
+            logger.debug("USB initialized")
+        except SystemError as e:
+            logger.error("USB initialize error: %s", e)
+            self.dirty_status = True
+            return
+
+        payload = msgpack.packb((0x81, ))
+
+        try:
+            while True:
+                s = socket.socket(socket.AF_UNIX)
+                s.connect(ROBOT_ENDPOINT)
+                s.send(payload)
+
+                rl = select((s, ), (), (), 0.1)[0]
+                if rl:
+                    ret = s.recv(1)
+                else:
+                    ret = b"\x00"
+
+                if ret != b"F":
+                    logger.error("Error: remote init return %s", repr(ret))
+                    s.close()
+                    continue
+
+                wl = select((), (s, ), (), 0.1)[1]
+                if wl:
+                    send_handle(s, usbcable.outside_sockfd, 0)
+                else:
+                    logger.error("Error: Can not write")
+                    continue
+
+                rl = select((s, ), (), (), 0.05)[0]
+                if rl:
+                    ret = s.recv(1)
+                else:
+                    ret = b"\x00"
+
+                if ret != b"X":
+                    logger.error("Error remote complete return %s", repr(ret))
+                    s.close()
+                    continue
+
+                usbcable.start()
+                self.usbcable = usbcable
+                s.close()
+                self.dirty_status = False
+                return
+
+        except Exception:
+            self.dirty_status = True
+            logger.exception("Unknown error")
 
     def connect_usb_serial(self):
         try:
@@ -96,6 +172,24 @@ class UsbService(ServiceBase):
         if not self.usb:
             self.connect_usb_serial()
 
+        if self.dirty_status:
+            if attached_usb_devices() > 0:
+                logger.error("Dirty flag marked and need start usb daemon")
+                self.udev_notify()
+            else:
+                logger.error("Dirty flag marked but no usb cable connected")
+                self.dirty_status = False
+
+        if self.usbcable and self.usbcable.is_alive() == 0:
+            if attached_usb_devices():
+                logger.error("USB daemon dead but still attach cable. "
+                             "Restart usb")
+                self.udev_notify()
+            else:
+                logger.debug("Clean usb daemon")
+                self.usbcable.close()
+                self.usbcable = None
+
 
 class UsbIO(object):
     _vector = None
@@ -125,6 +219,7 @@ class UsbIO(object):
             REQ_PHOTO: self.on_take_pic,
             REQ_STORE_DATA: self.on_store_data,
             REQ_ENABLE_CONSOLE: self.on_enable_console,
+            REQ_ENABLE_SSH: self.on_enable_ssh
         }
 
     def fileno(self):
@@ -195,7 +290,9 @@ class UsbIO(object):
                 handler(self._recv_view[7:7 + length].tobytes())
             else:
                 logger.debug("handler not found %i" % req)
-
+        except Exception:
+            logger.exception("Command execute failed")
+            self.send_response(req, False, "UNKNOWN_ERROR")
         finally:
             remnant = self._recv_offset - length - 7
             if remnant:
@@ -401,6 +498,22 @@ class UsbIO(object):
                 self.send_response(REQ_ENABLE_CONSOLE, False, str(ret))
         else:
             self.send_response(REQ_ENABLE_CONSOLE, False, "Signature Error")
+
+    def on_enable_ssh(self, buf):
+        pem = resource_string("fluxmonitor", "data/develope.pem")
+        rsakey = get_keyobj(pem=pem)
+
+        salt, signature = buf.split(b"$", 1)
+
+        if rsakey.verify(salt + self._vector, signature):
+            from fluxmonitor.diagnosis.usb2device import enable_ssh
+            ret = enable_ssh()
+            if ret == 0:
+                self.send_response(REQ_ENABLE_SSH, True, MSG_OK)
+            else:
+                self.send_response(REQ_ENABLE_SSH, False, str(ret))
+        else:
+            self.send_response(REQ_ENABLE_SSH, False, "Signature Error")
 
     def close(self):
         self.sock.close()

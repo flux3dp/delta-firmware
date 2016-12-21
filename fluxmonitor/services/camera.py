@@ -10,8 +10,10 @@ except ImportError:
     cv2 = None
     ScanChecking = None
 
+from fluxmonitor.interfaces.camera_internal import CameraUnixStreamInterface
 from fluxmonitor.interfaces.camera import (CameraTcpInterface,
-                                           CameraUnixStreamInterface)
+                                           CameraCloudHandler)
+
 
 from fluxmonitor.hal.camera import Cameras
 from .base import ServiceBase
@@ -23,6 +25,7 @@ class CameraService(ServiceBase):
     FPS = 4.0
     SPF = 1.0 / FPS
     cameras = None
+    cloud_conn = None
 
     def __init__(self, options):
         super(CameraService, self).__init__(logger)
@@ -41,24 +44,33 @@ class CameraService(ServiceBase):
         self.public_ifce.close()
         self.internal_ifce.close()
 
-    def on_client_connected(self):
-        self.cameras.attach()
+    def on_connected(self, handler):
         if not self.live_timer.active:
             self.live_timer.start()
 
-    def on_client_gone(self):
+    def on_disconnected(self, handler):
         if not self.internal_ifce.clients and not self.public_ifce.clients:
             self.cameras.release()
             if self.live_timer.active:
                 self.live_timer.stop()
 
+    def on_connect2cloud(self, camera_id, endpoint, token):
+        if self.cloud_conn:
+            self.cloud_conn.close()
+            self.cloud_conn = None
+
+        def on_close(agent):
+            self.cloud_conn = None
+
+        self.cloud_conn = CameraCloudHandler(self, endpoint, token, on_close)
+
     def on_live(self, watcher=None, revent=None):
         while self.live_queue:
             h = self.live_queue.popleft()
             try:
-                if h.ready == 2:
-                    h.next_frame()
+                h.next_frame()
             except Exception:
+                h.on_error()
                 logger.exception("Error at next frame in timer")
 
     def add_to_live_queue(self, handler):
@@ -85,7 +97,10 @@ class CameraService(ServiceBase):
         img = cv2.imdecode(np.fromstring(camera.imagefile[2].getvalue(),
                                          np.uint8),
                            cv2.CV_LOAD_IMAGE_COLOR)
-        return sc.check(img)
+        if img is None:
+            raise RuntimeError("HARDWARE_ERROR")
+        else:
+            return sc.check(img)
 
     def get_bias(self, camera_id):
         # API for client
@@ -98,7 +113,7 @@ class CameraService(ServiceBase):
         cv2.imwrite('/home/pi/tmp1.jpg', img)
 
         if flag:
-            return ScanChecking.get_bias(points)
+            return float(ScanChecking.get_bias(points))
         else:
             return 'nan'
 

@@ -52,7 +52,8 @@ class AutoResume(object):
                 self.__resume_timestamp = time()
                 self.__resume_counter += 1
 
-            if self.__resume_counter > 3:
+            # if self.__resume_counter > 3:
+            if False:
                 logger.error("Autoresume invalied because error occour more "
                              "then 3 times.")
             else:
@@ -120,6 +121,9 @@ class FcodeExecutor(AutoResume, BaseExecutor):
 
     def close(self):
         self._task_loader.close()
+        self.main_ctrl.close(self)
+        self.head_ctrl.close(self)
+        super(FcodeExecutor, self).close()
 
     def get_status(self):
         st = self.head_ctrl.status()
@@ -266,8 +270,7 @@ class FcodeExecutor(AutoResume, BaseExecutor):
 
     def abort(self, symbol=None):
         if BaseExecutor.abort(self, symbol):
-            self.main_ctrl.close(self)
-            self.head_ctrl.close(self)
+            self.close()
             return True
         else:
             return False
@@ -342,13 +345,11 @@ class FcodeExecutor(AutoResume, BaseExecutor):
                 self.main_ctrl.send_cmd("G1F6000X0Y0Z205", self)
             else:
                 self.status_id = ST_COMPLETED
-                self.main_ctrl.close(self)
-                self.head_ctrl.close(self)
+                self.close()
 
         elif self.status_id == ST_COMPLETING:
             self.status_id = ST_COMPLETED
-            self.main_ctrl.close(self)
-            self.head_ctrl.close(self)
+            self.close()
         else:
             self.fire()
 

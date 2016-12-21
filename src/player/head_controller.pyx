@@ -138,6 +138,7 @@ cdef class HeadController:
 
             if self._ext:
                 self._ext.hello(**module_info)
+                self._module = module_type
             else:
                 if self._required_module == "N/A":
                     raise HeadTypeError("N/A", module_type)
@@ -149,7 +150,7 @@ cdef class HeadController:
                     else:
                         raise RuntimeError(EXEC_UNKNOWN_HEAD, module_type)
 
-                self._module = module_info.get("TYPE", "UNKNOWN")
+                self._module = module_type
         except Exception:
             self._ready = 0
             raise
@@ -581,7 +582,7 @@ class HeadCrashError(HeadError):
     hw_error_code = 51
 
     def __init__(self):
-        RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_RESET, "CRASH")
+        RuntimeError.__init__(self, EXEC_HEAD_ERROR, EXEC_HEAD_RESET)
 
 
 class HeadTypeError(HeadError):

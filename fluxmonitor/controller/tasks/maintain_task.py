@@ -1,21 +1,26 @@
 
 from json import dumps
 import logging
-import socket
 
 from fluxmonitor.player.main_controller import MainController
-from fluxmonitor.player.head_controller import (
-    HeadController, HeadError, HeadOfflineError, HeadResetError, HeadTypeError)
+from fluxmonitor.player.head_controller import (HeadController,
+                                                HeadError,
+                                                HeadOfflineError,
+                                                HeadResetError,
+                                                HeadTypeError)
 from fluxmonitor.player.options import Options
-from fluxmonitor.player import macro
+from fluxmonitor.hal.tools import reset_mb
+from fluxmonitor.err_codes import (EXEC_HEAD_ERROR,
+                                   RESOURCE_BUSY,
+                                   SUBSYSTEM_ERROR,
+                                   TOO_LARGE,
+                                   UNKNOWN_COMMAND)
 from fluxmonitor.storage import Metadata
-from fluxmonitor.config import HALCONTROL_ENDPOINT
+from fluxmonitor.player import macro
 
-from fluxmonitor.err_codes import EXEC_HEAD_ERROR, RESOURCE_BUSY, \
-    SUBSYSTEM_ERROR, TOO_LARGE, UNKNOWN_COMMAND
-
-from .base import CommandMixIn, DeviceOperationMixIn, \
-    DeviceMessageReceiverMixIn
+from .base import (CommandMixIn,
+                   DeviceOperationMixIn,
+                   DeviceMessageReceiverMixIn)
 from .update_hbfw_task import UpdateHbFwTask
 
 logger = logging.getLogger(__name__)
@@ -155,11 +160,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             self.head_status(handler)
 
         elif cmd == "reset_mb":
-            s = socket.socket(socket.AF_UNIX)
-            s.connect(HALCONTROL_ENDPOINT)
-            s.send(b"reset_mb")
-            s.recv(4096)
-            s.close()
+            reset_mb()
             self.stack.exit_task(self)
             handler.send_text("ok")
 
@@ -170,7 +171,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             self.do_x78(handler)
 
         elif cmd == "update_head":
-            self.update_head(handler, *args)
+            self.update_toolhead_fw(handler, *args)
 
         elif cmd == "quit":
             self.stack.exit_task(self)
@@ -251,8 +252,12 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
 
         def on_macro_running():
             if isinstance(self._macro, macro.WaitHeadMacro):
-                st = self.head_ctrl.status()
-                handler.send_text("CTRL HEATING %.1f" % st.get("rt")[index])
+                rt = self.head_ctrl.status().get("rt")
+                if rt:
+                    try:
+                        handler.send_text("CTRL HEATING %.1f" % rt[index])
+                    except IndexError:
+                        pass
 
         self._macro = macro.WaitHeadMacro(on_heating_done,
                                           "H%i%.1f" % (index, temp))
@@ -398,17 +403,23 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
     def head_status(self, handler):
         handler.send_text("ok " + dumps(self.head_ctrl.status()))
 
-    def update_head(self, handler, mimetype, sfilesize):
+    def update_toolhead_fw(self, handler, mimetype, sfilesize):
+        def ret_callback(success):
+            logger.debug("Toolhead update retuen: %s", success)
+            self.timer_watcher.start()
+
         filesize = int(sfilesize)
         if filesize > (1024 * 256):
             raise RuntimeError(TOO_LARGE)
 
         t = UpdateHbFwTask(self.stack, handler, filesize)
-        self.stack.enter_task(t, lambda *a: None)
+        self.stack.enter_task(t, ret_callback)
         handler.send_text("continue")
+        self.timer_watcher.stop()
 
     def on_timer(self, watcher, revent):
-        self.meta.update_device_status(self.st_id, 0, "N/A", "")
+        self.meta.update_device_status(self.st_id, 0, "N/A",
+                                       self.handler.address)
 
         try:
             self.main_ctrl.patrol(self)
@@ -436,7 +447,7 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
                 self.handler.send_text("error %s" % SUBSYSTEM_ERROR)
                 self.stack.exit_task(self)
 
-        except socket.error:
+        except IOError:
             logger.warn("Socket IO Error")
             self.handler.close()
 

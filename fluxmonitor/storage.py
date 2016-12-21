@@ -2,14 +2,15 @@
 from random import choice
 from shutil import rmtree
 from time import time
+import msgpack
 import struct
 import os
 
 import sysv_ipc
 
-from fluxmonitor.config import USERSPACE, general_config
 from fluxmonitor.hal.usbmount import get_usbmount_hal
 from fluxmonitor.err_codes import NOT_EXIST, BAD_PARAMS
+from fluxmonitor.config import USERSPACE, general_config
 
 
 class Storage(object):
@@ -85,23 +86,26 @@ NICKNAMES = ["Apple", "Apricot", "Avocado", "Banana", "Bilberry", "Blackberry",
              "Satsuma", "Star fruit", "Strawberry", "Tamarillo", "Ugli fruit"]
 
 
-class CommonMetadata(object):
+class Metadata(object):
     shm = None
+    _mversion = 0
 
     def __init__(self):
         self.storage = Storage("general", "meta")
 
         # Memory struct
-        # 0 ~ 16 bytes: Control flags...
-        #   0: nickname is loaded
-        #   1: plate_correction is loaded
+        # 0: Control flags...
+        #   bit8: nickname is loaded
+        # 1: Metadata Version
         #
         # 128 ~ 384: nickname, end with char \x00
-        # 384 ~ 512: plate_correction (current user 96 bytes)
         # 1024 ~ 2048: Shared rsakey
+        # 2048 ~ 2176: Cloud Status (128)
+        # 2176 ~ 2208: Cloud Hash (32)
         # 3072: Wifi status code
+        # 3576 ~ 3584: Task time cost (8, float)
         # 3584 ~ 4096: Device status
-        self.shm = sysv_ipc.SharedMemory(19851226, sysv_ipc.IPC_CREAT,
+        self.shm = sysv_ipc.SharedMemory(13000, sysv_ipc.IPC_CREAT,
                                          size=4096, init_character='\x00')
 
     def __del__(self):
@@ -109,27 +113,31 @@ class CommonMetadata(object):
             self.shm.detach()
             self.shm = None
 
+    def verify_mversion(self):
+        # Return True if mversion is not change.
+        if self._mversion != self.mversion:
+            self._mversion = self.mversion
+            return False
+        else:
+            return True
+
+    @property
+    def mversion(self):
+        return ord(self.shm.read(1, 1))
+
+    def _add_mversion(self):
+        self.shm.write(chr((ord(self.shm.read(1, 1)) + 1) % 256), 1)
+
     @property
     def plate_correction(self):
-        if ord(self.shm.read(1, 0)) & 64 == 64:
-            buf = self.shm.read(96, 384)
-            vals = struct.unpack("d" * 12, buf)
-            return dict(zip("XYZABCIJKRDH", vals))
-        else:
-            if self.storage.exists("adjust"):
-                with self.storage.open("adjust", "r") as f:
-                    try:
-                        vals = tuple((float(v) for v in f.read().split(" ")))
-                        buf = struct.pack('d' * 12, *vals)
-                        self.shm.write(buf, 384)
-
-                        flag = chr(ord(self.shm.read(1, 0)) | 64)
-                        self.shm.write(flag, 0)
-
-                        return dict(zip("XYZABCIJKRDH", vals))
-                    except Exception:
-                        # Ignore error and return default
-                        raise
+        if self.storage.exists("adjust"):
+            with self.storage.open("adjust", "r") as f:
+                try:
+                    vals = tuple((float(v) for v in f.read().split(" ")))
+                    return dict(zip("XYZABCIJKRDH", vals))
+                except Exception:
+                    # Ignore error and return default
+                    pass
 
         return {"X": 0, "Y": 0, "Z": 0, "A": 0, "B": 0, "C": 0,
                 "I": 0, "J": 0, "K": 0, "R": 96.70, "D": 190, "H": 240}
@@ -141,12 +149,29 @@ class CommonMetadata(object):
 
         vals = tuple((v[k] for k in "XYZABCIJKRDH"))
         with self.storage.open("adjust", "w") as f:
-            f.write(" ".join("%.2f" % i for i in vals))
-        buf = struct.pack('d' * 12, *vals)
-        self.shm.write(buf, 384)
+            f.write(" ".join("%.4f" % i for i in vals))
 
-        flag = chr(ord(self.shm.read(1, 0)) | 64)
-        self.shm.write(flag, 0)
+    @property
+    def backlash(self):
+        if self.storage.exists("backlash"):
+            with self.storage.open("backlash", "r") as f:
+                try:
+                    vals = tuple((float(v) for v in f.read().split(" ")))
+                    return dict(zip("ABC", vals))
+                except Exception:
+                    # Ignore error and return default
+                    pass
+
+        return {"A": 10, "B": 10, "C": 10}
+
+    @backlash.setter
+    def backlash(self, val):
+        v = self.backlash
+        v.update(val)
+
+        vals = tuple((v[k] for k in "ABC"))
+        with self.storage.open("backlash", "w") as f:
+            f.write(" ".join("%.4f" % i for i in vals))
 
     @property
     def nickname(self):
@@ -171,8 +196,18 @@ class CommonMetadata(object):
         with self.storage.open("nickname", "wb") as f:
             if isinstance(val, unicode):
                 val = val.encode("utf8")
+            else:
+                try:
+                    val.decode("utf8")
+                except UnicodeDecodeError:
+                    raise RuntimeError(BAD_PARAMS)
+
+            if len(val) > 128:
+                raise RuntimeError(BAD_PARAMS)
+
             f.write(val)
         self._cache_nickname(val)
+        self._add_mversion()
 
     @property
     def broadcast(self):
@@ -181,6 +216,21 @@ class CommonMetadata(object):
     @broadcast.setter
     def broadcast(self, val):
         self.storage["broadcast"] = val
+        self._add_mversion()
+
+    @property
+    def enable_cloud(self):
+        return self.storage["enable_cloud"]
+
+    @enable_cloud.setter
+    def enable_cloud(self, val):
+        self.storage["enable_cloud"] = val
+        self._add_mversion()
+
+    @enable_cloud.deleter
+    def enable_cloud(self):
+        del self.storage["enable_cloud"]
+        self._add_mversion()
 
     @property
     def shared_der_rsakey(self):
@@ -194,6 +244,30 @@ class CommonMetadata(object):
     def shared_der_rsakey(self, val):
         h = struct.pack("<BfH", 128, time(), len(val))
         self.shm.write(h + val, 1024)
+
+    @property
+    def cloud_status(self):
+        buf = self.shm.read(128, 2048)
+        l = ord(buf[0])
+        if l > 0:
+            return msgpack.unpackb(buf[1:ord(buf[0]) + 1], use_list=False)
+        else:
+            return None
+
+    @cloud_status.setter
+    def cloud_status(self, val):
+        buf = msgpack.packb(val)
+        if len(buf) > 127:
+            raise SystemError("%s is too large to store", val)
+        self.shm.write(chr(len(buf)) + buf, 2048)
+
+    @property
+    def cloud_hash(self):
+        return self.shm.read(32, 2176)
+
+    @cloud_hash.setter
+    def cloud_hash(self, val):
+        self.shm.write(val[:32], 2176)
 
     def _cache_nickname(self, val):
         self.shm.write(val, 128)
@@ -235,19 +309,17 @@ class CommonMetadata(object):
     @property
     def format_device_status(self):
         buf = self.device_status
-        timestemp, st_id, progress, head_type, err_label = \
+        timestamp, st_id, progress, head_type, err_label = \
             struct.unpack("dif16s32s", buf[:64])
-        return {"timestemp": timestemp, "st_id": st_id, "progress": progress,
-                "head_type": head_type, "err_label": err_label}
+        return {"timestamp": timestamp, "st_id": st_id, "progress": progress,
+                "head_type": head_type.rstrip('\x00'),
+                "err_label": err_label.rstrip('\x00')}
 
     def update_device_status(self, st_id, progress, head_type,
                              err_label=""):
         buf = struct.pack("dif16s32s", time(), st_id, progress, head_type,
                           err_label[:32])
         self.shm.write(buf, 3584)
-
-
-Metadata = CommonMetadata
 
 
 class UserSpace(object):
@@ -304,3 +376,6 @@ class UserSpace(object):
             os.remove(self.get_path(entry, path))
         except OSError:
             pass
+
+
+metadata = Metadata()

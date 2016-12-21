@@ -29,9 +29,6 @@ class ServiceBase(object):
         self.loop.start()
         self.on_shutdown()
 
-    def each_loop(self):
-        raise RuntimeError("each_loop not implement")
-
     def on_start(self):
         raise RuntimeError("start not implement")
 

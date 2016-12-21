@@ -46,6 +46,12 @@ class SSLHandlerTest(unittest.TestCase):
     def tearDown(self):
         self.loop = None
 
+    def on_connected(self, handler):
+        pass
+
+    def on_disconnected(self, handler):
+        pass
+
     def complete_ssl_handshake(self, handler, client):
         self.assertRaises(ssl.SSLWantReadError, client.do_handshake)
         ready = False

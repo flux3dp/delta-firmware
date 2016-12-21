@@ -46,6 +46,7 @@ class StartUpTest(ControlTestBase):
             self.assertRaises(UnittestError, ec.on_message, "1 OK FAN *92",
                               executor)
         self.assertTrue(ec.ready)
+        self.assertEqual(ec.module, "EXTRUDER")
 
     def test_laser(self):
         with self.get_executor() as executor:

@@ -1,16 +1,18 @@
 
 import socket
 
-from fluxmonitor.config import uart_config
+from fluxmonitor.config import HALCONTROL_ENDPOINT
 
 
 def reset_mb():
     s = socket.socket(socket.AF_UNIX)
-    s.connect(uart_config["control"])
-    s.send(b"reset_mb")
+    s.connect(HALCONTROL_ENDPOINT)
+    s.send(b'\x92\xa8reset_mb\xc2')
+    s.close()
 
 
 def reset_hb():
     s = socket.socket(socket.AF_UNIX)
-    s.connect(uart_config["control"])
-    s.send(b"reset_hb")
+    s.connect(HALCONTROL_ENDPOINT)
+    s.send(b'\x92\xa8reset_hb\xc2')
+    s.close()

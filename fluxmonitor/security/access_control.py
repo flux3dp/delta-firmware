@@ -8,6 +8,8 @@ import re
 from fluxmonitor.storage import Storage
 
 _safe_value = lambda val: re.match("^[a-zA-Z0-9]+$", val) is not None  # noqa
+ADMIN_KEY = "A"
+USER_KEY = "U"
 RE_ACCESS_ID = re.compile(r'^[0-9a-f]{40}$')
 
 
@@ -50,17 +52,22 @@ class AccessControl(object):
                 raise Exception("key error")
         return sha1(keyobj.export_pubkey_der()).hexdigest()
 
-    def add(self, keyobj, label=None):
+    def add(self, keyobj, **kw):
         access_id = get_access_id(keyobj=keyobj)
 
         with self.storage.open(access_id, "w") as f:
             f.write(keyobj.export_pubkey_pem())
             os.fsync(f.fileno())
 
-        if label:
-            with self.storage.open(access_id + ".meta", "w") as f:
-                json.dump({"label": label}, f)
-                os.fsync(f.fileno())
+        meta = {
+            "label": kw.get("label", None),
+            "type": kw.get("type", USER_KEY)
+        }
+        if meta["type"] not in (USER_KEY, ADMIN_KEY):
+            meta["type"] = USER_KEY
+        with self.storage.open(access_id + ".meta", "w") as f:
+            json.dump(meta, f)
+            os.fsync(f.fileno())
         return access_id
 
     def get_metadata(self, access_id):
@@ -121,7 +128,7 @@ def is_trusted_remote(access_id=None, pem=None, der=None, keyobj=None):
 
 
 def add_trusted_keyobj(keyobj, label=None):
-    return _access_control.add(keyobj, label)
+    return _access_control.add(keyobj, label=label)
 
 
 def untrust_all():

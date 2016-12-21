@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 
 from tempfile import NamedTemporaryFile
+from binascii import b2a_base64
 from io import StringIO, BytesIO
 from errno import errorcode
 from md5 import md5
@@ -18,7 +19,7 @@ from fluxmonitor.err_codes import (UNKNOWN_COMMAND, NOT_EXIST, TOO_LARGE,
                                    HARDWARE_FAILURE)
 from fluxmonitor.diagnosis.god_mode import allow_god_mode
 from fluxmonitor.hal.misc import get_deviceinfo
-from fluxmonitor.storage import Storage, Metadata, UserSpace
+from fluxmonitor.storage import Storage, UserSpace, metadata
 from fluxmonitor.misc import mimetypes
 
 from .base import CommandMixIn
@@ -88,14 +89,22 @@ class FileManagerMixIn(object):
     def fileinfo(self, handler, entry, path):
         abspath = self.storage_dispatch(entry, path, require_file=True)
         if mimetypes.guess_type(abspath)[0] == mimetypes.MIMETYPE_FCODE:
-            metadata, images = fast_read_meta(abspath)
-            for img in images:
-                handler.send_text("binary image/png %i" % len(img))
-                handler.send(img)
-            metadata["size"] = os.path.getsize(abspath)
-            handler.send_text(
-                "ok %s" % "\x00".join(
-                    "%s=%s" % (k, v)for k, v in metadata.items()))
+            f_metadata, images = fast_read_meta(abspath)
+
+            imagestack = list(images)
+
+            def imagesender(*args):
+                if imagestack:
+                    img = imagestack.pop(0)
+                    logger.error("SEND: %i", len(img))
+                    handler.async_send_binary("image/png", len(img),
+                                              BytesIO(img), imagesender)
+                else:
+                    f_metadata["size"] = os.path.getsize(abspath)
+                    handler.send_text("ok %s" % "\x00".join(
+                        "%s=%s" % (k, v)for k, v in f_metadata.items()))
+            imagesender()
+
         else:
             handler.send_text("ok size=%i" % os.path.getsize(abspath))
 
@@ -259,7 +268,7 @@ class PlayManagerMixIn(object):
 
     def __play_info(self, handler):
         manager = self.__get_manager()
-        metadata, imgbuf = manager.playinfo
+        f_metadata, imgbuf = manager.playinfo
 
         def end_img(h):
             h.send_text("ok")
@@ -271,7 +280,7 @@ class PlayManagerMixIn(object):
             else:
                 h.send_text("ok")
 
-        metabuf = json.dumps(metadata)
+        metabuf = json.dumps(f_metadata)
         handler.async_send_binary("text/json", len(metabuf), BytesIO(metabuf),
                                   end_meta__send_img)
 
@@ -327,23 +336,31 @@ class ConfigMixIn(object):
         "broadcast": {
             "type": str, "enum": ("L", "A", "N"),
             "key": "broadcast"},
+        "enable_cloud": {
+            "type": str, "enum": ("A", "N"),
+            "key": "enable_cloud"},
         "replay": {
             "type": str, "enum": ("Y", "N"),
             "key": "replay"},
+        "enable_backlash": {
+            "type": str, "enum": ("Y", "N"),
+            "key": "enable_backlash"
+        }
     }
 
-    def dispatch_config_cmd(self, handler, cmd, *args):
+    def dispatch_config_cmd(self, handler, cmd, key, *args):
+        val = " ".join(args)
         if cmd == "set":
-            self.__config_set(args[0], args[1])
+            self.__config_set(key, val)
             handler.send_text("ok")
         elif cmd == "get":
-            val = self.__config_get(args[0])
+            val = self.__config_get(key)
             if val is not None:
                 handler.send_text("ok VAL %s" % val)
             else:
                 handler.send_text("ok EMPTY")
         elif cmd == "del":
-            self.__config_del(args[0])
+            self.__config_del(key)
             handler.send_text("ok")
         else:
             raise RuntimeError(UNKNOWN_COMMAND)
@@ -354,14 +371,48 @@ class ConfigMixIn(object):
             struct = self.__VALUES[key]
 
             # Check input correct
-            struct["type"](val)
+            cval = struct["type"](val)
             # Check enum
-            if "enum" in struct and val not in struct["enum"]:
+            if "enum" in struct and cval not in struct["enum"]:
+                raise RuntimeError(BAD_PARAMS)
+            if "min" in struct and cval < struct["min"]:
+                raise RuntimeError(BAD_PARAMS)
+            if "max" in struct and cval > struct["max"]:
                 raise RuntimeError(BAD_PARAMS)
 
-            storage[struct["key"]] = val
+            if hasattr(metadata, struct["key"]):
+                setattr(metadata, struct["key"], val)
+            else:
+                storage[struct["key"]] = val
+        elif key == "backlash":
+            d = {}
+            for kv in val.split(" "):
+                if ":" in kv:
+                    k, sv = kv.split(":")
+                    try:
+                        v = float(sv)
+                        if k in "ABC" and v >= 0 and v <= 100:
+                            d[k] = v
+                    except ValueError:
+                        pass
+            metadata.backlash = d
+
+        elif key == "leveling":
+            d = {}
+            for kv in val.split(" "):
+                if ":" in kv:
+                    k, sv = kv.split(":")
+                    try:
+                        v = float(sv)
+                        if k in "XYZ" and v <= 0 and v >= -2:
+                            d[k] = v
+                        elif k == "H" and v > 100 and v < 244:
+                            d[k] = v
+                    except ValueError:
+                        pass
+            metadata.plate_correction = d
         elif key == "nickname":
-            self.settings.nickname = val
+            metadata.nickname = val
         else:
             raise RuntimeError(BAD_PARAMS)
 
@@ -369,9 +420,19 @@ class ConfigMixIn(object):
         storage = Storage("general", "meta")
         if key in self.__VALUES:
             struct = self.__VALUES[key]
-            return storage[struct["key"]]
+            if hasattr(metadata, struct["key"]):
+                return getattr(metadata, struct["key"])
+            else:
+                return storage[struct["key"]]
+        elif key == "backlash":
+            return " ".join("%s:%.4f" % (k, v)
+                            for k, v in metadata.backlash.items())
+        elif key == "leveling":
+            return " ".join("%s:%.4f" % (k, v)
+                            for k, v in metadata.plate_correction.items()
+                            if k in "XYZH")
         elif key == "nickname":
-            return self.settings.nickname
+            return metadata.nickname
         else:
             raise RuntimeError(BAD_PARAMS)
 
@@ -379,7 +440,10 @@ class ConfigMixIn(object):
         storage = Storage("general", "meta")
         if key in self.__VALUES:
             struct = self.__VALUES[key]
-            del storage[struct["key"]]
+            if hasattr(metadata, struct["key"]):
+                delattr(metadata, struct["key"])
+            else:
+                del storage[struct["key"]]
         else:
             raise RuntimeError(BAD_PARAMS)
 
@@ -422,7 +486,6 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
 
     def __init__(self, stack):
         self.stack = stack
-        self.settings = Metadata()
         self.user_space = UserSpace()
 
     def dispatch_cmd(self, handler, cmd, *args):
@@ -467,6 +530,8 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
             elif cmd == "maintain":
                 # TODO: going tobe removed
                 self.dispatch_task_cmd(handler, "maintain")
+            elif cmd == "cloud_validation_code":
+                self.cloud_validation_code(handler)
             elif cmd == "oracle":
                 s = Storage("general", "meta")
                 s["debug"] = args[0].encode("utf8")
@@ -509,8 +574,12 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
 
     def deviceinfo(self, handler):
         buf = "\n".join(
-            ("%s:%s" % kv for kv in get_deviceinfo(self.settings).items()))
+            ("%s:%s" % kv for kv in get_deviceinfo(metadata).items()))
         handler.send_text("ok\n%s" % buf)
+
+    def cloud_validation_code(self, handler):
+        handler.send_text("ok %s %s" % (Storage("cloud")["token"],
+                                        b2a_base64(metadata.cloud_hash)))
 
     def fetch_log(self, handler, path):
         filename = os.path.abspath(
