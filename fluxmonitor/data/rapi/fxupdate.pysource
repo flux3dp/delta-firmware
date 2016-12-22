@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from zipimport import zipimporter
 from tempfile import mkdtemp
 from hashlib import sha256
 from time import sleep
@@ -243,18 +244,24 @@ def main():
                 raise RuntimeError("Install %s failed" % package)
 
         for package in extra_eggs_tasks:
-            cmd = "easy_install --dry-run %s" % package \
-                  if options.dryrun else \
-                  "easy_install %s" % package
+            cmd = "easy_install %s" % package
             logger.debug("EXEC '%s'", cmd)
-            if os.system(cmd) > 0:
-                raise RuntimeError("Install %s failed" % package)
+            if options.dryrun:
+                eggpackage = zipimporter(package)
+            else:
+                logger.debug("EXEC '%s'", cmd)
+                if os.system(cmd) > 0:
+                    raise RuntimeError("Install %s failed" % package)
 
+        cmd = "easy_install %s" % egg_task
+        logger.debug("EXEC '%s'", cmd)
         if options.dryrun:
-            cmd = "easy_install --dry-run %s" % egg_task
+            eggpackage = zipimporter(egg_task)
+            fxmodule = eggpackage.load_module("fluxmonitor")
+            if fxmodule.__version__.startswith("0"):
+                raise RuntimeError("firmware too old to be processed.")
         else:
             cmd = "easy_install %s" % egg_task
-        logger.debug("EXEC '%s'", cmd)
         if os.system(cmd) > 0:
             raise RuntimeError("Install %s failed" % egg_task)
 
