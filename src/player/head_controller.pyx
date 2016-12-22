@@ -166,6 +166,7 @@ cdef class HeadController:
         self.error_code = 0
         if self.required_module is None:
             self.ext = None
+        self._ready_callback = self._allset_callback = None
 
     def shutdown(self, callback=None):
         if self._st_flag != ST_RUNNING:

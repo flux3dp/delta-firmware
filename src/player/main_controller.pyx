@@ -178,6 +178,7 @@ cdef class MainController:
         if self._flags:
             if length > 3 and strncmp(buf, "LN ", 3) == 0:
                 num_of_commands = handle_ln(buf, length, &(self._cmd_sent), &(self._cmd_padding))
+                self.send_timestamp = monotonic_time()
                 self._resend_inhibit = 0
 
                 if num_of_commands + 1 == self.bufsize and self.callback_msg_sendable:

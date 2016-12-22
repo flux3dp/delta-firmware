@@ -161,12 +161,12 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
             if self.toolhead.allset:
                 self._on_toolhead_recovered_and_allset(self.toolhead)
             else:
+                logger.debug("Wait toolhead allset.")
                 m = WaitHeadMacro(self._on_toolhead_recovered_and_allset)
                 m.start(self)
 
-        if self.toolhead.module_name != "N/A":
-            logger.debug("Set toolhead mode: operating")
-            self._set_toolhead_operating()
+        logger.debug("Set toolhead mode: operating")
+        self._set_toolhead_operating()
 
         if self.status_id & ST_RUNNING:
             self.toolhead.recover(callback)
@@ -178,6 +178,8 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
         # Mainboard should be ready
         # Toolhead should be ready
         # Toolhead status should be allset
+        logger.debug("All set")
+
         self._pause_flags &= ~TOOLHEAD_STANDBY_FLAG
         if self.status_id == 4:
             self.started()
@@ -205,7 +207,7 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
                 logger.debug("Standby toolhead.")
             else:
                 logger.debug("Waitting toolhead complete command.")
-                self.toolhead.set_command_callback(self._pause_toolhead)
+                self.toolhead.set_command_callback(self._toolhead_paused)
         else:
             logger.debug("Ignore standby toolhead because it is not ready.")
             self._toolhead_paused()
@@ -294,8 +296,6 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
                 if self.macro and self.macro.giveup(self) is False:
                     logger.debug("Waitting macro giving up")
                 elif self._pause_flags & (STASHING_FLAG | STASHED_FLAG) == 0:
-                    # Ready for maincoard pause...
-
                     self._pause_flags |= STASHING_FLAG
                     stash_cmd = "C2"
                     if self.error_symbol:
@@ -311,10 +311,7 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
                     logger.debug("Stash: %s", stash_cmd)
                     self.mainboard.send_cmd(stash_cmd)
                 else:
-                    if self.toolhead.ready:
-                        logger.debug("Nothing to do in handle_pause")
-                    else:
-                        self.paused()
+                    self._pause_toolhead()
         else:
             logger.error("Unknown action for status %i in handle_pause.",
                          self.status_id)
@@ -608,13 +605,7 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
             logger.error("Mainboard close error: %s", er)
         except Exception:
             logger.exception("Mainboard close error")
+        finally:
+            self._mbsock.close()
 
-        try:
-            if self.toolhead.ready:
-                logger.debug("Set toolhead mode: standby")
-                self._set_toolhead_standby()
-                self.toolhead.shutdown()
-        except IOError as er:
-            logger.error("Toolhead shutdown error: %s", er)
-        except Exception:
-            logger.exception("Mainboard close error")
+        self._thsock.close()
