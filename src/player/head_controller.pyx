@@ -490,12 +490,12 @@ cdef class ExtruderExt:
         self.do_recover()
 
     def set_heater(self, int heater_id, double temperature):
-        if temperature < 0:
-            raise SystemError(EXEC_OPERATION_ERROR, "BAD_TEMPERATURE",
-                               str(temperature))
-        elif temperature > 280:
+        if temperature > 280:
             raise SystemError(EXEC_OPERATION_ERROR, "BAD_TEMPERATURE",
                               str(temperature))
+
+        if temperature < 60:
+            temperature = float("NaN")
 
         self._temperatures[heater_id] = temperature
         cdef char* buf
@@ -515,7 +515,7 @@ cdef class ExtruderExt:
             return False
 
         for i from 0 <= i < self._req_num_of_extruder:
-            if self._temperatures[i] > 0 and \
+            if self._temperatures[i] > 60 and \
                     abs(self._temperatures[i] - rt[i]) > 3:
                 return False
         return True

@@ -9036,7 +9036,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
  *         self.do_recover()
  * 
  *     def set_heater(self, int heater_id, double temperature):             # <<<<<<<<<<<<<<
- *         if temperature < 0:
+ *         if temperature > 280:
  *             raise SystemError(EXEC_OPERATION_ERROR, "BAD_TEMPERATURE",
  */
 
@@ -9107,34 +9107,35 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
   PyObject *__pyx_t_4 = NULL;
+  double __pyx_t_5;
   __Pyx_RefNannySetupContext("set_heater", 0);
 
   /* "src/player/head_controller.pyx":493
  * 
  *     def set_heater(self, int heater_id, double temperature):
- *         if temperature < 0:             # <<<<<<<<<<<<<<
+ *         if temperature > 280:             # <<<<<<<<<<<<<<
  *             raise SystemError(EXEC_OPERATION_ERROR, "BAD_TEMPERATURE",
- *                                str(temperature))
+ *                               str(temperature))
  */
-  __pyx_t_1 = ((__pyx_v_temperature < 0.0) != 0);
+  __pyx_t_1 = ((__pyx_v_temperature > 280.0) != 0);
   if (__pyx_t_1) {
 
     /* "src/player/head_controller.pyx":494
  *     def set_heater(self, int heater_id, double temperature):
- *         if temperature < 0:
+ *         if temperature > 280:
  *             raise SystemError(EXEC_OPERATION_ERROR, "BAD_TEMPERATURE",             # <<<<<<<<<<<<<<
- *                                str(temperature))
- *         elif temperature > 280:
+ *                               str(temperature))
+ * 
  */
     __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_OPERATION_ERROR); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 494, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
 
     /* "src/player/head_controller.pyx":495
- *         if temperature < 0:
+ *         if temperature > 280:
  *             raise SystemError(EXEC_OPERATION_ERROR, "BAD_TEMPERATURE",
- *                                str(temperature))             # <<<<<<<<<<<<<<
- *         elif temperature > 280:
- *             raise SystemError(EXEC_OPERATION_ERROR, "BAD_TEMPERATURE",
+ *                               str(temperature))             # <<<<<<<<<<<<<<
+ * 
+ *         if temperature < 60:
  */
     __pyx_t_3 = PyFloat_FromDouble(__pyx_v_temperature); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 495, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
@@ -9149,10 +9150,10 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
 
     /* "src/player/head_controller.pyx":494
  *     def set_heater(self, int heater_id, double temperature):
- *         if temperature < 0:
+ *         if temperature > 280:
  *             raise SystemError(EXEC_OPERATION_ERROR, "BAD_TEMPERATURE",             # <<<<<<<<<<<<<<
- *                                str(temperature))
- *         elif temperature > 280:
+ *                               str(temperature))
+ * 
  */
     __pyx_t_4 = PyTuple_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 494, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
@@ -9175,86 +9176,43 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
     /* "src/player/head_controller.pyx":493
  * 
  *     def set_heater(self, int heater_id, double temperature):
- *         if temperature < 0:             # <<<<<<<<<<<<<<
+ *         if temperature > 280:             # <<<<<<<<<<<<<<
  *             raise SystemError(EXEC_OPERATION_ERROR, "BAD_TEMPERATURE",
- *                                str(temperature))
+ *                               str(temperature))
  */
   }
 
-  /* "src/player/head_controller.pyx":496
- *             raise SystemError(EXEC_OPERATION_ERROR, "BAD_TEMPERATURE",
- *                                str(temperature))
- *         elif temperature > 280:             # <<<<<<<<<<<<<<
- *             raise SystemError(EXEC_OPERATION_ERROR, "BAD_TEMPERATURE",
- *                               str(temperature))
- */
-  __pyx_t_1 = ((__pyx_v_temperature > 280.0) != 0);
-  if (__pyx_t_1) {
-
-    /* "src/player/head_controller.pyx":497
- *                                str(temperature))
- *         elif temperature > 280:
- *             raise SystemError(EXEC_OPERATION_ERROR, "BAD_TEMPERATURE",             # <<<<<<<<<<<<<<
+  /* "src/player/head_controller.pyx":497
  *                               str(temperature))
  * 
+ *         if temperature < 60:             # <<<<<<<<<<<<<<
+ *             temperature = float("NaN")
+ * 
  */
-    __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_OPERATION_ERROR); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 497, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_1 = ((__pyx_v_temperature < 60.0) != 0);
+  if (__pyx_t_1) {
 
     /* "src/player/head_controller.pyx":498
- *         elif temperature > 280:
- *             raise SystemError(EXEC_OPERATION_ERROR, "BAD_TEMPERATURE",
- *                               str(temperature))             # <<<<<<<<<<<<<<
+ * 
+ *         if temperature < 60:
+ *             temperature = float("NaN")             # <<<<<<<<<<<<<<
  * 
  *         self._temperatures[heater_id] = temperature
  */
-    __pyx_t_4 = PyFloat_FromDouble(__pyx_v_temperature); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 498, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 498, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_GIVEREF(__pyx_t_4);
-    PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_4);
-    __pyx_t_4 = 0;
-    __pyx_t_4 = __Pyx_PyObject_Call(((PyObject *)(&PyString_Type)), __pyx_t_2, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 498, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_5 = __Pyx_PyObject_AsDouble(__pyx_n_s_NaN); if (unlikely(__pyx_t_5 == ((double)-1) && PyErr_Occurred())) __PYX_ERR(0, 498, __pyx_L1_error)
+    __pyx_v_temperature = __pyx_t_5;
 
     /* "src/player/head_controller.pyx":497
- *                                str(temperature))
- *         elif temperature > 280:
- *             raise SystemError(EXEC_OPERATION_ERROR, "BAD_TEMPERATURE",             # <<<<<<<<<<<<<<
  *                               str(temperature))
  * 
- */
-    __pyx_t_2 = PyTuple_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 497, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_GIVEREF(__pyx_t_3);
-    PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_3);
-    __Pyx_INCREF(__pyx_n_s_BAD_TEMPERATURE);
-    __Pyx_GIVEREF(__pyx_n_s_BAD_TEMPERATURE);
-    PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_n_s_BAD_TEMPERATURE);
-    __Pyx_GIVEREF(__pyx_t_4);
-    PyTuple_SET_ITEM(__pyx_t_2, 2, __pyx_t_4);
-    __pyx_t_3 = 0;
-    __pyx_t_4 = 0;
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_SystemError, __pyx_t_2, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 497, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_Raise(__pyx_t_4, 0, 0, 0);
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __PYX_ERR(0, 497, __pyx_L1_error)
-
-    /* "src/player/head_controller.pyx":496
- *             raise SystemError(EXEC_OPERATION_ERROR, "BAD_TEMPERATURE",
- *                                str(temperature))
- *         elif temperature > 280:             # <<<<<<<<<<<<<<
- *             raise SystemError(EXEC_OPERATION_ERROR, "BAD_TEMPERATURE",
- *                               str(temperature))
+ *         if temperature < 60:             # <<<<<<<<<<<<<<
+ *             temperature = float("NaN")
+ * 
  */
   }
 
   /* "src/player/head_controller.pyx":500
- *                               str(temperature))
+ *             temperature = float("NaN")
  * 
  *         self._temperatures[heater_id] = temperature             # <<<<<<<<<<<<<<
  *         cdef char* buf
@@ -9284,7 +9242,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
  *         self.do_recover()
  * 
  *     def set_heater(self, int heater_id, double temperature):             # <<<<<<<<<<<<<<
- *         if temperature < 0:
+ *         if temperature > 280:
  *             raise SystemError(EXEC_OPERATION_ERROR, "BAD_TEMPERATURE",
  */
 
@@ -9535,7 +9493,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
  *             return False
  * 
  *         for i from 0 <= i < self._req_num_of_extruder:             # <<<<<<<<<<<<<<
- *             if self._temperatures[i] > 0 and \
+ *             if self._temperatures[i] > 60 and \
  *                     abs(self._temperatures[i] - rt[i]) > 3:
  */
   __pyx_t_5 = __pyx_v_self->_req_num_of_extruder;
@@ -9544,11 +9502,11 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
     /* "src/player/head_controller.pyx":518
  * 
  *         for i from 0 <= i < self._req_num_of_extruder:
- *             if self._temperatures[i] > 0 and \             # <<<<<<<<<<<<<<
+ *             if self._temperatures[i] > 60 and \             # <<<<<<<<<<<<<<
  *                     abs(self._temperatures[i] - rt[i]) > 3:
  *                 return False
  */
-    __pyx_t_6 = (((__pyx_v_self->_temperatures[__pyx_v_i]) > 0.0) != 0);
+    __pyx_t_6 = (((__pyx_v_self->_temperatures[__pyx_v_i]) > 60.0) != 0);
     if (__pyx_t_6) {
     } else {
       __pyx_t_4 = __pyx_t_6;
@@ -9557,7 +9515,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
 
     /* "src/player/head_controller.pyx":519
  *         for i from 0 <= i < self._req_num_of_extruder:
- *             if self._temperatures[i] > 0 and \
+ *             if self._temperatures[i] > 60 and \
  *                     abs(self._temperatures[i] - rt[i]) > 3:             # <<<<<<<<<<<<<<
  *                 return False
  *         return True
@@ -9587,14 +9545,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
     /* "src/player/head_controller.pyx":518
  * 
  *         for i from 0 <= i < self._req_num_of_extruder:
- *             if self._temperatures[i] > 0 and \             # <<<<<<<<<<<<<<
+ *             if self._temperatures[i] > 60 and \             # <<<<<<<<<<<<<<
  *                     abs(self._temperatures[i] - rt[i]) > 3:
  *                 return False
  */
     if (__pyx_t_4) {
 
       /* "src/player/head_controller.pyx":520
- *             if self._temperatures[i] > 0 and \
+ *             if self._temperatures[i] > 60 and \
  *                     abs(self._temperatures[i] - rt[i]) > 3:
  *                 return False             # <<<<<<<<<<<<<<
  *         return True
@@ -9608,7 +9566,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
       /* "src/player/head_controller.pyx":518
  * 
  *         for i from 0 <= i < self._req_num_of_extruder:
- *             if self._temperatures[i] > 0 and \             # <<<<<<<<<<<<<<
+ *             if self._temperatures[i] > 60 and \             # <<<<<<<<<<<<<<
  *                     abs(self._temperatures[i] - rt[i]) > 3:
  *                 return False
  */
