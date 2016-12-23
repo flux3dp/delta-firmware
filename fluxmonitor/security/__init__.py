@@ -12,7 +12,7 @@ from .misc import randstr, randbytes
 from _security import RSAObject, AESObject
 
 
-def _prepare_cert():
+def get_cert():
     from binascii import b2a_base64 as to_base64
     from OpenSSL import crypto
     from fluxmonitor.storage import Storage
@@ -49,10 +49,8 @@ def _prepare_cert():
 
     return s.get_path("cert.pem"), s.get_path("sslkey.pem")
 
-SSL_CERT, SSL_KEY = _prepare_cert()
 
-
-__all__ = ["SSL_CERT", "SSL_KEY", "get_uuid", "get_serial", "get_private_key",
+__all__ = ["get_cert", "get_uuid", "get_serial", "get_private_key",
            "get_identify", "get_keyobj", "get_access_id", "is_trusted_remote",
            "add_trusted_keyobj", "is_rsakey", "has_password", "set_password",
            "validate_password", "hash_password", "randstr", "randbytes",

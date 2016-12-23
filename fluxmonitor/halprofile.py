@@ -1,10 +1,11 @@
 
 from os.path import expanduser
-import _halprofile
+from fluxmonitor.security import _security
 
 MODEL_DARWIN_DEV = "darwin-dev"
 MODEL_LINUX_DEV = "linux-dev"
 MODEL_D1 = "delta-1"
+MODEL_D1P = "delta-1p"
 
 LINUX_PLATFORM = "linux"
 DARWIN_PLATFORM = "darwin"
@@ -36,22 +37,30 @@ PROFILES = {
         "headboard_uart": "/dev/ttyAMA0",
         "pc_uart": None,
         "scan_camera_id": 0,
-    }
+        "scan_camera_model": 1,
+    },
+    MODEL_D1P: {
+        "db": "/var/db/fluxmonitord",
+        "userspace": "/var/gcode/userspace",
+        "playswap": "var/gcode/autoplay.fc",
+        "mainboard_uart":
+            # "/dev/serial/by-path/platform-bcm2708_usb-usb-0:1.4:1.0",
+            # TODO: /dev/ttyACM0 is a temp soluction for using USB hub
+            "/dev/ttyACM0",
+        "headboard_uart": "/dev/ttyAMA0",
+        "pc_uart": None,
+        "scan_camera_id": 0,
+        "scan_camera_model": 2,
+    },
 }
 
 
 def get_model_id():
-    return _halprofile.model_id
+    return _security.get_model_id()
 
 
 def get_platform():
-    import platform as _platform
-    if _platform.system().lower().startswith("linux"):
-        return LINUX_PLATFORM
-    elif _platform.system().lower().startswith("darwin"):
-        return DARWIN_PLATFORM
-    else:
-        raise Exception("Can not identify platform")
+    return _security.get_platform()
 
 
 CURRENT_MODEL = get_model_id()

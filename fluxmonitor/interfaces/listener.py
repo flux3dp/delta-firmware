@@ -100,7 +100,7 @@ class TcpInterface(InterfaceBase):
 
 class SSLInterface(InterfaceBase):
     def create_socket(self, endpoint):
-        self.certfile, self.keyfile = security.SSL_CERT, security.SSL_KEY
+        self.certfile, self.keyfile = security.get_cert()
 
         logger.info("Listen on %s:%i", *endpoint)
         s = socket.socket()

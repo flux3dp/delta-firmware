@@ -2,10 +2,12 @@
 from hashlib import sha1
 from hmac import HMAC
 
-from fluxmonitor.storage import Storage
 from .misc import randstr
 
-_storage = Storage("security", "private")
+
+def get_storage():
+    from fluxmonitor.storage import Storage
+    return Storage("security", "private")
 
 
 def hash_password(salt, paragraph):
@@ -13,23 +15,23 @@ def hash_password(salt, paragraph):
 
 
 def has_password():
-    return _storage.exists("password")
+    return get_storage().exists("password")
 
 
 def set_password(password):
     if password:
         salt = randstr(8)
         pwdhash = HMAC(salt, password, sha1).hexdigest()
-        with _storage.open("password", "w") as f:
+        with get_storage().open("password", "w") as f:
             f.write(salt + ";" + pwdhash)
     else:
         if has_password():
-            _storage.remove("password")
+            get_storage().remove("password")
 
 
 def validate_password(password):
     if has_password():
-        with _storage.open("password", "r") as f:
+        with get_storage().open("password", "r") as f:
             salt, pwdhash = f.read().split(";")
             inputhash = HMAC(salt, password, sha1).hexdigest()
             return pwdhash == inputhash

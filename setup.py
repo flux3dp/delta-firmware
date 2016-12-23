@@ -48,13 +48,6 @@ setup(
     ],
     ext_modules=[
         Extension(
-            'fluxmonitor._halprofile', sources=[
-                "src/halprofile/halprofile.c"],
-            extra_compile_args=["-std=c99"],
-            define_macros=DEFAULT_MACROS,
-            include_dirs=["src"]
-        ),
-        Extension(
             'fluxmonitor.misc.systime', sources=[
                 "src/systime/systime.c", ],
             extra_compile_args=["-std=c99"],

@@ -7,7 +7,7 @@ from time import sleep
 import logging
 import pyev
 
-from fluxmonitor.halprofile import MODEL_D1
+from fluxmonitor.halprofile import get_model_id, MODEL_D1, MODEL_D1P
 from fluxmonitor.storage import Metadata, Storage
 
 from .raspberry_utils import (
@@ -21,7 +21,7 @@ logger = logging.getLogger("halservice.rasp")
 
 
 class UartHal(UartHalBase, BaseOnSerial):
-    support_hal = [MODEL_D1, ]
+    support_hal = [MODEL_D1, MODEL_D1P]
     mainboard_uart = raspi_uart = None
     mainboard_io = raspi_io = None
 
@@ -53,7 +53,7 @@ class UartHal(UartHalBase, BaseOnSerial):
             hwprofile = GPIOUtils.get_hardware_profile()
 
         self.hwprofile = hwprofile
-        if self.hwprofile["HARDWARE_VERSION"] == "1":
+        if get_model_id() == MODEL_D1P:
             self.gpio = PinMappingV1(self.meta)
         else:
             self.gpio = PinMappingV0(self.meta)
