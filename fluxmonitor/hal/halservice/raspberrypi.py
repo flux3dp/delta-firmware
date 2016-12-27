@@ -145,7 +145,6 @@ class UartHal(UartHalBase, BaseOnSerial):
     def close(self):
         UartHalBase.close(self)
         self.btn_monitor.close()
-        self.hal.close()
         GPIOUtils.teardown()
 
         while True:
