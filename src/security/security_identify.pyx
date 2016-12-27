@@ -38,13 +38,16 @@ def get_serial_number(rescue=False):
 
 
 def get_model_id(rescue=False):
+    cdef unsigned char[10] snbuf
     if strcmp("delta-1", FLUX_MODEL_ID) == 0:
-        if rescue:
-            return "delta-1p"
-        elif get_machine_model()[0] == 0 and get_machine_model()[1] == 1:
+        if get_machine_model()[0] == 0 and get_machine_model()[1] == 1:
             return "delta-1p"
         else:
-            return FLUX_MODEL_ID
+            get_machine_sn(<unsigned char**>&snbuf)
+            if snbuf[0] == 0:
+                return "delta-1p"
+            else:
+                return FLUX_MODEL_ID
     else:
         return FLUX_MODEL_ID
 

@@ -35,11 +35,7 @@ def __checkenv__():  # noqa
 def get_model_id():
     global _model_id
     if _model_id is None:
-        try:
-            _model_id = _security.get_model_id()
-        except Exception:
-            logger.exception("#### Fetch model id failed!! ####")
-            _model_id = _security.get_model_id(rescue=True)
+        _model_id = _security.get_model_id()
     return _model_id
 
 
