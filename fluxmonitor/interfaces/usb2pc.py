@@ -150,7 +150,7 @@ class USBProtocol(object):
                 else:
                     self._buffered = 0
         except USBProtocolError as e:
-            logger.error("Protocol error: %s", e)
+            logger.warning("Reset connection (protocol error: %s)", e)
             self.initial_session()
         except Exception:
             logger.exception("Unhandle error")
