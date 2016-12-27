@@ -232,7 +232,7 @@ def main(params=None):
     from fluxmonitor import __version__
 
     try:
-        if CURRENT_MODEL == 'delta-1':
+        if CURRENT_MODEL in ('delta-1', 'delta-1p'):
             init_rapi()
     except Exception as e:
         print(e)
