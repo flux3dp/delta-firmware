@@ -32,12 +32,16 @@ def get_serial_number(rescue=False):
     else:
         get_machine_sn(<unsigned char**>&buf)
 
+    # Attention: return local char* is find because cpython will copy it into
+    # python object
     return buf[:10]
 
 
-def get_model_id():
+def get_model_id(rescue=False):
     if strcmp("delta-1", FLUX_MODEL_ID) == 0:
-        if get_machine_model()[0] == 0 and get_machine_model()[1] == 1:
+        if rescue:
+            return "delta-1p"
+        elif get_machine_model()[0] == 0 and get_machine_model()[1] == 1:
             return "delta-1p"
         else:
             return FLUX_MODEL_ID

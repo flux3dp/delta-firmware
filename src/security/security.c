@@ -1782,7 +1782,7 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_26verify
 static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_9RSAObject_28verify_sha256(struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *__pyx_v_self, PyObject *__pyx_v_message, PyObject *__pyx_v_sig); /* proto */
 static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_get_uuid(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_rescue); /* proto */
 static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_2get_serial_number(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_rescue); /* proto */
-static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_4get_model_id(CYTHON_UNUSED PyObject *__pyx_self); /* proto */
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_4get_model_id(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_rescue); /* proto */
 static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_6get_rsakey(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_rescue); /* proto */
 static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_8get_identify(CYTHON_UNUSED PyObject *__pyx_self); /* proto */
 static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_10get_platform(CYTHON_UNUSED PyObject *__pyx_self); /* proto */
@@ -1852,22 +1852,23 @@ static PyObject *__pyx_tuple__15;
 static PyObject *__pyx_tuple__19;
 static PyObject *__pyx_tuple__20;
 static PyObject *__pyx_tuple__22;
-static PyObject *__pyx_tuple__25;
-static PyObject *__pyx_tuple__27;
-static PyObject *__pyx_tuple__31;
-static PyObject *__pyx_tuple__33;
+static PyObject *__pyx_tuple__24;
+static PyObject *__pyx_tuple__26;
+static PyObject *__pyx_tuple__28;
+static PyObject *__pyx_tuple__32;
 static PyObject *__pyx_tuple__34;
 static PyObject *__pyx_tuple__35;
 static PyObject *__pyx_tuple__36;
 static PyObject *__pyx_tuple__37;
+static PyObject *__pyx_tuple__38;
 static PyObject *__pyx_codeobj__21;
 static PyObject *__pyx_codeobj__23;
-static PyObject *__pyx_codeobj__24;
-static PyObject *__pyx_codeobj__26;
-static PyObject *__pyx_codeobj__28;
+static PyObject *__pyx_codeobj__25;
+static PyObject *__pyx_codeobj__27;
 static PyObject *__pyx_codeobj__29;
 static PyObject *__pyx_codeobj__30;
-static PyObject *__pyx_codeobj__32;
+static PyObject *__pyx_codeobj__31;
+static PyObject *__pyx_codeobj__33;
 
 /* "src/security/security_encrypt.pyx":42
  *     cdef EVP_CIPHER_CTX* dec_aeskey
@@ -6168,22 +6169,22 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_2get_serial_number(
  *     else:
  *         get_machine_sn(<unsigned char**>&buf)             # <<<<<<<<<<<<<<
  * 
- *     return buf[:10]
+ *     # Attention: return local char* is find because cpython will copy it into
  */
   /*else*/ {
     __pyx_t_2 = get_machine_sn(((unsigned char **)(&__pyx_v_buf))); if (unlikely(__pyx_t_2 == -1)) __PYX_ERR(1, 33, __pyx_L1_error)
   }
   __pyx_L3:;
 
-  /* "src/security/security_identify.pyx":35
- *         get_machine_sn(<unsigned char**>&buf)
- * 
+  /* "src/security/security_identify.pyx":37
+ *     # Attention: return local char* is find because cpython will copy it into
+ *     # python object
  *     return buf[:10]             # <<<<<<<<<<<<<<
  * 
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_3 = __Pyx_PyBytes_FromStringAndSize(((const char*)__pyx_v_buf) + 0, 10 - 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 35, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyBytes_FromStringAndSize(((const char*)__pyx_v_buf) + 0, 10 - 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 37, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_r = __pyx_t_3;
   __pyx_t_3 = 0;
@@ -6208,29 +6209,70 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_2get_serial_number(
   return __pyx_r;
 }
 
-/* "src/security/security_identify.pyx":38
+/* "src/security/security_identify.pyx":40
  * 
  * 
- * def get_model_id():             # <<<<<<<<<<<<<<
+ * def get_model_id(rescue=False):             # <<<<<<<<<<<<<<
  *     if strcmp("delta-1", FLUX_MODEL_ID) == 0:
- *         if get_machine_model()[0] == 0 and get_machine_model()[1] == 1:
+ *         if rescue:
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_5get_model_id(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyMethodDef __pyx_mdef_11fluxmonitor_8security_9_security_5get_model_id = {"get_model_id", (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_5get_model_id, METH_NOARGS, 0};
-static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_5get_model_id(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_5get_model_id(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_11fluxmonitor_8security_9_security_5get_model_id = {"get_model_id", (PyCFunction)__pyx_pw_11fluxmonitor_8security_9_security_5get_model_id, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_5get_model_id(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  PyObject *__pyx_v_rescue = 0;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("get_model_id (wrapper)", 0);
-  __pyx_r = __pyx_pf_11fluxmonitor_8security_9_security_4get_model_id(__pyx_self);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_rescue,0};
+    PyObject* values[1] = {0};
+    values[0] = ((PyObject *)Py_False);
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (kw_args > 0) {
+          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_rescue);
+          if (value) { values[0] = value; kw_args--; }
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_model_id") < 0)) __PYX_ERR(1, 40, __pyx_L3_error)
+      }
+    } else {
+      switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+    }
+    __pyx_v_rescue = values[0];
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("get_model_id", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 40, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("fluxmonitor.security._security.get_model_id", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_11fluxmonitor_8security_9_security_4get_model_id(__pyx_self, __pyx_v_rescue);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_4get_model_id(CYTHON_UNUSED PyObject *__pyx_self) {
+static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_4get_model_id(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_rescue) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
@@ -6238,20 +6280,51 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_4get_model_id(CYTHO
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("get_model_id", 0);
 
-  /* "src/security/security_identify.pyx":39
+  /* "src/security/security_identify.pyx":41
  * 
- * def get_model_id():
+ * def get_model_id(rescue=False):
  *     if strcmp("delta-1", FLUX_MODEL_ID) == 0:             # <<<<<<<<<<<<<<
- *         if get_machine_model()[0] == 0 and get_machine_model()[1] == 1:
+ *         if rescue:
  *             return "delta-1p"
  */
   __pyx_t_1 = ((strcmp(((char const *)"delta-1"), FLUX_MODEL_ID) == 0) != 0);
   if (__pyx_t_1) {
 
-    /* "src/security/security_identify.pyx":40
- * def get_model_id():
+    /* "src/security/security_identify.pyx":42
+ * def get_model_id(rescue=False):
  *     if strcmp("delta-1", FLUX_MODEL_ID) == 0:
- *         if get_machine_model()[0] == 0 and get_machine_model()[1] == 1:             # <<<<<<<<<<<<<<
+ *         if rescue:             # <<<<<<<<<<<<<<
+ *             return "delta-1p"
+ *         elif get_machine_model()[0] == 0 and get_machine_model()[1] == 1:
+ */
+    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_rescue); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(1, 42, __pyx_L1_error)
+    if (__pyx_t_1) {
+
+      /* "src/security/security_identify.pyx":43
+ *     if strcmp("delta-1", FLUX_MODEL_ID) == 0:
+ *         if rescue:
+ *             return "delta-1p"             # <<<<<<<<<<<<<<
+ *         elif get_machine_model()[0] == 0 and get_machine_model()[1] == 1:
+ *             return "delta-1p"
+ */
+      __Pyx_XDECREF(__pyx_r);
+      __Pyx_INCREF(__pyx_kp_s_delta_1p);
+      __pyx_r = __pyx_kp_s_delta_1p;
+      goto __pyx_L0;
+
+      /* "src/security/security_identify.pyx":42
+ * def get_model_id(rescue=False):
+ *     if strcmp("delta-1", FLUX_MODEL_ID) == 0:
+ *         if rescue:             # <<<<<<<<<<<<<<
+ *             return "delta-1p"
+ *         elif get_machine_model()[0] == 0 and get_machine_model()[1] == 1:
+ */
+    }
+
+    /* "src/security/security_identify.pyx":44
+ *         if rescue:
+ *             return "delta-1p"
+ *         elif get_machine_model()[0] == 0 and get_machine_model()[1] == 1:             # <<<<<<<<<<<<<<
  *             return "delta-1p"
  *         else:
  */
@@ -6266,9 +6339,9 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_4get_model_id(CYTHO
     __pyx_L5_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "src/security/security_identify.pyx":41
- *     if strcmp("delta-1", FLUX_MODEL_ID) == 0:
- *         if get_machine_model()[0] == 0 and get_machine_model()[1] == 1:
+      /* "src/security/security_identify.pyx":45
+ *             return "delta-1p"
+ *         elif get_machine_model()[0] == 0 and get_machine_model()[1] == 1:
  *             return "delta-1p"             # <<<<<<<<<<<<<<
  *         else:
  *             return FLUX_MODEL_ID
@@ -6278,16 +6351,16 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_4get_model_id(CYTHO
       __pyx_r = __pyx_kp_s_delta_1p;
       goto __pyx_L0;
 
-      /* "src/security/security_identify.pyx":40
- * def get_model_id():
- *     if strcmp("delta-1", FLUX_MODEL_ID) == 0:
- *         if get_machine_model()[0] == 0 and get_machine_model()[1] == 1:             # <<<<<<<<<<<<<<
+      /* "src/security/security_identify.pyx":44
+ *         if rescue:
+ *             return "delta-1p"
+ *         elif get_machine_model()[0] == 0 and get_machine_model()[1] == 1:             # <<<<<<<<<<<<<<
  *             return "delta-1p"
  *         else:
  */
     }
 
-    /* "src/security/security_identify.pyx":43
+    /* "src/security/security_identify.pyx":47
  *             return "delta-1p"
  *         else:
  *             return FLUX_MODEL_ID             # <<<<<<<<<<<<<<
@@ -6296,23 +6369,23 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_4get_model_id(CYTHO
  */
     /*else*/ {
       __Pyx_XDECREF(__pyx_r);
-      __pyx_t_3 = __Pyx_PyBytes_FromString(FLUX_MODEL_ID); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 43, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyBytes_FromString(FLUX_MODEL_ID); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 47, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
       __pyx_r = __pyx_t_3;
       __pyx_t_3 = 0;
       goto __pyx_L0;
     }
 
-    /* "src/security/security_identify.pyx":39
+    /* "src/security/security_identify.pyx":41
  * 
- * def get_model_id():
+ * def get_model_id(rescue=False):
  *     if strcmp("delta-1", FLUX_MODEL_ID) == 0:             # <<<<<<<<<<<<<<
- *         if get_machine_model()[0] == 0 and get_machine_model()[1] == 1:
+ *         if rescue:
  *             return "delta-1p"
  */
   }
 
-  /* "src/security/security_identify.pyx":45
+  /* "src/security/security_identify.pyx":49
  *             return FLUX_MODEL_ID
  *     else:
  *         return FLUX_MODEL_ID             # <<<<<<<<<<<<<<
@@ -6321,19 +6394,19 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_4get_model_id(CYTHO
  */
   /*else*/ {
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_3 = __Pyx_PyBytes_FromString(FLUX_MODEL_ID); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 45, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyBytes_FromString(FLUX_MODEL_ID); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 49, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_r = __pyx_t_3;
     __pyx_t_3 = 0;
     goto __pyx_L0;
   }
 
-  /* "src/security/security_identify.pyx":38
+  /* "src/security/security_identify.pyx":40
  * 
  * 
- * def get_model_id():             # <<<<<<<<<<<<<<
+ * def get_model_id(rescue=False):             # <<<<<<<<<<<<<<
  *     if strcmp("delta-1", FLUX_MODEL_ID) == 0:
- *         if get_machine_model()[0] == 0 and get_machine_model()[1] == 1:
+ *         if rescue:
  */
 
   /* function exit code */
@@ -6347,7 +6420,7 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_4get_model_id(CYTHO
   return __pyx_r;
 }
 
-/* "src/security/security_identify.pyx":48
+/* "src/security/security_identify.pyx":52
  * 
  * 
  * def get_rsakey(rescue=False):             # <<<<<<<<<<<<<<
@@ -6384,7 +6457,7 @@ static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_7get_rsakey(PyObjec
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_rsakey") < 0)) __PYX_ERR(1, 48, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_rsakey") < 0)) __PYX_ERR(1, 52, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -6397,7 +6470,7 @@ static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_7get_rsakey(PyObjec
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("get_rsakey", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 48, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("get_rsakey", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 52, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("fluxmonitor.security._security.get_rsakey", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -6420,27 +6493,27 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_6get_rsakey(CYTHON_
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("get_rsakey", 0);
 
-  /* "src/security/security_identify.pyx":51
+  /* "src/security/security_identify.pyx":55
  *     cdef RSA* key
  * 
  *     if rescue:             # <<<<<<<<<<<<<<
  *         key = get_rescue_machine_rsakey()
  *     else:
  */
-  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_rescue); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(1, 51, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_rescue); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(1, 55, __pyx_L1_error)
   if (__pyx_t_1) {
 
-    /* "src/security/security_identify.pyx":52
+    /* "src/security/security_identify.pyx":56
  * 
  *     if rescue:
  *         key = get_rescue_machine_rsakey()             # <<<<<<<<<<<<<<
  *     else:
  *         key = get_machine_rsakey()
  */
-    __pyx_t_2 = get_rescue_machine_rsakey(); if (unlikely(__pyx_t_2 == NULL)) __PYX_ERR(1, 52, __pyx_L1_error)
+    __pyx_t_2 = get_rescue_machine_rsakey(); if (unlikely(__pyx_t_2 == NULL)) __PYX_ERR(1, 56, __pyx_L1_error)
     __pyx_v_key = __pyx_t_2;
 
-    /* "src/security/security_identify.pyx":51
+    /* "src/security/security_identify.pyx":55
  *     cdef RSA* key
  * 
  *     if rescue:             # <<<<<<<<<<<<<<
@@ -6450,7 +6523,7 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_6get_rsakey(CYTHON_
     goto __pyx_L3;
   }
 
-  /* "src/security/security_identify.pyx":54
+  /* "src/security/security_identify.pyx":58
  *         key = get_rescue_machine_rsakey()
  *     else:
  *         key = get_machine_rsakey()             # <<<<<<<<<<<<<<
@@ -6458,24 +6531,24 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_6get_rsakey(CYTHON_
  *     cdef RSAObject keyobj = RSAObject()
  */
   /*else*/ {
-    __pyx_t_2 = get_machine_rsakey(); if (unlikely(__pyx_t_2 == NULL)) __PYX_ERR(1, 54, __pyx_L1_error)
+    __pyx_t_2 = get_machine_rsakey(); if (unlikely(__pyx_t_2 == NULL)) __PYX_ERR(1, 58, __pyx_L1_error)
     __pyx_v_key = __pyx_t_2;
   }
   __pyx_L3:;
 
-  /* "src/security/security_identify.pyx":56
+  /* "src/security/security_identify.pyx":60
  *         key = get_machine_rsakey()
  * 
  *     cdef RSAObject keyobj = RSAObject()             # <<<<<<<<<<<<<<
  *     keyobj.rsakey = key
  *     return keyobj
  */
-  __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_11fluxmonitor_8security_9_security_RSAObject), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 56, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_11fluxmonitor_8security_9_security_RSAObject), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 60, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_v_keyobj = ((struct __pyx_obj_11fluxmonitor_8security_9_security_RSAObject *)__pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "src/security/security_identify.pyx":57
+  /* "src/security/security_identify.pyx":61
  * 
  *     cdef RSAObject keyobj = RSAObject()
  *     keyobj.rsakey = key             # <<<<<<<<<<<<<<
@@ -6484,7 +6557,7 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_6get_rsakey(CYTHON_
  */
   __pyx_v_keyobj->rsakey = __pyx_v_key;
 
-  /* "src/security/security_identify.pyx":58
+  /* "src/security/security_identify.pyx":62
  *     cdef RSAObject keyobj = RSAObject()
  *     keyobj.rsakey = key
  *     return keyobj             # <<<<<<<<<<<<<<
@@ -6496,7 +6569,7 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_6get_rsakey(CYTHON_
   __pyx_r = ((PyObject *)__pyx_v_keyobj);
   goto __pyx_L0;
 
-  /* "src/security/security_identify.pyx":48
+  /* "src/security/security_identify.pyx":52
  * 
  * 
  * def get_rsakey(rescue=False):             # <<<<<<<<<<<<<<
@@ -6516,7 +6589,7 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_6get_rsakey(CYTHON_
   return __pyx_r;
 }
 
-/* "src/security/security_identify.pyx":61
+/* "src/security/security_identify.pyx":65
  * 
  * 
  * def get_identify():             # <<<<<<<<<<<<<<
@@ -6547,7 +6620,7 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_8get_identify(CYTHO
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("get_identify", 0);
 
-  /* "src/security/security_identify.pyx":65
+  /* "src/security/security_identify.pyx":69
  *     cdef int length
  * 
  *     length = get_machine_identify(&buf)             # <<<<<<<<<<<<<<
@@ -6556,7 +6629,7 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_8get_identify(CYTHO
  */
   __pyx_v_length = get_machine_identify((&__pyx_v_buf));
 
-  /* "src/security/security_identify.pyx":66
+  /* "src/security/security_identify.pyx":70
  * 
  *     length = get_machine_identify(&buf)
  *     if length == 0:             # <<<<<<<<<<<<<<
@@ -6566,20 +6639,20 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_8get_identify(CYTHO
   __pyx_t_1 = ((__pyx_v_length == 0) != 0);
   if (__pyx_t_1) {
 
-    /* "src/security/security_identify.pyx":67
+    /* "src/security/security_identify.pyx":71
  *     length = get_machine_identify(&buf)
  *     if length == 0:
  *         raise IOError("NOT_AVAILABLE")             # <<<<<<<<<<<<<<
  *     else:
  *         return buf[:length]
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__6, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 67, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__6, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 71, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(1, 67, __pyx_L1_error)
+    __PYX_ERR(1, 71, __pyx_L1_error)
 
-    /* "src/security/security_identify.pyx":66
+    /* "src/security/security_identify.pyx":70
  * 
  *     length = get_machine_identify(&buf)
  *     if length == 0:             # <<<<<<<<<<<<<<
@@ -6588,7 +6661,7 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_8get_identify(CYTHO
  */
   }
 
-  /* "src/security/security_identify.pyx":69
+  /* "src/security/security_identify.pyx":73
  *         raise IOError("NOT_AVAILABLE")
  *     else:
  *         return buf[:length]             # <<<<<<<<<<<<<<
@@ -6597,14 +6670,14 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_8get_identify(CYTHO
  */
   /*else*/ {
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_2 = __Pyx_PyBytes_FromStringAndSize(((const char*)__pyx_v_buf) + 0, __pyx_v_length - 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 69, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyBytes_FromStringAndSize(((const char*)__pyx_v_buf) + 0, __pyx_v_length - 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 73, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_r = __pyx_t_2;
     __pyx_t_2 = 0;
     goto __pyx_L0;
   }
 
-  /* "src/security/security_identify.pyx":61
+  /* "src/security/security_identify.pyx":65
  * 
  * 
  * def get_identify():             # <<<<<<<<<<<<<<
@@ -6623,7 +6696,7 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_8get_identify(CYTHO
   return __pyx_r;
 }
 
-/* "src/security/security_identify.pyx":72
+/* "src/security/security_identify.pyx":76
  * 
  * 
  * def get_platform():             # <<<<<<<<<<<<<<
@@ -6651,7 +6724,7 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_10get_platform(CYTH
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("get_platform", 0);
 
-  /* "src/security/security_identify.pyx":73
+  /* "src/security/security_identify.pyx":77
  * 
  * def get_platform():
  *     return FLUX_PLATFORM             # <<<<<<<<<<<<<<
@@ -6659,13 +6732,13 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_10get_platform(CYTH
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBytes_FromString(FLUX_PLATFORM); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 73, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBytes_FromString(FLUX_PLATFORM); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 77, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "src/security/security_identify.pyx":72
+  /* "src/security/security_identify.pyx":76
  * 
  * 
  * def get_platform():             # <<<<<<<<<<<<<<
@@ -6684,7 +6757,7 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_10get_platform(CYTH
   return __pyx_r;
 }
 
-/* "src/security/security_identify.pyx":76
+/* "src/security/security_identify.pyx":80
  * 
  * 
  * def is_dev_model():             # <<<<<<<<<<<<<<
@@ -6711,19 +6784,19 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_12is_dev_model(CYTH
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("is_dev_model", 0);
 
-  /* "src/security/security_identify.pyx":77
+  /* "src/security/security_identify.pyx":81
  * 
  * def is_dev_model():
  *     return FLUX_DEV_MODEL == 1             # <<<<<<<<<<<<<<
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong((FLUX_DEV_MODEL == 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 77, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong((FLUX_DEV_MODEL == 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 81, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "src/security/security_identify.pyx":76
+  /* "src/security/security_identify.pyx":80
  * 
  * 
  * def is_dev_model():             # <<<<<<<<<<<<<<
@@ -19838,7 +19911,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
 static int __Pyx_InitCachedBuiltins(void) {
   __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(0, 143, __pyx_L1_error)
   __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(0, 183, __pyx_L1_error)
-  __pyx_builtin_IOError = __Pyx_GetBuiltinName(__pyx_n_s_IOError); if (!__pyx_builtin_IOError) __PYX_ERR(1, 67, __pyx_L1_error)
+  __pyx_builtin_IOError = __Pyx_GetBuiltinName(__pyx_n_s_IOError); if (!__pyx_builtin_IOError) __PYX_ERR(1, 71, __pyx_L1_error)
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(3, 131, __pyx_L1_error)
   __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(3, 146, __pyx_L1_error)
   __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) __PYX_ERR(3, 149, __pyx_L1_error)
@@ -19910,14 +19983,14 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__5);
   __Pyx_GIVEREF(__pyx_tuple__5);
 
-  /* "src/security/security_identify.pyx":67
+  /* "src/security/security_identify.pyx":71
  *     length = get_machine_identify(&buf)
  *     if length == 0:
  *         raise IOError("NOT_AVAILABLE")             # <<<<<<<<<<<<<<
  *     else:
  *         return buf[:length]
  */
-  __pyx_tuple__6 = PyTuple_Pack(1, __pyx_n_s_NOT_AVAILABLE); if (unlikely(!__pyx_tuple__6)) __PYX_ERR(1, 67, __pyx_L1_error)
+  __pyx_tuple__6 = PyTuple_Pack(1, __pyx_n_s_NOT_AVAILABLE); if (unlikely(!__pyx_tuple__6)) __PYX_ERR(1, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__6);
   __Pyx_GIVEREF(__pyx_tuple__6);
 
@@ -20091,55 +20164,58 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__22);
   __pyx_codeobj__23 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__22, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_get_serial_number, 27, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__23)) __PYX_ERR(1, 27, __pyx_L1_error)
 
-  /* "src/security/security_identify.pyx":38
+  /* "src/security/security_identify.pyx":40
  * 
  * 
- * def get_model_id():             # <<<<<<<<<<<<<<
+ * def get_model_id(rescue=False):             # <<<<<<<<<<<<<<
  *     if strcmp("delta-1", FLUX_MODEL_ID) == 0:
- *         if get_machine_model()[0] == 0 and get_machine_model()[1] == 1:
+ *         if rescue:
  */
-  __pyx_codeobj__24 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_get_model_id, 38, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__24)) __PYX_ERR(1, 38, __pyx_L1_error)
+  __pyx_tuple__24 = PyTuple_Pack(1, __pyx_n_s_rescue); if (unlikely(!__pyx_tuple__24)) __PYX_ERR(1, 40, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__24);
+  __Pyx_GIVEREF(__pyx_tuple__24);
+  __pyx_codeobj__25 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__24, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_get_model_id, 40, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__25)) __PYX_ERR(1, 40, __pyx_L1_error)
 
-  /* "src/security/security_identify.pyx":48
+  /* "src/security/security_identify.pyx":52
  * 
  * 
  * def get_rsakey(rescue=False):             # <<<<<<<<<<<<<<
  *     cdef RSA* key
  * 
  */
-  __pyx_tuple__25 = PyTuple_Pack(3, __pyx_n_s_rescue, __pyx_n_s_key, __pyx_n_s_keyobj); if (unlikely(!__pyx_tuple__25)) __PYX_ERR(1, 48, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__25);
-  __Pyx_GIVEREF(__pyx_tuple__25);
-  __pyx_codeobj__26 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__25, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_get_rsakey, 48, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__26)) __PYX_ERR(1, 48, __pyx_L1_error)
+  __pyx_tuple__26 = PyTuple_Pack(3, __pyx_n_s_rescue, __pyx_n_s_key, __pyx_n_s_keyobj); if (unlikely(!__pyx_tuple__26)) __PYX_ERR(1, 52, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__26);
+  __Pyx_GIVEREF(__pyx_tuple__26);
+  __pyx_codeobj__27 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__26, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_get_rsakey, 52, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__27)) __PYX_ERR(1, 52, __pyx_L1_error)
 
-  /* "src/security/security_identify.pyx":61
+  /* "src/security/security_identify.pyx":65
  * 
  * 
  * def get_identify():             # <<<<<<<<<<<<<<
  *     cdef unsigned char* buf
  *     cdef int length
  */
-  __pyx_tuple__27 = PyTuple_Pack(2, __pyx_n_s_buf, __pyx_n_s_length); if (unlikely(!__pyx_tuple__27)) __PYX_ERR(1, 61, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__27);
-  __Pyx_GIVEREF(__pyx_tuple__27);
-  __pyx_codeobj__28 = (PyObject*)__Pyx_PyCode_New(0, 0, 2, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__27, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_get_identify, 61, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__28)) __PYX_ERR(1, 61, __pyx_L1_error)
+  __pyx_tuple__28 = PyTuple_Pack(2, __pyx_n_s_buf, __pyx_n_s_length); if (unlikely(!__pyx_tuple__28)) __PYX_ERR(1, 65, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__28);
+  __Pyx_GIVEREF(__pyx_tuple__28);
+  __pyx_codeobj__29 = (PyObject*)__Pyx_PyCode_New(0, 0, 2, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__28, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_get_identify, 65, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__29)) __PYX_ERR(1, 65, __pyx_L1_error)
 
-  /* "src/security/security_identify.pyx":72
+  /* "src/security/security_identify.pyx":76
  * 
  * 
  * def get_platform():             # <<<<<<<<<<<<<<
  *     return FLUX_PLATFORM
  * 
  */
-  __pyx_codeobj__29 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_get_platform, 72, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__29)) __PYX_ERR(1, 72, __pyx_L1_error)
+  __pyx_codeobj__30 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_get_platform, 76, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__30)) __PYX_ERR(1, 76, __pyx_L1_error)
 
-  /* "src/security/security_identify.pyx":76
+  /* "src/security/security_identify.pyx":80
  * 
  * 
  * def is_dev_model():             # <<<<<<<<<<<<<<
  *     return FLUX_DEV_MODEL == 1
  */
-  __pyx_codeobj__30 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_is_dev_model, 76, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__30)) __PYX_ERR(1, 76, __pyx_L1_error)
+  __pyx_codeobj__31 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python, __pyx_n_s_is_dev_model, 80, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__31)) __PYX_ERR(1, 80, __pyx_L1_error)
 
   /* "src/security/security.pyx":12
  * 
@@ -20148,10 +20224,10 @@ static int __Pyx_InitCachedConstants(void) {
  *   cdef unsigned char[64] buf
  *   generate_wpa_psk(passphrase, len(passphrase), ssid, len(ssid),
  */
-  __pyx_tuple__31 = PyTuple_Pack(3, __pyx_n_s_ssid, __pyx_n_s_passphrase, __pyx_n_s_buf); if (unlikely(!__pyx_tuple__31)) __PYX_ERR(2, 12, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__31);
-  __Pyx_GIVEREF(__pyx_tuple__31);
-  __pyx_codeobj__32 = (PyObject*)__Pyx_PyCode_New(2, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__31, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python_2, __pyx_n_s_get_wpa_psk, 12, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__32)) __PYX_ERR(2, 12, __pyx_L1_error)
+  __pyx_tuple__32 = PyTuple_Pack(3, __pyx_n_s_ssid, __pyx_n_s_passphrase, __pyx_n_s_buf); if (unlikely(!__pyx_tuple__32)) __PYX_ERR(2, 12, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__32);
+  __Pyx_GIVEREF(__pyx_tuple__32);
+  __pyx_codeobj__33 = (PyObject*)__Pyx_PyCode_New(2, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__32, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_Cerberus_Projects_python_2, __pyx_n_s_get_wpa_psk, 12, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__33)) __PYX_ERR(2, 12, __pyx_L1_error)
 
   /* "View.MemoryView":282
  *         return self.name
@@ -20160,9 +20236,9 @@ static int __Pyx_InitCachedConstants(void) {
  * cdef strided = Enum("<strided and direct>") # default
  * cdef indirect = Enum("<strided and indirect>")
  */
-  __pyx_tuple__33 = PyTuple_Pack(1, __pyx_kp_s_strided_and_direct_or_indirect); if (unlikely(!__pyx_tuple__33)) __PYX_ERR(3, 282, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__33);
-  __Pyx_GIVEREF(__pyx_tuple__33);
+  __pyx_tuple__34 = PyTuple_Pack(1, __pyx_kp_s_strided_and_direct_or_indirect); if (unlikely(!__pyx_tuple__34)) __PYX_ERR(3, 282, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__34);
+  __Pyx_GIVEREF(__pyx_tuple__34);
 
   /* "View.MemoryView":283
  * 
@@ -20171,9 +20247,9 @@ static int __Pyx_InitCachedConstants(void) {
  * cdef indirect = Enum("<strided and indirect>")
  * 
  */
-  __pyx_tuple__34 = PyTuple_Pack(1, __pyx_kp_s_strided_and_direct); if (unlikely(!__pyx_tuple__34)) __PYX_ERR(3, 283, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__34);
-  __Pyx_GIVEREF(__pyx_tuple__34);
+  __pyx_tuple__35 = PyTuple_Pack(1, __pyx_kp_s_strided_and_direct); if (unlikely(!__pyx_tuple__35)) __PYX_ERR(3, 283, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__35);
+  __Pyx_GIVEREF(__pyx_tuple__35);
 
   /* "View.MemoryView":284
  * cdef generic = Enum("<strided and direct or indirect>")
@@ -20182,9 +20258,9 @@ static int __Pyx_InitCachedConstants(void) {
  * 
  * 
  */
-  __pyx_tuple__35 = PyTuple_Pack(1, __pyx_kp_s_strided_and_indirect); if (unlikely(!__pyx_tuple__35)) __PYX_ERR(3, 284, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__35);
-  __Pyx_GIVEREF(__pyx_tuple__35);
+  __pyx_tuple__36 = PyTuple_Pack(1, __pyx_kp_s_strided_and_indirect); if (unlikely(!__pyx_tuple__36)) __PYX_ERR(3, 284, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__36);
+  __Pyx_GIVEREF(__pyx_tuple__36);
 
   /* "View.MemoryView":287
  * 
@@ -20193,9 +20269,9 @@ static int __Pyx_InitCachedConstants(void) {
  * cdef indirect_contiguous = Enum("<contiguous and indirect>")
  * 
  */
-  __pyx_tuple__36 = PyTuple_Pack(1, __pyx_kp_s_contiguous_and_direct); if (unlikely(!__pyx_tuple__36)) __PYX_ERR(3, 287, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__36);
-  __Pyx_GIVEREF(__pyx_tuple__36);
+  __pyx_tuple__37 = PyTuple_Pack(1, __pyx_kp_s_contiguous_and_direct); if (unlikely(!__pyx_tuple__37)) __PYX_ERR(3, 287, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__37);
+  __Pyx_GIVEREF(__pyx_tuple__37);
 
   /* "View.MemoryView":288
  * 
@@ -20204,9 +20280,9 @@ static int __Pyx_InitCachedConstants(void) {
  * 
  * 
  */
-  __pyx_tuple__37 = PyTuple_Pack(1, __pyx_kp_s_contiguous_and_indirect); if (unlikely(!__pyx_tuple__37)) __PYX_ERR(3, 288, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__37);
-  __Pyx_GIVEREF(__pyx_tuple__37);
+  __pyx_tuple__38 = PyTuple_Pack(1, __pyx_kp_s_contiguous_and_indirect); if (unlikely(!__pyx_tuple__38)) __PYX_ERR(3, 288, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__38);
+  __Pyx_GIVEREF(__pyx_tuple__38);
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -20417,63 +20493,63 @@ PyMODINIT_FUNC PyInit__security(void)
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_serial_number, __pyx_t_1) < 0) __PYX_ERR(1, 27, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/security/security_identify.pyx":38
+  /* "src/security/security_identify.pyx":40
  * 
  * 
- * def get_model_id():             # <<<<<<<<<<<<<<
+ * def get_model_id(rescue=False):             # <<<<<<<<<<<<<<
  *     if strcmp("delta-1", FLUX_MODEL_ID) == 0:
- *         if get_machine_model()[0] == 0 and get_machine_model()[1] == 1:
+ *         if rescue:
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_11fluxmonitor_8security_9_security_5get_model_id, NULL, __pyx_n_s_fluxmonitor_security__security); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 38, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_11fluxmonitor_8security_9_security_5get_model_id, NULL, __pyx_n_s_fluxmonitor_security__security); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 40, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_model_id, __pyx_t_1) < 0) __PYX_ERR(1, 38, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_model_id, __pyx_t_1) < 0) __PYX_ERR(1, 40, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/security/security_identify.pyx":48
+  /* "src/security/security_identify.pyx":52
  * 
  * 
  * def get_rsakey(rescue=False):             # <<<<<<<<<<<<<<
  *     cdef RSA* key
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_11fluxmonitor_8security_9_security_7get_rsakey, NULL, __pyx_n_s_fluxmonitor_security__security); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 48, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_11fluxmonitor_8security_9_security_7get_rsakey, NULL, __pyx_n_s_fluxmonitor_security__security); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 52, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_rsakey, __pyx_t_1) < 0) __PYX_ERR(1, 48, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_rsakey, __pyx_t_1) < 0) __PYX_ERR(1, 52, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/security/security_identify.pyx":61
+  /* "src/security/security_identify.pyx":65
  * 
  * 
  * def get_identify():             # <<<<<<<<<<<<<<
  *     cdef unsigned char* buf
  *     cdef int length
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_11fluxmonitor_8security_9_security_9get_identify, NULL, __pyx_n_s_fluxmonitor_security__security); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 61, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_11fluxmonitor_8security_9_security_9get_identify, NULL, __pyx_n_s_fluxmonitor_security__security); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 65, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_identify, __pyx_t_1) < 0) __PYX_ERR(1, 61, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_identify, __pyx_t_1) < 0) __PYX_ERR(1, 65, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/security/security_identify.pyx":72
+  /* "src/security/security_identify.pyx":76
  * 
  * 
  * def get_platform():             # <<<<<<<<<<<<<<
  *     return FLUX_PLATFORM
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_11fluxmonitor_8security_9_security_11get_platform, NULL, __pyx_n_s_fluxmonitor_security__security); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 72, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_11fluxmonitor_8security_9_security_11get_platform, NULL, __pyx_n_s_fluxmonitor_security__security); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 76, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_platform, __pyx_t_1) < 0) __PYX_ERR(1, 72, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_platform, __pyx_t_1) < 0) __PYX_ERR(1, 76, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/security/security_identify.pyx":76
+  /* "src/security/security_identify.pyx":80
  * 
  * 
  * def is_dev_model():             # <<<<<<<<<<<<<<
  *     return FLUX_DEV_MODEL == 1
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_11fluxmonitor_8security_9_security_13is_dev_model, NULL, __pyx_n_s_fluxmonitor_security__security); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 76, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_11fluxmonitor_8security_9_security_13is_dev_model, NULL, __pyx_n_s_fluxmonitor_security__security); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 80, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_is_dev_model, __pyx_t_1) < 0) __PYX_ERR(1, 76, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_is_dev_model, __pyx_t_1) < 0) __PYX_ERR(1, 80, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "src/security/security.pyx":12
@@ -20519,7 +20595,7 @@ PyMODINIT_FUNC PyInit__security(void)
  * cdef strided = Enum("<strided and direct>") # default
  * cdef indirect = Enum("<strided and indirect>")
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__33, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(3, 282, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__34, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(3, 282, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_XGOTREF(generic);
   __Pyx_DECREF_SET(generic, __pyx_t_1);
@@ -20533,7 +20609,7 @@ PyMODINIT_FUNC PyInit__security(void)
  * cdef indirect = Enum("<strided and indirect>")
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__34, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(3, 283, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__35, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(3, 283, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_XGOTREF(strided);
   __Pyx_DECREF_SET(strided, __pyx_t_1);
@@ -20547,7 +20623,7 @@ PyMODINIT_FUNC PyInit__security(void)
  * 
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__35, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(3, 284, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__36, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(3, 284, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_XGOTREF(indirect);
   __Pyx_DECREF_SET(indirect, __pyx_t_1);
@@ -20561,7 +20637,7 @@ PyMODINIT_FUNC PyInit__security(void)
  * cdef indirect_contiguous = Enum("<contiguous and indirect>")
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__36, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(3, 287, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__37, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(3, 287, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_XGOTREF(contiguous);
   __Pyx_DECREF_SET(contiguous, __pyx_t_1);
@@ -20575,7 +20651,7 @@ PyMODINIT_FUNC PyInit__security(void)
  * 
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__37, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(3, 288, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__38, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(3, 288, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_XGOTREF(indirect_contiguous);
   __Pyx_DECREF_SET(indirect_contiguous, __pyx_t_1);

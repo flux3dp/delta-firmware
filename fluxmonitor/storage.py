@@ -8,13 +8,12 @@ import os
 
 import sysv_ipc
 
-from fluxmonitor.hal.usbmount import get_usbmount_hal
 from fluxmonitor.err_codes import NOT_EXIST, BAD_PARAMS
-from fluxmonitor.config import USERSPACE, general_config
 
 
 class Storage(object):
     def __init__(self, *args):
+        from fluxmonitor.config import general_config
         self.path = os.path.join(general_config["db"], *args)
         if not os.path.isdir(self.path):
             os.makedirs(self.path)
@@ -89,10 +88,9 @@ NICKNAMES = ["Apple", "Apricot", "Avocado", "Banana", "Bilberry", "Blackberry",
 class Metadata(object):
     shm = None
     _mversion = 0
+    _storage = None
 
     def __init__(self):
-        self.storage = Storage("general", "meta")
-
         # Memory struct
         # 0: Control flags...
         #   bit8: nickname is loaded
@@ -112,6 +110,12 @@ class Metadata(object):
         if self.shm:
             self.shm.detach()
             self.shm = None
+
+    @property
+    def storage(self):
+        if self._storage is None:
+            self._storage = Storage("general", "meta")
+        return self._storage
 
     def verify_mversion(self):
         # Return True if mversion is not change.
@@ -324,6 +328,8 @@ class Metadata(object):
 
 class UserSpace(object):
     def __init__(self):
+        from fluxmonitor.hal.usbmount import get_usbmount_hal
+        from fluxmonitor.config import USERSPACE
         self.filepool = os.path.realpath(USERSPACE)
         self.usbmount = get_usbmount_hal()
 

@@ -1,6 +1,6 @@
 
 from os.path import expanduser
-from fluxmonitor.security import _security
+from fluxmonitor.security.identify import get_model_id, get_platform
 
 MODEL_DARWIN_DEV = "darwin-dev"
 MODEL_LINUX_DEV = "linux-dev"
@@ -53,15 +53,6 @@ PROFILES = {
         "scan_camera_model": 2,
     },
 }
-
-
-def get_model_id():
-    return _security.get_model_id()
-
-
-def get_platform():
-    return _security.get_platform()
-
 
 CURRENT_MODEL = get_model_id()
 PLATFORM = get_platform()
