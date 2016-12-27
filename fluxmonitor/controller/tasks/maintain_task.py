@@ -21,21 +21,21 @@ from fluxmonitor.player import macro
 from fluxmonitor.hal import tools
 
 from .base import (CommandMixIn,
-                   DeviceOperationMixIn,
-                   DeviceMessageReceiverMixIn)
+                   DeviceOperationMixIn)
 from .update_hbfw_task import UpdateHbFwTask
 
 logger = logging.getLogger(__name__)
 
 
-class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
-                   CommandMixIn):
+class MaintainTask(DeviceOperationMixIn, CommandMixIn):
+    __toolhead_delayoff_flag = False
     st_id = -1
     mainboard = None
     toolhead = None
 
     def __init__(self, stack, handler):
         super(MaintainTask, self).__init__(stack, handler)
+
         self._ready = 0
         self._busy = False
 
@@ -71,6 +71,9 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
 
         self.timer_watcher = stack.loop.timer(1, 1, self.on_timer)
         self.timer_watcher.start()
+
+    def deplay_toolhead_off(self):
+        return self.__toolhead_delayoff_flag
 
     def on_toolhead_ready(self, sender):
         if sender.module_name and sender.module_name != "N/A":
@@ -474,6 +477,14 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         try:
             if self.toolhead:
                 if self.toolhead.ready:
+                    # #> Check should toolhead power deplayoff
+                    if self.toolhead.module_name == "EXTRUDER":
+                        for t in self.toolhead.status.get("rt", ()):
+                            if t > 60:
+                                self.__toolhead_delayoff_flag = True
+                                break
+                    # #@
+
                     self.toolhead.shutdown()
                 self.toolhead = None
         except Exception:

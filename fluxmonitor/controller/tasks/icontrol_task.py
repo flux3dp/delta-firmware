@@ -18,7 +18,7 @@ from fluxmonitor.err_codes import SUBSYSTEM_ERROR
 # from fluxmonitor.player import macro
 # from fluxmonitor.storage import Metadata
 
-from .base import DeviceOperationMixIn, DeviceMessageReceiverMixIn
+from .base import DeviceOperationMixIn
 
 logger = getLogger(__name__)
 
@@ -218,7 +218,7 @@ TARGET_MAINBOARD = 0
 TARGET_TOOLHEAD = 1
 
 
-class IControlTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn):
+class IControlTask(DeviceOperationMixIn):
     st_id = -3  # Device status ID
     main_e_axis = 0  # E axis control
     cmd_index = 0  # Command counter

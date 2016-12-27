@@ -3,7 +3,6 @@ from errno import ECONNREFUSED, ENOENT
 from shlex import split as shlex_split
 import logging
 import socket
-import re
 
 import pyev
 
@@ -49,6 +48,37 @@ class CommandMixIn(object):
 
 
 class DeviceOperationMixIn(object):
+    __toolhead_delayoff_timer = None
+
+    @classmethod
+    def __close_delayoff_toolhead(cls, w=None, r=None):  # noqa
+        if cls.__toolhead_delayoff_timer:
+            timer_w = cls.__toolhead_delayoff_timer
+            timer_w.stop()
+            io_w = timer_w.data
+            io_w.stop()
+            logger.info("Close toolhead delayoff connection (fileno=%s)",
+                        io_w.fd)
+            sock = io_w.data
+            sock.close()
+            cls.__toolhead_delayoff_timer = None
+
+    @classmethod
+    def _set_delay_toolhead_off(cls, instance):
+        if cls.__toolhead_delayoff_timer:
+            logger.warning("Already exist a toolhead delayoff data")
+            cls.__close_delayoff_toolhead()
+
+        io_w = instance._hb_watcher
+        logger.info("Set toolhead delayoff data (fileno=%s)", io_w.fd)
+        io_w.data = instance._uart_hb
+        io_w.callback = lambda w, r: w.data.recv(128)
+        timer_w = instance.stack.loop.timer(
+            300., 0, cls.__close_delayoff_toolhead, io_w)
+        timer_w.start()
+
+        cls.__toolhead_delayoff_timer = timer_w
+
     """
     DeviceOperationMixIn require implement methods:
         on_mainboard_message(self, watcher, revent)
@@ -90,6 +120,9 @@ class DeviceOperationMixIn(object):
         kernel.release_exclusive(self)
         self._disconnect()
 
+    def deplay_toolhead_off(self):
+        return False
+
     def _connect(self, enable_watcher, mb, hb):
         try:
             if not mb:
@@ -122,6 +155,26 @@ class DeviceOperationMixIn(object):
             else:
                 raise
 
+    def _disconnect(self):
+        if self._mb_watcher:
+            logger.info("Disconnect from mainboard")
+            self._mb_watcher.stop()
+            self._uart_mb.close()
+            self._mb_watcher = self._uart_mb = None
+
+        if self._hb_watcher:
+            if self.deplay_toolhead_off():
+                try:
+                    logger.info("Delay disconnect from toolhead")
+                    self.__class__._set_delay_toolhead_off(self)
+                    return
+                except:
+                    logger.exception("Set toolhead delay disconnect failed")
+            logger.info("Disconnect from toolhead")
+            self._hb_watcher.stop()
+            self._uart_hb.close()
+            self._hb_watcher = self._uart_hb = None
+
     def on_mainboard_message(self, watcher, revent):
         logger.warn("Recive message from mainboard but not handle: %s" %
                     watcher.data.recv(4096).decode("utf8", "ignore"))
@@ -130,60 +183,9 @@ class DeviceOperationMixIn(object):
         logger.warn("Recive message from headboard but not handle: %s" %
                     watcher.data.recv(4096).decode("utf8", "ignore"))
 
-    def _disconnect(self):
-        if self._hb_watcher:
-            self._hb_watcher.stop()
-            self._hb_watcher = None
-
-        if self._mb_watcher:
-            self._mb_watcher.stop()
-            self._mb_watcher = None
-
-        if self._uart_mb:
-            logger.info("Disconnect from mainboard")
-            self._uart_mb.close()
-            self._uart_mb = None
-
-        if self._uart_hb:
-            logger.info("Disconnect from headboard")
-            self._uart_hb.close()
-            self._uart_hb = None
-
     def on_dead(self, reason=None):
         self._clean()
         self._disconnect()
         self.handler.send_text("error KICKED")
         logger.info("%s dead (reason=%s)", self.__class__.__name__, reason)
         self.handler.close()
-
-
-class DeviceMessageReceiverMixIn(object):
-    _mb_swap = _hb_swap = None
-
-    def recv_from_mainboard(self, buf):
-        if self._mb_swap:
-            self._mb_swap += buf.decode("ascii", "ignore")
-        else:
-            self._mb_swap = buf.decode("ascii", "ignore")
-
-        messages = re.split("\r\n|\n", self._mb_swap)
-        self._mb_swap = messages.pop()
-
-        for msg in messages:
-            yield msg
-
-    def recv_from_headboard(self, buf):
-        if self._hb_swap:
-            self._hb_swap += buf.decode("ascii", "ignore")
-        else:
-            self._hb_swap = buf.decode("ascii", "ignore")
-
-        messages = re.split("\r\n|\n", self._hb_swap)
-        self._hb_swap = messages.pop()
-
-        for msg in messages:
-            yield msg
-
-
-class ProtocolError(SystemError):
-    pass

@@ -14,8 +14,7 @@ from fluxmonitor.storage import Storage, metadata
 from fluxmonitor.config import CAMERA_ENDPOINT
 from fluxmonitor.player import macro
 
-from .base import CommandMixIn, DeviceOperationMixIn, \
-    DeviceMessageReceiverMixIn
+from .base import CommandMixIn, DeviceOperationMixIn
 
 logger = logging.getLogger(__name__)
 
@@ -93,8 +92,7 @@ class CameraInterface(object):
         self.sock.close()
 
 
-class ScanTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
-               CommandMixIn):
+class ScanTask(DeviceOperationMixIn, CommandMixIn):
     st_id = -2
     mainboard = None
     step_length = 0.45
