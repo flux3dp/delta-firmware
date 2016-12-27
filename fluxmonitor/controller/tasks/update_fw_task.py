@@ -54,13 +54,13 @@ class UpdateFwTask(object):
 
                 if ret:
                     handler.send_text("error %s" % FILE_BROKEN)
+                    self.stack.exit_task(self, True)
                 else:
                     shutil.copyfile(self.tmpfile.name, FIRMWARE_UPDATE_PATH)
                     handler.send_text("ok")
                     handler.close()
                     os.system("fluxlauncher --update &")
 
-                self.stack.exit_task(self, True)
         except RuntimeError as e:
             handler.send_text(("error %s" % e.args[0]).encode())
         except Exception:
