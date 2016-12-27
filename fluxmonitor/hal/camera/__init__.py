@@ -9,7 +9,10 @@ else:
 
 class Cameras(object):
     def __init__(self):
-        self._camera = Camera(0)
+        if halprofile.PROFILE.get("scan_camera_model") == 1:
+            self._camera = Camera(0, width=1280, height=720)
+        else:
+            self._camera = Camera(0)
 
     def __getitem__(self, camera_id):
         return self._camera
