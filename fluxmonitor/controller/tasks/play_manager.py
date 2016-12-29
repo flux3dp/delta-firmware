@@ -2,6 +2,7 @@
 from subprocess import Popen, PIPE
 from tempfile import mktemp
 from signal import SIGKILL
+from select import select
 from time import time
 import logging
 import socket
@@ -61,7 +62,6 @@ class PlayerManager(object):
 
             self.playinfo = ff.metadata, ff.image_buf
 
-            # TODO: remove debug
             cmd = ["fluxplayer", "-c", PLAY_ENDPOINT, "--task", taskfile,
                    "--log", storage.get_path("fluxplayerd.log"), "--pid",
                    storage.get_path("fluxplayerd.pid")]
@@ -107,15 +107,24 @@ class PlayerManager(object):
                 s.connect(PLAY_ENDPOINT)
                 s.settimeout(1.0)
                 self._sock = s
-            except socket.error:
+            except socket.error as e:
+                logger.debug("Player manager connection error: %r", e)
                 st = metadata.format_device_status
-
-                if time() - st["timestamp"] < 15:
-                    if st["st_id"] == 1:
-                        raise RuntimeError(RESOURCE_BUSY)
+                if st["st_id"] == 1 and time() - st["timestamp"] < 60:
+                    raise RuntimeError(RESOURCE_BUSY)
                 raise SystemError(SUBSYSTEM_ERROR)
 
+        # Ensure no data in buffer!!
+        while select((self._sock, ), (), (), 0)[0]:
+            self._sock.recv(4096)
+
         return self._sock
+
+    def __enter__(self):
+        return self.sock
+
+    def __exit__(self, type, value, traceback):
+        pass
 
     def on_process_dead(self, watcher, revent):
         logger.info("Player %i quit: %i", self.proc.pid, watcher.rstatus)
@@ -151,37 +160,45 @@ class PlayerManager(object):
         return metadata.device_status_id in (ST_COMPLETED, ST_ABORTED)
 
     def pause(self):
-        self.sock.send("PAUSE")
-        return self.sock.recv(4096)
+        with self as sock:
+            sock.send("PAUSE")
+            return sock.recv(4096)
 
     def resume(self):
-        self.sock.send("RESUME")
-        return self.sock.recv(4096)
+        with self as sock:
+            sock.send("RESUME")
+            return sock.recv(4096)
 
     def abort(self):
-        self.sock.send("ABORT")
-        return self.sock.recv(4096)
+        with self as sock:
+            sock.send("ABORT")
+            return sock.recv(4096)
 
     def set_toolhead_operating(self):
-        self.sock.send("SET_TH_OPERATING")
-        return self.sock.recv(4096)
+        with self as sock:
+            sock.send("SET_TH_OPERATING")
+            return sock.recv(4096)
 
     def set_toolhead_standby(self):
-        self.sock.send("SET_TH_STANDBY")
-        return self.sock.recv(4096)
+        with self as sock:
+            sock.send("SET_TH_STANDBY")
+            return sock.recv(4096)
 
     def load_filament(self, index):
-        self.sock.send("LOAD_FILAMENT %s" % index)
-        return self.sock.recv(4096)
+        with self as sock:
+            sock.send("LOAD_FILAMENT %s" % index)
+            return sock.recv(4096)
 
     def unload_filament(self, index):
-        self.sock.send("UNLOAD_FILAMENT %s" % index)
-        return self.sock.recv(4096)
+        with self as sock:
+            sock.send("UNLOAD_FILAMENT %s" % index)
+            return sock.recv(4096)
 
     def report(self):
         try:
-            self.sock.send("REPORT")
-            return self.sock.recv(4096)
+            with self as sock:
+                sock.send("REPORT")
+                return sock.recv(4096)
         except RuntimeError:
             st_id = metadata.device_status_id
             if st_id == 1:
@@ -201,8 +218,9 @@ class PlayerManager(object):
     def quit(self):
         if self.proc.poll() is None:
             try:
-                self.sock.send("QUIT")
-                return self.sock.recv(4096)
+                with self as sock:
+                    sock.send("QUIT")
+                    return sock.recv(4096)
             except socket.error as e:
                 logger.error("Player socket error: %s", e)
                 self.terminate()
