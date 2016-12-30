@@ -25,8 +25,10 @@ def task_read_rsa_key(spi, ca_file):
     opt_section = read_OPT(spi)
     sn = opt_section[16:].strip("\x00")
     uuid = UUID(bytes=opt_section[:16])
+    model = struct.unpack(">H", opt_section[32:34])
     print("S/N: %s" % sn)
     print("UUID: %s" % uuid)
+    print("Model: %s" % repr(model))
     print("-" * 32)
 
 
@@ -65,18 +67,20 @@ def task_write_rsa_key(spi, sn_file):
 
     doc = data.split("\n")
 
-    sn = doc[0]
-    uuid = UUID(hex=doc[1])
-    pkey_der = binascii.a2b_hex(doc[2])
-    sign = binascii.a2b_hex(doc[3])
+    model_id = binascii.a2b_hex(doc[0])
+    sn = doc[1]
+    uuid = UUID(hex=doc[2])
+    pkey_der = binascii.a2b_hex(doc[3])
+    sign = binascii.a2b_hex(doc[4])
 
     print("=" * 32)
     print("S/N: %s" % sn)
     print("UUID: %s" % uuid)
+    print("Model ID: %s" % struct.unpack(">H", model_id)[0])
     print("-" * 32)
 
-    opt_section = uuid.bytes + sn.encode()
-    opt_section += "\x00" * (64 - len(opt_section))
+    opt_section = struct.pack("<16s16s2s30s",
+        uuid.bytes, sn.encode(), model_id, "")
     print(">> Write Srrial to SPI OPT Section")
     write_OPT(spi, opt_section)
 
@@ -89,19 +93,6 @@ def task_write_rsa_key(spi, sn_file):
     write(spi, 30, payload)
 
     print("=" * 32)
-
-    # rsakey = _security.RSAObject()
-    # der = rsakey.export_der()
-    #
-    # rsakey = _security.RSAObject(der=der)
-    # serial = sha512(rsakey.export_pubkey_der()).digest()
-    #
-    # print(">> Dumped to SPI flash")
-    # payload = struct.pack("<H", len(der)) + der
-    # write(spi, 31, payload)
-    #
-    # write_OPT(spi, serial)
-    # print(">> OK")
 
 
 def read_OPT(spi):
