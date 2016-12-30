@@ -372,6 +372,10 @@ class ConfigMixIn(object):
             "type": str, "enum": ("Y", "N"),
             "key": "enable_backlash"
         },
+        "camera_version": {
+            "type": str, "enum": ("0", "1"),
+            "key": "camera_version"
+        },
         "player_postback_url": {
             "type": str, "key": "player_postback_url", "maxlen": 128
         }

@@ -7,12 +7,26 @@ else:
     from ._cv2_camera import CV2Camera as Camera
 
 
+delta_camera_option = None
+
+
 class Cameras(object):
     def __init__(self):
         if halprofile.PROFILE.get("scan_camera_model") == 1:
             self._camera = Camera(0, width=1280, height=720)
         else:
-            self._camera = Camera(0)
+            global delta_camera_option
+
+            if delta_camera_option is None:
+                from fluxmonitor.storage import Storage
+                storage = Storage("general", "meta")
+                delta_camera_option = 1 if storage["camera_version"] == "1" \
+                    else 0
+
+            if delta_camera_option == 1:
+                self._camera = Camera(0, width=1280, height=720)
+            else:
+                self._camera = Camera(0)
 
     def __getitem__(self, camera_id):
         return self._camera
