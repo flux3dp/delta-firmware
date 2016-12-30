@@ -88,6 +88,8 @@ class SocketHandler(object):
 
 
 class TCPHandler(SocketHandler):
+    _address = None
+
     @T.update_time
     def __init__(self, kernel, endpoint, sock=None):
         self.kernel = kernel
@@ -115,10 +117,12 @@ class TCPHandler(SocketHandler):
 
     @property
     def address(self):
-        try:
-            return socket.gethostbyaddr(self.endpoint[0])[0]
-        except Exception:
-            return self.endpoint[0]
+        if self._address is None:
+            try:
+                self._address = socket.gethostbyaddr(self.endpoint[0])[0]
+            except Exception:
+                self._address = self.endpoint[0]
+        return self._address
 
 
 class UnixHandler(SocketHandler):
