@@ -162,8 +162,14 @@ class BaseExecutor(Timer):
                      symbol, self.status_id, ST_ABORTED)
         self.status_id = ST_ABORTED
         self.error_symbol = symbol
-        self.close()
         self.pause_timer()
+        self.terminate()
+
+        if symbol:
+            logger.warning("Close player directly because abort with "
+                           "unexpected error")
+            self.close()
+
         return True
 
     @property
@@ -184,6 +190,9 @@ class BaseExecutor(Timer):
 
     def is_closed(self):
         return self.status_id and (self.status_id & ~192) == 0
+
+    def terminate(self):
+        pass
 
     def close(self):
         pass

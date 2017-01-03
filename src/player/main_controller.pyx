@@ -126,16 +126,6 @@ cdef class MainController:
         def __get__(self):
             return self.buffered_cmd_size >= self.bufsize
 
-    #@property
-    #def closed(self):
-    #    return self.is_closed()
-
-    #cdef inline int is_closed(self):
-    #    if self._flags & FLAG_CLOSED > 0:
-    #        return 1
-    #    else:
-    #        return 0
-
     def bootstrap(self, callback=None):
         if self._flags:
             if self._flags < FLAG_CLOSING:
@@ -265,7 +255,7 @@ cdef class MainController:
             raise RuntimeError(EXEC_OPERATION_ERROR, "NOT_READY")
 
     def patrol(self):
-        if self._flags:
+        if self._flags and self._flags & (FLAG_CLOSING + FLAG_CLOSED) == 0:
             if self._cmd_sent.length and monotonic_time() - self.send_timestamp > COMMAND_TIMEOUT:
                 if self.send_retry >= MAX_COMMAND_RETRY:
                     raise SystemError(EXEC_MAINBOARD_OFFLINE)
@@ -273,6 +263,8 @@ cdef class MainController:
                     self.send_timestamp = monotonic_time()
                     self.send_retry += 1
                     self._resend_inhibit = resend(self.sock_fd, &(self._cmd_sent), 0)
+        elif self._flags & (FLAG_CLOSING + FLAG_CLOSED):
+            pass
         else:
             if monotonic_time() - self.send_timestamp > COMMAND_TIMEOUT:
                 if self.send_retry >= MAX_COMMAND_RETRY:

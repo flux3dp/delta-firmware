@@ -1712,7 +1712,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
  *         def __get__(self):
  *             return self.buffered_cmd_size >= self.bufsize             # <<<<<<<<<<<<<<
  * 
- *     #@property
+ *     def bootstrap(self, callback=None):
  */
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_buffered_cmd_size); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 127, __pyx_L1_error)
@@ -1747,8 +1747,8 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
   return __pyx_r;
 }
 
-/* "src/player/main_controller.pyx":139
- *     #        return 0
+/* "src/player/main_controller.pyx":129
+ *             return self.buffered_cmd_size >= self.bufsize
  * 
  *     def bootstrap(self, callback=None):             # <<<<<<<<<<<<<<
  *         if self._flags:
@@ -1783,7 +1783,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_main_controller_14MainControl
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "bootstrap") < 0)) __PYX_ERR(0, 139, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "bootstrap") < 0)) __PYX_ERR(0, 129, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -1796,7 +1796,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_main_controller_14MainControl
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("bootstrap", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 139, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("bootstrap", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 129, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("fluxmonitor.player._main_controller.MainController.bootstrap", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -1819,7 +1819,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
   PyObject *__pyx_t_5 = NULL;
   __Pyx_RefNannySetupContext("bootstrap", 0);
 
-  /* "src/player/main_controller.pyx":140
+  /* "src/player/main_controller.pyx":130
  * 
  *     def bootstrap(self, callback=None):
  *         if self._flags:             # <<<<<<<<<<<<<<
@@ -1829,7 +1829,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
   __pyx_t_1 = (__pyx_v_self->_flags != 0);
   if (__pyx_t_1) {
 
-    /* "src/player/main_controller.pyx":141
+    /* "src/player/main_controller.pyx":131
  *     def bootstrap(self, callback=None):
  *         if self._flags:
  *             if self._flags < FLAG_CLOSING:             # <<<<<<<<<<<<<<
@@ -1839,7 +1839,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
     __pyx_t_1 = ((__pyx_v_self->_flags < __pyx_v_11fluxmonitor_6player_16_main_controller_FLAG_CLOSING) != 0);
     if (__pyx_t_1) {
 
-      /* "src/player/main_controller.pyx":142
+      /* "src/player/main_controller.pyx":132
  *         if self._flags:
  *             if self._flags < FLAG_CLOSING:
  *                 self._flags &= ~FLAG_ERROR             # <<<<<<<<<<<<<<
@@ -1848,17 +1848,17 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
  */
       __pyx_v_self->_flags = (__pyx_v_self->_flags & (~__pyx_v_11fluxmonitor_6player_16_main_controller_FLAG_ERROR));
 
-      /* "src/player/main_controller.pyx":143
+      /* "src/player/main_controller.pyx":133
  *             if self._flags < FLAG_CLOSING:
  *                 self._flags &= ~FLAG_ERROR
  *                 if callback:             # <<<<<<<<<<<<<<
  *                     callback(self)
  *             else:
  */
-      __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_callback); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 143, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_callback); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 133, __pyx_L1_error)
       if (__pyx_t_1) {
 
-        /* "src/player/main_controller.pyx":144
+        /* "src/player/main_controller.pyx":134
  *                 self._flags &= ~FLAG_ERROR
  *                 if callback:
  *                     callback(self)             # <<<<<<<<<<<<<<
@@ -1877,13 +1877,13 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
           }
         }
         if (!__pyx_t_4) {
-          __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, ((PyObject *)__pyx_v_self)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 144, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, ((PyObject *)__pyx_v_self)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 134, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_2);
         } else {
           #if CYTHON_FAST_PYCALL
           if (PyFunction_Check(__pyx_t_3)) {
             PyObject *__pyx_temp[2] = {__pyx_t_4, ((PyObject *)__pyx_v_self)};
-            __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 144, __pyx_L1_error)
+            __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 134, __pyx_L1_error)
             __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
             __Pyx_GOTREF(__pyx_t_2);
           } else
@@ -1891,19 +1891,19 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
           #if CYTHON_FAST_PYCCALL
           if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
             PyObject *__pyx_temp[2] = {__pyx_t_4, ((PyObject *)__pyx_v_self)};
-            __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 144, __pyx_L1_error)
+            __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 134, __pyx_L1_error)
             __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
             __Pyx_GOTREF(__pyx_t_2);
           } else
           #endif
           {
-            __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 144, __pyx_L1_error)
+            __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 134, __pyx_L1_error)
             __Pyx_GOTREF(__pyx_t_5);
             __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4); __pyx_t_4 = NULL;
             __Pyx_INCREF(((PyObject *)__pyx_v_self));
             __Pyx_GIVEREF(((PyObject *)__pyx_v_self));
             PyTuple_SET_ITEM(__pyx_t_5, 0+1, ((PyObject *)__pyx_v_self));
-            __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 144, __pyx_L1_error)
+            __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 134, __pyx_L1_error)
             __Pyx_GOTREF(__pyx_t_2);
             __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
           }
@@ -1911,7 +1911,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
         __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
         __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-        /* "src/player/main_controller.pyx":143
+        /* "src/player/main_controller.pyx":133
  *             if self._flags < FLAG_CLOSING:
  *                 self._flags &= ~FLAG_ERROR
  *                 if callback:             # <<<<<<<<<<<<<<
@@ -1920,7 +1920,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
  */
       }
 
-      /* "src/player/main_controller.pyx":141
+      /* "src/player/main_controller.pyx":131
  *     def bootstrap(self, callback=None):
  *         if self._flags:
  *             if self._flags < FLAG_CLOSING:             # <<<<<<<<<<<<<<
@@ -1930,7 +1930,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
       goto __pyx_L4;
     }
 
-    /* "src/player/main_controller.pyx":146
+    /* "src/player/main_controller.pyx":136
  *                     callback(self)
  *             else:
  *                 raise SystemError(EXEC_OPERATION_ERROR)             # <<<<<<<<<<<<<<
@@ -1938,23 +1938,23 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
  *             self.send_timestamp = monotonic_time()
  */
     /*else*/ {
-      __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_OPERATION_ERROR); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 146, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_OPERATION_ERROR); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 136, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 146, __pyx_L1_error)
+      __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 136, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_GIVEREF(__pyx_t_2);
       PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2);
       __pyx_t_2 = 0;
-      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_SystemError, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 146, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_SystemError, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 136, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       __Pyx_Raise(__pyx_t_2, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __PYX_ERR(0, 146, __pyx_L1_error)
+      __PYX_ERR(0, 136, __pyx_L1_error)
     }
     __pyx_L4:;
 
-    /* "src/player/main_controller.pyx":140
+    /* "src/player/main_controller.pyx":130
  * 
  *     def bootstrap(self, callback=None):
  *         if self._flags:             # <<<<<<<<<<<<<<
@@ -1964,7 +1964,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
     goto __pyx_L3;
   }
 
-  /* "src/player/main_controller.pyx":148
+  /* "src/player/main_controller.pyx":138
  *                 raise SystemError(EXEC_OPERATION_ERROR)
  *         else:
  *             self.send_timestamp = monotonic_time()             # <<<<<<<<<<<<<<
@@ -1974,7 +1974,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
   /*else*/ {
     __pyx_v_self->send_timestamp = monotonic_time();
 
-    /* "src/player/main_controller.pyx":149
+    /* "src/player/main_controller.pyx":139
  *         else:
  *             self.send_timestamp = monotonic_time()
  *             self.send("C1O\n", 4);             # <<<<<<<<<<<<<<
@@ -1983,7 +1983,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
  */
     ((struct __pyx_vtabstruct_11fluxmonitor_6player_16_main_controller_MainController *)__pyx_v_self->__pyx_vtab)->send(__pyx_v_self, ((char const *)"C1O\n"), 4);
 
-    /* "src/player/main_controller.pyx":150
+    /* "src/player/main_controller.pyx":140
  *             self.send_timestamp = monotonic_time()
  *             self.send("C1O\n", 4);
  *             self.callback_ready = callback             # <<<<<<<<<<<<<<
@@ -1998,8 +1998,8 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
   }
   __pyx_L3:;
 
-  /* "src/player/main_controller.pyx":139
- *     #        return 0
+  /* "src/player/main_controller.pyx":129
+ *             return self.buffered_cmd_size >= self.bufsize
  * 
  *     def bootstrap(self, callback=None):             # <<<<<<<<<<<<<<
  *         if self._flags:
@@ -2022,7 +2022,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
   return __pyx_r;
 }
 
-/* "src/player/main_controller.pyx":152
+/* "src/player/main_controller.pyx":142
  *             self.callback_ready = callback
  * 
  *     def handle_recv(self):             # <<<<<<<<<<<<<<
@@ -2058,7 +2058,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
   PyObject *__pyx_t_8 = NULL;
   __Pyx_RefNannySetupContext("handle_recv", 0);
 
-  /* "src/player/main_controller.pyx":155
+  /* "src/player/main_controller.pyx":145
  *         cdef const char* endptr
  *         cdef int ret
  *         while True:             # <<<<<<<<<<<<<<
@@ -2067,7 +2067,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
  */
   while (1) {
 
-    /* "src/player/main_controller.pyx":156
+    /* "src/player/main_controller.pyx":146
  *         cdef int ret
  *         while True:
  *             ret = recvline(self.sock_fd, &(self.recv_buffer), &endptr)             # <<<<<<<<<<<<<<
@@ -2076,7 +2076,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
  */
     __pyx_v_ret = recvline(__pyx_v_self->sock_fd, (&__pyx_v_self->recv_buffer), (&__pyx_v_endptr));
 
-    /* "src/player/main_controller.pyx":158
+    /* "src/player/main_controller.pyx":148
  *             ret = recvline(self.sock_fd, &(self.recv_buffer), &endptr)
  * 
  *             if ret == -2:             # <<<<<<<<<<<<<<
@@ -2086,16 +2086,16 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
     __pyx_t_1 = ((__pyx_v_ret == -2L) != 0);
     if (__pyx_t_1) {
 
-      /* "src/player/main_controller.pyx":160
+      /* "src/player/main_controller.pyx":150
  *             if ret == -2:
  *                 #TODO validate
  *                 exc.PyErr_SetFromErrno(IOError)             # <<<<<<<<<<<<<<
  *             elif ret == -1:
  *                 L.debug("Mainboard buffer full: %r", self.recv_buffer.b[:RECV_BUFFER_SIZE])
  */
-      __pyx_t_2 = PyErr_SetFromErrno(__pyx_builtin_IOError); if (unlikely(__pyx_t_2 == NULL)) __PYX_ERR(0, 160, __pyx_L1_error)
+      __pyx_t_2 = PyErr_SetFromErrno(__pyx_builtin_IOError); if (unlikely(__pyx_t_2 == NULL)) __PYX_ERR(0, 150, __pyx_L1_error)
 
-      /* "src/player/main_controller.pyx":158
+      /* "src/player/main_controller.pyx":148
  *             ret = recvline(self.sock_fd, &(self.recv_buffer), &endptr)
  * 
  *             if ret == -2:             # <<<<<<<<<<<<<<
@@ -2105,7 +2105,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
       goto __pyx_L5;
     }
 
-    /* "src/player/main_controller.pyx":161
+    /* "src/player/main_controller.pyx":151
  *                 #TODO validate
  *                 exc.PyErr_SetFromErrno(IOError)
  *             elif ret == -1:             # <<<<<<<<<<<<<<
@@ -2115,16 +2115,16 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
     __pyx_t_1 = ((__pyx_v_ret == -1L) != 0);
     if (__pyx_t_1) {
 
-      /* "src/player/main_controller.pyx":162
+      /* "src/player/main_controller.pyx":152
  *                 exc.PyErr_SetFromErrno(IOError)
  *             elif ret == -1:
  *                 L.debug("Mainboard buffer full: %r", self.recv_buffer.b[:RECV_BUFFER_SIZE])             # <<<<<<<<<<<<<<
  *             elif ret == 0:
  *                 pass
  */
-      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_11fluxmonitor_6player_16_main_controller_L, __pyx_n_s_debug); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 162, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_11fluxmonitor_6player_16_main_controller_L, __pyx_n_s_debug); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 152, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_5 = __Pyx_PyBytes_FromStringAndSize(((const char*)__pyx_v_self->recv_buffer.b) + 0, RECV_BUFFER_SIZE - 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 162, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyBytes_FromStringAndSize(((const char*)__pyx_v_self->recv_buffer.b) + 0, RECV_BUFFER_SIZE - 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 152, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
       __pyx_t_6 = NULL;
       __pyx_t_7 = 0;
@@ -2141,7 +2141,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[3] = {__pyx_t_6, __pyx_kp_s_Mainboard_buffer_full_r, __pyx_t_5};
-        __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 162, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 152, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
         __Pyx_GOTREF(__pyx_t_3);
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -2150,14 +2150,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[3] = {__pyx_t_6, __pyx_kp_s_Mainboard_buffer_full_r, __pyx_t_5};
-        __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 162, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 152, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
         __Pyx_GOTREF(__pyx_t_3);
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       } else
       #endif
       {
-        __pyx_t_8 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 162, __pyx_L1_error)
+        __pyx_t_8 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 152, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_8);
         if (__pyx_t_6) {
           __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_6); __pyx_t_6 = NULL;
@@ -2168,14 +2168,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
         __Pyx_GIVEREF(__pyx_t_5);
         PyTuple_SET_ITEM(__pyx_t_8, 1+__pyx_t_7, __pyx_t_5);
         __pyx_t_5 = 0;
-        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_8, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 162, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_8, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 152, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
         __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
       }
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-      /* "src/player/main_controller.pyx":161
+      /* "src/player/main_controller.pyx":151
  *                 #TODO validate
  *                 exc.PyErr_SetFromErrno(IOError)
  *             elif ret == -1:             # <<<<<<<<<<<<<<
@@ -2185,7 +2185,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
       goto __pyx_L5;
     }
 
-    /* "src/player/main_controller.pyx":163
+    /* "src/player/main_controller.pyx":153
  *             elif ret == -1:
  *                 L.debug("Mainboard buffer full: %r", self.recv_buffer.b[:RECV_BUFFER_SIZE])
  *             elif ret == 0:             # <<<<<<<<<<<<<<
@@ -2197,7 +2197,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
       goto __pyx_L5;
     }
 
-    /* "src/player/main_controller.pyx":165
+    /* "src/player/main_controller.pyx":155
  *             elif ret == 0:
  *                 pass
  *             elif ret > 0:             # <<<<<<<<<<<<<<
@@ -2207,16 +2207,16 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
     __pyx_t_1 = ((__pyx_v_ret > 0) != 0);
     if (__pyx_t_1) {
 
-      /* "src/player/main_controller.pyx":166
+      /* "src/player/main_controller.pyx":156
  *                 pass
  *             elif ret > 0:
  *                 self.handle_message(self.recv_buffer.b, endptr - self.recv_buffer.b)             # <<<<<<<<<<<<<<
  *                 if ret == 2:
  *                     continue
  */
-      ((struct __pyx_vtabstruct_11fluxmonitor_6player_16_main_controller_MainController *)__pyx_v_self->__pyx_vtab)->handle_message(__pyx_v_self, __pyx_v_self->recv_buffer.b, (__pyx_v_endptr - __pyx_v_self->recv_buffer.b)); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 166, __pyx_L1_error)
+      ((struct __pyx_vtabstruct_11fluxmonitor_6player_16_main_controller_MainController *)__pyx_v_self->__pyx_vtab)->handle_message(__pyx_v_self, __pyx_v_self->recv_buffer.b, (__pyx_v_endptr - __pyx_v_self->recv_buffer.b)); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 156, __pyx_L1_error)
 
-      /* "src/player/main_controller.pyx":167
+      /* "src/player/main_controller.pyx":157
  *             elif ret > 0:
  *                 self.handle_message(self.recv_buffer.b, endptr - self.recv_buffer.b)
  *                 if ret == 2:             # <<<<<<<<<<<<<<
@@ -2226,7 +2226,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
       __pyx_t_1 = ((__pyx_v_ret == 2) != 0);
       if (__pyx_t_1) {
 
-        /* "src/player/main_controller.pyx":168
+        /* "src/player/main_controller.pyx":158
  *                 self.handle_message(self.recv_buffer.b, endptr - self.recv_buffer.b)
  *                 if ret == 2:
  *                     continue             # <<<<<<<<<<<<<<
@@ -2235,7 +2235,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
  */
         goto __pyx_L3_continue;
 
-        /* "src/player/main_controller.pyx":167
+        /* "src/player/main_controller.pyx":157
  *             elif ret > 0:
  *                 self.handle_message(self.recv_buffer.b, endptr - self.recv_buffer.b)
  *                 if ret == 2:             # <<<<<<<<<<<<<<
@@ -2244,7 +2244,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
  */
       }
 
-      /* "src/player/main_controller.pyx":165
+      /* "src/player/main_controller.pyx":155
  *             elif ret == 0:
  *                 pass
  *             elif ret > 0:             # <<<<<<<<<<<<<<
@@ -2254,7 +2254,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
       goto __pyx_L5;
     }
 
-    /* "src/player/main_controller.pyx":170
+    /* "src/player/main_controller.pyx":160
  *                     continue
  *             else:
  *                 raise Exception("recvline return unknown ret: %i", ret)             # <<<<<<<<<<<<<<
@@ -2262,9 +2262,9 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
  * 
  */
     /*else*/ {
-      __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_ret); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 170, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_ret); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 160, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
-      __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 170, __pyx_L1_error)
+      __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 160, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_INCREF(__pyx_kp_s_recvline_return_unknown_ret_i);
       __Pyx_GIVEREF(__pyx_kp_s_recvline_return_unknown_ret_i);
@@ -2272,16 +2272,16 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
       __Pyx_GIVEREF(__pyx_t_3);
       PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_3);
       __pyx_t_3 = 0;
-      __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)(&((PyTypeObject*)PyExc_Exception)[0])), __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 170, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)(&((PyTypeObject*)PyExc_Exception)[0])), __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 160, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       __Pyx_Raise(__pyx_t_3, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __PYX_ERR(0, 170, __pyx_L1_error)
+      __PYX_ERR(0, 160, __pyx_L1_error)
     }
     __pyx_L5:;
 
-    /* "src/player/main_controller.pyx":171
+    /* "src/player/main_controller.pyx":161
  *             else:
  *                 raise Exception("recvline return unknown ret: %i", ret)
  *             return             # <<<<<<<<<<<<<<
@@ -2294,7 +2294,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
     __pyx_L3_continue:;
   }
 
-  /* "src/player/main_controller.pyx":152
+  /* "src/player/main_controller.pyx":142
  *             self.callback_ready = callback
  * 
  *     def handle_recv(self):             # <<<<<<<<<<<<<<
@@ -2319,7 +2319,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
   return __pyx_r;
 }
 
-/* "src/player/main_controller.pyx":173
+/* "src/player/main_controller.pyx":163
  *             return
  * 
  *     cdef void handle_message(self, const char* buf, unsigned int length) except *:             # <<<<<<<<<<<<<<
@@ -2342,7 +2342,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
   PyObject *__pyx_t_8 = NULL;
   __Pyx_RefNannySetupContext("handle_message", 0);
 
-  /* "src/player/main_controller.pyx":178
+  /* "src/player/main_controller.pyx":168
  *         cdef CommandQueueItem *item
  * 
  *         if self._flags:             # <<<<<<<<<<<<<<
@@ -2352,7 +2352,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
   __pyx_t_1 = (__pyx_v_self->_flags != 0);
   if (__pyx_t_1) {
 
-    /* "src/player/main_controller.pyx":179
+    /* "src/player/main_controller.pyx":169
  * 
  *         if self._flags:
  *             if length > 3 and strncmp(buf, "LN ", 3) == 0:             # <<<<<<<<<<<<<<
@@ -2370,7 +2370,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
     __pyx_L5_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "src/player/main_controller.pyx":180
+      /* "src/player/main_controller.pyx":170
  *         if self._flags:
  *             if length > 3 and strncmp(buf, "LN ", 3) == 0:
  *                 num_of_commands = handle_ln(buf, length, &(self._cmd_sent), &(self._cmd_padding))             # <<<<<<<<<<<<<<
@@ -2379,7 +2379,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
  */
       __pyx_v_num_of_commands = handle_ln(__pyx_v_buf, __pyx_v_length, (&__pyx_v_self->_cmd_sent), (&__pyx_v_self->_cmd_padding));
 
-      /* "src/player/main_controller.pyx":181
+      /* "src/player/main_controller.pyx":171
  *             if length > 3 and strncmp(buf, "LN ", 3) == 0:
  *                 num_of_commands = handle_ln(buf, length, &(self._cmd_sent), &(self._cmd_padding))
  *                 self.send_timestamp = monotonic_time()             # <<<<<<<<<<<<<<
@@ -2388,7 +2388,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
  */
       __pyx_v_self->send_timestamp = monotonic_time();
 
-      /* "src/player/main_controller.pyx":182
+      /* "src/player/main_controller.pyx":172
  *                 num_of_commands = handle_ln(buf, length, &(self._cmd_sent), &(self._cmd_padding))
  *                 self.send_timestamp = monotonic_time()
  *                 self._resend_inhibit = 0             # <<<<<<<<<<<<<<
@@ -2397,7 +2397,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
  */
       __pyx_v_self->_resend_inhibit = 0;
 
-      /* "src/player/main_controller.pyx":184
+      /* "src/player/main_controller.pyx":174
  *                 self._resend_inhibit = 0
  * 
  *                 if num_of_commands + 1 == self.bufsize and self.callback_msg_sendable:             # <<<<<<<<<<<<<<
@@ -2410,12 +2410,12 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
         __pyx_t_1 = __pyx_t_2;
         goto __pyx_L8_bool_binop_done;
       }
-      __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_self->callback_msg_sendable); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 184, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_self->callback_msg_sendable); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 174, __pyx_L1_error)
       __pyx_t_1 = __pyx_t_2;
       __pyx_L8_bool_binop_done:;
       if (__pyx_t_1) {
 
-        /* "src/player/main_controller.pyx":185
+        /* "src/player/main_controller.pyx":175
  * 
  *                 if num_of_commands + 1 == self.bufsize and self.callback_msg_sendable:
  *                     self.callback_msg_sendable(self)             # <<<<<<<<<<<<<<
@@ -2434,13 +2434,13 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
           }
         }
         if (!__pyx_t_5) {
-          __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, ((PyObject *)__pyx_v_self)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 185, __pyx_L1_error)
+          __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, ((PyObject *)__pyx_v_self)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 175, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_3);
         } else {
           #if CYTHON_FAST_PYCALL
           if (PyFunction_Check(__pyx_t_4)) {
             PyObject *__pyx_temp[2] = {__pyx_t_5, ((PyObject *)__pyx_v_self)};
-            __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 185, __pyx_L1_error)
+            __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 175, __pyx_L1_error)
             __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
             __Pyx_GOTREF(__pyx_t_3);
           } else
@@ -2448,19 +2448,19 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
           #if CYTHON_FAST_PYCCALL
           if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
             PyObject *__pyx_temp[2] = {__pyx_t_5, ((PyObject *)__pyx_v_self)};
-            __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 185, __pyx_L1_error)
+            __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 175, __pyx_L1_error)
             __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
             __Pyx_GOTREF(__pyx_t_3);
           } else
           #endif
           {
-            __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 185, __pyx_L1_error)
+            __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 175, __pyx_L1_error)
             __Pyx_GOTREF(__pyx_t_6);
             __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_5); __pyx_t_5 = NULL;
             __Pyx_INCREF(((PyObject *)__pyx_v_self));
             __Pyx_GIVEREF(((PyObject *)__pyx_v_self));
             PyTuple_SET_ITEM(__pyx_t_6, 0+1, ((PyObject *)__pyx_v_self));
-            __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_6, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 185, __pyx_L1_error)
+            __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_6, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 175, __pyx_L1_error)
             __Pyx_GOTREF(__pyx_t_3);
             __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
           }
@@ -2468,7 +2468,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
         __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-        /* "src/player/main_controller.pyx":184
+        /* "src/player/main_controller.pyx":174
  *                 self._resend_inhibit = 0
  * 
  *                 if num_of_commands + 1 == self.bufsize and self.callback_msg_sendable:             # <<<<<<<<<<<<<<
@@ -2477,7 +2477,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
  */
       }
 
-      /* "src/player/main_controller.pyx":186
+      /* "src/player/main_controller.pyx":176
  *                 if num_of_commands + 1 == self.bufsize and self.callback_msg_sendable:
  *                     self.callback_msg_sendable(self)
  *                 if num_of_commands == 0 and self.callback_msg_empty:             # <<<<<<<<<<<<<<
@@ -2490,12 +2490,12 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
         __pyx_t_1 = __pyx_t_2;
         goto __pyx_L11_bool_binop_done;
       }
-      __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_self->callback_msg_empty); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 186, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_self->callback_msg_empty); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 176, __pyx_L1_error)
       __pyx_t_1 = __pyx_t_2;
       __pyx_L11_bool_binop_done:;
       if (__pyx_t_1) {
 
-        /* "src/player/main_controller.pyx":187
+        /* "src/player/main_controller.pyx":177
  *                     self.callback_msg_sendable(self)
  *                 if num_of_commands == 0 and self.callback_msg_empty:
  *                     self.callback_msg_empty(self)             # <<<<<<<<<<<<<<
@@ -2514,13 +2514,13 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
           }
         }
         if (!__pyx_t_6) {
-          __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, ((PyObject *)__pyx_v_self)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 187, __pyx_L1_error)
+          __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, ((PyObject *)__pyx_v_self)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 177, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_3);
         } else {
           #if CYTHON_FAST_PYCALL
           if (PyFunction_Check(__pyx_t_4)) {
             PyObject *__pyx_temp[2] = {__pyx_t_6, ((PyObject *)__pyx_v_self)};
-            __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 187, __pyx_L1_error)
+            __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 177, __pyx_L1_error)
             __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
             __Pyx_GOTREF(__pyx_t_3);
           } else
@@ -2528,19 +2528,19 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
           #if CYTHON_FAST_PYCCALL
           if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
             PyObject *__pyx_temp[2] = {__pyx_t_6, ((PyObject *)__pyx_v_self)};
-            __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 187, __pyx_L1_error)
+            __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 177, __pyx_L1_error)
             __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
             __Pyx_GOTREF(__pyx_t_3);
           } else
           #endif
           {
-            __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 187, __pyx_L1_error)
+            __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 177, __pyx_L1_error)
             __Pyx_GOTREF(__pyx_t_5);
             __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_6); __pyx_t_6 = NULL;
             __Pyx_INCREF(((PyObject *)__pyx_v_self));
             __Pyx_GIVEREF(((PyObject *)__pyx_v_self));
             PyTuple_SET_ITEM(__pyx_t_5, 0+1, ((PyObject *)__pyx_v_self));
-            __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_5, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 187, __pyx_L1_error)
+            __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_5, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 177, __pyx_L1_error)
             __Pyx_GOTREF(__pyx_t_3);
             __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
           }
@@ -2548,7 +2548,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
         __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-        /* "src/player/main_controller.pyx":186
+        /* "src/player/main_controller.pyx":176
  *                 if num_of_commands + 1 == self.bufsize and self.callback_msg_sendable:
  *                     self.callback_msg_sendable(self)
  *                 if num_of_commands == 0 and self.callback_msg_empty:             # <<<<<<<<<<<<<<
@@ -2557,7 +2557,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
  */
       }
 
-      /* "src/player/main_controller.pyx":179
+      /* "src/player/main_controller.pyx":169
  * 
  *         if self._flags:
  *             if length > 3 and strncmp(buf, "LN ", 3) == 0:             # <<<<<<<<<<<<<<
@@ -2567,7 +2567,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
       goto __pyx_L4;
     }
 
-    /* "src/player/main_controller.pyx":189
+    /* "src/player/main_controller.pyx":179
  *                     self.callback_msg_empty(self)
  * 
  *             elif length > 17 and strncmp(buf, "ER LINE_MISMATCH ", 17) == 0:             # <<<<<<<<<<<<<<
@@ -2585,7 +2585,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
     __pyx_L13_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "src/player/main_controller.pyx":190
+      /* "src/player/main_controller.pyx":180
  * 
  *             elif length > 17 and strncmp(buf, "ER LINE_MISMATCH ", 17) == 0:
  *                 self._resend_inhibit = handle_ln_mismatch(buf, length, self.sock_fd, &(self._cmd_sent), &(self._cmd_padding), self._resend_inhibit)             # <<<<<<<<<<<<<<
@@ -2594,7 +2594,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
  */
       __pyx_v_self->_resend_inhibit = handle_ln_mismatch(__pyx_v_buf, __pyx_v_length, __pyx_v_self->sock_fd, (&__pyx_v_self->_cmd_sent), (&__pyx_v_self->_cmd_padding), __pyx_v_self->_resend_inhibit);
 
-      /* "src/player/main_controller.pyx":189
+      /* "src/player/main_controller.pyx":179
  *                     self.callback_msg_empty(self)
  * 
  *             elif length > 17 and strncmp(buf, "ER LINE_MISMATCH ", 17) == 0:             # <<<<<<<<<<<<<<
@@ -2604,7 +2604,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
       goto __pyx_L4;
     }
 
-    /* "src/player/main_controller.pyx":192
+    /* "src/player/main_controller.pyx":182
  *                 self._resend_inhibit = handle_ln_mismatch(buf, length, self.sock_fd, &(self._cmd_sent), &(self._cmd_padding), self._resend_inhibit)
  * 
  *             elif length > 21 and strncmp(buf, "ER CHECKSUM_MISMATCH ", 21) == 0:             # <<<<<<<<<<<<<<
@@ -2622,7 +2622,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
     __pyx_L15_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "src/player/main_controller.pyx":193
+      /* "src/player/main_controller.pyx":183
  * 
  *             elif length > 21 and strncmp(buf, "ER CHECKSUM_MISMATCH ", 21) == 0:
  *                 self._resend_inhibit = handle_checksum_mismatch(buf, length, self.sock_fd, &(self._cmd_sent), &(self._cmd_padding), self._resend_inhibit)             # <<<<<<<<<<<<<<
@@ -2631,7 +2631,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
  */
       __pyx_v_self->_resend_inhibit = handle_checksum_mismatch(__pyx_v_buf, __pyx_v_length, __pyx_v_self->sock_fd, (&__pyx_v_self->_cmd_sent), (&__pyx_v_self->_cmd_padding), __pyx_v_self->_resend_inhibit);
 
-      /* "src/player/main_controller.pyx":192
+      /* "src/player/main_controller.pyx":182
  *                 self._resend_inhibit = handle_ln_mismatch(buf, length, self.sock_fd, &(self._cmd_sent), &(self._cmd_padding), self._resend_inhibit)
  * 
  *             elif length > 21 and strncmp(buf, "ER CHECKSUM_MISMATCH ", 21) == 0:             # <<<<<<<<<<<<<<
@@ -2641,7 +2641,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
       goto __pyx_L4;
     }
 
-    /* "src/player/main_controller.pyx":195
+    /* "src/player/main_controller.pyx":185
  *                 self._resend_inhibit = handle_checksum_mismatch(buf, length, self.sock_fd, &(self._cmd_sent), &(self._cmd_padding), self._resend_inhibit)
  * 
  *             elif length > 20 and strncmp(buf, "CTRL FILAMENTRUNOUT ", 20) == 0:             # <<<<<<<<<<<<<<
@@ -2659,7 +2659,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
     __pyx_L17_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "src/player/main_controller.pyx":196
+      /* "src/player/main_controller.pyx":186
  * 
  *             elif length > 20 and strncmp(buf, "CTRL FILAMENTRUNOUT ", 20) == 0:
  *                 if self._flags & FLAG_ERROR == 0:             # <<<<<<<<<<<<<<
@@ -2669,7 +2669,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
       __pyx_t_1 = (((__pyx_v_self->_flags & __pyx_v_11fluxmonitor_6player_16_main_controller_FLAG_ERROR) == 0) != 0);
       if (__pyx_t_1) {
 
-        /* "src/player/main_controller.pyx":197
+        /* "src/player/main_controller.pyx":187
  *             elif length > 20 and strncmp(buf, "CTRL FILAMENTRUNOUT ", 20) == 0:
  *                 if self._flags & FLAG_ERROR == 0:
  *                     self._flags |= FLAG_ERROR             # <<<<<<<<<<<<<<
@@ -2678,18 +2678,18 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
  */
         __pyx_v_self->_flags = (__pyx_v_self->_flags | __pyx_v_11fluxmonitor_6player_16_main_controller_FLAG_ERROR);
 
-        /* "src/player/main_controller.pyx":198
+        /* "src/player/main_controller.pyx":188
  *                 if self._flags & FLAG_ERROR == 0:
  *                     self._flags |= FLAG_ERROR
  *                     err = RuntimeError(EXEC_FILAMENT_RUNOUT, buf[20:length])             # <<<<<<<<<<<<<<
  *                     err.hw_error_code = 49
  *                     raise err
  */
-        __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_FILAMENT_RUNOUT); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 198, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_FILAMENT_RUNOUT); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 188, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
-        __pyx_t_4 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_buf + 20, __pyx_v_length - 20); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 198, __pyx_L1_error)
+        __pyx_t_4 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_buf + 20, __pyx_v_length - 20); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 188, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
-        __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 198, __pyx_L1_error)
+        __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 188, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_GIVEREF(__pyx_t_3);
         PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_3);
@@ -2697,22 +2697,22 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
         PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_4);
         __pyx_t_3 = 0;
         __pyx_t_4 = 0;
-        __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_t_5, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 198, __pyx_L1_error)
+        __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_t_5, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 188, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
         __pyx_v_err = __pyx_t_4;
         __pyx_t_4 = 0;
 
-        /* "src/player/main_controller.pyx":199
+        /* "src/player/main_controller.pyx":189
  *                     self._flags |= FLAG_ERROR
  *                     err = RuntimeError(EXEC_FILAMENT_RUNOUT, buf[20:length])
  *                     err.hw_error_code = 49             # <<<<<<<<<<<<<<
  *                     raise err
  *             elif length == 23 and strncmp(buf, "CTRL LINECHECK_DISABLED", 23) == 0:
  */
-        if (__Pyx_PyObject_SetAttrStr(__pyx_v_err, __pyx_n_s_hw_error_code, __pyx_int_49) < 0) __PYX_ERR(0, 199, __pyx_L1_error)
+        if (__Pyx_PyObject_SetAttrStr(__pyx_v_err, __pyx_n_s_hw_error_code, __pyx_int_49) < 0) __PYX_ERR(0, 189, __pyx_L1_error)
 
-        /* "src/player/main_controller.pyx":200
+        /* "src/player/main_controller.pyx":190
  *                     err = RuntimeError(EXEC_FILAMENT_RUNOUT, buf[20:length])
  *                     err.hw_error_code = 49
  *                     raise err             # <<<<<<<<<<<<<<
@@ -2720,9 +2720,9 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
  *                 if self._flags & FLAG_CLOSING:
  */
         __Pyx_Raise(__pyx_v_err, 0, 0, 0);
-        __PYX_ERR(0, 200, __pyx_L1_error)
+        __PYX_ERR(0, 190, __pyx_L1_error)
 
-        /* "src/player/main_controller.pyx":196
+        /* "src/player/main_controller.pyx":186
  * 
  *             elif length > 20 and strncmp(buf, "CTRL FILAMENTRUNOUT ", 20) == 0:
  *                 if self._flags & FLAG_ERROR == 0:             # <<<<<<<<<<<<<<
@@ -2731,7 +2731,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
  */
       }
 
-      /* "src/player/main_controller.pyx":195
+      /* "src/player/main_controller.pyx":185
  *                 self._resend_inhibit = handle_checksum_mismatch(buf, length, self.sock_fd, &(self._cmd_sent), &(self._cmd_padding), self._resend_inhibit)
  * 
  *             elif length > 20 and strncmp(buf, "CTRL FILAMENTRUNOUT ", 20) == 0:             # <<<<<<<<<<<<<<
@@ -2741,7 +2741,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
       goto __pyx_L4;
     }
 
-    /* "src/player/main_controller.pyx":201
+    /* "src/player/main_controller.pyx":191
  *                     err.hw_error_code = 49
  *                     raise err
  *             elif length == 23 and strncmp(buf, "CTRL LINECHECK_DISABLED", 23) == 0:             # <<<<<<<<<<<<<<
@@ -2759,7 +2759,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
     __pyx_L20_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "src/player/main_controller.pyx":202
+      /* "src/player/main_controller.pyx":192
  *                     raise err
  *             elif length == 23 and strncmp(buf, "CTRL LINECHECK_DISABLED", 23) == 0:
  *                 if self._flags & FLAG_CLOSING:             # <<<<<<<<<<<<<<
@@ -2769,7 +2769,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
       __pyx_t_1 = ((__pyx_v_self->_flags & __pyx_v_11fluxmonitor_6player_16_main_controller_FLAG_CLOSING) != 0);
       if (__pyx_t_1) {
 
-        /* "src/player/main_controller.pyx":203
+        /* "src/player/main_controller.pyx":193
  *             elif length == 23 and strncmp(buf, "CTRL LINECHECK_DISABLED", 23) == 0:
  *                 if self._flags & FLAG_CLOSING:
  *                     self._flags |= FLAG_CLOSED;             # <<<<<<<<<<<<<<
@@ -2778,7 +2778,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
  */
         __pyx_v_self->_flags = (__pyx_v_self->_flags | __pyx_v_11fluxmonitor_6player_16_main_controller_FLAG_CLOSED);
 
-        /* "src/player/main_controller.pyx":202
+        /* "src/player/main_controller.pyx":192
  *                     raise err
  *             elif length == 23 and strncmp(buf, "CTRL LINECHECK_DISABLED", 23) == 0:
  *                 if self._flags & FLAG_CLOSING:             # <<<<<<<<<<<<<<
@@ -2787,7 +2787,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
  */
       }
 
-      /* "src/player/main_controller.pyx":201
+      /* "src/player/main_controller.pyx":191
  *                     err.hw_error_code = 49
  *                     raise err
  *             elif length == 23 and strncmp(buf, "CTRL LINECHECK_DISABLED", 23) == 0:             # <<<<<<<<<<<<<<
@@ -2797,7 +2797,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
       goto __pyx_L4;
     }
 
-    /* "src/player/main_controller.pyx":204
+    /* "src/player/main_controller.pyx":194
  *                 if self._flags & FLAG_CLOSING:
  *                     self._flags |= FLAG_CLOSED;
  *             elif length > 5 and strncmp(buf, "CTRL ", 5) == 0:             # <<<<<<<<<<<<<<
@@ -2815,24 +2815,24 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
     __pyx_L23_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "src/player/main_controller.pyx":205
+      /* "src/player/main_controller.pyx":195
  *                     self._flags |= FLAG_CLOSED;
  *             elif length > 5 and strncmp(buf, "CTRL ", 5) == 0:
  *                 if self.callback_ctrl:             # <<<<<<<<<<<<<<
  *                     self.callback_ctrl(self, buf[5:length])
  *             elif length > 5 and strncmp(buf, "DATA ", 5) == 0:
  */
-      __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_self->callback_ctrl); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 205, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_self->callback_ctrl); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 195, __pyx_L1_error)
       if (__pyx_t_1) {
 
-        /* "src/player/main_controller.pyx":206
+        /* "src/player/main_controller.pyx":196
  *             elif length > 5 and strncmp(buf, "CTRL ", 5) == 0:
  *                 if self.callback_ctrl:
  *                     self.callback_ctrl(self, buf[5:length])             # <<<<<<<<<<<<<<
  *             elif length > 5 and strncmp(buf, "DATA ", 5) == 0:
  *                 if self.callback_ctrl:
  */
-        __pyx_t_5 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_buf + 5, __pyx_v_length - 5); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 206, __pyx_L1_error)
+        __pyx_t_5 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_buf + 5, __pyx_v_length - 5); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 196, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_INCREF(__pyx_v_self->callback_ctrl);
         __pyx_t_3 = __pyx_v_self->callback_ctrl; __pyx_t_6 = NULL;
@@ -2850,7 +2850,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
         #if CYTHON_FAST_PYCALL
         if (PyFunction_Check(__pyx_t_3)) {
           PyObject *__pyx_temp[3] = {__pyx_t_6, ((PyObject *)__pyx_v_self), __pyx_t_5};
-          __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 206, __pyx_L1_error)
+          __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 196, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
           __Pyx_GOTREF(__pyx_t_4);
           __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -2859,14 +2859,14 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
         #if CYTHON_FAST_PYCCALL
         if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
           PyObject *__pyx_temp[3] = {__pyx_t_6, ((PyObject *)__pyx_v_self), __pyx_t_5};
-          __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 206, __pyx_L1_error)
+          __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 196, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
           __Pyx_GOTREF(__pyx_t_4);
           __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
         } else
         #endif
         {
-          __pyx_t_8 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 206, __pyx_L1_error)
+          __pyx_t_8 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 196, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_8);
           if (__pyx_t_6) {
             __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_6); __pyx_t_6 = NULL;
@@ -2877,14 +2877,14 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
           __Pyx_GIVEREF(__pyx_t_5);
           PyTuple_SET_ITEM(__pyx_t_8, 1+__pyx_t_7, __pyx_t_5);
           __pyx_t_5 = 0;
-          __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_8, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 206, __pyx_L1_error)
+          __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_8, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 196, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_4);
           __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
         }
         __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-        /* "src/player/main_controller.pyx":205
+        /* "src/player/main_controller.pyx":195
  *                     self._flags |= FLAG_CLOSED;
  *             elif length > 5 and strncmp(buf, "CTRL ", 5) == 0:
  *                 if self.callback_ctrl:             # <<<<<<<<<<<<<<
@@ -2893,7 +2893,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
  */
       }
 
-      /* "src/player/main_controller.pyx":204
+      /* "src/player/main_controller.pyx":194
  *                 if self._flags & FLAG_CLOSING:
  *                     self._flags |= FLAG_CLOSED;
  *             elif length > 5 and strncmp(buf, "CTRL ", 5) == 0:             # <<<<<<<<<<<<<<
@@ -2903,7 +2903,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
       goto __pyx_L4;
     }
 
-    /* "src/player/main_controller.pyx":207
+    /* "src/player/main_controller.pyx":197
  *                 if self.callback_ctrl:
  *                     self.callback_ctrl(self, buf[5:length])
  *             elif length > 5 and strncmp(buf, "DATA ", 5) == 0:             # <<<<<<<<<<<<<<
@@ -2921,24 +2921,24 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
     __pyx_L26_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "src/player/main_controller.pyx":208
+      /* "src/player/main_controller.pyx":198
  *                     self.callback_ctrl(self, buf[5:length])
  *             elif length > 5 and strncmp(buf, "DATA ", 5) == 0:
  *                 if self.callback_ctrl:             # <<<<<<<<<<<<<<
  *                     self.callback_ctrl(self, buf[:length])
  *             elif length > 6 and strncmp(buf, "DEBUG ", 6) == 0:
  */
-      __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_self->callback_ctrl); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 208, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_self->callback_ctrl); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 198, __pyx_L1_error)
       if (__pyx_t_1) {
 
-        /* "src/player/main_controller.pyx":209
+        /* "src/player/main_controller.pyx":199
  *             elif length > 5 and strncmp(buf, "DATA ", 5) == 0:
  *                 if self.callback_ctrl:
  *                     self.callback_ctrl(self, buf[:length])             # <<<<<<<<<<<<<<
  *             elif length > 6 and strncmp(buf, "DEBUG ", 6) == 0:
  *                 if self.callback_ctrl:
  */
-        __pyx_t_3 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_buf + 0, __pyx_v_length - 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 209, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_buf + 0, __pyx_v_length - 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 199, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
         __Pyx_INCREF(__pyx_v_self->callback_ctrl);
         __pyx_t_8 = __pyx_v_self->callback_ctrl; __pyx_t_5 = NULL;
@@ -2956,7 +2956,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
         #if CYTHON_FAST_PYCALL
         if (PyFunction_Check(__pyx_t_8)) {
           PyObject *__pyx_temp[3] = {__pyx_t_5, ((PyObject *)__pyx_v_self), __pyx_t_3};
-          __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_8, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 209, __pyx_L1_error)
+          __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_8, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 199, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
           __Pyx_GOTREF(__pyx_t_4);
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -2965,14 +2965,14 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
         #if CYTHON_FAST_PYCCALL
         if (__Pyx_PyFastCFunction_Check(__pyx_t_8)) {
           PyObject *__pyx_temp[3] = {__pyx_t_5, ((PyObject *)__pyx_v_self), __pyx_t_3};
-          __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_8, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 209, __pyx_L1_error)
+          __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_8, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 199, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
           __Pyx_GOTREF(__pyx_t_4);
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
         } else
         #endif
         {
-          __pyx_t_6 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 209, __pyx_L1_error)
+          __pyx_t_6 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 199, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_6);
           if (__pyx_t_5) {
             __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_5); __pyx_t_5 = NULL;
@@ -2983,14 +2983,14 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
           __Pyx_GIVEREF(__pyx_t_3);
           PyTuple_SET_ITEM(__pyx_t_6, 1+__pyx_t_7, __pyx_t_3);
           __pyx_t_3 = 0;
-          __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_6, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 209, __pyx_L1_error)
+          __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_6, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 199, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_4);
           __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
         }
         __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-        /* "src/player/main_controller.pyx":208
+        /* "src/player/main_controller.pyx":198
  *                     self.callback_ctrl(self, buf[5:length])
  *             elif length > 5 and strncmp(buf, "DATA ", 5) == 0:
  *                 if self.callback_ctrl:             # <<<<<<<<<<<<<<
@@ -2999,7 +2999,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
  */
       }
 
-      /* "src/player/main_controller.pyx":207
+      /* "src/player/main_controller.pyx":197
  *                 if self.callback_ctrl:
  *                     self.callback_ctrl(self, buf[5:length])
  *             elif length > 5 and strncmp(buf, "DATA ", 5) == 0:             # <<<<<<<<<<<<<<
@@ -3009,7 +3009,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
       goto __pyx_L4;
     }
 
-    /* "src/player/main_controller.pyx":210
+    /* "src/player/main_controller.pyx":200
  *                 if self.callback_ctrl:
  *                     self.callback_ctrl(self, buf[:length])
  *             elif length > 6 and strncmp(buf, "DEBUG ", 6) == 0:             # <<<<<<<<<<<<<<
@@ -3027,24 +3027,24 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
     __pyx_L29_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "src/player/main_controller.pyx":211
+      /* "src/player/main_controller.pyx":201
  *                     self.callback_ctrl(self, buf[:length])
  *             elif length > 6 and strncmp(buf, "DEBUG ", 6) == 0:
  *                 if self.callback_ctrl:             # <<<<<<<<<<<<<<
  *                     self.callback_ctrl(self, buf[:length])
  *             elif length == 13 and strncmp(buf, "ER G28_FAILED", 13) == 0:
  */
-      __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_self->callback_ctrl); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 211, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_self->callback_ctrl); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 201, __pyx_L1_error)
       if (__pyx_t_1) {
 
-        /* "src/player/main_controller.pyx":212
+        /* "src/player/main_controller.pyx":202
  *             elif length > 6 and strncmp(buf, "DEBUG ", 6) == 0:
  *                 if self.callback_ctrl:
  *                     self.callback_ctrl(self, buf[:length])             # <<<<<<<<<<<<<<
  *             elif length == 13 and strncmp(buf, "ER G28_FAILED", 13) == 0:
  *                 raise SystemError(HARDWARE_ERROR, EXEC_HOME_FAILED)
  */
-        __pyx_t_8 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_buf + 0, __pyx_v_length - 0); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 212, __pyx_L1_error)
+        __pyx_t_8 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_buf + 0, __pyx_v_length - 0); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 202, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_8);
         __Pyx_INCREF(__pyx_v_self->callback_ctrl);
         __pyx_t_6 = __pyx_v_self->callback_ctrl; __pyx_t_3 = NULL;
@@ -3062,7 +3062,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
         #if CYTHON_FAST_PYCALL
         if (PyFunction_Check(__pyx_t_6)) {
           PyObject *__pyx_temp[3] = {__pyx_t_3, ((PyObject *)__pyx_v_self), __pyx_t_8};
-          __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_6, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 212, __pyx_L1_error)
+          __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_6, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 202, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
           __Pyx_GOTREF(__pyx_t_4);
           __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
@@ -3071,14 +3071,14 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
         #if CYTHON_FAST_PYCCALL
         if (__Pyx_PyFastCFunction_Check(__pyx_t_6)) {
           PyObject *__pyx_temp[3] = {__pyx_t_3, ((PyObject *)__pyx_v_self), __pyx_t_8};
-          __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_6, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 212, __pyx_L1_error)
+          __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_6, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 202, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
           __Pyx_GOTREF(__pyx_t_4);
           __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
         } else
         #endif
         {
-          __pyx_t_5 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 212, __pyx_L1_error)
+          __pyx_t_5 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 202, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_5);
           if (__pyx_t_3) {
             __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_3); __pyx_t_3 = NULL;
@@ -3089,14 +3089,14 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
           __Pyx_GIVEREF(__pyx_t_8);
           PyTuple_SET_ITEM(__pyx_t_5, 1+__pyx_t_7, __pyx_t_8);
           __pyx_t_8 = 0;
-          __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_5, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 212, __pyx_L1_error)
+          __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_5, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 202, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_4);
           __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
         }
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-        /* "src/player/main_controller.pyx":211
+        /* "src/player/main_controller.pyx":201
  *                     self.callback_ctrl(self, buf[:length])
  *             elif length > 6 and strncmp(buf, "DEBUG ", 6) == 0:
  *                 if self.callback_ctrl:             # <<<<<<<<<<<<<<
@@ -3105,7 +3105,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
  */
       }
 
-      /* "src/player/main_controller.pyx":210
+      /* "src/player/main_controller.pyx":200
  *                 if self.callback_ctrl:
  *                     self.callback_ctrl(self, buf[:length])
  *             elif length > 6 and strncmp(buf, "DEBUG ", 6) == 0:             # <<<<<<<<<<<<<<
@@ -3115,7 +3115,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
       goto __pyx_L4;
     }
 
-    /* "src/player/main_controller.pyx":213
+    /* "src/player/main_controller.pyx":203
  *                 if self.callback_ctrl:
  *                     self.callback_ctrl(self, buf[:length])
  *             elif length == 13 and strncmp(buf, "ER G28_FAILED", 13) == 0:             # <<<<<<<<<<<<<<
@@ -3133,18 +3133,18 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
     __pyx_L32_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "src/player/main_controller.pyx":214
+      /* "src/player/main_controller.pyx":204
  *                     self.callback_ctrl(self, buf[:length])
  *             elif length == 13 and strncmp(buf, "ER G28_FAILED", 13) == 0:
  *                 raise SystemError(HARDWARE_ERROR, EXEC_HOME_FAILED)             # <<<<<<<<<<<<<<
  *             elif length > 7 and strncmp(buf, "ER FSR ", 7) == 0:
  *                 raise RuntimeError(HARDWARE_ERROR, EXEC_SENSOR_ERROR, "FSR",
  */
-      __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_HARDWARE_ERROR); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 214, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_HARDWARE_ERROR); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 204, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_HOME_FAILED); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 214, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_HOME_FAILED); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 204, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
-      __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 214, __pyx_L1_error)
+      __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 204, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_GIVEREF(__pyx_t_4);
       PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4);
@@ -3152,14 +3152,14 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
       PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_6);
       __pyx_t_4 = 0;
       __pyx_t_6 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_SystemError, __pyx_t_5, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 214, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_SystemError, __pyx_t_5, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 204, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_Raise(__pyx_t_6, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-      __PYX_ERR(0, 214, __pyx_L1_error)
+      __PYX_ERR(0, 204, __pyx_L1_error)
 
-      /* "src/player/main_controller.pyx":213
+      /* "src/player/main_controller.pyx":203
  *                 if self.callback_ctrl:
  *                     self.callback_ctrl(self, buf[:length])
  *             elif length == 13 and strncmp(buf, "ER G28_FAILED", 13) == 0:             # <<<<<<<<<<<<<<
@@ -3168,7 +3168,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
  */
     }
 
-    /* "src/player/main_controller.pyx":215
+    /* "src/player/main_controller.pyx":205
  *             elif length == 13 and strncmp(buf, "ER G28_FAILED", 13) == 0:
  *                 raise SystemError(HARDWARE_ERROR, EXEC_HOME_FAILED)
  *             elif length > 7 and strncmp(buf, "ER FSR ", 7) == 0:             # <<<<<<<<<<<<<<
@@ -3186,18 +3186,18 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
     __pyx_L34_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "src/player/main_controller.pyx":216
+      /* "src/player/main_controller.pyx":206
  *                 raise SystemError(HARDWARE_ERROR, EXEC_HOME_FAILED)
  *             elif length > 7 and strncmp(buf, "ER FSR ", 7) == 0:
  *                 raise RuntimeError(HARDWARE_ERROR, EXEC_SENSOR_ERROR, "FSR",             # <<<<<<<<<<<<<<
  *                                    *(buf[7:length].split(" ")))
  *             elif length > 4 and strncmp(buf, "ER ", 3) == 0:
  */
-      __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_HARDWARE_ERROR); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 216, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_HARDWARE_ERROR); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 206, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
-      __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_SENSOR_ERROR); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 216, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_SENSOR_ERROR); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 206, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_4 = PyTuple_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 216, __pyx_L1_error)
+      __pyx_t_4 = PyTuple_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 206, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_GIVEREF(__pyx_t_6);
       PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_6);
@@ -3209,44 +3209,44 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
       __pyx_t_6 = 0;
       __pyx_t_5 = 0;
 
-      /* "src/player/main_controller.pyx":217
+      /* "src/player/main_controller.pyx":207
  *             elif length > 7 and strncmp(buf, "ER FSR ", 7) == 0:
  *                 raise RuntimeError(HARDWARE_ERROR, EXEC_SENSOR_ERROR, "FSR",
  *                                    *(buf[7:length].split(" ")))             # <<<<<<<<<<<<<<
  *             elif length > 4 and strncmp(buf, "ER ", 3) == 0:
  *                 raise SystemError(HARDWARE_ERROR, *(buf[3:length].split(" ")))
  */
-      __pyx_t_5 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_buf + 7, __pyx_v_length - 7); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 217, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_buf + 7, __pyx_v_length - 7); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 207, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_split); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 217, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_split); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 207, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 217, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 207, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-      /* "src/player/main_controller.pyx":216
+      /* "src/player/main_controller.pyx":206
  *                 raise SystemError(HARDWARE_ERROR, EXEC_HOME_FAILED)
  *             elif length > 7 and strncmp(buf, "ER FSR ", 7) == 0:
  *                 raise RuntimeError(HARDWARE_ERROR, EXEC_SENSOR_ERROR, "FSR",             # <<<<<<<<<<<<<<
  *                                    *(buf[7:length].split(" ")))
  *             elif length > 4 and strncmp(buf, "ER ", 3) == 0:
  */
-      __pyx_t_6 = PySequence_Tuple(__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 216, __pyx_L1_error)
+      __pyx_t_6 = PySequence_Tuple(__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 206, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_5 = PyNumber_Add(__pyx_t_4, __pyx_t_6); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 216, __pyx_L1_error)
+      __pyx_t_5 = PyNumber_Add(__pyx_t_4, __pyx_t_6); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 206, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_t_5, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 216, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_t_5, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 206, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_Raise(__pyx_t_6, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-      __PYX_ERR(0, 216, __pyx_L1_error)
+      __PYX_ERR(0, 206, __pyx_L1_error)
 
-      /* "src/player/main_controller.pyx":215
+      /* "src/player/main_controller.pyx":205
  *             elif length == 13 and strncmp(buf, "ER G28_FAILED", 13) == 0:
  *                 raise SystemError(HARDWARE_ERROR, EXEC_HOME_FAILED)
  *             elif length > 7 and strncmp(buf, "ER FSR ", 7) == 0:             # <<<<<<<<<<<<<<
@@ -3255,7 +3255,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
  */
     }
 
-    /* "src/player/main_controller.pyx":218
+    /* "src/player/main_controller.pyx":208
  *                 raise RuntimeError(HARDWARE_ERROR, EXEC_SENSOR_ERROR, "FSR",
  *                                    *(buf[7:length].split(" ")))
  *             elif length > 4 and strncmp(buf, "ER ", 3) == 0:             # <<<<<<<<<<<<<<
@@ -3273,43 +3273,43 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
     __pyx_L36_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "src/player/main_controller.pyx":219
+      /* "src/player/main_controller.pyx":209
  *                                    *(buf[7:length].split(" ")))
  *             elif length > 4 and strncmp(buf, "ER ", 3) == 0:
  *                 raise SystemError(HARDWARE_ERROR, *(buf[3:length].split(" ")))             # <<<<<<<<<<<<<<
  *             elif length == 2 and strncmp(buf, "ok", 2) == 0:
  *                 pass
  */
-      __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_HARDWARE_ERROR); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 219, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_HARDWARE_ERROR); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 209, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
-      __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 219, __pyx_L1_error)
+      __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 209, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_GIVEREF(__pyx_t_6);
       PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_6);
       __pyx_t_6 = 0;
-      __pyx_t_6 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_buf + 3, __pyx_v_length - 3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 219, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_buf + 3, __pyx_v_length - 3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 209, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
-      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_split); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 219, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_split); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 209, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 219, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 209, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __pyx_t_4 = PySequence_Tuple(__pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 219, __pyx_L1_error)
+      __pyx_t_4 = PySequence_Tuple(__pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 209, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-      __pyx_t_6 = PyNumber_Add(__pyx_t_5, __pyx_t_4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 219, __pyx_L1_error)
+      __pyx_t_6 = PyNumber_Add(__pyx_t_5, __pyx_t_4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 209, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_SystemError, __pyx_t_6, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 219, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_SystemError, __pyx_t_6, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 209, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       __Pyx_Raise(__pyx_t_4, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __PYX_ERR(0, 219, __pyx_L1_error)
+      __PYX_ERR(0, 209, __pyx_L1_error)
 
-      /* "src/player/main_controller.pyx":218
+      /* "src/player/main_controller.pyx":208
  *                 raise RuntimeError(HARDWARE_ERROR, EXEC_SENSOR_ERROR, "FSR",
  *                                    *(buf[7:length].split(" ")))
  *             elif length > 4 and strncmp(buf, "ER ", 3) == 0:             # <<<<<<<<<<<<<<
@@ -3318,7 +3318,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
  */
     }
 
-    /* "src/player/main_controller.pyx":220
+    /* "src/player/main_controller.pyx":210
  *             elif length > 4 and strncmp(buf, "ER ", 3) == 0:
  *                 raise SystemError(HARDWARE_ERROR, *(buf[3:length].split(" ")))
  *             elif length == 2 and strncmp(buf, "ok", 2) == 0:             # <<<<<<<<<<<<<<
@@ -3338,7 +3338,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
       goto __pyx_L4;
     }
 
-    /* "src/player/main_controller.pyx":223
+    /* "src/player/main_controller.pyx":213
  *                 pass
  *             else:
  *                 L.debug("Recv unknown mainboard message: %r", buf[:length])             # <<<<<<<<<<<<<<
@@ -3346,9 +3346,9 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
  *         else:
  */
     /*else*/ {
-      __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_11fluxmonitor_6player_16_main_controller_L, __pyx_n_s_debug); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 223, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_11fluxmonitor_6player_16_main_controller_L, __pyx_n_s_debug); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 213, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
-      __pyx_t_5 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_buf + 0, __pyx_v_length - 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 223, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_buf + 0, __pyx_v_length - 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 213, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
       __pyx_t_8 = NULL;
       __pyx_t_7 = 0;
@@ -3365,7 +3365,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_6)) {
         PyObject *__pyx_temp[3] = {__pyx_t_8, __pyx_kp_s_Recv_unknown_mainboard_message_r, __pyx_t_5};
-        __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_6, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 223, __pyx_L1_error)
+        __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_6, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 213, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -3374,14 +3374,14 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_6)) {
         PyObject *__pyx_temp[3] = {__pyx_t_8, __pyx_kp_s_Recv_unknown_mainboard_message_r, __pyx_t_5};
-        __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_6, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 223, __pyx_L1_error)
+        __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_6, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 213, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       } else
       #endif
       {
-        __pyx_t_3 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 223, __pyx_L1_error)
+        __pyx_t_3 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 213, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
         if (__pyx_t_8) {
           __Pyx_GIVEREF(__pyx_t_8); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_8); __pyx_t_8 = NULL;
@@ -3392,7 +3392,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
         __Pyx_GIVEREF(__pyx_t_5);
         PyTuple_SET_ITEM(__pyx_t_3, 1+__pyx_t_7, __pyx_t_5);
         __pyx_t_5 = 0;
-        __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_3, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 223, __pyx_L1_error)
+        __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_3, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 213, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       }
@@ -3401,7 +3401,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
     }
     __pyx_L4:;
 
-    /* "src/player/main_controller.pyx":178
+    /* "src/player/main_controller.pyx":168
  *         cdef CommandQueueItem *item
  * 
  *         if self._flags:             # <<<<<<<<<<<<<<
@@ -3411,7 +3411,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
     goto __pyx_L3;
   }
 
-  /* "src/player/main_controller.pyx":226
+  /* "src/player/main_controller.pyx":216
  * 
  *         else:
  *             if length == 22 and strncmp(buf, "CTRL LINECHECK_ENABLED", 22) == 0:             # <<<<<<<<<<<<<<
@@ -3430,7 +3430,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
     __pyx_L41_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "src/player/main_controller.pyx":227
+      /* "src/player/main_controller.pyx":217
  *         else:
  *             if length == 22 and strncmp(buf, "CTRL LINECHECK_ENABLED", 22) == 0:
  *                 self._ln = 0             # <<<<<<<<<<<<<<
@@ -3439,7 +3439,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
  */
       __pyx_v_self->_ln = 0;
 
-      /* "src/player/main_controller.pyx":228
+      /* "src/player/main_controller.pyx":218
  *             if length == 22 and strncmp(buf, "CTRL LINECHECK_ENABLED", 22) == 0:
  *                 self._ln = 0
  *                 self._flags |= FLAG_READY             # <<<<<<<<<<<<<<
@@ -3448,7 +3448,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
  */
       __pyx_v_self->_flags = (__pyx_v_self->_flags | __pyx_v_11fluxmonitor_6player_16_main_controller_FLAG_READY);
 
-      /* "src/player/main_controller.pyx":229
+      /* "src/player/main_controller.pyx":219
  *                 self._ln = 0
  *                 self._flags |= FLAG_READY
  *                 cb = self.callback_ready             # <<<<<<<<<<<<<<
@@ -3460,7 +3460,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
       __pyx_v_cb = __pyx_t_4;
       __pyx_t_4 = 0;
 
-      /* "src/player/main_controller.pyx":230
+      /* "src/player/main_controller.pyx":220
  *                 self._flags |= FLAG_READY
  *                 cb = self.callback_ready
  *                 self.callback_ready = None             # <<<<<<<<<<<<<<
@@ -3473,17 +3473,17 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
       __Pyx_DECREF(__pyx_v_self->callback_ready);
       __pyx_v_self->callback_ready = Py_None;
 
-      /* "src/player/main_controller.pyx":231
+      /* "src/player/main_controller.pyx":221
  *                 cb = self.callback_ready
  *                 self.callback_ready = None
  *                 if cb:             # <<<<<<<<<<<<<<
  *                     cb(self)
  *             elif length > 22 and strncmp(buf, "ER MISSING_LINENUMBER ", 22) == 0:
  */
-      __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_cb); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 231, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_cb); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 221, __pyx_L1_error)
       if (__pyx_t_1) {
 
-        /* "src/player/main_controller.pyx":232
+        /* "src/player/main_controller.pyx":222
  *                 self.callback_ready = None
  *                 if cb:
  *                     cb(self)             # <<<<<<<<<<<<<<
@@ -3502,13 +3502,13 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
           }
         }
         if (!__pyx_t_3) {
-          __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_6, ((PyObject *)__pyx_v_self)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 232, __pyx_L1_error)
+          __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_6, ((PyObject *)__pyx_v_self)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 222, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_4);
         } else {
           #if CYTHON_FAST_PYCALL
           if (PyFunction_Check(__pyx_t_6)) {
             PyObject *__pyx_temp[2] = {__pyx_t_3, ((PyObject *)__pyx_v_self)};
-            __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_6, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 232, __pyx_L1_error)
+            __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_6, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 222, __pyx_L1_error)
             __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
             __Pyx_GOTREF(__pyx_t_4);
           } else
@@ -3516,19 +3516,19 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
           #if CYTHON_FAST_PYCCALL
           if (__Pyx_PyFastCFunction_Check(__pyx_t_6)) {
             PyObject *__pyx_temp[2] = {__pyx_t_3, ((PyObject *)__pyx_v_self)};
-            __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_6, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 232, __pyx_L1_error)
+            __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_6, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 222, __pyx_L1_error)
             __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
             __Pyx_GOTREF(__pyx_t_4);
           } else
           #endif
           {
-            __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 232, __pyx_L1_error)
+            __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 222, __pyx_L1_error)
             __Pyx_GOTREF(__pyx_t_5);
             __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_3); __pyx_t_3 = NULL;
             __Pyx_INCREF(((PyObject *)__pyx_v_self));
             __Pyx_GIVEREF(((PyObject *)__pyx_v_self));
             PyTuple_SET_ITEM(__pyx_t_5, 0+1, ((PyObject *)__pyx_v_self));
-            __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_5, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 232, __pyx_L1_error)
+            __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_5, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 222, __pyx_L1_error)
             __Pyx_GOTREF(__pyx_t_4);
             __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
           }
@@ -3536,7 +3536,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-        /* "src/player/main_controller.pyx":231
+        /* "src/player/main_controller.pyx":221
  *                 cb = self.callback_ready
  *                 self.callback_ready = None
  *                 if cb:             # <<<<<<<<<<<<<<
@@ -3545,7 +3545,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
  */
       }
 
-      /* "src/player/main_controller.pyx":226
+      /* "src/player/main_controller.pyx":216
  * 
  *         else:
  *             if length == 22 and strncmp(buf, "CTRL LINECHECK_ENABLED", 22) == 0:             # <<<<<<<<<<<<<<
@@ -3555,7 +3555,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
       goto __pyx_L40;
     }
 
-    /* "src/player/main_controller.pyx":233
+    /* "src/player/main_controller.pyx":223
  *                 if cb:
  *                     cb(self)
  *             elif length > 22 and strncmp(buf, "ER MISSING_LINENUMBER ", 22) == 0:             # <<<<<<<<<<<<<<
@@ -3573,21 +3573,21 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
     __pyx_L44_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "src/player/main_controller.pyx":234
+      /* "src/player/main_controller.pyx":224
  *                     cb(self)
  *             elif length > 22 and strncmp(buf, "ER MISSING_LINENUMBER ", 22) == 0:
  *                 L.warning("Mainboard linecheck already enabled")             # <<<<<<<<<<<<<<
  *                 self.send_timestamp = monotonic_time()
  *                 self.send("@DISABLE_LINECHECK\n", 19)
  */
-      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_11fluxmonitor_6player_16_main_controller_L, __pyx_n_s_warning); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 234, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_11fluxmonitor_6player_16_main_controller_L, __pyx_n_s_warning); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 224, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 234, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 224, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-      /* "src/player/main_controller.pyx":235
+      /* "src/player/main_controller.pyx":225
  *             elif length > 22 and strncmp(buf, "ER MISSING_LINENUMBER ", 22) == 0:
  *                 L.warning("Mainboard linecheck already enabled")
  *                 self.send_timestamp = monotonic_time()             # <<<<<<<<<<<<<<
@@ -3596,7 +3596,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
  */
       __pyx_v_self->send_timestamp = monotonic_time();
 
-      /* "src/player/main_controller.pyx":236
+      /* "src/player/main_controller.pyx":226
  *                 L.warning("Mainboard linecheck already enabled")
  *                 self.send_timestamp = monotonic_time()
  *                 self.send("@DISABLE_LINECHECK\n", 19)             # <<<<<<<<<<<<<<
@@ -3605,7 +3605,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
  */
       ((struct __pyx_vtabstruct_11fluxmonitor_6player_16_main_controller_MainController *)__pyx_v_self->__pyx_vtab)->send(__pyx_v_self, ((char const *)"@DISABLE_LINECHECK\n"), 19);
 
-      /* "src/player/main_controller.pyx":233
+      /* "src/player/main_controller.pyx":223
  *                 if cb:
  *                     cb(self)
  *             elif length > 22 and strncmp(buf, "ER MISSING_LINENUMBER ", 22) == 0:             # <<<<<<<<<<<<<<
@@ -3615,7 +3615,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
       goto __pyx_L40;
     }
 
-    /* "src/player/main_controller.pyx":237
+    /* "src/player/main_controller.pyx":227
  *                 self.send_timestamp = monotonic_time()
  *                 self.send("@DISABLE_LINECHECK\n", 19)
  *             elif length == 23 and strncmp(buf, "CTRL LINECHECK_DISABLED", 23) == 0:             # <<<<<<<<<<<<<<
@@ -3633,7 +3633,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
     __pyx_L46_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "src/player/main_controller.pyx":238
+      /* "src/player/main_controller.pyx":228
  *                 self.send("@DISABLE_LINECHECK\n", 19)
  *             elif length == 23 and strncmp(buf, "CTRL LINECHECK_DISABLED", 23) == 0:
  *                 self.send_timestamp = monotonic_time()             # <<<<<<<<<<<<<<
@@ -3642,7 +3642,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
  */
       __pyx_v_self->send_timestamp = monotonic_time();
 
-      /* "src/player/main_controller.pyx":239
+      /* "src/player/main_controller.pyx":229
  *             elif length == 23 and strncmp(buf, "CTRL LINECHECK_DISABLED", 23) == 0:
  *                 self.send_timestamp = monotonic_time()
  *                 self.send("C1O\n", 4);             # <<<<<<<<<<<<<<
@@ -3651,7 +3651,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
  */
       ((struct __pyx_vtabstruct_11fluxmonitor_6player_16_main_controller_MainController *)__pyx_v_self->__pyx_vtab)->send(__pyx_v_self, ((char const *)"C1O\n"), 4);
 
-      /* "src/player/main_controller.pyx":237
+      /* "src/player/main_controller.pyx":227
  *                 self.send_timestamp = monotonic_time()
  *                 self.send("@DISABLE_LINECHECK\n", 19)
  *             elif length == 23 and strncmp(buf, "CTRL LINECHECK_DISABLED", 23) == 0:             # <<<<<<<<<<<<<<
@@ -3661,7 +3661,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
       goto __pyx_L40;
     }
 
-    /* "src/player/main_controller.pyx":241
+    /* "src/player/main_controller.pyx":231
  *                 self.send("C1O\n", 4);
  *             else:
  *                 L.info("Recv unknown mainboard message: %r", buf[:length])             # <<<<<<<<<<<<<<
@@ -3669,9 +3669,9 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
  *     def send_cmd(self, unsigned char[] command, int raw=0):
  */
     /*else*/ {
-      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_11fluxmonitor_6player_16_main_controller_L, __pyx_n_s_info); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 241, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_11fluxmonitor_6player_16_main_controller_L, __pyx_n_s_info); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 231, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_5 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_buf + 0, __pyx_v_length - 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 241, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_buf + 0, __pyx_v_length - 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 231, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
       __pyx_t_3 = NULL;
       __pyx_t_7 = 0;
@@ -3688,7 +3688,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[3] = {__pyx_t_3, __pyx_kp_s_Recv_unknown_mainboard_message_r, __pyx_t_5};
-        __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 241, __pyx_L1_error)
+        __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 231, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
         __Pyx_GOTREF(__pyx_t_6);
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -3697,14 +3697,14 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[3] = {__pyx_t_3, __pyx_kp_s_Recv_unknown_mainboard_message_r, __pyx_t_5};
-        __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 241, __pyx_L1_error)
+        __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 231, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
         __Pyx_GOTREF(__pyx_t_6);
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       } else
       #endif
       {
-        __pyx_t_8 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 241, __pyx_L1_error)
+        __pyx_t_8 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 231, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_8);
         if (__pyx_t_3) {
           __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_3); __pyx_t_3 = NULL;
@@ -3715,7 +3715,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
         __Pyx_GIVEREF(__pyx_t_5);
         PyTuple_SET_ITEM(__pyx_t_8, 1+__pyx_t_7, __pyx_t_5);
         __pyx_t_5 = 0;
-        __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_8, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 241, __pyx_L1_error)
+        __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_8, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 231, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_6);
         __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
       }
@@ -3726,7 +3726,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
   }
   __pyx_L3:;
 
-  /* "src/player/main_controller.pyx":173
+  /* "src/player/main_controller.pyx":163
  *             return
  * 
  *     cdef void handle_message(self, const char* buf, unsigned int length) except *:             # <<<<<<<<<<<<<<
@@ -3749,7 +3749,7 @@ static void __pyx_f_11fluxmonitor_6player_16_main_controller_14MainController_ha
   __Pyx_RefNannyFinishContext();
 }
 
-/* "src/player/main_controller.pyx":243
+/* "src/player/main_controller.pyx":233
  *                 L.info("Recv unknown mainboard message: %r", buf[:length])
  * 
  *     def send_cmd(self, unsigned char[] command, int raw=0):             # <<<<<<<<<<<<<<
@@ -3789,7 +3789,7 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_main_controller_14MainControl
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "send_cmd") < 0)) __PYX_ERR(0, 243, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "send_cmd") < 0)) __PYX_ERR(0, 233, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -3799,16 +3799,16 @@ static PyObject *__pyx_pw_11fluxmonitor_6player_16_main_controller_14MainControl
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_command = __Pyx_PyObject_AsUString(values[0]); if (unlikely((!__pyx_v_command) && PyErr_Occurred())) __PYX_ERR(0, 243, __pyx_L3_error)
+    __pyx_v_command = __Pyx_PyObject_AsUString(values[0]); if (unlikely((!__pyx_v_command) && PyErr_Occurred())) __PYX_ERR(0, 233, __pyx_L3_error)
     if (values[1]) {
-      __pyx_v_raw = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_raw == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 243, __pyx_L3_error)
+      __pyx_v_raw = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_raw == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 233, __pyx_L3_error)
     } else {
       __pyx_v_raw = ((int)0);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("send_cmd", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 243, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("send_cmd", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 233, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("fluxmonitor.player._main_controller.MainController.send_cmd", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3834,7 +3834,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
   PyObject *__pyx_t_6 = NULL;
   __Pyx_RefNannySetupContext("send_cmd", 0);
 
-  /* "src/player/main_controller.pyx":247
+  /* "src/player/main_controller.pyx":237
  *         cdef unsigned int size
  * 
  *         if raw:             # <<<<<<<<<<<<<<
@@ -3844,7 +3844,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
   __pyx_t_1 = (__pyx_v_raw != 0);
   if (__pyx_t_1) {
 
-    /* "src/player/main_controller.pyx":248
+    /* "src/player/main_controller.pyx":238
  * 
  *         if raw:
  *             self.send(<const char *>command, len(command))             # <<<<<<<<<<<<<<
@@ -3854,7 +3854,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
     __pyx_t_2 = strlen(((char const *)__pyx_v_command)); 
     ((struct __pyx_vtabstruct_11fluxmonitor_6player_16_main_controller_MainController *)__pyx_v_self->__pyx_vtab)->send(__pyx_v_self, ((char const *)__pyx_v_command), __pyx_t_2);
 
-    /* "src/player/main_controller.pyx":249
+    /* "src/player/main_controller.pyx":239
  *         if raw:
  *             self.send(<const char *>command, len(command))
  *             return             # <<<<<<<<<<<<<<
@@ -3865,7 +3865,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "src/player/main_controller.pyx":247
+    /* "src/player/main_controller.pyx":237
  *         cdef unsigned int size
  * 
  *         if raw:             # <<<<<<<<<<<<<<
@@ -3874,7 +3874,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
  */
   }
 
-  /* "src/player/main_controller.pyx":251
+  /* "src/player/main_controller.pyx":241
  *             return
  * 
  *         if self._flags and self._flags < FLAG_CLOSING:             # <<<<<<<<<<<<<<
@@ -3892,25 +3892,25 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
   __pyx_L5_bool_binop_done:;
   if (__pyx_t_1) {
 
-    /* "src/player/main_controller.pyx":252
+    /* "src/player/main_controller.pyx":242
  * 
  *         if self._flags and self._flags < FLAG_CLOSING:
  *             if self.buffered_cmd_size < self.bufsize:             # <<<<<<<<<<<<<<
  *                 self._ln += 1
  *                 buf = self.command_buffer + COMMAND_LENGTH * (self._ln % self.bufsize)
  */
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_buffered_cmd_size); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 252, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_buffered_cmd_size); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 242, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_self->bufsize); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 252, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_self->bufsize); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 242, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_6 = PyObject_RichCompare(__pyx_t_4, __pyx_t_5, Py_LT); __Pyx_XGOTREF(__pyx_t_6); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 252, __pyx_L1_error)
+    __pyx_t_6 = PyObject_RichCompare(__pyx_t_4, __pyx_t_5, Py_LT); __Pyx_XGOTREF(__pyx_t_6); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 242, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_6); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 252, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_6); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 242, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     if (__pyx_t_1) {
 
-      /* "src/player/main_controller.pyx":253
+      /* "src/player/main_controller.pyx":243
  *         if self._flags and self._flags < FLAG_CLOSING:
  *             if self.buffered_cmd_size < self.bufsize:
  *                 self._ln += 1             # <<<<<<<<<<<<<<
@@ -3919,7 +3919,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
  */
       __pyx_v_self->_ln = (__pyx_v_self->_ln + 1);
 
-      /* "src/player/main_controller.pyx":254
+      /* "src/player/main_controller.pyx":244
  *             if self.buffered_cmd_size < self.bufsize:
  *                 self._ln += 1
  *                 buf = self.command_buffer + COMMAND_LENGTH * (self._ln % self.bufsize)             # <<<<<<<<<<<<<<
@@ -3928,11 +3928,11 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
  */
       if (unlikely(__pyx_v_self->bufsize == 0)) {
         PyErr_SetString(PyExc_ZeroDivisionError, "integer division or modulo by zero");
-        __PYX_ERR(0, 254, __pyx_L1_error)
+        __PYX_ERR(0, 244, __pyx_L1_error)
       }
       __pyx_v_buf = (__pyx_v_self->command_buffer + (COMMAND_LENGTH * __Pyx_mod_int(__pyx_v_self->_ln, __pyx_v_self->bufsize)));
 
-      /* "src/player/main_controller.pyx":255
+      /* "src/player/main_controller.pyx":245
  *                 self._ln += 1
  *                 buf = self.command_buffer + COMMAND_LENGTH * (self._ln % self.bufsize)
  *                 size = build_mainboard_command(buf, <const char *>command, len(command), self._ln)             # <<<<<<<<<<<<<<
@@ -3942,7 +3942,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
       __pyx_t_2 = strlen(((char const *)__pyx_v_command)); 
       __pyx_v_size = build_mainboard_command(__pyx_v_buf, ((char const *)__pyx_v_command), __pyx_t_2, __pyx_v_self->_ln);
 
-      /* "src/player/main_controller.pyx":256
+      /* "src/player/main_controller.pyx":246
  *                 buf = self.command_buffer + COMMAND_LENGTH * (self._ln % self.bufsize)
  *                 size = build_mainboard_command(buf, <const char *>command, len(command), self._ln)
  *                 if size < 0:             # <<<<<<<<<<<<<<
@@ -3952,16 +3952,16 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
       __pyx_t_1 = ((__pyx_v_size < 0) != 0);
       if (__pyx_t_1) {
 
-        /* "src/player/main_controller.pyx":257
+        /* "src/player/main_controller.pyx":247
  *                 size = build_mainboard_command(buf, <const char *>command, len(command), self._ln)
  *                 if size < 0:
  *                     raise SystemError(EXEC_OPERATION_ERROR, "COMMAND_OVERFLOW")             # <<<<<<<<<<<<<<
  *                 if not self._cmd_sent.length:
  *                     self.send_timestamp = monotonic_time()
  */
-        __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_OPERATION_ERROR); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 257, __pyx_L1_error)
+        __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_OPERATION_ERROR); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 247, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_6);
-        __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 257, __pyx_L1_error)
+        __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 247, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_GIVEREF(__pyx_t_6);
         PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_6);
@@ -3969,14 +3969,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
         __Pyx_GIVEREF(__pyx_n_s_COMMAND_OVERFLOW);
         PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_n_s_COMMAND_OVERFLOW);
         __pyx_t_6 = 0;
-        __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_SystemError, __pyx_t_5, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 257, __pyx_L1_error)
+        __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_SystemError, __pyx_t_5, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 247, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_6);
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
         __Pyx_Raise(__pyx_t_6, 0, 0, 0);
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-        __PYX_ERR(0, 257, __pyx_L1_error)
+        __PYX_ERR(0, 247, __pyx_L1_error)
 
-        /* "src/player/main_controller.pyx":256
+        /* "src/player/main_controller.pyx":246
  *                 buf = self.command_buffer + COMMAND_LENGTH * (self._ln % self.bufsize)
  *                 size = build_mainboard_command(buf, <const char *>command, len(command), self._ln)
  *                 if size < 0:             # <<<<<<<<<<<<<<
@@ -3985,7 +3985,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
  */
       }
 
-      /* "src/player/main_controller.pyx":258
+      /* "src/player/main_controller.pyx":248
  *                 if size < 0:
  *                     raise SystemError(EXEC_OPERATION_ERROR, "COMMAND_OVERFLOW")
  *                 if not self._cmd_sent.length:             # <<<<<<<<<<<<<<
@@ -3995,7 +3995,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
       __pyx_t_1 = ((!(__pyx_v_self->_cmd_sent.length != 0)) != 0);
       if (__pyx_t_1) {
 
-        /* "src/player/main_controller.pyx":259
+        /* "src/player/main_controller.pyx":249
  *                     raise SystemError(EXEC_OPERATION_ERROR, "COMMAND_OVERFLOW")
  *                 if not self._cmd_sent.length:
  *                     self.send_timestamp = monotonic_time()             # <<<<<<<<<<<<<<
@@ -4004,7 +4004,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
  */
         __pyx_v_self->send_timestamp = monotonic_time();
 
-        /* "src/player/main_controller.pyx":258
+        /* "src/player/main_controller.pyx":248
  *                 if size < 0:
  *                     raise SystemError(EXEC_OPERATION_ERROR, "COMMAND_OVERFLOW")
  *                 if not self._cmd_sent.length:             # <<<<<<<<<<<<<<
@@ -4013,7 +4013,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
  */
       }
 
-      /* "src/player/main_controller.pyx":260
+      /* "src/player/main_controller.pyx":250
  *                 if not self._cmd_sent.length:
  *                     self.send_timestamp = monotonic_time()
  *                 append_command_queue(&(self._cmd_sent), buf, size, self._ln)             # <<<<<<<<<<<<<<
@@ -4022,7 +4022,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
  */
       append_command_queue((&__pyx_v_self->_cmd_sent), __pyx_v_buf, __pyx_v_size, __pyx_v_self->_ln);
 
-      /* "src/player/main_controller.pyx":261
+      /* "src/player/main_controller.pyx":251
  *                     self.send_timestamp = monotonic_time()
  *                 append_command_queue(&(self._cmd_sent), buf, size, self._ln)
  *                 self.send(buf, size)             # <<<<<<<<<<<<<<
@@ -4031,7 +4031,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
  */
       ((struct __pyx_vtabstruct_11fluxmonitor_6player_16_main_controller_MainController *)__pyx_v_self->__pyx_vtab)->send(__pyx_v_self, __pyx_v_buf, __pyx_v_size);
 
-      /* "src/player/main_controller.pyx":252
+      /* "src/player/main_controller.pyx":242
  * 
  *         if self._flags and self._flags < FLAG_CLOSING:
  *             if self.buffered_cmd_size < self.bufsize:             # <<<<<<<<<<<<<<
@@ -4041,7 +4041,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
       goto __pyx_L7;
     }
 
-    /* "src/player/main_controller.pyx":263
+    /* "src/player/main_controller.pyx":253
  *                 self.send(buf, size)
  *             else:
  *                 raise RuntimeError(EXEC_OPERATION_ERROR, "BUF_FULL")             # <<<<<<<<<<<<<<
@@ -4049,9 +4049,9 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
  *             raise RuntimeError(EXEC_OPERATION_ERROR, "NOT_READY")
  */
     /*else*/ {
-      __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_OPERATION_ERROR); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 263, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_OPERATION_ERROR); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 253, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
-      __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 263, __pyx_L1_error)
+      __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 253, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_GIVEREF(__pyx_t_6);
       PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_6);
@@ -4059,16 +4059,16 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
       __Pyx_GIVEREF(__pyx_n_s_BUF_FULL);
       PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_n_s_BUF_FULL);
       __pyx_t_6 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_t_5, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 263, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_t_5, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 253, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_Raise(__pyx_t_6, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-      __PYX_ERR(0, 263, __pyx_L1_error)
+      __PYX_ERR(0, 253, __pyx_L1_error)
     }
     __pyx_L7:;
 
-    /* "src/player/main_controller.pyx":251
+    /* "src/player/main_controller.pyx":241
  *             return
  * 
  *         if self._flags and self._flags < FLAG_CLOSING:             # <<<<<<<<<<<<<<
@@ -4078,7 +4078,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
     goto __pyx_L4;
   }
 
-  /* "src/player/main_controller.pyx":265
+  /* "src/player/main_controller.pyx":255
  *                 raise RuntimeError(EXEC_OPERATION_ERROR, "BUF_FULL")
  *         else:
  *             raise RuntimeError(EXEC_OPERATION_ERROR, "NOT_READY")             # <<<<<<<<<<<<<<
@@ -4086,9 +4086,9 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
  *     def patrol(self):
  */
   /*else*/ {
-    __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_OPERATION_ERROR); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 265, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_OPERATION_ERROR); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 255, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 265, __pyx_L1_error)
+    __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 255, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_GIVEREF(__pyx_t_6);
     PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_6);
@@ -4096,16 +4096,16 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
     __Pyx_GIVEREF(__pyx_n_s_NOT_READY);
     PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_n_s_NOT_READY);
     __pyx_t_6 = 0;
-    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_t_5, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 265, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_t_5, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 255, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_Raise(__pyx_t_6, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __PYX_ERR(0, 265, __pyx_L1_error)
+    __PYX_ERR(0, 255, __pyx_L1_error)
   }
   __pyx_L4:;
 
-  /* "src/player/main_controller.pyx":243
+  /* "src/player/main_controller.pyx":233
  *                 L.info("Recv unknown mainboard message: %r", buf[:length])
  * 
  *     def send_cmd(self, unsigned char[] command, int raw=0):             # <<<<<<<<<<<<<<
@@ -4128,11 +4128,11 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
   return __pyx_r;
 }
 
-/* "src/player/main_controller.pyx":267
+/* "src/player/main_controller.pyx":257
  *             raise RuntimeError(EXEC_OPERATION_ERROR, "NOT_READY")
  * 
  *     def patrol(self):             # <<<<<<<<<<<<<<
- *         if self._flags:
+ *         if self._flags and self._flags & (FLAG_CLOSING + FLAG_CLOSED) == 0:
  *             if self._cmd_sent.length and monotonic_time() - self.send_timestamp > COMMAND_TIMEOUT:
  */
 
@@ -4158,19 +4158,27 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
   PyObject *__pyx_t_4 = NULL;
   __Pyx_RefNannySetupContext("patrol", 0);
 
-  /* "src/player/main_controller.pyx":268
+  /* "src/player/main_controller.pyx":258
  * 
  *     def patrol(self):
- *         if self._flags:             # <<<<<<<<<<<<<<
+ *         if self._flags and self._flags & (FLAG_CLOSING + FLAG_CLOSED) == 0:             # <<<<<<<<<<<<<<
  *             if self._cmd_sent.length and monotonic_time() - self.send_timestamp > COMMAND_TIMEOUT:
  *                 if self.send_retry >= MAX_COMMAND_RETRY:
  */
-  __pyx_t_1 = (__pyx_v_self->_flags != 0);
+  __pyx_t_2 = (__pyx_v_self->_flags != 0);
+  if (__pyx_t_2) {
+  } else {
+    __pyx_t_1 = __pyx_t_2;
+    goto __pyx_L4_bool_binop_done;
+  }
+  __pyx_t_2 = (((__pyx_v_self->_flags & (__pyx_v_11fluxmonitor_6player_16_main_controller_FLAG_CLOSING + __pyx_v_11fluxmonitor_6player_16_main_controller_FLAG_CLOSED)) == 0) != 0);
+  __pyx_t_1 = __pyx_t_2;
+  __pyx_L4_bool_binop_done:;
   if (__pyx_t_1) {
 
-    /* "src/player/main_controller.pyx":269
+    /* "src/player/main_controller.pyx":259
  *     def patrol(self):
- *         if self._flags:
+ *         if self._flags and self._flags & (FLAG_CLOSING + FLAG_CLOSED) == 0:
  *             if self._cmd_sent.length and monotonic_time() - self.send_timestamp > COMMAND_TIMEOUT:             # <<<<<<<<<<<<<<
  *                 if self.send_retry >= MAX_COMMAND_RETRY:
  *                     raise SystemError(EXEC_MAINBOARD_OFFLINE)
@@ -4179,15 +4187,15 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
     if (__pyx_t_2) {
     } else {
       __pyx_t_1 = __pyx_t_2;
-      goto __pyx_L5_bool_binop_done;
+      goto __pyx_L7_bool_binop_done;
     }
     __pyx_t_2 = (((monotonic_time() - __pyx_v_self->send_timestamp) > 0.4) != 0);
     __pyx_t_1 = __pyx_t_2;
-    __pyx_L5_bool_binop_done:;
+    __pyx_L7_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "src/player/main_controller.pyx":270
- *         if self._flags:
+      /* "src/player/main_controller.pyx":260
+ *         if self._flags and self._flags & (FLAG_CLOSING + FLAG_CLOSED) == 0:
  *             if self._cmd_sent.length and monotonic_time() - self.send_timestamp > COMMAND_TIMEOUT:
  *                 if self.send_retry >= MAX_COMMAND_RETRY:             # <<<<<<<<<<<<<<
  *                     raise SystemError(EXEC_MAINBOARD_OFFLINE)
@@ -4196,8 +4204,119 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
       __pyx_t_1 = ((__pyx_v_self->send_retry >= 3) != 0);
       if (__pyx_t_1) {
 
-        /* "src/player/main_controller.pyx":271
+        /* "src/player/main_controller.pyx":261
  *             if self._cmd_sent.length and monotonic_time() - self.send_timestamp > COMMAND_TIMEOUT:
+ *                 if self.send_retry >= MAX_COMMAND_RETRY:
+ *                     raise SystemError(EXEC_MAINBOARD_OFFLINE)             # <<<<<<<<<<<<<<
+ *                 else:
+ *                     self.send_timestamp = monotonic_time()
+ */
+        __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_MAINBOARD_OFFLINE); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 261, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_3);
+        __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 261, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        __Pyx_GIVEREF(__pyx_t_3);
+        PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3);
+        __pyx_t_3 = 0;
+        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_SystemError, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 261, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_3);
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        __Pyx_Raise(__pyx_t_3, 0, 0, 0);
+        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __PYX_ERR(0, 261, __pyx_L1_error)
+
+        /* "src/player/main_controller.pyx":260
+ *         if self._flags and self._flags & (FLAG_CLOSING + FLAG_CLOSED) == 0:
+ *             if self._cmd_sent.length and monotonic_time() - self.send_timestamp > COMMAND_TIMEOUT:
+ *                 if self.send_retry >= MAX_COMMAND_RETRY:             # <<<<<<<<<<<<<<
+ *                     raise SystemError(EXEC_MAINBOARD_OFFLINE)
+ *                 else:
+ */
+      }
+
+      /* "src/player/main_controller.pyx":263
+ *                     raise SystemError(EXEC_MAINBOARD_OFFLINE)
+ *                 else:
+ *                     self.send_timestamp = monotonic_time()             # <<<<<<<<<<<<<<
+ *                     self.send_retry += 1
+ *                     self._resend_inhibit = resend(self.sock_fd, &(self._cmd_sent), 0)
+ */
+      /*else*/ {
+        __pyx_v_self->send_timestamp = monotonic_time();
+
+        /* "src/player/main_controller.pyx":264
+ *                 else:
+ *                     self.send_timestamp = monotonic_time()
+ *                     self.send_retry += 1             # <<<<<<<<<<<<<<
+ *                     self._resend_inhibit = resend(self.sock_fd, &(self._cmd_sent), 0)
+ *         elif self._flags & (FLAG_CLOSING + FLAG_CLOSED):
+ */
+        __pyx_v_self->send_retry = (__pyx_v_self->send_retry + 1);
+
+        /* "src/player/main_controller.pyx":265
+ *                     self.send_timestamp = monotonic_time()
+ *                     self.send_retry += 1
+ *                     self._resend_inhibit = resend(self.sock_fd, &(self._cmd_sent), 0)             # <<<<<<<<<<<<<<
+ *         elif self._flags & (FLAG_CLOSING + FLAG_CLOSED):
+ *             pass
+ */
+        __pyx_v_self->_resend_inhibit = resend(__pyx_v_self->sock_fd, (&__pyx_v_self->_cmd_sent), 0);
+      }
+
+      /* "src/player/main_controller.pyx":259
+ *     def patrol(self):
+ *         if self._flags and self._flags & (FLAG_CLOSING + FLAG_CLOSED) == 0:
+ *             if self._cmd_sent.length and monotonic_time() - self.send_timestamp > COMMAND_TIMEOUT:             # <<<<<<<<<<<<<<
+ *                 if self.send_retry >= MAX_COMMAND_RETRY:
+ *                     raise SystemError(EXEC_MAINBOARD_OFFLINE)
+ */
+    }
+
+    /* "src/player/main_controller.pyx":258
+ * 
+ *     def patrol(self):
+ *         if self._flags and self._flags & (FLAG_CLOSING + FLAG_CLOSED) == 0:             # <<<<<<<<<<<<<<
+ *             if self._cmd_sent.length and monotonic_time() - self.send_timestamp > COMMAND_TIMEOUT:
+ *                 if self.send_retry >= MAX_COMMAND_RETRY:
+ */
+    goto __pyx_L3;
+  }
+
+  /* "src/player/main_controller.pyx":266
+ *                     self.send_retry += 1
+ *                     self._resend_inhibit = resend(self.sock_fd, &(self._cmd_sent), 0)
+ *         elif self._flags & (FLAG_CLOSING + FLAG_CLOSED):             # <<<<<<<<<<<<<<
+ *             pass
+ *         else:
+ */
+  __pyx_t_1 = ((__pyx_v_self->_flags & (__pyx_v_11fluxmonitor_6player_16_main_controller_FLAG_CLOSING + __pyx_v_11fluxmonitor_6player_16_main_controller_FLAG_CLOSED)) != 0);
+  if (__pyx_t_1) {
+    goto __pyx_L3;
+  }
+
+  /* "src/player/main_controller.pyx":269
+ *             pass
+ *         else:
+ *             if monotonic_time() - self.send_timestamp > COMMAND_TIMEOUT:             # <<<<<<<<<<<<<<
+ *                 if self.send_retry >= MAX_COMMAND_RETRY:
+ *                     raise SystemError(EXEC_MAINBOARD_OFFLINE)
+ */
+  /*else*/ {
+    __pyx_t_1 = (((monotonic_time() - __pyx_v_self->send_timestamp) > 0.4) != 0);
+    if (__pyx_t_1) {
+
+      /* "src/player/main_controller.pyx":270
+ *         else:
+ *             if monotonic_time() - self.send_timestamp > COMMAND_TIMEOUT:
+ *                 if self.send_retry >= MAX_COMMAND_RETRY:             # <<<<<<<<<<<<<<
+ *                     raise SystemError(EXEC_MAINBOARD_OFFLINE)
+ *                 else:
+ */
+      __pyx_t_1 = ((__pyx_v_self->send_retry >= 3) != 0);
+      if (__pyx_t_1) {
+
+        /* "src/player/main_controller.pyx":271
+ *             if monotonic_time() - self.send_timestamp > COMMAND_TIMEOUT:
  *                 if self.send_retry >= MAX_COMMAND_RETRY:
  *                     raise SystemError(EXEC_MAINBOARD_OFFLINE)             # <<<<<<<<<<<<<<
  *                 else:
@@ -4218,8 +4337,8 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
         __PYX_ERR(0, 271, __pyx_L1_error)
 
         /* "src/player/main_controller.pyx":270
- *         if self._flags:
- *             if self._cmd_sent.length and monotonic_time() - self.send_timestamp > COMMAND_TIMEOUT:
+ *         else:
+ *             if monotonic_time() - self.send_timestamp > COMMAND_TIMEOUT:
  *                 if self.send_retry >= MAX_COMMAND_RETRY:             # <<<<<<<<<<<<<<
  *                     raise SystemError(EXEC_MAINBOARD_OFFLINE)
  *                 else:
@@ -4231,7 +4350,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
  *                 else:
  *                     self.send_timestamp = monotonic_time()             # <<<<<<<<<<<<<<
  *                     self.send_retry += 1
- *                     self._resend_inhibit = resend(self.sock_fd, &(self._cmd_sent), 0)
+ *                     self.send("C1O\n", 4)
  */
       /*else*/ {
         __pyx_v_self->send_timestamp = monotonic_time();
@@ -4240,111 +4359,12 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
  *                 else:
  *                     self.send_timestamp = monotonic_time()
  *                     self.send_retry += 1             # <<<<<<<<<<<<<<
- *                     self._resend_inhibit = resend(self.sock_fd, &(self._cmd_sent), 0)
- *         else:
+ *                     self.send("C1O\n", 4)
+ * 
  */
         __pyx_v_self->send_retry = (__pyx_v_self->send_retry + 1);
 
         /* "src/player/main_controller.pyx":275
- *                     self.send_timestamp = monotonic_time()
- *                     self.send_retry += 1
- *                     self._resend_inhibit = resend(self.sock_fd, &(self._cmd_sent), 0)             # <<<<<<<<<<<<<<
- *         else:
- *             if monotonic_time() - self.send_timestamp > COMMAND_TIMEOUT:
- */
-        __pyx_v_self->_resend_inhibit = resend(__pyx_v_self->sock_fd, (&__pyx_v_self->_cmd_sent), 0);
-      }
-
-      /* "src/player/main_controller.pyx":269
- *     def patrol(self):
- *         if self._flags:
- *             if self._cmd_sent.length and monotonic_time() - self.send_timestamp > COMMAND_TIMEOUT:             # <<<<<<<<<<<<<<
- *                 if self.send_retry >= MAX_COMMAND_RETRY:
- *                     raise SystemError(EXEC_MAINBOARD_OFFLINE)
- */
-    }
-
-    /* "src/player/main_controller.pyx":268
- * 
- *     def patrol(self):
- *         if self._flags:             # <<<<<<<<<<<<<<
- *             if self._cmd_sent.length and monotonic_time() - self.send_timestamp > COMMAND_TIMEOUT:
- *                 if self.send_retry >= MAX_COMMAND_RETRY:
- */
-    goto __pyx_L3;
-  }
-
-  /* "src/player/main_controller.pyx":277
- *                     self._resend_inhibit = resend(self.sock_fd, &(self._cmd_sent), 0)
- *         else:
- *             if monotonic_time() - self.send_timestamp > COMMAND_TIMEOUT:             # <<<<<<<<<<<<<<
- *                 if self.send_retry >= MAX_COMMAND_RETRY:
- *                     raise SystemError(EXEC_MAINBOARD_OFFLINE)
- */
-  /*else*/ {
-    __pyx_t_1 = (((monotonic_time() - __pyx_v_self->send_timestamp) > 0.4) != 0);
-    if (__pyx_t_1) {
-
-      /* "src/player/main_controller.pyx":278
- *         else:
- *             if monotonic_time() - self.send_timestamp > COMMAND_TIMEOUT:
- *                 if self.send_retry >= MAX_COMMAND_RETRY:             # <<<<<<<<<<<<<<
- *                     raise SystemError(EXEC_MAINBOARD_OFFLINE)
- *                 else:
- */
-      __pyx_t_1 = ((__pyx_v_self->send_retry >= 3) != 0);
-      if (__pyx_t_1) {
-
-        /* "src/player/main_controller.pyx":279
- *             if monotonic_time() - self.send_timestamp > COMMAND_TIMEOUT:
- *                 if self.send_retry >= MAX_COMMAND_RETRY:
- *                     raise SystemError(EXEC_MAINBOARD_OFFLINE)             # <<<<<<<<<<<<<<
- *                 else:
- *                     self.send_timestamp = monotonic_time()
- */
-        __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_EXEC_MAINBOARD_OFFLINE); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 279, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 279, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_4);
-        __Pyx_GIVEREF(__pyx_t_3);
-        PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3);
-        __pyx_t_3 = 0;
-        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_SystemError, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 279, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-        __Pyx_Raise(__pyx_t_3, 0, 0, 0);
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-        __PYX_ERR(0, 279, __pyx_L1_error)
-
-        /* "src/player/main_controller.pyx":278
- *         else:
- *             if monotonic_time() - self.send_timestamp > COMMAND_TIMEOUT:
- *                 if self.send_retry >= MAX_COMMAND_RETRY:             # <<<<<<<<<<<<<<
- *                     raise SystemError(EXEC_MAINBOARD_OFFLINE)
- *                 else:
- */
-      }
-
-      /* "src/player/main_controller.pyx":281
- *                     raise SystemError(EXEC_MAINBOARD_OFFLINE)
- *                 else:
- *                     self.send_timestamp = monotonic_time()             # <<<<<<<<<<<<<<
- *                     self.send_retry += 1
- *                     self.send("C1O\n", 4)
- */
-      /*else*/ {
-        __pyx_v_self->send_timestamp = monotonic_time();
-
-        /* "src/player/main_controller.pyx":282
- *                 else:
- *                     self.send_timestamp = monotonic_time()
- *                     self.send_retry += 1             # <<<<<<<<<<<<<<
- *                     self.send("C1O\n", 4)
- * 
- */
-        __pyx_v_self->send_retry = (__pyx_v_self->send_retry + 1);
-
-        /* "src/player/main_controller.pyx":283
  *                     self.send_timestamp = monotonic_time()
  *                     self.send_retry += 1
  *                     self.send("C1O\n", 4)             # <<<<<<<<<<<<<<
@@ -4354,8 +4374,8 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
         ((struct __pyx_vtabstruct_11fluxmonitor_6player_16_main_controller_MainController *)__pyx_v_self->__pyx_vtab)->send(__pyx_v_self, ((char const *)"C1O\n"), 4);
       }
 
-      /* "src/player/main_controller.pyx":277
- *                     self._resend_inhibit = resend(self.sock_fd, &(self._cmd_sent), 0)
+      /* "src/player/main_controller.pyx":269
+ *             pass
  *         else:
  *             if monotonic_time() - self.send_timestamp > COMMAND_TIMEOUT:             # <<<<<<<<<<<<<<
  *                 if self.send_retry >= MAX_COMMAND_RETRY:
@@ -4365,11 +4385,11 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
   }
   __pyx_L3:;
 
-  /* "src/player/main_controller.pyx":267
+  /* "src/player/main_controller.pyx":257
  *             raise RuntimeError(EXEC_OPERATION_ERROR, "NOT_READY")
  * 
  *     def patrol(self):             # <<<<<<<<<<<<<<
- *         if self._flags:
+ *         if self._flags and self._flags & (FLAG_CLOSING + FLAG_CLOSED) == 0:
  *             if self._cmd_sent.length and monotonic_time() - self.send_timestamp > COMMAND_TIMEOUT:
  */
 
@@ -4387,7 +4407,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
   return __pyx_r;
 }
 
-/* "src/player/main_controller.pyx":285
+/* "src/player/main_controller.pyx":277
  *                     self.send("C1O\n", 4)
  * 
  *     def close(self):             # <<<<<<<<<<<<<<
@@ -4415,7 +4435,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
   int __pyx_t_2;
   __Pyx_RefNannySetupContext("close", 0);
 
-  /* "src/player/main_controller.pyx":286
+  /* "src/player/main_controller.pyx":278
  * 
  *     def close(self):
  *         if self._flags and self._flags < FLAG_CLOSING:             # <<<<<<<<<<<<<<
@@ -4433,7 +4453,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
   __pyx_L4_bool_binop_done:;
   if (__pyx_t_1) {
 
-    /* "src/player/main_controller.pyx":287
+    /* "src/player/main_controller.pyx":279
  *     def close(self):
  *         if self._flags and self._flags < FLAG_CLOSING:
  *             send(self.sock_fd, "@DISABLE_LINECHECK\n", 19, 0)             # <<<<<<<<<<<<<<
@@ -4442,7 +4462,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
  */
     send(__pyx_v_self->sock_fd, ((char *)"@DISABLE_LINECHECK\n"), 19, 0);
 
-    /* "src/player/main_controller.pyx":288
+    /* "src/player/main_controller.pyx":280
  *         if self._flags and self._flags < FLAG_CLOSING:
  *             send(self.sock_fd, "@DISABLE_LINECHECK\n", 19, 0)
  *             send(self.sock_fd, "X5S0\n", 5, 0)             # <<<<<<<<<<<<<<
@@ -4451,7 +4471,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
  */
     send(__pyx_v_self->sock_fd, ((char *)"X5S0\n"), 5, 0);
 
-    /* "src/player/main_controller.pyx":289
+    /* "src/player/main_controller.pyx":281
  *             send(self.sock_fd, "@DISABLE_LINECHECK\n", 19, 0)
  *             send(self.sock_fd, "X5S0\n", 5, 0)
  *             send(self.sock_fd, "G28+\n", 5, 0)             # <<<<<<<<<<<<<<
@@ -4459,14 +4479,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
  */
     send(__pyx_v_self->sock_fd, ((char *)"G28+\n"), 5, 0);
 
-    /* "src/player/main_controller.pyx":290
+    /* "src/player/main_controller.pyx":282
  *             send(self.sock_fd, "X5S0\n", 5, 0)
  *             send(self.sock_fd, "G28+\n", 5, 0)
  *             self._flags |= FLAG_CLOSING;             # <<<<<<<<<<<<<<
  */
     __pyx_v_self->_flags = (__pyx_v_self->_flags | __pyx_v_11fluxmonitor_6player_16_main_controller_FLAG_CLOSING);
 
-    /* "src/player/main_controller.pyx":286
+    /* "src/player/main_controller.pyx":278
  * 
  *     def close(self):
  *         if self._flags and self._flags < FLAG_CLOSING:             # <<<<<<<<<<<<<<
@@ -4475,7 +4495,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
  */
   }
 
-  /* "src/player/main_controller.pyx":285
+  /* "src/player/main_controller.pyx":277
  *                     self.send("C1O\n", 4)
  * 
  *     def close(self):             # <<<<<<<<<<<<<<
@@ -5137,8 +5157,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
 };
 static int __Pyx_InitCachedBuiltins(void) {
   __pyx_builtin_IOError = __Pyx_GetBuiltinName(__pyx_n_s_IOError); if (!__pyx_builtin_IOError) __PYX_ERR(0, 115, __pyx_L1_error)
-  __pyx_builtin_SystemError = __Pyx_GetBuiltinName(__pyx_n_s_SystemError); if (!__pyx_builtin_SystemError) __PYX_ERR(0, 146, __pyx_L1_error)
-  __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(0, 198, __pyx_L1_error)
+  __pyx_builtin_SystemError = __Pyx_GetBuiltinName(__pyx_n_s_SystemError); if (!__pyx_builtin_SystemError) __PYX_ERR(0, 136, __pyx_L1_error)
+  __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(0, 188, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
   return -1;
@@ -5148,36 +5168,36 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "src/player/main_controller.pyx":217
+  /* "src/player/main_controller.pyx":207
  *             elif length > 7 and strncmp(buf, "ER FSR ", 7) == 0:
  *                 raise RuntimeError(HARDWARE_ERROR, EXEC_SENSOR_ERROR, "FSR",
  *                                    *(buf[7:length].split(" ")))             # <<<<<<<<<<<<<<
  *             elif length > 4 and strncmp(buf, "ER ", 3) == 0:
  *                 raise SystemError(HARDWARE_ERROR, *(buf[3:length].split(" ")))
  */
-  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_s_); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 217, __pyx_L1_error)
+  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_s_); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 207, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__2);
   __Pyx_GIVEREF(__pyx_tuple__2);
 
-  /* "src/player/main_controller.pyx":219
+  /* "src/player/main_controller.pyx":209
  *                                    *(buf[7:length].split(" ")))
  *             elif length > 4 and strncmp(buf, "ER ", 3) == 0:
  *                 raise SystemError(HARDWARE_ERROR, *(buf[3:length].split(" ")))             # <<<<<<<<<<<<<<
  *             elif length == 2 and strncmp(buf, "ok", 2) == 0:
  *                 pass
  */
-  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_kp_s_); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(0, 219, __pyx_L1_error)
+  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_kp_s_); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(0, 209, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__3);
   __Pyx_GIVEREF(__pyx_tuple__3);
 
-  /* "src/player/main_controller.pyx":234
+  /* "src/player/main_controller.pyx":224
  *                     cb(self)
  *             elif length > 22 and strncmp(buf, "ER MISSING_LINENUMBER ", 22) == 0:
  *                 L.warning("Mainboard linecheck already enabled")             # <<<<<<<<<<<<<<
  *                 self.send_timestamp = monotonic_time()
  *                 self.send("@DISABLE_LINECHECK\n", 19)
  */
-  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_kp_s_Mainboard_linecheck_already_enab); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 234, __pyx_L1_error)
+  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_kp_s_Mainboard_linecheck_already_enab); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 224, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__4);
   __Pyx_GIVEREF(__pyx_tuple__4);
   __Pyx_RefNannyFinishContext();

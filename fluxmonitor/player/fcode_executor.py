@@ -10,8 +10,7 @@ from fluxmonitor.hal.tools import (toolhead_on, toolhead_standby,
                                    toolhead_power_on, toolhead_power_off)
 
 from .base import BaseExecutor
-from .base import (
-    ST_STARTING, ST_RUNNING, ST_COMPLETED, ST_COMPLETING)
+from .base import ST_STARTING, ST_RUNNING, ST_COMPLETED
 
 from ._device_fsm import PyDeviceFSM
 from .macro import (StartupMacro, WaitHeadMacro, CorrectionMacro, ZprobeMacro,
@@ -82,6 +81,7 @@ class ToolheadPowerManagement(object):
 
 
 class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
+    closed = None
     mainboard = None
     toolhead = None
     macro = None
@@ -124,9 +124,11 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
         try:
             task_loader.validate_status()
             self.start()
+            self.closed = False
 
         except Exception as e:
             self.abort(e)
+            self.closed = True
 
     def __repr__(self):
         return ("<FcodeExecutor status_id=%i, macro=%s, pause_flags=%i, "
@@ -405,26 +407,27 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
         self._cmd_queue.append(args)
 
     def fire(self):
-        if self.status_id == ST_RUNNING and self._eof:
+        if self.macro:
+            return
+
+        elif self.status_id == ST_RUNNING and self._eof:
             if self._task_loader.exitcode is not None and \
                     self._task_loader.exitcode > 0:
                 raise SystemError(UNKNOWN_ERROR, SUBSYSTEM_ERROR, "TASKLOADER")
 
-            self.status_id = ST_COMPLETING
-            fsm = self._fsm
-            x, y, z = fsm.get_x(), fsm.get_y(), fsm.get_z()
-            if x == x and y == y and z <= 200:
-                self.mainboard.send_cmd("G1F10392X0Y0Z205")
-            else:
-                self.status_id = ST_COMPLETED
-                self.close()
+            if not self._cmd_queue and self.mainboard.buffered_cmd_size == 0:
+                self.on_completed()
 
-        elif self.status_id == ST_RUNNING and not self.macro:
+        elif self.status_id == ST_RUNNING:
             while (not self._eof) and len(self._cmd_queue) < 24:
                 ret = self._fsm.feed(self._task_loader.fileno(),
                                      self._cb_feed_command)
                 if ret == 0:
                     self._eof = True
+                    fsm = self._fsm
+                    x, y, z = fsm.get_x(), fsm.get_y(), fsm.get_z()
+                    if x == x and y == y and z <= 200:
+                        self._cmd_queue.append(("G1F10392X0Y0Z205", 1))
                 elif ret == -1:
                     self.abort(RuntimeError(EXEC_BAD_COMMAND, "MOVE"))
                     return
@@ -432,41 +435,41 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
                     self.abort(RuntimeError(EXEC_BAD_COMMAND, "MULTI_E"))
                     return
 
-            while self._cmd_queue:
-                target = self._cmd_queue[0][1]
-                if target == 1:
-                    if self.mainboard.queue_full:
-                        return
-                    else:
-                        cmd = self._cmd_queue.popleft()[0]
-                        self.mainboard.send_cmd(cmd)
-                elif target == 2:
-                    if self.mainboard.buffered_cmd_size == 0:
-                        if self.toolhead.sendable():
-                            cmd = self._cmd_queue.popleft()[0]
-                            exec_toolhead_cmd(self.toolhead, cmd)
-                        else:
-                            return
-                    else:
-                        return
-
-                elif target == 4:
-                    if self.mainboard.buffered_cmd_size == 0:
-                        if self.toolhead.sendable():
-                            cmd = self._cmd_queue.popleft()[0]
-                            self.macro = ControlToolheadMacro(
-                                self._clear_macro, cmd)
-                            self.macro.start(self)
+        while self._cmd_queue:
+            target = self._cmd_queue[0][1]
+            if target == 1:
+                if self.mainboard.queue_full:
                     return
-                elif target == 8:
-                    self._stash_option = self._cmd_queue.popleft()[0]
-                    self.pause(RuntimeError("USER_OPERATION", "FROM_CODE"))
-                    return
-                elif target == 128:
-                    self.abort(RuntimeError(self._cmd_queue[0][0]))
-
                 else:
-                    raise SystemError(UNKNOWN_ERROR, "TARGET=%i" % target)
+                    cmd = self._cmd_queue.popleft()[0]
+                    self.mainboard.send_cmd(cmd)
+            elif target == 2:
+                if self.mainboard.buffered_cmd_size == 0:
+                    if self.toolhead.sendable():
+                        cmd = self._cmd_queue.popleft()[0]
+                        exec_toolhead_cmd(self.toolhead, cmd)
+                    else:
+                        return
+                else:
+                    return
+
+            elif target == 4:
+                if self.mainboard.buffered_cmd_size == 0:
+                    if self.toolhead.sendable():
+                        cmd = self._cmd_queue.popleft()[0]
+                        self.macro = ControlToolheadMacro(
+                            self._clear_macro, cmd)
+                        self.macro.start(self)
+                return
+            elif target == 8:
+                self._stash_option = self._cmd_queue.popleft()[0]
+                self.pause(RuntimeError("USER_OPERATION", "FROM_CODE"))
+                return
+            elif target == 128:
+                self.abort(RuntimeError(self._cmd_queue[0][0]))
+
+            else:
+                raise SystemError(UNKNOWN_ERROR, "TARGET=%i" % target)
 
     def _on_mb_empty(self, sender):
         if self.status_id & 34 == 34:  # PAUSING
@@ -478,9 +481,6 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
                 self.paused_macro.on_command_empty(self)
         elif self.macro:
             self.macro.on_command_empty(self)
-        elif self.status_id == ST_COMPLETING:
-            self.status_id = ST_COMPLETED
-            self.close()
         else:
             self.fire()
 
@@ -544,6 +544,12 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
         except IOError:
             self.abort(SystemError(SUBSYSTEM_ERROR, "TOOLHEAD_ERROR"))
         except RuntimeError as er:
+            if self.status_id & 192:
+                logger.warning("Toolhead error in completed/aborted: %s, "
+                               "close directly", er)
+                self.close()
+                return
+
             if not self.toolhead.ready:
                 self._pause_flags &= ~TOOLHEAD_STANDINGBY_FLAG
                 self._pause_flags |= TOOLHEAD_STANDINGBY_FLAG
@@ -565,23 +571,30 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
                 self.abort(RuntimeError(UNKNOWN_ERROR, "TOOLHEAD_ERROR"))
             raise
 
+    def on_completed(self):
+        self.terminate()
+        self.status_id = ST_COMPLETED
+
     def on_loop(self):
         try:
             self.mainboard.patrol()
             self.toolhead.patrol()
 
-            if self.status_id == 48:
+            if self.status_id in (48, 64, 128):
                 if self._fucking_toolhead_power_management_control_flag:
                     if self.toolhead.ready:
                         if self.toolhead.module_name == "EXTRUDER":
                             if self.toolhead.status:
                                 if "rt" in self.toolhead.status:
                                     if self.toolhead.status["rt"]:
-                                        if self.toolhead.status["rt"][0] > 50:
+                                        if self.toolhead.status["rt"][0] > 70:
                                             return
                         logger.debug("Ohh, the poor 5V is dead")
                         self.toolhead.reset()
                         toolhead_power_off()
+
+                        if self.status_id in (64, 128):
+                            self.close()
 
         except RuntimeError as err:
             if not self.pause(err):
@@ -597,7 +610,10 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
                 self.abort(RuntimeError(UNKNOWN_ERROR, "LOOP_ERROR"))
             raise
 
-    def close(self):
+    def terminate(self):
+        logger.debug("Terminated")
+        self.paused_macro = None
+        self.macro = None
         self._task_loader.close()
         try:
             self.mainboard.close()
@@ -605,7 +621,14 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
             logger.error("Mainboard close error: %s", er)
         except Exception:
             logger.exception("Mainboard close error")
-        finally:
-            self._mbsock.close()
 
+        if self.toolhead.ready and self.toolhead.module_name == "EXTRUDER":
+            self.toolhead.standby()
+        else:
+            self.close()
+
+    def close(self):
+        logger.debug("Closed")
+        self.closed = True
+        self._mbsock.close()
         self._thsock.close()

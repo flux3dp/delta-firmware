@@ -223,21 +223,22 @@ class Player(ServiceBase):
 
     def on_timer(self, watcher, revent):
         try:
-            self.executor.on_loop()
-
-            if self.executor.error_symbol:
-                e = self.executor.error_str
-                err = e.encode() if isinstance(e, unicode) else e
-            else:
-                err = ""
-
-            if self.executor.is_closed():
+            if self.executor.closed:
                 watcher.stop()
-            prog = self.executor.traveled / self.travel_dist
+            else:
+                self.executor.on_loop()
 
-            metadata.update_device_status(
-                self.executor.status_id, prog,
-                self.executor.toolhead.module_name or "N/A", err)
+                if self.executor.error_symbol:
+                    e = self.executor.error_str
+                    err = e.encode() if isinstance(e, unicode) else e
+                else:
+                    err = ""
+
+                prog = self.executor.traveled / self.travel_dist
+
+                metadata.update_device_status(
+                    self.executor.status_id, prog,
+                    self.executor.toolhead.module_name or "N/A", err)
 
         except Exception:
             logger.exception("Unhandler Error")
