@@ -53,7 +53,7 @@ class CorrectionMacro(MacroBase):
 
     def giveup(self, k):
         if self._running:
-            k.mainboard.send_cmd("G1F10392X0Y0Z220")
+            k.mainboard.send_cmd("G28+")
             self._running = False
             self.data = []
             return False
