@@ -317,6 +317,10 @@ class PlayManagerMixIn(object):
             manager = self.__get_manager()
             handler.send_text(manager.unload_filament(index))
 
+    def __play_press_button(self, handler):
+        manager = self.__get_manager()
+        handler.send_text(manager.press_button_in_play())
+
     def dispatch_playmanage_cmd(self, handler, cmd, *args):
         if cmd == "pause":
             self.__play_pause(handler)
@@ -338,8 +342,10 @@ class PlayManagerMixIn(object):
             self.__play_set_toolhead_standby(handler)
         elif cmd == "load_filament":
             self.__play_load_filament(handler, args[0])
-        elif cmd == "eject_filament":
+        elif cmd == "unload_filament":
             self.__play_unload_filament(handler, args[0])
+        elif cmd == "press_button":
+            self.__play_press_button(handler)
         elif cmd == "quit":
             self.__play_quit(handler)
         else:

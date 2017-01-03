@@ -194,6 +194,11 @@ class PlayerManager(object):
             sock.send("UNLOAD_FILAMENT %s" % index)
             return sock.recv(4096)
 
+    def press_button(self):
+        with self as sock:
+            sock.send("INTERRUPT_LOAD_FILAMENT")
+            return sock.recv(4096)
+
     def report(self):
         try:
             with self as sock:
