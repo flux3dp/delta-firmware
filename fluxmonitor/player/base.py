@@ -76,6 +76,7 @@ class BaseExecutor(Timer):
     status_id = None
     error_symbol = None
     macro = None
+    paused_macro = None
 
     def __init__(self, mainboard_sock, toolhead_sock):
         self._mbsock = mainboard_sock
@@ -183,13 +184,11 @@ class BaseExecutor(Timer):
         st_id = self.status_id
         return {
             "st_id": st_id,
-            "st_label": self.macro.name if self.macro else STATUS_MSG.get(
-                st_id, "UNKNOW_STATUS"),
+            "st_label": self.macro.name if self.macro and st_id == 16
+            else self.paused_macro.name if self.paused_macro and st_id == 48
+            else STATUS_MSG.get(st_id, "UNKNOW_STATUS"),
             "error": self.error_symbol.args if self.error_symbol else []
         }
-
-    def is_closed(self):
-        return self.status_id and (self.status_id & ~192) == 0
 
     def terminate(self):
         pass

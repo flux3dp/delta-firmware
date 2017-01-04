@@ -209,10 +209,12 @@ class Player(ServiceBase):
                 except (ValueError, IndexError):
                     self.send_cmd_response(S, R, "error BAD_PARAMS")
             elif cmd == "QUIT":
-                if self.executor.is_closed():
+                if self.executor.status_id in (64, 128):
                     self.send_cmd_response(S, R, "ok")
                     self.shutdown("BYE")
                 else:
+                    logger.warning("Quit request rejected because status id is"
+                                   " %s", self.executor.status_id)
                     self.send_cmd_response(S, R, "error RESOURCE_BUSY")
         except Exception:
             logger.exception("Unhandle error")
@@ -228,17 +230,17 @@ class Player(ServiceBase):
             else:
                 self.executor.on_loop()
 
-                if self.executor.error_symbol:
-                    e = self.executor.error_str
-                    err = e.encode() if isinstance(e, unicode) else e
-                else:
-                    err = ""
+            if self.executor.error_symbol:
+                e = self.executor.error_str
+                err = e.encode() if isinstance(e, unicode) else e
+            else:
+                err = ""
 
-                prog = self.executor.traveled / self.travel_dist
+            prog = self.executor.traveled / self.travel_dist
 
-                metadata.update_device_status(
-                    self.executor.status_id, prog,
-                    self.executor.toolhead.module_name or "N/A", err)
+            metadata.update_device_status(
+                self.executor.status_id, prog,
+                self.executor.toolhead.module_name or "N/A", err)
 
         except Exception:
             logger.exception("Unhandler Error")

@@ -84,8 +84,6 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
     closed = None
     mainboard = None
     toolhead = None
-    macro = None
-    paused_macro = None
     th_error_flag = 0xfffff
 
     # Subprocess to read contents
