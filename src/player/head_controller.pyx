@@ -494,12 +494,16 @@ cdef class ExtruderExt:
             raise SystemError(EXEC_OPERATION_ERROR, "BAD_TEMPERATURE",
                               str(temperature))
 
+        cdef char* buf
+        cdef int size
+
         if temperature < 60:
             temperature = float("NaN")
+            size = build_toolhead_command(&buf, "H:%i T:0", heater_id)
+        else:
+            size = build_toolhead_command(&buf, "H:%i T:%.1f", heater_id, temperature)
 
         self._temperatures[heater_id] = temperature
-        cdef char* buf
-        cdef int size = build_toolhead_command(&buf, "H:%i T:%.1f", heater_id, temperature)
         self.controller.send_command(buf, size)
 
     def set_fanspeed(self, int fan_id, double fan_speed):
