@@ -101,13 +101,14 @@ class USBProtocol(object):
         try:
             l = self.sock.recv_into(self._bufview[self._buffered:])
         except IOError as e:
-            logger.debug("%s", e)
+            logger.debug("USB socket recv error %r", e)
             self.on_error()
             return
 
         try:
             self._buffered += l
             if l == 0:
+                logger.debug("USB socket closed")
                 self.on_error()
                 return
 
@@ -143,7 +144,7 @@ class USBProtocol(object):
                 else:
                     self._on_handshake(chl_idx, buf, fin)
 
-                if size > self._buffered:
+                if self._buffered > size:
                     self._bufview[:self._buffered - size] = \
                         self._bufview[size:self._buffered]
                     self._buffered -= size
@@ -192,7 +193,7 @@ class USBProtocol(object):
             elif fin == 0xbf:
                 self.on_binary(chl_idx, buf)
             elif fin == 0x80:
-                if self.watcher.data:
+                if self.watcher.data and chl_idx == self.watcher.data[0]:
                     self._feed_binary(self.watcher)
                 else:
                     self.on_binary_ack(chl_idx)
@@ -388,6 +389,8 @@ class USBChannelProtocol(USBProtocol):
         self.channels[channel_idx].on_binary(buf)
 
     def on_binary_ack(self, channel_idx):
+        # TODO: channels maybe already gone and got
+        # 'NoneType' object has no attribute 'on_binary_ack' error
         self.channels[channel_idx].on_binary_ack()
 
 

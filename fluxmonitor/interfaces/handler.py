@@ -64,14 +64,14 @@ class SocketHandler(object):
             else:
                 self.on_connected()
         except IOError as e:
-            logger.debug("%s", e)
+            logger.debug("Connecting error: %r", e)
             self.on_error()
         except Exception:
-            logger.exception("Unhandle error")
+            logger.exception("Connecting error")
             self.on_error()
 
     def on_error(self):
-        logger.debug("%s socket error", self)
+        logger.debug("%s got error", self)
         self.close()
 
     def close(self):
@@ -171,7 +171,7 @@ class UnixHandler(SocketHandler):
             self._on_connected_cb(self)
 
     def on_error(self):
-        logger.debug("%s socket error", self)
+        logger.debug("%s got error", self)
         self.close(error=True)
 
     def close(self, error=False):
@@ -216,10 +216,10 @@ class SSLHandler(TCPHandler):
             self.watcher.set(self.sock.fileno(), pyev.EV_WRITE)
             self.watcher.start()
         except IOError as e:
-            logger.debug("%s", e)
+            logger.debug("SSL handshake error: %r", e)
             self.on_error()
         except Exception:
-            logger.exception("Unhandle error")
+            logger.exception("SSL handshake error")
             self.on_error()
 
     def on_ssl_connected(self):
@@ -272,17 +272,17 @@ class SSLServerSideHandler(SSLHandler):
                         self.sock.send(MESSAGE_OK)
                         self.on_authorized()
                     else:
-                        logger.debug("Protocol error")
+                        logger.debug("SSL server handshake protocol error")
                         self.sock.send(MESSAGE_PROTOCOL_ERROR)
                         self.on_error()
             else:
                 logger.debug("Connection closed")
-                self.on_error()
+                self.close()
         except IOError as e:
-            logger.debug("%s", e)
+            logger.debug("SSL server handshake error %r", e)
             self.on_error()
         except Exception:
-            logger.exception("Unhandle error")
+            logger.exception("SSL server handshake error")
             self.on_error()
 
     def on_ssl_connected(self):
@@ -324,10 +324,10 @@ class CloudHandler(SSLHandler):
             self.watcher.callback = self._on_complete_cloud_handshake
             self.watcher.start()
         except IOError as e:
-            logger.debug("%s", e)
+            logger.debug("Cloud send token error: %r", e)
             self.on_error()
         except Exception:
-            logger.exception("Unhandle error")
+            logger.exception("Cloud send token error")
             self.on_error()
 
     @T.update_time
@@ -344,10 +344,10 @@ class CloudHandler(SSLHandler):
                 logger.debug("Cloud connection during handshake")
                 self.on_error()
         except IOError as e:
-            logger.debug("%s", e)
+            logger.debug("Cloud handshake error %r", e)
             self.on_error()
         except Exception:
-            logger.exception("Unhandle error")
+            logger.exception("Cloud handshake error")
             self.on_error()
 
     def on_cloud_connected(self):
@@ -412,11 +412,11 @@ class MsgpackProtocol(object):
                 watcher.data = (length, sent_length, stream, callback)
 
         except IOError as e:
-            logger.debug("Send error: %s", e)
+            logger.debug("Msgpack send error: %r", e)
             watcher.stop()
             self.on_error()
         except Exception:
-            logger.exception("Unknow error")
+            logger.exception("Msgpack send error")
             watcher.stop()
             self.on_error()
 
@@ -444,12 +444,13 @@ class MsgpackProtocol(object):
                 for data in self.unpacker:
                     self.on_payload(data)
             else:
+                logger.debug("Msgpack remote closed")
                 self.on_error()
         except IOError as e:
-            logger.debug("%s", e)
+            logger.debug("Msgpack recv error %r", e)
             self.on_error()
         except Exception:
-            logger.exception("Unhandle error in msgpack recv")
+            logger.exception("Msgpack send error")
             self.on_error()
 
     def on_payload(self, data):
@@ -485,18 +486,18 @@ class TextBinaryProtocol(object):
 
             elif sent_length > length:
                 watcher.stop()
-                logger.error("GG on socket %s", self.sock)
+                logger.error("TB binary length error %s", self.sock)
                 self.on_error()
 
             else:
                 watcher.data = (length, sent_length, stream, callback)
 
         except IOError as e:
-            logger.debug("%r Async send error: %s", self, e)
+            logger.debug("%r async send error: %r", self, e)
             watcher.stop()
             self.on_error()
         except Exception:
-            logger.exception("%r Unknow error", self)
+            logger.exception("%r async send error", self)
             watcher.stop()
             self.on_error()
 
@@ -529,13 +530,13 @@ class TextBinaryProtocol(object):
             else:
                 self.close()
         except ssl.SSLError as e:
-            logger.debug("SSL Connection error: %s", e)
+            logger.debug("TB over ssl recv error: %r", e)
             self.on_error()
         except IOError as e:
-            logger.warning("Recv error: %s", e)
+            logger.warning("TB recv error: %r", e)
             self.on_error()
         except Exception:
-            logger.exception("Unhandle error")
+            logger.exception("TB recv error")
             self.on_error()
 
     def on_recv_ssl(self, watcher, revent):
@@ -665,13 +666,14 @@ class OldAesServerSideHandler(TCPHandler):
                 self.watcher.data += buf
                 self._on_handshake_identify(self.watcher.data)
             else:
+                logger.debug("AES remote closed")
                 self.on_error()
 
         except IOError as e:
-            logger.debug("%s", e)
+            logger.debug("AES socket auth recv error %r", e)
             self.on_error()
         except Exception as e:
-            logger.exception("Unknown error on auth recv")
+            logger.exception("AES socket auth recv error")
             self.on_error()
 
     def _on_handshake_identify(self, data):
