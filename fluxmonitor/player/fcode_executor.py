@@ -538,7 +538,7 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
             self.toolhead.handle_recv()
             if self.status_id == ST_RUNNING:
                 check_toolhead_errno(self.toolhead, self.th_error_flag)
-            self.fire()
+                self.fire()
         except IOError:
             self.abort(SystemError(SUBSYSTEM_ERROR, "TOOLHEAD_ERROR"))
         except RuntimeError as er:
