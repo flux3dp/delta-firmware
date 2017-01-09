@@ -256,6 +256,12 @@ def main(params=None):
         os.execl("/usr/bin/python2.7", "python2.7", "/usr/bin/fxlauncher.py")
 
     debug_mode = "a" in __version__
+    if debug_mode is False:
+        try:
+            open("/etc/flux/debug")
+            debug_mode = True
+        except Exception:
+            pass
 
     for service, startup_params, pidfile in SERVICE_LIST:
         startup_params = startup_params + ("--pid", pidfile)
