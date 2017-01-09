@@ -38,7 +38,7 @@ def check_toolhead_errno(toolhead, mask):
         if errno & 16:
             raise HeadShakeError(str_errno)
         if errno & 32:
-            raise HeadShakeError(str_errno)
+            raise HeadTiltError(str_errno)
         if errno & 576:
             raise HeadHardwareError(str_errno, toolhead.status.get("HE"))
         if errno & 128:
