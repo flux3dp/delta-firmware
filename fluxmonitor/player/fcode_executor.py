@@ -30,6 +30,7 @@ TOOLHEAD_STANDBY_FLAG = 8
 
 
 class AutoResume(object):
+    # DIRTY_FIX: Force continue task.
     __resume_counter = 0
     __resume_timestamp = 0
 
@@ -614,6 +615,10 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
         self.macro = None
         self._task_loader.close()
         try:
+            if not self.toolhead.ready:
+                # DIRTY_FIX: Force toolhead power to prevent home failed.
+                toolhead_power_on()
+
             self.mainboard.close()
         except IOError as er:
             logger.error("Mainboard close error: %s", er)
