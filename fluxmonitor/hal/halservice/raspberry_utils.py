@@ -461,9 +461,15 @@ class FrontButtonMonitor(object):
             if buf:
                 if buf == '1':
                     if self._db_click_timer.active:
-                        self.send_db_click(watcher.data)
-                        self._db_click_timer.stop()
+                        if time() - self._db_click_timer.data < 0.08:
+                            # DIRTY_FIX: double click time gap too short,
+                            # assume it is hardware issue
+                            self._db_click_timer.data = time()
+                        else:
+                            self.send_db_click(watcher.data)
+                            self._db_click_timer.stop()
                     else:
+                        self._db_click_timer.data = time()
                         self._db_click_timer.set(GBDC, 0)
                         self._db_click_timer.start()
                 elif buf == '9':
