@@ -31,8 +31,7 @@ class StartupMacro(MacroBase):
             k.mainboard.send_cmd("X8F")
 
         if self.backlash_config:
-            k.mainboard.send_cmd("M711 J1 K1 L1 "
-                                 " A%(A).4f B%(B).4f C%(C).4f" %
+            k.mainboard.send_cmd("M711 A%(A).4f B%(B).4f C%(C).4f" %
                                  self.backlash_config)
         else:
             k.main_ctrl.send_cmd("M711 J0.5 K0.5 L0.5 A0 B0 C0")
