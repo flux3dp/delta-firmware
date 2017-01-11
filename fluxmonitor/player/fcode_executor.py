@@ -588,11 +588,11 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
                                     if self.toolhead.status["rt"]:
                                         if self.toolhead.status["rt"][0] > 70:
                                             return
-                        logger.debug("Ohh, the poor 5V is dead")
-                        self.toolhead.reset()
-                        toolhead_power_off()
-
-                        if self.status_id in (64, 128):
+                        if self.status_id == 48:
+                            logger.debug("Ohh, the poor 5V is dead")
+                            self.toolhead.reset()
+                            toolhead_power_off()
+                        else:
                             self.close()
 
         except RuntimeError as err:
@@ -626,6 +626,7 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
             logger.exception("Mainboard close error")
 
         if self.toolhead.ready and self.toolhead.module_name == "EXTRUDER":
+            # DIRTY_FIX: Cool toolhead
             self.toolhead.standby()
         else:
             self.close()
