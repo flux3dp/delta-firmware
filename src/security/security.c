@@ -6337,7 +6337,7 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_4get_model_id(CYTHO
  *             return "delta-1p"
  *         else:
  *             get_machine_sn(<unsigned char**>&snbuf)             # <<<<<<<<<<<<<<
- *             if snbuf[0] == 0:
+ *             if snbuf[0] == 0 or snbuf[0] == 0xff:
  *                 return "delta-1p"
  */
     /*else*/ {
@@ -6346,16 +6346,24 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_4get_model_id(CYTHO
       /* "src/security/security_identify.pyx":47
  *         else:
  *             get_machine_sn(<unsigned char**>&snbuf)
- *             if snbuf[0] == 0:             # <<<<<<<<<<<<<<
+ *             if snbuf[0] == 0 or snbuf[0] == 0xff:             # <<<<<<<<<<<<<<
  *                 return "delta-1p"
  *             else:
  */
-      __pyx_t_1 = (((__pyx_v_snbuf[0]) == 0) != 0);
+      __pyx_t_2 = (((__pyx_v_snbuf[0]) == 0) != 0);
+      if (!__pyx_t_2) {
+      } else {
+        __pyx_t_1 = __pyx_t_2;
+        goto __pyx_L8_bool_binop_done;
+      }
+      __pyx_t_2 = (((__pyx_v_snbuf[0]) == 0xff) != 0);
+      __pyx_t_1 = __pyx_t_2;
+      __pyx_L8_bool_binop_done:;
       if (__pyx_t_1) {
 
         /* "src/security/security_identify.pyx":48
  *             get_machine_sn(<unsigned char**>&snbuf)
- *             if snbuf[0] == 0:
+ *             if snbuf[0] == 0 or snbuf[0] == 0xff:
  *                 return "delta-1p"             # <<<<<<<<<<<<<<
  *             else:
  *                 return FLUX_MODEL_ID
@@ -6368,7 +6376,7 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_4get_model_id(CYTHO
         /* "src/security/security_identify.pyx":47
  *         else:
  *             get_machine_sn(<unsigned char**>&snbuf)
- *             if snbuf[0] == 0:             # <<<<<<<<<<<<<<
+ *             if snbuf[0] == 0 or snbuf[0] == 0xff:             # <<<<<<<<<<<<<<
  *                 return "delta-1p"
  *             else:
  */
