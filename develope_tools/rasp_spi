@@ -17,38 +17,49 @@ class FakeSPI(object):
         print("--> [%s]" % ", ".join(("%x" % c for c in data)))
 
 
-def task_read_rsa_key(spi, ca_file):
+def null_output(*args):
+    pass
+
+def std_output(o):
+    print(o)
+
+def task_read_rsa_key(spi, ca_file, uuid_only=False):
     from fluxmonitor.security import _security
 
-    print("=" * 32)
-    print(">> Read Serial from SPI OPT Section")
+    output = null_output if uuid_only else std_output
+
+    output("=" * 32)
+    output(">> Read Serial from SPI OPT Section")
     opt_section = read_OPT(spi)
     sn = opt_section[16:].strip("\x00")
     uuid = UUID(bytes=opt_section[:16])
     model = struct.unpack(">H", opt_section[32:34])
-    print("S/N: %s" % sn)
-    print("UUID: %s" % uuid)
-    print("Model: %s" % repr(model))
-    print("-" * 32)
+    output("S/N: %s" % sn)
+    output("UUID: %s" % uuid)
+    output("Model: %s" % repr(model))
+    output("-" * 32)
 
 
-    print(">> Read RSA Key from SPI (Page 31)")
+    output(">> Read RSA Key from SPI (Page 31)")
     payload = read(spi, 31)
     l = struct.unpack("<H", payload[:2])[0]
 
     try:
         rsaobj = _security.RSAObject(der=payload[2:2 + l])
-        print(">> Key vaild")
+        output(">> Key vaild")
     except:
-        print(">> Can not load key:")
-        print("length=%i" % l)
-        print(repr(payload[2:2 + l]))
+        output(">> Can not load key:")
+        output("length=%i" % l)
+        output(repr(payload[2:2 + l]))
         raise
 
-    print(">> Read Signature from SPI (Page 30)")
+    output(">> Read Signature from SPI (Page 30)")
     payload = read(spi, 30)
     l = struct.unpack("<H", payload[:2])[0]
-    print(">> %s" % binascii.b2a_hex(payload[2:2 + l]))
+    output(">> %s" % binascii.b2a_hex(payload[2:2 + l]))
+
+    if uuid_only:
+        print(uuid.hex)
 
 
 def task_write_rsa_key(spi, sn_file):
@@ -230,6 +241,8 @@ def main():
                              help='Write S/N, give S/N file')
     mutex_group.add_argument('-r', dest='read', action='store_const',
                              const=True, default=False, help='Read S/N')
+    mutex_group.add_argument('-uuid', dest='read_uuid', action='store_const',
+                             const=True, default=False, help='Read S/N')
     mutex_group.add_argument('--ca', dest='ca_file', action='store_const',
                              const=True, default=None, help='CA file')
 
@@ -242,6 +255,8 @@ def main():
 
     if options.write:
         task_write_rsa_key(spi, options.write)
+    elif options.read_uuid:
+        task_read_rsa_key(spi, options.ca_file, uuid_only=True)
     elif options.read:
         task_read_rsa_key(spi, options.ca_file)
     else:
