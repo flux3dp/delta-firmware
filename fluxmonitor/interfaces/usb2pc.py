@@ -79,7 +79,7 @@ import pyev
 
 from fluxmonitor.interfaces.handler import UnixHandler
 from fluxmonitor.hal.misc import get_deviceinfo
-from fluxmonitor.storage import Metadata
+from fluxmonitor.storage import metadata
 from .usb_channels import CameraChannel, ConfigChannel, RobotChannel
 
 global logger
@@ -162,7 +162,6 @@ class USBProtocol(object):
 
         if chl_idx == 0xfa:
             logger.debug("Recv ping but not handshaked")
-            self.send_handshake()
             return
 
         if fin != 0xb0:
@@ -226,7 +225,9 @@ class USBProtocol(object):
                                  "status": st})
 
     def _handle_ping(self, fin):
-        self.send_payload(0xfb, None, fin)
+        data = metadata.device_status
+        buf = HEAD_PACKER.pack(len(data) + 4, 0xfb) + data + b"\x00"
+        self.sock.send(buf)
 
     def _feed_binary(self, watcher, revent=None):
         try:
@@ -288,7 +289,7 @@ class USBProtocol(object):
         self.send_handshake()
 
     def send_handshake(self):
-        handshake_data = get_deviceinfo(Metadata())
+        handshake_data = get_deviceinfo(metadata)
         handshake_data["session"] = self._proto_session
         logger.debug("Send handshake")
         self.send_payload(0xff, handshake_data)
@@ -338,9 +339,8 @@ class USBChannelProtocol(USBProtocol):
         super(USBChannelProtocol, self).initial_session()
 
         for c in self.channels:
-            if c:
-                c.close()
-        self.channels = [None for i in xrange(8)]
+            c.close()
+        self.channels = [null_channel for i in xrange(8)]
 
     def open_channel(self, channel_idx, channel_type):
         if channel_idx >= 8:
@@ -371,12 +371,12 @@ class USBChannelProtocol(USBProtocol):
         if channel_idx >= 8:
             logger.debug("Can not close channel at index %i", channel_idx)
             return "BAD_PARAMS"
-        if self.channels[channel_idx] is None:
+        if not self.channels[channel_idx]:
             logger.debug("Channel %i is not opened", channel_idx)
             return "RESOURCE_BUSY"
 
         c = self.channels[channel_idx]
-        self.channels[channel_idx] = None
+        self.channels[channel_idx] = null_channel
         c.close()
         logger.debug("Channel %s closed", c)
         return "ok"
@@ -389,8 +389,6 @@ class USBChannelProtocol(USBProtocol):
         self.channels[channel_idx].on_binary(buf)
 
     def on_binary_ack(self, channel_idx):
-        # TODO: channels maybe already gone and got
-        # 'NoneType' object has no attribute 'on_binary_ack' error
         self.channels[channel_idx].on_binary_ack()
 
 
@@ -400,6 +398,26 @@ class USBHandler(USBChannelProtocol, UnixHandler):
     def on_connected(self):
         super(USBHandler, self).on_connected()
         self.initial_session()
+
+
+class NullChannel(object):
+    def __nonzero__(self):
+        return False
+
+    def on_payload(self, o):
+        logger.debug("null channel recv payload")
+
+    def on_binary(self, b):
+        logger.debug("null channel recv binary")
+
+    def on_binary_ack(self):
+        logger.debug("null channel recv binary ack")
+
+    def close(self):
+        pass
+
+
+null_channel = NullChannel()
 
 
 class USBProtocolError(Exception):
