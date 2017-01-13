@@ -51,7 +51,10 @@ def task_read_rsa_key(spi, ca_file, uuid_only=False):
         output(">> Can not load key:")
         output("length=%i" % l)
         output(repr(payload[2:2 + l]))
-        raise
+        if uuid_only:
+            return
+        else:
+            raise
 
     output(">> Read Signature from SPI (Page 30)")
     payload = read(spi, 30)
@@ -60,6 +63,7 @@ def task_read_rsa_key(spi, ca_file, uuid_only=False):
 
     if uuid_only:
         print(uuid.hex)
+    return 0
 
 
 def task_write_rsa_key(spi, sn_file):
@@ -104,7 +108,6 @@ def task_write_rsa_key(spi, sn_file):
     write(spi, 30, payload)
 
     print("=" * 32)
-
 
 def read_OPT(spi):
     spi.xfer([0xB1])
