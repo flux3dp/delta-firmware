@@ -9,6 +9,8 @@
 #include <Python.h>
 #include "usb_txrx.h"
 
+#define TX_BUFFER_LEN 510
+#define RX_BUFFER_LEN 510
 
 int discover_usb(void) {
     // Return number of available usb devices
@@ -228,20 +230,26 @@ void *thread_tx_entry(void *arg) {
 
     struct libusb_device_handle *handle = data->handle;
     const unsigned char endpoint = data->tx->bEndpointAddress;
-    int ret, transfered;
-    unsigned char buffer[512];
+    int ret, transfered, txtransfered;
+    unsigned char buffer[TX_BUFFER_LEN];
 
     while(data->running) {
-        transfered = recv(data->socket_vector[0], buffer, 512, 0);
+        transfered = recv(data->socket_vector[0], buffer, TX_BUFFER_LEN, 0);
 
         if(transfered == -1) {
             if(errno == ETIMEDOUT || errno == EAGAIN) {
+                fprintf(stderr, "TX recv ret=%i errno=%i ignore\n", transfered, errno);
                 continue;
             } else {
                 fprintf(stderr, "TX recv ret=%i errno=%i\n", transfered, errno);
             }
         } else {
-            ret = libusb_bulk_transfer(handle, endpoint, buffer, transfered, &transfered, 500);
+
+            ret = libusb_bulk_transfer(handle, endpoint, buffer, transfered, &txtransfered, 500);
+            if(transfered != txtransfered) {
+                fprintf(stderr, "TX usb transfered not match (%i!=%i), ret=%i\n", transfered, txtransfered, ret);
+            }
+
             if(ret == 0) {
                 continue;
             } else if(ret == LIBUSB_ERROR_TIMEOUT) {
@@ -268,10 +276,10 @@ void *thread_rx_entry(void *arg) {
     struct libusb_device_handle *handle = data->handle;
     const unsigned char endpoint = data->rx->bEndpointAddress;
     int ret, transfered;
-    unsigned char buffer[512];
+    unsigned char buffer[RX_BUFFER_LEN];
 
     while(data->running) {
-        ret = libusb_bulk_transfer(handle, endpoint, buffer, 512, &transfered, 500);
+        ret = libusb_bulk_transfer(handle, endpoint, buffer, RX_BUFFER_LEN, &transfered, 500);
         if(ret == 0) {
             transfered = send(data->socket_vector[0], buffer, transfered, 0);
             if(transfered < 0) {
