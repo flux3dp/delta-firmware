@@ -497,7 +497,7 @@ class TasksMixIn(object):
             self.__scan(handler)
         elif cmd == "icontrol":
             self.__icontrol(handler)
-        elif cmd == "raw" and allow_god_mode():
+        elif cmd == "raw":
             self.__raw_access(handler)
         else:
             raise RuntimeError(UNKNOWN_COMMAND)
