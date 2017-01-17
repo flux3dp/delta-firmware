@@ -96,7 +96,7 @@ class FileManagerMixIn(object):
             def imagesender(*args):
                 if imagestack:
                     img = imagestack.pop(0)
-                    logger.error("SEND: %i", len(img))
+                    logger.debug("Sending fcode preview size: %i", len(img))
                     handler.async_send_binary("image/png", len(img),
                                               BytesIO(img), imagesender)
                 else:
