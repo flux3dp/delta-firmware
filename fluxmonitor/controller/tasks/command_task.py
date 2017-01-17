@@ -319,7 +319,6 @@ class PlayManagerMixIn(object):
 
     def __play_press_button(self, handler):
         manager = self.__get_manager()
-        handler.send_text(manager.press_button_in_play())
 
     def dispatch_playmanage_cmd(self, handler, cmd, *args):
         if cmd == "pause":
