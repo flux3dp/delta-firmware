@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 class RobotChannel(object):
     interface = "USB"
     binary_mode = False
+    _binary_data = None
 
     def __init__(self, index, protocol):
         self.index = index
@@ -28,9 +29,10 @@ class RobotChannel(object):
         self.protocol.send_binary(self.index, buf)
 
     def async_send_binary(self, mimetype, length, stream, cb):
+        self._binary_data = (length, 0, stream, cb)
         self.protocol.send_payload(self.index,
                                    "binary %s %i" % (mimetype, length))
-        self.protocol.begin_send(self.index, stream, length, cb)
+        self._feed_binary()
 
     def on_payload(self, obj):
         self.stack.on_text(" ".join("%s" % i for i in obj), self)
@@ -39,9 +41,35 @@ class RobotChannel(object):
         self.stack.on_binary(buf, self)
 
     def on_binary_ack(self):
-        pass
+        if self._binary_data:
+            self._feed_binary()
+        else:
+            logger.debug("Recv unkandle binary ack")
+
+    def _feed_binary(self):
+        try:
+            length, sent_length, stream, callback = self._binary_data
+
+            if length == sent_length:
+                self._binary_data = None
+                callback(self)
+                return
+
+            bdata = stream.read(min(length - sent_length, 508))
+            self.protocol.send_binary(self.index, bdata)
+            sent_length += len(bdata)
+            self._binary_data = (length, sent_length, stream, callback)
+
+        except IOError as e:
+            logger.debug("Send error: %s", e)
+            self.protocol.on_error()
+        except Exception:
+            logger.exception("Unknow error")
+            self.protocol.on_error()
 
     def close(self):
+        if self._binary_data:
+            length, sent_length = self._binary_data[:2]
         if self.stack:
             self.stack.on_close(self)
             self.stack = None

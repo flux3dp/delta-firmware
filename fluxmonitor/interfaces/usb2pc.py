@@ -192,10 +192,7 @@ class USBProtocol(object):
             elif fin == 0xbf:
                 self.on_binary(chl_idx, buf)
             elif fin == 0x80:
-                if self.watcher.data and chl_idx == self.watcher.data[0]:
-                    self._feed_binary(self.watcher)
-                else:
-                    self.on_binary_ack(chl_idx)
+                self.on_binary_ack(chl_idx)
             else:
                 raise USBProtocolError("Bad fin 0x%x" % fin)
         elif chl_idx == 0xf0:
@@ -229,45 +226,8 @@ class USBProtocol(object):
         buf = HEAD_PACKER.pack(len(data) + 4, 0xfb) + data + b"\x00"
         self.sock.send(buf)
 
-    def _feed_binary(self, watcher, revent=None):
-        try:
-            chl_idx, length, sent_length, stream, callback = watcher.data
-
-            if length == sent_length:
-                logger.debug("Binary sent")
-                watcher.data = None
-                callback(self.get_channel(chl_idx))
-                return
-
-            bdata = stream.read(min(length - sent_length, 1020))
-            buf = HEAD_PACKER.pack(len(bdata) + 4, chl_idx) + bdata + b"\xff"
-            l = self.sock.send(buf)
-            if l != len(buf):
-                logger.error("Socket %s send data failed", self)
-                self.on_error()
-                return
-
-            sent_length += len(bdata)
-
-            if sent_length > length:
-                logger.error("GG on socket %s", self.sock)
-                self.on_error()
-
-            else:
-                watcher.data = (chl_idx, length, sent_length, stream, callback)
-
-        except IOError as e:
-            logger.debug("Send error: %s", e)
-            watcher.stop()
-            self.on_error()
-        except Exception:
-            logger.exception("Unknow error")
-            watcher.stop()
-            self.on_error()
-
     def initial_session(self):
         self.watcher.stop()
-        self.watcher.data = None
         self.watcher.callback = self._on_recv
         self.watcher.set(self.sock.fileno(), pyev.EV_READ)
         self.watcher.start()
@@ -308,27 +268,26 @@ class USBProtocol(object):
 
     def send_payload(self, chl_idx, obj):
         payload = msgpack.packb(obj)
-        buf = HEAD_PACKER.pack(len(payload) + 4, chl_idx) + payload + b"\xf0"
-        self.sock.send(buf)
+        l = len(payload) + 4
+        buf = HEAD_PACKER.pack(l, chl_idx) + payload + b"\xf0"
+
+        sl = self.sock.send(buf)
+        if sl != l:
+            logger.error("Socket %s send data failed", self)
+            self.on_error()
 
     def send_binary(self, chl_idx, data):
-        buf = HEAD_PACKER.pack(len(data) + 4, chl_idx) + data + b"\xff"
-        self.sock.send(buf)
+        l = len(data) + 4
+        buf = HEAD_PACKER.pack(l, chl_idx) + data + b"\xff"
+
+        sl = self.sock.send(buf)
+        if sl != l:
+            logger.error("Socket %s send data failed", self)
+            self.on_error()
 
     def send_binary_ack(self, chl_idx):
         buf = HEAD_PACKER.pack(4, chl_idx) + b"\xc0"
         self.sock.send(buf)
-
-    def begin_send(self, chl_idx, stream, length, complete_callback):
-        if self.watcher.data:
-            raise RuntimeError("RESOURCE_BUSY")
-
-        if length > 0:
-            data = (chl_idx, length, 0, stream, complete_callback)
-            self.watcher.data = data
-            self._feed_binary(self.watcher)
-        else:
-            complete_callback(self)
 
 
 class USBChannelProtocol(USBProtocol):
