@@ -497,7 +497,7 @@ cdef class ExtruderExt:
         cdef char* buf
         cdef int size
 
-        if temperature < 60:
+        if temperature < 40:
             temperature = float("NaN")
             size = build_toolhead_command(&buf, "H:%i T:0", heater_id)
         else:

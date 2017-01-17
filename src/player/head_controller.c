@@ -9185,16 +9185,16 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
   /* "src/player/head_controller.pyx":500
  *         cdef int size
  * 
- *         if temperature < 60:             # <<<<<<<<<<<<<<
+ *         if temperature < 40:             # <<<<<<<<<<<<<<
  *             temperature = float("NaN")
  *             size = build_toolhead_command(&buf, "H:%i T:0", heater_id)
  */
-  __pyx_t_1 = ((__pyx_v_temperature < 60.0) != 0);
+  __pyx_t_1 = ((__pyx_v_temperature < 40.0) != 0);
   if (__pyx_t_1) {
 
     /* "src/player/head_controller.pyx":501
  * 
- *         if temperature < 60:
+ *         if temperature < 40:
  *             temperature = float("NaN")             # <<<<<<<<<<<<<<
  *             size = build_toolhead_command(&buf, "H:%i T:0", heater_id)
  *         else:
@@ -9203,7 +9203,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
     __pyx_v_temperature = __pyx_t_5;
 
     /* "src/player/head_controller.pyx":502
- *         if temperature < 60:
+ *         if temperature < 40:
  *             temperature = float("NaN")
  *             size = build_toolhead_command(&buf, "H:%i T:0", heater_id)             # <<<<<<<<<<<<<<
  *         else:
@@ -9214,7 +9214,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_11ExtruderExt
     /* "src/player/head_controller.pyx":500
  *         cdef int size
  * 
- *         if temperature < 60:             # <<<<<<<<<<<<<<
+ *         if temperature < 40:             # <<<<<<<<<<<<<<
  *             temperature = float("NaN")
  *             size = build_toolhead_command(&buf, "H:%i T:0", heater_id)
  */
