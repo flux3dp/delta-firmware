@@ -30,6 +30,7 @@ class Options(object):
     max_y = inf
     max_z = inf
     backlash_config = None
+    plus_extrusion = None
 
     def __init__(self, taskloader=None, head=None):
         storage = Storage("general", "meta")
@@ -45,6 +46,8 @@ class Options(object):
         else:
             self.config_backlash(storage)
 
+        self.config_plus_extrusion(storage)
+
     def config_backlash(self, storage, task_metadata={}):
         c = storage["enable_backlash"]
         if not c:
@@ -53,6 +56,11 @@ class Options(object):
             self.backlash_config = metadata.backlash
         else:
             self.backlash_config = {"A": 0, "B": 0, "C": 0}
+
+    def config_plus_extrusion(self, storage, task_metadata={}):
+        c = storage["plus_extrusion"]
+        self.plus_extrusion = c == "Y"
+        # M92E145
 
     def __load_from_metadata__(self, task_metadata):
         self.head = task_metadata.get("HEAD_TYPE")

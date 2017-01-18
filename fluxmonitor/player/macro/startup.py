@@ -14,6 +14,7 @@ class StartupMacro(MacroBase):
         if options:
             self.filament_detect = options.filament_detect == "Y"
             self.backlash_config = options.backlash_config
+            self.plus_extrusion = options.plus_extrusion
 
     def start(self, k):
         # Select extruder 0
@@ -35,6 +36,9 @@ class StartupMacro(MacroBase):
                                  self.backlash_config)
         else:
             k.main_ctrl.send_cmd("M711 J0.5 K0.5 L0.5 A0 B0 C0")
+
+        if self.plus_extrusion:
+            k.main_ctrl.send_cmd("M92E145")
 
     def giveup(self, k):
         pass

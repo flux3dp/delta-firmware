@@ -319,6 +319,7 @@ class PlayManagerMixIn(object):
 
     def __play_press_button(self, handler):
         manager = self.__get_manager()
+        handler.send_text(manager.press_button())
 
     def dispatch_playmanage_cmd(self, handler, cmd, *args):
         if cmd == "pause":
@@ -376,6 +377,10 @@ class ConfigMixIn(object):
         "enable_backlash": {
             "type": str, "enum": ("Y", "N"),
             "key": "enable_backlash"
+        },
+        "plus_extrusion": {
+            "type": str, "enum": ("Y", "N"),
+            "key": "plus_extrusion"
         },
         "camera_version": {
             "type": str, "enum": ("0", "1"),
