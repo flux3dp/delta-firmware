@@ -12,7 +12,8 @@ delta_camera_option = None
 
 class Cameras(object):
     def __init__(self):
-        if halprofile.PROFILE.get("scan_camera_model") == 1:
+        camera_model = halprofile.PROFILE.get("scan_camera_model")
+        if camera_model == 2:
             self._camera = Camera(0, width=1280, height=720)
         else:
             global delta_camera_option

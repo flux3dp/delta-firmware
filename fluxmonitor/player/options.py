@@ -60,7 +60,6 @@ class Options(object):
     def config_plus_extrusion(self, storage, task_metadata={}):
         c = storage["plus_extrusion"]
         self.plus_extrusion = c == "Y"
-        # M92E145
 
     def __load_from_metadata__(self, task_metadata):
         self.head = task_metadata.get("HEAD_TYPE")

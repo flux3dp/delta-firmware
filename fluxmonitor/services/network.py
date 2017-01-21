@@ -13,7 +13,6 @@ from fluxmonitor.security._security import get_wpa_psk
 from fluxmonitor.hal.net.monitor import Monitor as NetworkMonitor
 from fluxmonitor.hal.nl80211 import config as nl80211_config
 from fluxmonitor.halprofile import get_model_id
-from fluxmonitor.security import get_serial
 from fluxmonitor.storage import Storage, Metadata
 from fluxmonitor.hal.net import config as net_cfg
 from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT
@@ -50,7 +49,7 @@ def create_default_config(ifname):
             "wifi_mode": "host",
             "ssid": ssid,
             "security": "WPA2-PSK",
-            "psk": get_serial(),
+            "psk": "flux-delta",
         }
     else:
         return {"method": "dhcp"}
