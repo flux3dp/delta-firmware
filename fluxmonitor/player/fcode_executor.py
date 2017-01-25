@@ -10,7 +10,8 @@ from fluxmonitor.hal.tools import (toolhead_on, toolhead_standby,
                                    toolhead_power_on, toolhead_power_off)
 
 from .base import BaseExecutor
-from .base import ST_STARTING, ST_RUNNING, ST_COMPLETED
+from .base import (ST_STARTING, ST_RUNNING, ST_RUNNING_PAUSED, ST_COMPLETED,
+                   ST_RUNNING_RESUMING, ST_STARTING_RESUMING)
 
 from ._device_fsm import PyDeviceFSM
 from .macro import (StartupMacro, WaitHeadMacro, CorrectionMacro, ZprobeMacro,
@@ -320,6 +321,9 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
     # public interface
     def set_toolhead_operation(self):
         if self.status_id == 48:
+            if self.error_symbol:
+                self.error_symbol = None
+
             self._fucking_toolhead_power_management_control_flag = False
             toolhead_power_on()
             self.toolhead.bootstrap(self._on_toolhead_ready)
@@ -540,8 +544,14 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
             if self.status_id == ST_RUNNING:
                 check_toolhead_errno(self.toolhead, self.th_error_flag)
                 self.fire()
+            elif self.status_id in (ST_RUNNING_RESUMING, ST_STARTING_RESUMING):
+                check_toolhead_errno(self.toolhead, self.th_error_flag)
+            elif self.status_id == ST_RUNNING_PAUSED and \
+                    self._fucking_toolhead_power_management_control_flag:
+                check_toolhead_errno(self.toolhead, self.th_error_flag)
         except IOError:
             self.abort(SystemError(SUBSYSTEM_ERROR, "TOOLHEAD_ERROR"))
+
         except RuntimeError as er:
             if self.status_id & 192:
                 logger.warning("Toolhead error in completed/aborted: %s, "
