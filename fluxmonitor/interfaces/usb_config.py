@@ -21,13 +21,6 @@ logger = logging.getLogger(__name__)
 
 class ConfigureTools(object):
     @classmethod
-    def uart_set_password(cls, password, pem):
-        # Note: special case
-        set_password(password)
-        access_control.remove_all()
-        cls.request_add_trust("noname", pem)
-
-    @classmethod
     def request_set_nickname(cls, nickname):
         metadata.nickname = nickname
 
@@ -39,6 +32,13 @@ class ConfigureTools(object):
                 access_control.remove_all()
         else:
             raise RuntimeError(AUTH_ERROR)
+
+    @classmethod
+    def request_reset_password(cls, password, pem=None, label=None):
+        set_password(password)
+        access_control.remove_all()
+        if pem:
+            cls.request_add_trust(label or "noname", pem)
 
     @classmethod
     def request_list_trust(cls):

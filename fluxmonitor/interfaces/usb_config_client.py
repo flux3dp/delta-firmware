@@ -27,6 +27,9 @@ class UsbConfigInternalClient(MsgpackProtocol, UnixHandler):
     def set_password(self, oldpasswd, password, clear_acl=True):
         self.send_request("set_password", oldpasswd, password, clear_acl)
 
+    def reset_password(self, password):
+        self.send_request("reset_password", password)
+
     def set_nickname(self, nickname):
         self.send_request("set_nickname", nickname)
 

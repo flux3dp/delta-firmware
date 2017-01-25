@@ -5,7 +5,8 @@ from fluxmonitor.interfaces.usb_config_client import UsbConfigInternalClient
 from fluxmonitor.security import validate_password
 
 CMD_LIST = ("set_password", "set_nickname", "list_trust", "add_trust",
-            "remove_trust", "get_ipaddr", "get_wifi", "scan_wifi")
+            "remove_trust", "get_ipaddr", "get_wifi", "scan_wifi",
+            "reset_password")
 logger = logging.getLogger(__name__)
 
 

@@ -30,7 +30,7 @@ REQ_CONFIG_NETWORK = 0x04
 REQ_GET_SSID = 0x05
 REQ_LIST_SSID = 0x08
 REQ_GET_IPADDR = 0x07
-REQ_SET_PASSWORD = 0x06
+REQ_RESET_PASSWD = 0x06
 
 REQ_ENABLE_TTY = 0x83
 REQ_ENABLE_SSH = 0x84
@@ -64,7 +64,7 @@ class UartHandler(UnixHandler):
             REQ_GET_SSID: self.on_query_ssid,
             REQ_LIST_SSID: self.on_list_ssid,
             REQ_GET_IPADDR: self.on_query_ipaddr,
-            REQ_SET_PASSWORD: self.on_set_password,
+            REQ_RESET_PASSWD: self.on_reset_passwd,
 
             REQ_ENABLE_TTY: self.on__enable_tty,
             REQ_ENABLE_SSH: self.on__enable_ssh
@@ -269,13 +269,13 @@ class UartHandler(UnixHandler):
         ipaddrs += ConfigureTools.request_get_ipaddr("eth0")["ipaddrs"]
         self.send_response(REQ_GET_IPADDR, True, " ".join(ipaddrs))
 
-    def on_set_password(self, buf):
+    def on_reset_passwd(self, buf):
         pwd, pem = buf.split(b"\x00")
         try:
-            ConfigureTools.uart_set_password(pwd, pem)
-            self.send_response(REQ_SET_PASSWORD, True, MSG_OK)
+            ConfigureTools.request_reset_password(pwd, pem)
+            self.send_response(REQ_RESET_PASSWD, True, MSG_OK)
         except RuntimeError:
-            self.send_response(REQ_SET_PASSWORD, False, "bad pubkey")
+            self.send_response(REQ_RESET_PASSWD, False, "bad pubkey")
 
     def on__enable_tty(self, buf):
         salt, signature = buf.split(b"$", 1)

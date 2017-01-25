@@ -125,6 +125,8 @@ class UpnpTcpHandler(TextBinaryProtocol, SSLHandler):
             self.client.set_nickname(args[0])
         elif cmd == "scan_wifi":
             self.client.scan_wifi()
+        elif cmd == "reset_passwd":
+            self.client.reset_password(args[0])
         elif cmd == "get_vector":
             self.send_text("ok " + self.client.vector)
         elif cmd == "enable_tty":
