@@ -1,6 +1,7 @@
 
 from fluxmonitor.err_codes import PROTOCOL_ERROR
 from fluxmonitor.storage import metadata
+from fluxmonitor.hal import tools
 
 from .base import DeviceOperationMixIn
 
@@ -12,9 +13,11 @@ class RawTask(DeviceOperationMixIn):
         super(RawTask, self).__init__(stack, handler)
         handler.binary_mode = True
         metadata.update_device_status(self.st_id, 0, "N/A", handler.address)
+        tools.toolhead_on()
 
     def clean(self):
         metadata.update_device_status(0, 0, "N/A", "")
+        tools.toolhead_standby()
 
     def on_mainboard_message(self, watcher, revent):
         try:

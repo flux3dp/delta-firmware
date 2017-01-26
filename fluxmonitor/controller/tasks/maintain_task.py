@@ -102,7 +102,7 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
         except (HeadOfflineError, HeadResetError) as e:
             logger.debug("Head reset")
             tools.toolhead_standby()
-            self.toolhead.bootstrap()
+            self.toolhead.bootstrap(self.on_toolhead_ready)
             if self._macro:
                 self._on_macro_error(e)
 
@@ -432,7 +432,7 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
             tools.toolhead_standby()
             if self._macro:
                 self.on_macro_error(e)
-            self.toolhead.bootstrap()
+            self.toolhead.bootstrap(self.on_toolhead_ready)
 
         except RuntimeError as e:
             logger.info("%s", e)

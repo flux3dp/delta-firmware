@@ -229,6 +229,9 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
 
             logger.debug("Set toolhead mode: standby")
             self._set_toolhead_standby()
+        elif self.status_id & 192:
+            logger.debug("Set toolhead mode: standby at COMPLETED/ABORTED")
+            self._set_toolhead_standby()
         else:
             logger.error("Unknown action for status %i in toolhead_paused. ",
                          self.status_id)
@@ -637,7 +640,7 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
 
         if self.toolhead.ready and self.toolhead.module_name == "EXTRUDER":
             # DIRTY_FIX: Cool toolhead
-            self.toolhead.standby()
+            self.toolhead.standby(self._toolhead_paused)
         else:
             self.close()
 
