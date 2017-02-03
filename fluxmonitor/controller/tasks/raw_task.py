@@ -8,12 +8,12 @@ from .base import DeviceOperationMixIn
 
 class RawTask(DeviceOperationMixIn):
     st_id = -10
+    toolhead_on = False
 
     def __init__(self, stack, handler):
         super(RawTask, self).__init__(stack, handler)
         handler.binary_mode = True
         metadata.update_device_status(self.st_id, 0, "N/A", handler.address)
-        tools.toolhead_on()
 
     def clean(self):
         metadata.update_device_status(0, 0, "N/A", "")
@@ -33,6 +33,10 @@ class RawTask(DeviceOperationMixIn):
             self.on_dead(repr(e))
 
     def on_headboard_message(self, watcher, revent):
+        if self.toolhead_on is False:
+            tools.toolhead_on()
+            self.toolhead_on = True
+
         try:
             buf = watcher.data.recv(4096)
             if buf:
