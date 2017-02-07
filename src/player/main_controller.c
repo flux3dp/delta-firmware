@@ -4467,7 +4467,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
  *             send(self.sock_fd, "@DISABLE_LINECHECK\n", 19, 0)
  *             send(self.sock_fd, "X5S0\n", 5, 0)             # <<<<<<<<<<<<<<
  *             send(self.sock_fd, "G28+\n", 5, 0)
- *             self._flags |= FLAG_CLOSING;
+ *             send(self.sock_fd, "M18\n", 5, 0)
  */
     send(__pyx_v_self->sock_fd, ((char *)"X5S0\n"), 5, 0);
 
@@ -4475,6 +4475,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
  *             send(self.sock_fd, "@DISABLE_LINECHECK\n", 19, 0)
  *             send(self.sock_fd, "X5S0\n", 5, 0)
  *             send(self.sock_fd, "G28+\n", 5, 0)             # <<<<<<<<<<<<<<
+ *             send(self.sock_fd, "M18\n", 5, 0)
  *             self._flags |= FLAG_CLOSING;
  */
     send(__pyx_v_self->sock_fd, ((char *)"G28+\n"), 5, 0);
@@ -4482,6 +4483,14 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_main_controller_14MainControl
     /* "src/player/main_controller.pyx":282
  *             send(self.sock_fd, "X5S0\n", 5, 0)
  *             send(self.sock_fd, "G28+\n", 5, 0)
+ *             send(self.sock_fd, "M18\n", 5, 0)             # <<<<<<<<<<<<<<
+ *             self._flags |= FLAG_CLOSING;
+ */
+    send(__pyx_v_self->sock_fd, ((char *)"M18\n"), 5, 0);
+
+    /* "src/player/main_controller.pyx":283
+ *             send(self.sock_fd, "G28+\n", 5, 0)
+ *             send(self.sock_fd, "M18\n", 5, 0)
  *             self._flags |= FLAG_CLOSING;             # <<<<<<<<<<<<<<
  */
     __pyx_v_self->_flags = (__pyx_v_self->_flags | __pyx_v_11fluxmonitor_6player_16_main_controller_FLAG_CLOSING);

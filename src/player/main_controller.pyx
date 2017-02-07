@@ -279,4 +279,5 @@ cdef class MainController:
             send(self.sock_fd, "@DISABLE_LINECHECK\n", 19, 0)
             send(self.sock_fd, "X5S0\n", 5, 0)
             send(self.sock_fd, "G28+\n", 5, 0)
+            send(self.sock_fd, "M18\n", 5, 0)
             self._flags |= FLAG_CLOSING;

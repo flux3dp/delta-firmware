@@ -97,6 +97,8 @@ class CameraService(ServiceBase):
         img = cv2.imdecode(np.fromstring(camera.imagefile[2].getvalue(),
                                          np.uint8),
                            cv2.CV_LOAD_IMAGE_COLOR)
+        if self.cameras.rotate:
+            img = np.rot90(img, self.cameras.rotate)
         if img is None:
             raise RuntimeError("HARDWARE_ERROR")
         else:
@@ -109,6 +111,8 @@ class CameraService(ServiceBase):
         img = cv2.imdecode(np.fromstring(camera.imagefile[2].getvalue(),
                                          np.uint8),
                            cv2.CV_LOAD_IMAGE_COLOR)
+        if self.cameras.rotate:
+            img = np.rot90(img, self.cameras.rotate)
         flag, points = ScanChecking.find_board(img)
         cv2.imwrite('/home/pi/tmp1.jpg', img)
 
@@ -127,6 +131,9 @@ class CameraService(ServiceBase):
             self.img_o = cv2.imdecode(
                 np.fromstring(camera.imagefile[2].getvalue(), np.uint8),
                 cv2.CV_LOAD_IMAGE_COLOR)
+            if self.cameras.rotate:
+                self.img_o = np.rot90(self.img_o, self.cameras.rotate)
+
             _, points = ScanChecking.find_board(self.img_o)
             self.s = 0
             for i in xrange(16):
@@ -141,6 +148,8 @@ class CameraService(ServiceBase):
             img_r = cv2.imdecode(np.fromstring(camera.imagefile[2].getvalue(),
                                                np.uint8),
                                  cv2.CV_LOAD_IMAGE_COLOR)
+            if self.cameras.rotate:
+                img_r = np.rot90(img_r, self.cameras.rotate)
 
             result = ScanChecking.find_red(self.img_o, img_r)
             logger.info('{}:red at {}'.format(cmd, result))
