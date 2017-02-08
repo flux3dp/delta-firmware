@@ -32,12 +32,13 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
     st_id = -1
     mainboard = None
     toolhead = None
+    busying = False
 
     def __init__(self, stack, handler):
         super(MaintainTask, self).__init__(stack, handler)
 
         self._ready = 0
-        self._busy = False
+        self.busying = False
 
         self._macro = None
         self._on_macro_error = None
@@ -85,6 +86,8 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
 
         except IOError:
             logger.error("Mainboard connection broken")
+            if self.busying:
+                self.handler.send_text("error SUBSYSTEM_ERROR")
             self.stack.exit_task(self)
         except (RuntimeError, SystemError) as e:
             if self._macro:
@@ -121,7 +124,7 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
         if cmd == "stop_load_filament":
             self.mainboard.send_cmd("@HOME_BUTTON_TRIGGER\n", raw=1)
             return
-        elif self._busy:
+        elif self.busying:
             raise RuntimeError(RESOURCE_BUSY)
 
         if cmd == "home":
@@ -195,18 +198,18 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
         def on_success_cb():
             handler.send_text("ok " + "\x00".join(dataset))
             self._macro = self._on_macro_error = self._on_macro_running = None
-            self._busy = False
+            self.busying = False
 
         def on_macro_error(error):
             self._macro.giveup(self)
             self._macro = self._on_macro_error = self._on_macro_running = None
             handler.send_text("error %s" % " ".join(error.args))
-            self._busy = False
+            self.busying = False
 
         self._macro = macro.CommandMacro(on_success_cb, ["M666L1"],
                                          on_message_cb)
         self._on_macro_error = on_macro_error
-        self._busy = True
+        self.busying = True
         self._macro.start(self)
 
     def do_change_extruder_temperature(self, handler, sindex, stemp):
@@ -229,12 +232,12 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
         def on_load_done():
             handler.send_text("ok")
             self._macro = self._on_macro_error = self._on_macro_running = None
-            self._busy = False
+            self.busying = False
 
         def on_macro_error(error):
             self._macro.giveup(self)
             self._macro = self._on_macro_error = self._on_macro_running = None
-            self._busy = False
+            self.busying = False
             handler.send_text("error %s" % " ".join(error.args))
 
         def on_heating_done():
@@ -266,7 +269,7 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
         self._macro = macro.ControlHeaterMacro(on_heating_done, index, temp)
         self._on_macro_error = on_macro_error
         self._on_macro_running = on_macro_running
-        self._busy = True
+        self.busying = True
         self._macro.start(self)
         handler.send_text("continue")
 
@@ -280,7 +283,7 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
         def on_load_done():
             handler.send_text("ok")
             self._macro = self._on_macro_error = self._on_macro_running = None
-            self._busy = False
+            self.busying = False
 
         def on_heating_done():
             self._macro = macro.UnloadFilamentMacro(on_load_done, index)
@@ -289,7 +292,7 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
         def on_macro_error(error):
             self._macro.giveup(self)
             self._macro = self._on_macro_error = self._on_macro_running = None
-            self._busy = False
+            self.busying = False
             handler.send_text("error %s" % " ".join(error.args))
 
         def on_macro_running():
@@ -303,7 +306,7 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
         self._on_macro_error = on_macro_error
         self._on_macro_running = on_macro_running
         self._on_macro_error = on_macro_error
-        self._busy = True
+        self.busying = True
         self._macro.start(self)
         handler.send_text("continue")
 
@@ -311,17 +314,17 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
         def on_success_cb():
             handler.send_text("ok")
             self._macro = self._on_macro_error = self._on_macro_running = None
-            self._busy = False
+            self.busying = False
 
         def on_macro_error(error):
             self._macro.giveup(self)
             self._macro = self._on_macro_error = self._on_macro_running = None
             handler.send_text("error %s" % " ".join(error.args))
-            self._busy = False
+            self.busying = False
 
         self._macro = macro.CommandMacro(on_success_cb, ["G28+"])
         self._on_macro_error = on_macro_error
-        self._busy = True
+        self.busying = True
         self._macro.start(self)
 
     def do_calibrate(self, handler, threshold, clean=False):
@@ -332,12 +335,12 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
             p1, p2, p3 = self._macro.history[-1]
             handler.send_text("ok %.4f %.4f %.4f" % (p1, p2, p3))
             self._macro = self._on_macro_error = self._on_macro_running = None
-            self._busy = False
+            self.busying = False
 
         def on_macro_error(error):
             self._macro.giveup(self)
             self._macro = self._on_macro_error = self._on_macro_running = None
-            self._busy = False
+            self.busying = False
             handler.send_text("error %s" % " ".join(error.args))
 
         def on_macro_running():
@@ -352,7 +355,7 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
         self._on_macro_error = on_macro_error
         self._on_macro_running = on_macro_running
         self._on_macro_error = on_macro_error
-        self._busy = True
+        self.busying = True
         self._macro.start(self)
         handler.send_text("continue")
 
@@ -373,12 +376,12 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
                 handler.send_text("DEBUG " + self._macro.debug_logs.popleft())
             handler.send_text("ok %.4f" % self._macro.history[0])
             self._macro = self._on_macro_error = self._on_macro_running = None
-            self._busy = False
+            self.busying = False
 
         def on_macro_error(error):
             self._macro.giveup(self)
             self._macro = self._on_macro_error = self._on_macro_running = None
-            self._busy = False
+            self.busying = False
             handler.send_text("error %s" % " ".join(error.args))
 
         def on_macro_running():
@@ -389,7 +392,7 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
         self._on_macro_error = on_macro_error
         self._on_macro_running = on_macro_running
         self._on_macro_error = on_macro_error
-        self._busy = True
+        self.busying = True
         self._macro.start(self)
         handler.send_text("continue")
 

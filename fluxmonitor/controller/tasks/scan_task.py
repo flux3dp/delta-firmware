@@ -2,10 +2,13 @@
 from select import select
 from errno import ECONNREFUSED, ENOENT
 from time import sleep
+from math import isnan
 from io import BytesIO
 import logging
 import msgpack
 import socket
+
+import pyev
 
 from fluxmonitor.player.main_controller import MainController
 from fluxmonitor.err_codes import (
@@ -20,16 +23,22 @@ logger = logging.getLogger(__name__)
 
 
 class CameraInterface(object):
-    def __init__(self):
+    def __init__(self, kernel):
         try:
             self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             self.sock.connect(CAMERA_ENDPOINT)
             self.unpacker = msgpack.Unpacker()
+
+            self.watcher = kernel.loop.io(self.fileno(), pyev.EV_READ,
+                                          lambda *args: None)
         except socket.error as err:
             if err.args[0] in [ECONNREFUSED, ENOENT]:
                 raise RuntimeError(SUBSYSTEM_ERROR, NO_RESPONSE)
             else:
                 raise
+
+    def fileno(self):
+        return self.sock.fileno()
 
     def recv_object(self):
         buf = self.sock.recv(4096)
@@ -58,8 +67,19 @@ class CameraInterface(object):
         f.seek(0)
         return f
 
-    def oneshot(self):
+    def async_oneshot(self, callback):
+        def overlay(w, r):
+            w.stop()
+            callback(self.end_oneshot())
+
+        self.begin_oneshot()
+        self.watcher.callback = overlay
+        self.watcher.start()
+
+    def begin_oneshot(self):
         self.sock.send(msgpack.packb((0, 0)))
+
+    def end_oneshot(self):
         args = self.recv_object()
         if args[0] == "binary":
             mimetype = args[1]
@@ -71,21 +91,54 @@ class CameraInterface(object):
             logger.error("Got unknown response from camera service: %s", args)
             raise SystemError("UNKNOWN_ERROR")
 
-    def check_camera_position(self):
+    def async_check_camera_position(self, callback):
+        def overlay(w, r):
+            w.stop()
+            callback(self.end_check_camera_position())
+
+        self.begin_check_camera_position()
+        self.watcher.callback = overlay
+        self.watcher.start()
+
+    def begin_check_camera_position(self):
         self.sock.send(msgpack.packb((1, 0)))
+
+    def end_check_camera_position(self):
         return " ".join(self.recv_object())
 
-    def get_bias(self):
+    def async_get_bias(self, callback):
+        def overlay(w, r):
+            w.stop()
+            callback(self.end_get_bias())
+
+        self.begin_get_bias()
+        self.watcher.callback = overlay
+        self.watcher.start()
+
+    def begin_get_bias(self):
         self.sock.send(msgpack.packb((2, 0)))
+
+    def end_get_bias(self):
         return " ".join(("%s" % i for i in self.recv_object()))
 
-    def compute_cab(self, step):
+    def async_compute_cab(self, step, callback):
+        def overlay(w, r):
+            w.stop()
+            callback(step, self.end_compute_cab())
+
+        self.begin_compute_cab(step)
+        self.watcher.callback = overlay
+        self.watcher.start()
+
+    def begin_compute_cab(self, step):
         if step == 'O':
             self.sock.send(msgpack.packb((3, 0)))
         elif step == 'L':
             self.sock.send(msgpack.packb((4, 0)))
         elif step == 'R':
             self.sock.send(msgpack.packb((5, 0)))
+
+    def end_compute_cab(self):
         return " ".join(("%s" % i for i in self.recv_object()))
 
     def close(self):
@@ -96,14 +149,16 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
     st_id = -2
     mainboard = None
     step_length = 0.45
+    busying = False
 
     _macro = None
 
     def __init__(self, stack, handler, camera_id=None):
-        self.camera = CameraInterface()
+        self.camera = CameraInterface(stack)
         super(ScanTask, self).__init__(stack, handler)
 
         def on_mainboard_ready(ctrl):
+            self.busying = False
             for cmd in ("G28", "G91", "M302", "M907 Y0.4", "T2"):
                 ctrl.send_cmd(cmd)
             handler.send_text("ok")
@@ -129,17 +184,17 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
 
         self.timer_watcher = stack.loop.timer(1, 1, self.on_timer)
         self.timer_watcher.start()
+        self.busying = True
 
     def clean(self):
         if self.timer_watcher:
             self.timer_watcher.stop()
             self.timer_watcher = None
 
-        if self.mainboard:
-            self.mainboard.send_cmd("X1E0")
-
         try:
             if self.mainboard:
+                if self.mainboard.ready:
+                    self.mainboard.send_cmd("X1E0")
                 self.mainboard.close()
                 self.mainboard = None
         except Exception:
@@ -150,9 +205,11 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
             self.camera = None
         metadata.update_device_status(0, 0, "N/A", "")
 
-    def make_gcode_cmd(self, cmd):
+    def make_gcode_cmd(self, cmd, callback=None):
         def cb():
             self._macro = None
+            if callback:
+                callback()
         self._macro = macro.CommandMacro(cb, (cmd, ))
         self._macro.start(self)
 
@@ -178,7 +235,7 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
             self.get_cab(handler)
 
         elif cmd == "calibrate":
-            self.calibrate(handler)
+            self.async_calibrate(handler)
 
         elif cmd == "scanlaser":
             param = args[0] if args else ""
@@ -237,7 +294,81 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
                     self.on_mainboard_message(self._mb_watcher, 0)
 
     def scan_check(self, handler):
-        handler.send_text(self.camera.check_camera_position())
+        def callback(m):
+            handler.send_text(m)
+        self.camera.async_check_camera_position(callback)
+
+    def async_calibrate(self, handler):
+        # this is measure by data set
+        table = {8: 60, 7: 51, 6: 40, 5: 32, 4: 26, 3: 19, 2: 11, 1: 6, 0: 1}
+        compute_cab_ref = (("O", False, False),
+                           ("L", True, False),
+                           ("R", False, True))
+
+        data = {"flag": 0, "thres": 0.2, "calibrate_param": []}
+        self.change_laser(left=False, right=False)
+
+        def on_loop(output=None):
+            if output:
+                handler.send_text('ok ' + output)
+
+            elif data["flag"] == 11:
+                handler.send_text('ok fail chess')
+            elif data["flag"] == 12:
+                handler.send_text('ok fail laser {}'.format(data["flag"]))
+            elif data["flag"] > 10:
+                handler.send_text('ok fail laser {}'.format(data["flag"]))
+            else:
+                data["flag"] += 1
+                self.camera.async_get_bias(on_get_bias)
+
+        def on_compute_cab(step, m):
+            m = m.split()[1]
+            data["calibrate_param"].append(m)
+            if len(data["calibrate_param"]) < 3:
+                step, l, r = compute_cab_ref[0]
+                self.change_laser(left=l, right=r)
+                self.camera.async_compute_cab(step, on_compute_cab)
+            else:
+                if 'fail' in data["calibrate_param"]:
+                    data["flag"] = 12
+                elif all(abs(float(r) - float(data["calibrate_param"][0])) < 72
+                         for r in data["calibrate_param"][1:]):
+                    # so naive check
+                    s = Storage('camera')
+                    s['calibration'] = ' '.join(
+                        map(lambda x: str(round(float(x))),
+                            data["calibrate_param"]))
+                    output = ' '.join(data["calibrate_param"])
+                    on_loop(output)
+                else:
+                    data["flag"] = 13
+
+        def begin_compute_cab():
+            step, l, r = compute_cab_ref[0]
+            self.change_laser(left=l, right=r)
+            self.camera.async_compute_cab(step, on_compute_cab)
+
+        def on_get_bias(m):
+            data["flag"] += 1
+            w = float(m.split()[1])
+            logger.debug("Camera calibrate w = %s", w)
+            if isnan(w):
+                on_loop()
+            else:
+                if abs(w) < data["thres"]:  # good enough to calibrate
+                    begin_compute_cab()
+                elif w < 0:
+                    self.make_gcode_cmd(
+                        "G1 F500 E{}".format(table.get(round(abs(w)), 60)),
+                        on_loop)
+                elif w > 0:
+                    self.make_gcode_cmd(
+                        "G1 F500 E-{}".format(table.get(round(abs(w)), 60)),
+                        on_loop)
+                data["thres"] += 0.05
+
+        on_loop()
 
     def calibrate(self, handler):
         # this is measure by data set
@@ -290,6 +421,7 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
             else:  # TODO: what about nan
                 pass
         self.change_laser(left=False, right=False)
+
         if flag < 10:
             handler.send_text('ok ' + output)
         elif flag == 11:
@@ -307,30 +439,43 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
         handler.send_text("ok " + a)
 
     def oneshot(self, handler):
-        def cb(h):
+        def sent_callback(h):
             handler.send_text("ok")
-        mimetype, length, stream = self.camera.oneshot()
-        handler.async_send_binary(mimetype, length, stream, cb)
+
+        def recv_callback(result):
+            mimetype, length, stream = result
+            handler.async_send_binary(mimetype, length, stream, sent_callback)
+
+        self.camera.async_oneshot(recv_callback)
 
     def take_images(self, handler):
         def cb_complete(h):
             handler.send_text("ok")
 
-        def cb_shot3(h):
-            mimetype, length, stream = self.camera.oneshot()
-            h.async_send_binary(mimetype, length, stream, cb_complete)
+        def cb_shot3_ready(result):
+            mimetype, length, stream = result
+            handler.async_send_binary(mimetype, length, stream, cb_complete)
 
-        def cb_shot2(h):
-            mimetype, length, stream = self.camera.oneshot()
-            h.async_send_binary(mimetype, length, stream, cb_shot3)
+        def cb_shot3(h):
+            self.camera.async_oneshot(cb_shot3_ready)
+
+        def cb_shot2_ready(result):
+            mimetype, length, stream = result
             self.change_laser(left=False, right=False,
                               callback=lambda: sleep(0.04))
+            handler.async_send_binary(mimetype, length, stream, cb_shot3)
 
-        def cb_shot1():
-            mimetype, length, stream = self.camera.oneshot()
-            handler.async_send_binary(mimetype, length, stream, cb_shot2)
+        def cb_shot2(h):
+            self.camera.async_oneshot(cb_shot2_ready)
+
+        def cb_shot1_ready(result):
+            mimetype, length, stream = result
             self.change_laser(left=False, right=True,
                               callback=lambda: sleep(0.04))
+            handler.async_send_binary(mimetype, length, stream, cb_shot2)
+
+        def cb_shot1():
+            self.camera.async_oneshot(cb_shot1_ready)
 
         self.change_laser(left=True, right=False, callback=cb_shot1)
 
@@ -339,6 +484,8 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
             self.mainboard.handle_recv()
         except IOError:
             logger.error("Mainboard connection broken")
+            if self.busying:
+                self.handler.send_text("error SUBSYSTEM_ERROR")
             self.stack.exit_task(self)
         except RuntimeError:
             pass

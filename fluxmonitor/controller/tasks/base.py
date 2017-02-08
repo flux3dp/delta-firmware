@@ -129,12 +129,14 @@ class DeviceOperationMixIn(object):
                 mb = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
                 logger.info("Connect to mainboard %s", MAINBOARD_ENDPOINT)
                 mb.connect(MAINBOARD_ENDPOINT)
+                mb.setblocking(False)
             self._uart_mb = mb
 
             if not hb:
                 hb = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
                 logger.info("Connect to headboard %s", HEADBOARD_ENDPOINT)
                 hb.connect(HEADBOARD_ENDPOINT)
+                hb.setblocking(False)
             self._uart_hb = hb
 
             if enable_watcher:
