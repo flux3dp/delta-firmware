@@ -117,12 +117,13 @@ class TCPHandler(SocketHandler):
 
     @property
     def address(self):
-        if self._address is None:
-            try:
-                self._address = socket.gethostbyaddr(self.endpoint[0])[0]
-            except Exception:
-                self._address = self.endpoint[0]
-        return self._address
+        return self.endpoint[0]
+        # if self._address is None:
+        #     try:
+        #         self._address = socket.gethostbyaddr(self.endpoint[0])[0]
+        #     except Exception:
+        #         self._address = self.endpoint[0]
+        # return self._address
 
 
 class UnixHandler(SocketHandler):
