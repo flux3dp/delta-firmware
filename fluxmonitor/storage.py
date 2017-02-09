@@ -85,37 +85,142 @@ NICKNAMES = ["Apple", "Apricot", "Avocado", "Banana", "Bilberry", "Blackberry",
              "Satsuma", "Star fruit", "Strawberry", "Tamarillo", "Ugli fruit"]
 
 
+class Preference(object):
+    _i = None
+
+    @classmethod
+    def instance(cls):
+        if cls._i is None:
+            cls._i = cls()
+        return cls._i
+
+    def __init__(self):
+        self._storage = Storage("general", "meta")
+
+    @property
+    def nickname(self):
+        if self._storage.exists("nickname"):
+            with self._storage.open("nickname", "rb") as f:
+                return f.read()
+        else:
+            nickname = ("Flux 3D Printer (%s)" %
+                        choice(NICKNAMES)).encode()
+            with self._storage.open("nickname", "wb") as f:
+                f.write(nickname)
+        return nickname
+
+    @nickname.setter
+    def nickname(self, val):
+        if isinstance(val, unicode):
+            val = val.encode("utf8")
+        else:
+            try:
+                val.decode("utf8")
+            except UnicodeDecodeError:
+                raise RuntimeError(BAD_PARAMS)
+
+        if len(val) > 128:
+            raise RuntimeError(BAD_PARAMS)
+
+        with self._storage.open("nickname", "wb") as f:
+            f.write(val)
+
+    @property
+    def plate_correction(self):
+        if self._storage.exists("adjust"):
+            with self._storage.open("adjust", "r") as f:
+                try:
+                    vals = tuple((float(v) for v in f.read().split(" ")))
+                    return dict(zip("XYZABCIJKRDH", vals))
+                except Exception:
+                    # Ignore error and return default
+                    pass
+
+        return {"X": 0, "Y": 0, "Z": 0, "A": 0, "B": 0, "C": 0,
+                "I": 0, "J": 0, "K": 0, "R": 96.70, "D": 190, "H": 240}
+
+    @plate_correction.setter
+    def plate_correction(self, val):
+        v = self.plate_correction
+        v.update(val)
+
+        vals = tuple((v[k] for k in "XYZABCIJKRDH"))
+        with self._storage.open("adjust", "w") as f:
+            f.write(" ".join("%.4f" % i for i in vals))
+
+    @property
+    def backlash(self):
+        if self._storage.exists("backlash"):
+            with self._storage.open("backlash", "r") as f:
+                try:
+                    vals = tuple((float(v) for v in f.read().split(" ")))
+                    return dict(zip("ABC", vals))
+                except Exception:
+                    # Ignore error and return default
+                    pass
+
+        return {"A": 10, "B": 10, "C": 10}
+
+    @backlash.setter
+    def backlash(self, val):
+        v = self.backlash
+        v.update(val)
+
+        vals = tuple((v[k] for k in "ABC"))
+        with self._storage.open("backlash", "w") as f:
+            f.write(" ".join("%.4f" % i for i in vals))
+
+    @property
+    def broadcast(self):
+        return self._storage["broadcast"]
+
+    @broadcast.setter
+    def broadcast(self, val):
+        self._storage["broadcast"] = val
+
+    @broadcast.deleter
+    def broadcast(self):
+        del self._storage["broadcast"]
+
+    @property
+    def enable_cloud(self):
+        return self._storage["enable_cloud"]
+
+    @enable_cloud.setter
+    def enable_cloud(self, val):
+        self._storage["enable_cloud"] = val
+
+    @enable_cloud.deleter
+    def enable_cloud(self):
+        del self._storage["enable_cloud"]
+
+
 class Metadata(object):
     shm = None
     _mversion = 0
-    _storage = None
 
     def __init__(self):
         # Memory struct
         # 0: Control flags...
-        #   bit8: nickname is loaded
         # 1: Metadata Version
+        # 2: Toolhead mode, 0: default, 1: delay 5v switch off
         #
         # 128 ~ 384: nickname, end with char \x00
         # 1024 ~ 2048: Shared rsakey
         # 2048 ~ 2176: Cloud Status (128)
         # 2176 ~ 2208: Cloud Hash (32)
         # 3072: Wifi status code
-        # 3576 ~ 3584: Task time cost (8, float)
+        # # 3576 ~ 3584: Task time cost (8, float)
         # 3584 ~ 4096: Device status
-        self.shm = sysv_ipc.SharedMemory(13000, sysv_ipc.IPC_CREAT,
+
+        self.shm = sysv_ipc.SharedMemory(13001, sysv_ipc.IPC_CREAT,
                                          size=4096, init_character='\x00')
+        self.pref = Preference.instance()
 
     def __del__(self):
         if self.shm:
             self.shm.detach()
             self.shm = None
-
-    @property
-    def storage(self):
-        if self._storage is None:
-            self._storage = Storage("general", "meta")
-        return self._storage
 
     def verify_mversion(self):
         # Return True if mversion is not change.
@@ -133,121 +238,44 @@ class Metadata(object):
         self.shm.write(chr((ord(self.shm.read(1, 1)) + 1) % 256), 1)
 
     @property
-    def plate_correction(self):
-        if self.storage.exists("adjust"):
-            with self.storage.open("adjust", "r") as f:
-                try:
-                    vals = tuple((float(v) for v in f.read().split(" ")))
-                    return dict(zip("XYZABCIJKRDH", vals))
-                except Exception:
-                    # Ignore error and return default
-                    pass
-
-        return {"X": 0, "Y": 0, "Z": 0, "A": 0, "B": 0, "C": 0,
-                "I": 0, "J": 0, "K": 0, "R": 96.70, "D": 190, "H": 240}
-
-    @plate_correction.setter
-    def plate_correction(self, val):
-        v = self.plate_correction
-        v.update(val)
-
-        vals = tuple((v[k] for k in "XYZABCIJKRDH"))
-        with self.storage.open("adjust", "w") as f:
-            f.write(" ".join("%.4f" % i for i in vals))
-
-    @property
-    def backlash(self):
-        if self.storage.exists("backlash"):
-            with self.storage.open("backlash", "r") as f:
-                try:
-                    vals = tuple((float(v) for v in f.read().split(" ")))
-                    return dict(zip("ABC", vals))
-                except Exception:
-                    # Ignore error and return default
-                    pass
-
-        return {"A": 10, "B": 10, "C": 10}
-
-    @backlash.setter
-    def backlash(self, val):
-        v = self.backlash
-        v.update(val)
-
-        vals = tuple((v[k] for k in "ABC"))
-        with self.storage.open("backlash", "w") as f:
-            f.write(" ".join("%.4f" % i for i in vals))
-
-    @property
     def nickname(self):
-        if ord(self.shm.read(1, 0)) & 128 == 128:
-            nickname = self.shm.read(256, 128)
-            return nickname.rstrip('\x00')
-
+        size = ord(self.shm.read(1, 128))
+        if size == 0:
+            nickname = self.pref.nickname
+            self.shm.write(struct.pack("B255s", len(nickname), nickname), 128)
         else:
-            if self.storage.exists("nickname"):
-                with self.storage.open("nickname", "rb") as f:
-                    nickname = f.read()
-                self._cache_nickname(nickname)
-            else:
-                nickname = ("Flux 3D Printer (%s)" %
-                            choice(NICKNAMES)).encode()
-                self.nickname = nickname
-
-            return nickname
+            nickname = self.shm.read(size, 129)
+        return nickname
 
     @nickname.setter
     def nickname(self, val):
-        with self.storage.open("nickname", "wb") as f:
-            if isinstance(val, unicode):
-                val = val.encode("utf8")
-            else:
-                try:
-                    val.decode("utf8")
-                except UnicodeDecodeError:
-                    raise RuntimeError(BAD_PARAMS)
-
-            if len(val) > 128:
-                raise RuntimeError(BAD_PARAMS)
-
-            f.write(val)
-        self._cache_nickname(val)
+        self.pref.nickname = val
+        val = self.pref.nickname
+        self.shm.write(struct.pack("B255s", len(val), val), 128)
         self._add_mversion()
 
     @property
     def broadcast(self):
-        return self.storage["broadcast"]
+        return self.pref.broadcast
 
     @broadcast.setter
     def broadcast(self, val):
-        self.storage["broadcast"] = val
+        self.pref.broadcast = val
         self._add_mversion()
 
     @property
     def enable_cloud(self):
-        return self.storage["enable_cloud"]
+        return self.pref.enable_cloud
 
     @enable_cloud.setter
     def enable_cloud(self, val):
-        self.storage["enable_cloud"] = val
+        self.pref.enable_cloud = val
         self._add_mversion()
 
     @enable_cloud.deleter
     def enable_cloud(self):
-        del self.storage["enable_cloud"]
+        del self.pref.enable_cloud
         self._add_mversion()
-
-    @property
-    def shared_der_rsakey(self):
-        buf = self.shm.read(1024, 1024)
-        bit, ts, l = struct.unpack("<BfH", buf[:7])
-        if bit != 128:
-            raise RuntimeError("RSA Key not ready")
-        return buf[7:l + 7]
-
-    @shared_der_rsakey.setter
-    def shared_der_rsakey(self, val):
-        h = struct.pack("<BfH", 128, time(), len(val))
-        self.shm.write(h + val, 1024)
 
     @property
     def cloud_status(self):
@@ -273,27 +301,6 @@ class Metadata(object):
     def cloud_hash(self, val):
         self.shm.write(val[:32], 2176)
 
-    def _cache_nickname(self, val):
-        self.shm.write(val, 128)
-        l = len(val)
-        self.shm.write(b'\x00' * (256 - l), 128 + l)
-        flag = chr(ord(self.shm.read(1, 0)) | 128)
-        self.shm.write(flag, 0)
-
-    @property
-    def play_bufsize(self):
-        try:
-            with self.storage.open("play_bufsize", "r") as f:
-                val = int(f.read())
-                return val if val >= 1 else 1
-        except Exception:
-            return 2
-
-    @play_bufsize.setter
-    def play_bufsize(self, val):
-        with self.storage.open("play_bufsize", "w") as f:
-            return f.write(str(val))
-
     @property
     def wifi_status(self):
         return ord(self.shm.read(1, 3072))
@@ -301,6 +308,19 @@ class Metadata(object):
     @wifi_status.setter
     def wifi_status(self, val):
         self.shm.write(chr(val), 3072)
+
+    @property
+    def shared_der_rsakey(self):
+        buf = self.shm.read(1024, 1024)
+        bit, ts, l = struct.unpack("<BfH", buf[:7])
+        if bit != 128:
+            raise RuntimeError("RSA Key not ready")
+        return buf[7:l + 7]
+
+    @shared_der_rsakey.setter
+    def shared_der_rsakey(self, val):
+        h = struct.pack("<BfH", 128, time(), len(val))
+        self.shm.write(h + val, 1024)
 
     @property
     def device_status(self):

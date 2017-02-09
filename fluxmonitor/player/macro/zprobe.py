@@ -4,7 +4,7 @@ import logging
 
 from fluxmonitor.err_codes import HARDWARE_ERROR, EXEC_CONVERGENCE_FAILED, \
     EXEC_ZPROBE_ERROR
-from fluxmonitor.storage import Metadata
+from fluxmonitor.storage import Preference
 from .base import MacroBase
 
 logger = logging.getLogger(__name__)
@@ -16,7 +16,7 @@ class ZprobeMacro(MacroBase):
     def __init__(self, on_success_cb, ttl=5, threshold=0.05, clean=True):
         self._on_success_cb = on_success_cb
         self._running = False
-        self.meta = Metadata()
+        self.pref = Preference.instance()
         self.threshold = threshold
         self.history = []
         self.ttl = ttl
@@ -31,7 +31,7 @@ class ZprobeMacro(MacroBase):
     def start(self, k):
         self._running = True
         if self.clean:
-            self.meta.plate_correction = {"H": 242}
+            self.pref.plate_correction = {"H": 242}
             k.mainboard.send_cmd("M666H242")
         k.mainboard.send_cmd("G30X0Y0")
 
@@ -56,12 +56,12 @@ class ZprobeMacro(MacroBase):
             data = self.data
             self.history.append(data)
 
-            new_h = self.meta.plate_correction["H"] - data
+            new_h = self.pref.plate_correction["H"] - data
 
             if new_h > 244:
                 logger.error("Correction input failed: %s", data)
             else:
-                self.meta.plate_correction = {"H": new_h}
+                self.pref.plate_correction = {"H": new_h}
                 corr_cmd = "M666H%.4f" % new_h
                 k.mainboard.send_cmd(corr_cmd)
                 logger.debug("Corr H: %s", corr_cmd)

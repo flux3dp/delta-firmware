@@ -16,7 +16,7 @@ from fluxmonitor.err_codes import (EXEC_HEAD_ERROR,
                                    SUBSYSTEM_ERROR,
                                    TOO_LARGE,
                                    UNKNOWN_COMMAND)
-from fluxmonitor.storage import metadata
+from fluxmonitor.storage import Preference, metadata
 from fluxmonitor.player import macro
 from fluxmonitor.hal import tools
 
@@ -365,7 +365,7 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
                 logger.error("H ERROR: %f" % h)
                 raise ValueError("INPUT_FAILED")
 
-            metadata.plate_correction = {"H": h}
+            Preference.instance().plate_correction = {"H": h}
             self.mainboard.send_cmd("M666H%.4f" % h, self)
             handler.send_text("continue")
             handler.send_text("ok 0")

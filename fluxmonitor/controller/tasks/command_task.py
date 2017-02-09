@@ -19,7 +19,7 @@ from fluxmonitor.err_codes import (UNKNOWN_COMMAND, NOT_EXIST, TOO_LARGE,
                                    HARDWARE_FAILURE)
 from fluxmonitor.diagnosis.god_mode import allow_god_mode
 from fluxmonitor.hal.misc import get_deviceinfo
-from fluxmonitor.storage import Storage, UserSpace, metadata
+from fluxmonitor.storage import Storage, UserSpace, Preference, metadata
 from fluxmonitor.misc import mimetypes
 
 from .base import CommandMixIn
@@ -440,7 +440,7 @@ class ConfigMixIn(object):
                             d[k] = v
                     except ValueError:
                         pass
-            metadata.backlash = d
+            Preference.instance().backlash = d
 
         elif key == "leveling":
             d = {}
@@ -455,9 +455,7 @@ class ConfigMixIn(object):
                             d[k] = v
                     except ValueError:
                         pass
-            metadata.plate_correction = d
-        elif key == "nickname":
-            metadata.nickname = val
+            Preference.instance().plate_correction = d
         else:
             raise RuntimeError(BAD_PARAMS)
 
@@ -471,13 +469,12 @@ class ConfigMixIn(object):
                 return storage[struct["key"]]
         elif key == "backlash":
             return " ".join("%s:%.4f" % (k, v)
-                            for k, v in metadata.backlash.items())
+                            for k, v in Preference.instance().backlash.items())
         elif key == "leveling":
-            return " ".join("%s:%.4f" % (k, v)
-                            for k, v in metadata.plate_correction.items()
-                            if k in "XYZH")
-        elif key == "nickname":
-            return metadata.nickname
+            return " ".join(
+                "%s:%.4f" % (k, v)
+                for k, v in Preference.instance().plate_correction.items()
+                if k in "XYZH")
         else:
             raise RuntimeError(BAD_PARAMS)
 
