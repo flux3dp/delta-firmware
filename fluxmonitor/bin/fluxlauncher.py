@@ -171,9 +171,9 @@ def init_rapi():
         fxlauncher = resource_string("fluxmonitor", "data/rapi/fxlauncher.pysource")  # noqa
         with open("/usr/bin/fxlauncher.py", "w") as f:
             f.write(fxlauncher)
-        open("/var/db/fluxmonitord/boot_ver", "w").write("2")
+        open("/var/db/fluxmonitord/boot_ver", "w").write("3")
         os.system("udevadm control --reload")
-        os.systen("sync")
+        os.system("sync")
 
 
 def check_running(pidfile):
