@@ -28,7 +28,6 @@ logger = logging.getLogger(__name__)
 
 
 class MaintainTask(DeviceOperationMixIn, CommandMixIn):
-    __toolhead_delayoff_flag = False
     st_id = -1
     mainboard = None
     toolhead = None
@@ -37,7 +36,6 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
     def __init__(self, stack, handler):
         super(MaintainTask, self).__init__(stack, handler)
 
-        self._ready = 0
         self.busying = False
 
         self._macro = None
@@ -45,7 +43,7 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
         self._on_macro_running = None
 
         def on_mainboard_ready(_):
-            self._ready |= 1
+            self.busying = False
             handler.send_text("ok")
 
         def on_mainboard_empty(sender):
@@ -61,20 +59,14 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
                 self._macro.on_ctrl_message(self, data)
 
         self.mainboard = MainController(
-            self._uart_mb.fileno(), bufsize=14,
+            self._sock_mb.fileno(), bufsize=14,
             empty_callback=on_mainboard_empty,
             sendable_callback=on_mainboard_sendable,
             ctrl_callback=on_mainboard_ctrl)
-        self.toolhead = HeadController(self._uart_hb.fileno())
+        self.toolhead = HeadController(self._sock_th.fileno())
 
         self.mainboard.bootstrap(on_mainboard_ready)
         self.toolhead.bootstrap(self.on_toolhead_ready)
-
-        self.timer_watcher = stack.loop.timer(1, 1, self.on_timer)
-        self.timer_watcher.start()
-
-    def deplay_toolhead_off(self):
-        return self.__toolhead_delayoff_flag
 
     def on_toolhead_ready(self, sender):
         if sender.module_name and sender.module_name != "N/A":
@@ -443,13 +435,13 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
                 self.on_macro_error(e)
 
         except SystemError:
-            if self._ready:
+            if self.busying:
+                self.handler.send_text("error %s" % SUBSYSTEM_ERROR)
+                self.stack.exit_task(self)
+            else:
                 logger.exception("Mainboard dead during maintain")
                 self.handler.send_text("error %s" % SUBSYSTEM_ERROR)
                 self.handler.close()
-            else:
-                self.handler.send_text("error %s" % SUBSYSTEM_ERROR)
-                self.stack.exit_task(self)
 
         except IOError:
             logger.warn("Socket IO Error")
@@ -460,15 +452,6 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
             self.handler.close()
 
     def clean(self):
-        if self.timer_watcher:
-            self.timer_watcher.stop()
-            self.timer_watcher = None
-
-        try:
-            tools.toolhead_standby()
-        except Exception:
-            logger.exception("HAL control error while quit")
-
         try:
             if self.mainboard:
                 self.mainboard.send_cmd("@HOME_BUTTON_TRIGGER\n", raw=1)
@@ -480,17 +463,22 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
         try:
             if self.toolhead:
                 if self.toolhead.ready:
-                    # #> Check should toolhead power deplayoff
+                    # > Check should toolhead power deplayoff
                     if self.toolhead.module_name == "EXTRUDER":
                         for t in self.toolhead.status.get("rt", ()):
                             if t > 60:
-                                self.__toolhead_delayoff_flag = True
+                                logger.debug("Set toolhead delay off")
+                                metadata.delay_toolhead_poweroff = b"\x01"
                                 break
-                    # #@
-
+                    # ^
                     self.toolhead.shutdown()
                 self.toolhead = None
         except Exception:
             logger.exception("Toolhead error while quit")
+
+        try:
+            tools.toolhead_standby()
+        except Exception:
+            logger.exception("HAL control error while quit")
 
         metadata.update_device_status(0, 0, "N/A", "")

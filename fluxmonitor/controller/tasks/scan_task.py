@@ -176,34 +176,12 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
                 self._macro.on_ctrl_message(self, data)
 
         self.mainboard = MainController(
-            self._uart_mb.fileno(), bufsize=14,
+            self._sock_mb.fileno(), bufsize=14,
             empty_callback=on_mainboard_empty,
             sendable_callback=on_mainboard_sendable,
             ctrl_callback=on_mainboard_ctrl)
         self.mainboard.bootstrap(on_mainboard_ready)
-
-        self.timer_watcher = stack.loop.timer(1, 1, self.on_timer)
-        self.timer_watcher.start()
         self.busying = True
-
-    def clean(self):
-        if self.timer_watcher:
-            self.timer_watcher.stop()
-            self.timer_watcher = None
-
-        try:
-            if self.mainboard:
-                if self.mainboard.ready:
-                    self.mainboard.send_cmd("X1E0")
-                self.mainboard.close()
-                self.mainboard = None
-        except Exception:
-            logger.exception("Mainboard error while quit")
-
-        if self.camera:
-            self.camera.close()
-            self.camera = None
-        metadata.update_device_status(0, 0, "N/A", "")
 
     def make_gcode_cmd(self, cmd, callback=None):
         def cb():
@@ -214,7 +192,7 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
         self._macro.start(self)
 
         while self._macro:
-            rl = select((self._uart_mb, ), (), (), 1.0)[0]
+            rl = select((self._sock_mb, ), (), (), 1.0)[0]
             if rl:
                 self.on_mainboard_message(self._mb_watcher, 0)
 
@@ -289,7 +267,7 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
 
         if not callback:
             while self._macro:
-                rl = select((self._uart_mb, ), (), (), 1.0)[0]
+                rl = select((self._sock_mb, ), (), (), 1.0)[0]
                 if rl:
                     self.on_mainboard_message(self._mb_watcher, 0)
 
@@ -493,4 +471,21 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
             logger.exception("Unhandle Error")
 
     def on_timer(self, watcher, revent):
-        metadata.update_device_status(self.st_id, 0, "N/A", "")
+        metadata.update_device_status(self.st_id, 0, "N/A",
+                                      self.handler.address)
+
+    def clean(self):
+        try:
+            if self.mainboard:
+                if self.mainboard.ready:
+                    self.mainboard.send_cmd("X1E0")
+                self.mainboard.close()
+                self.mainboard = None
+        except Exception:
+            logger.exception("Mainboard error while quit")
+
+        if self.camera:
+            self.camera.close()
+            self.camera = None
+
+        metadata.update_device_status(0, 0, "N/A", "")

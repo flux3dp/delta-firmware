@@ -8,6 +8,7 @@ from fluxmonitor.err_codes import (UNKNOWN_ERROR, EXEC_BAD_COMMAND,
                                    SUBSYSTEM_ERROR)
 from fluxmonitor.hal.tools import (toolhead_on, toolhead_standby,
                                    toolhead_power_on, toolhead_power_off)
+from fluxmonitor.storage import Metadata
 
 from .base import BaseExecutor
 from .base import (ST_STARTING, ST_RUNNING, ST_RUNNING_PAUSED, ST_COMPLETED,
@@ -229,9 +230,10 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
 
             logger.debug("Set toolhead mode: standby")
             self._set_toolhead_standby()
-        elif self.status_id & 192:
-            logger.debug("Set toolhead mode: standby at COMPLETED/ABORTED")
-            self._set_toolhead_standby()
+        # elif self.status_id & 192:
+        #     logger.debug("Set toolhead mode: standby at COMPLETED/ABORTED")
+        #     self._set_toolhead_standby()
+        #     self.close()
         else:
             logger.error("Unknown action for status %i in toolhead_paused. ",
                          self.status_id)
@@ -638,14 +640,25 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
         except Exception:
             logger.exception("Mainboard close error")
 
-        if self.toolhead.ready and self.toolhead.module_name == "EXTRUDER":
-            # DIRTY_FIX: Cool toolhead
-            self.toolhead.standby(self._toolhead_paused)
+        if self.toolhead.ready:
+            self.toolhead.standby(lambda *args: self.close())
+            self._set_toolhead_standby()
+            try:
+                if self.toolhead.module_name == "EXTRUDER" and \
+                   self.toolhead.status.get("rt", ())[0] > 70:
+                    Metadata.instance().delay_toolhead_poweroff = b"\x01"
+            except Exception:
+                logger.exception("Toolhead close verify error")
         else:
             self.close()
 
     def close(self):
-        logger.debug("Closed")
-        self.closed = True
-        self._mbsock.close()
-        self._thsock.close()
+        if self.closed is not True:
+            self.closed = True
+            logger.debug("Closed")
+            if self.toolhead.ready and self.toolhead.module_name == "EXTRUDER":
+                from fluxmonitor.storage import metadata
+                metadata.delay_toolhead_poweroff = b"\x01"
+
+            self._mbsock.close()
+            self._thsock.close()

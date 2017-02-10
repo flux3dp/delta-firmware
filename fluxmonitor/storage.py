@@ -199,6 +199,14 @@ class Metadata(object):
     shm = None
     _mversion = 0
 
+    _instance = None
+
+    @classmethod
+    def instance(cls):
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
+
     def __init__(self):
         # Memory struct
         # 0: Control flags...
@@ -253,6 +261,14 @@ class Metadata(object):
         val = self.pref.nickname
         self.shm.write(struct.pack("B255s", len(val), val), 128)
         self._add_mversion()
+
+    @property
+    def delay_toolhead_poweroff(self):
+        return self.shm.read(1, 2)
+
+    @delay_toolhead_poweroff.setter
+    def delay_toolhead_poweroff(self, val):
+        self.shm.write(val[:1], 2)
 
     @property
     def broadcast(self):

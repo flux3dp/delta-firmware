@@ -230,10 +230,8 @@ class IControlTask(DeviceOperationMixIn):
     head_ctrl = None  # Headboard Controller
     head_resp_stack = None  # Toolhead raw rasponse stack
 
-    def __init__(self, stack, handler, enable_watcher=True, mb_sock=None,
-                 th_sock=None):
-        super(IControlTask, self).__init__(stack, handler, enable_watcher,
-                                           mb_sock, th_sock)
+    def __init__(self, stack, handler):
+        super(IControlTask, self).__init__(stack, handler)
         self.handler = proxy(handler)
         self.handler.binary_mode = True
         self.cmd_queue = deque()
@@ -249,17 +247,15 @@ class IControlTask(DeviceOperationMixIn):
             handler.send_text("ok")
 
         self.mainboard = MainController(
-            self._uart_mb.fileno(), bufsize=14,
+            self._sock_mb.fileno(), bufsize=14,
             empty_callback=self.on_mainboard_empty,
             sendable_callback=self.on_mainboard_sendable,
             ctrl_callback=self.on_mainboard_result)
         self.toolhead = HeadController(
-            self._uart_hb.fileno(),
+            self._sock_th.fileno(),
             msg_callback=self.toolhead_message_callback)
 
         self.unpacker = Unpacker()
-        self.timer_watcher = stack.loop.timer(0.85, 0.85, self.on_timer)
-        self.timer_watcher.start()
 
     def on_toolhead_ready(self, ctrl):
         self._ready |= 2
@@ -462,10 +458,6 @@ class IControlTask(DeviceOperationMixIn):
 
     def clean(self):
         self.send_mainboard("@HOME_BUTTON_TRIGGER\n")
-
-        if self.timer_watcher:
-            self.timer_watcher.stop()
-            self.timer_watcher = None
 
         if self.toolhead:
             if self.toolhead.ready:

@@ -27,7 +27,7 @@ class UartHal(UartHalBase, BaseOnSerial):
 
     def __init__(self, kernel):
         super(UartHal, self).__init__(kernel)
-        self.meta = Metadata()
+        self.meta = Metadata.instance()
         GPIOUtils.setup()
 
     def start(self):

@@ -8,8 +8,9 @@ import os
 
 import pyev
 
-from fluxmonitor.storage import UserSpace, metadata
 from fluxmonitor.services.base import ServiceBase
+from fluxmonitor.storage import UserSpace, metadata
+from fluxmonitor.hal import tools
 
 from .fcode_executor import FcodeExecutor
 from .connection import create_mainboard_socket, create_toolhead_socket
@@ -37,6 +38,7 @@ class Player(ServiceBase):
         except Exception:
             logger.error("Can not renice process to -5")
 
+        tools.toolhead_power_off()
         self.prepare_control_socket(options.control_endpoint)
 
         m_sock = create_mainboard_socket()
@@ -133,6 +135,7 @@ class Player(ServiceBase):
         pass
 
     def on_shutdown(self):
+        self.executor.close()
         self.cmd_watcher.stop()
         self.cmd_watcher.data.close()
         self.cmd_watcher = None
