@@ -32,6 +32,7 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
     mainboard = None
     toolhead = None
     busying = False
+    toolhead_updating = False
 
     def __init__(self, stack, handler):
         super(MaintainTask, self).__init__(stack, handler)
@@ -400,7 +401,7 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
     def update_toolhead_fw(self, handler, mimetype, sfilesize):
         def ret_callback(success):
             logger.debug("Toolhead update retuen: %s", success)
-            self.timer_watcher.start()
+            self.toolhead_updating = False
 
         filesize = int(sfilesize)
         if filesize > (1024 * 256):
@@ -409,11 +410,14 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
         t = UpdateHbFwTask(self.stack, handler, filesize)
         self.stack.enter_task(t, ret_callback)
         handler.send_text("continue")
-        self.timer_watcher.stop()
+        self.toolhead_updating = True
 
     def on_timer(self, watcher, revent):
         metadata.update_device_status(self.st_id, 0, "N/A",
                                       self.handler.address)
+
+        if self.toolhead_updating:
+            return
 
         try:
             self.mainboard.patrol()
