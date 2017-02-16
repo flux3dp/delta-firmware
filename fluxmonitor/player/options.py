@@ -1,5 +1,5 @@
 
-from fluxmonitor.storage import Storage, metadata
+from fluxmonitor.storage import Storage, Preference
 from fluxmonitor.config import DEVICE_POSITION_LIMIT
 
 __all__ = ["Options"]
@@ -53,7 +53,7 @@ class Options(object):
         if not c:
             c = task_metadata.get("BACKLASH", "N")
         if c == "Y":
-            self.backlash_config = metadata.backlash
+            self.backlash_config = Preference.instance().backlash
         else:
             self.backlash_config = {"A": 0, "B": 0, "C": 0}
 

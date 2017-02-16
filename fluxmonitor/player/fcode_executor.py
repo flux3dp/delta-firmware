@@ -530,17 +530,19 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
             self.mainboard.handle_recv()
         except IOError:
             self.abort(SystemError(SUBSYSTEM_ERROR, "MAINBAORD_ERROR"))
+            logger.exception("Mainboard recv error")
         except RuntimeError as er:
-            if not self.pause(er):
-                logger.warn("Error occour: %s" % repr(er.args))
+            logger.warn("Mainboard recv error: %s" % repr(er.args))
+            self.pause(er)
         except SystemError as err:
             self.abort(err)
+            logger.exception("Mainboard recv error")
         except Exception as err:
-            logger.exception("Error while processing mainboard message")
+            logger.exception("Mainboard recv error")
             if allow_god_mode():
                 self.abort(err)
             else:
-                self.abort(RuntimeError(UNKNOWN_ERROR, "MAINBAORD_ERROR"))
+                self.abort(SystemError(UNKNOWN_ERROR, "MAINBAORD_ERROR"))
             raise
 
     def on_toolhead_recv(self):
@@ -556,8 +558,10 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
                 check_toolhead_errno(self.toolhead, self.th_error_flag)
         except IOError:
             self.abort(SystemError(SUBSYSTEM_ERROR, "TOOLHEAD_ERROR"))
+            logger.exception("Toolhead recv error")
 
         except RuntimeError as er:
+            logger.warn("Toolhead recv error: %s" % repr(er.args))
             if self.status_id & 192:
                 logger.warning("Toolhead error in completed/aborted: %s, "
                                "close directly", er)
@@ -571,14 +575,14 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
             if er.args[:2] == ('HEAD_ERROR', 'HARDWARE_FAILURE'):
                 self.toolhead.reset()
 
-            if not self.pause(er):
-                logger.warn("Error occour: %s" % repr(er.args))
+            self.pause(er)
 
         except SystemError as er:
             self.abort(er)
+            logger.exception("Toolhead recv error")
 
         except Exception as er:
-            logger.exception("Error while processing headboard message")
+            logger.exception("Toolhead recv error")
             if allow_god_mode():
                 self.abort(er)
             else:

@@ -43,7 +43,7 @@ class RawTask(DeviceOperationMixIn):
                 if self.handler.interface == "TCP":
                     self.handler.send(buf)
                 else:
-                    self.handler.send_text(buf)
+                    self.handler.send_binary(buf)
             else:
                 self.on_dead("DISCONNECTED")
         except Exception as e:
@@ -57,11 +57,11 @@ class RawTask(DeviceOperationMixIn):
             buf = buf.tobytes()
 
         if buf.startswith(b"+"):
-            self._uart_mb.send(buf[1:])
+            self._sock_mb.send(buf[1:])
         elif buf.startswith(b"-"):
-            self._uart_hb.send(buf[1:])
+            self._sock_th.send(buf[1:])
         elif buf.startswith(b"1 "):
-            self._uart_hb.send(buf)
+            self._sock_th.send(buf)
         elif buf == b"quit":
             handler.binary_mode = False
             if self.handler.interface == "TCP":
@@ -70,4 +70,4 @@ class RawTask(DeviceOperationMixIn):
             handler.send_text(b"ok")
             self.stack.exit_task(self, True)
         else:
-            self._uart_mb.send(buf)
+            self._sock_mb.send(buf)
