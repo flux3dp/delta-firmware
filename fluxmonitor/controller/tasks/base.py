@@ -37,7 +37,7 @@ class CommandMixIn(object):
 
         except IOError as e:
             logger.debug("Connection close: %s" % e)
-            self.close()
+            handler.close()
 
         except Exception as e:
             if DEBUG:
