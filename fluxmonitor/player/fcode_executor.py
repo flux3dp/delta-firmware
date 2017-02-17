@@ -310,10 +310,15 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
                     else:
                         stash_cmd += "E1"
 
-                    if self.macro:
-                        stash_cmd += "Z0"
-                    elif self._stash_option:
-                        stash_cmd += self._stash_option
+                    if self._stash_option and "Z0" in self._stash_option:
+                        stash_cmd += "S0"
+                    elif self.options.head == "EXTRUDER":
+                        if self.macro:
+                            stash_cmd += "S0"
+                        else:
+                            stash_cmd += "S2"
+                    else:
+                        stash_cmd += "S1"
 
                     logger.debug("Stash: %s", stash_cmd)
                     self.mainboard.send_cmd(stash_cmd)
