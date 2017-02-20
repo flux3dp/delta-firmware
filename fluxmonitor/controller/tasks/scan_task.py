@@ -197,7 +197,7 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
                 self.on_mainboard_message(self._mb_watcher, 0)
 
     def dispatch_cmd(self, handler, cmd, *args):
-        if self._macro:
+        if self._macro or self.busying:
             raise RuntimeError(RESOURCE_BUSY)
 
         elif cmd == "oneshot":
@@ -273,8 +273,10 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
 
     def scan_check(self, handler):
         def callback(m):
+            self.busying = False
             handler.send_text(m)
         self.camera.async_check_camera_position(callback)
+        self.busying = True
 
     def async_calibrate(self, handler):
         # this is measure by data set
@@ -288,13 +290,17 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
 
         def on_loop(output=None):
             if output:
+                self.busying = False
                 handler.send_text('ok ' + output)
 
             elif data["flag"] == 11:
+                self.busying = False
                 handler.send_text('ok fail chess')
             elif data["flag"] == 12:
+                self.busying = False
                 handler.send_text('ok fail laser {}'.format(data["flag"]))
             elif data["flag"] > 10:
+                self.busying = False
                 handler.send_text('ok fail laser {}'.format(data["flag"]))
             else:
                 data["flag"] += 1
@@ -347,6 +353,7 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
                 data["thres"] += 0.05
 
         on_loop()
+        self.busying = True
 
     def calibrate(self, handler):
         # this is measure by data set
@@ -418,6 +425,7 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
 
     def oneshot(self, handler):
         def sent_callback(h):
+            self.busying = False
             handler.send_text("ok")
 
         def recv_callback(result):
@@ -425,9 +433,11 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
             handler.async_send_binary(mimetype, length, stream, sent_callback)
 
         self.camera.async_oneshot(recv_callback)
+        self.busying = True
 
     def take_images(self, handler):
         def cb_complete(h):
+            self.busying = False
             handler.send_text("ok")
 
         def cb_shot3_ready(result):
@@ -456,14 +466,14 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
             self.camera.async_oneshot(cb_shot1_ready)
 
         self.change_laser(left=True, right=False, callback=cb_shot1)
+        self.busying = True
 
     def on_mainboard_message(self, watcher, revent):
         try:
             self.mainboard.handle_recv()
         except IOError:
-            logger.error("Mainboard connection broken")
-            if self.busying:
-                self.handler.send_text("error SUBSYSTEM_ERROR")
+            logger.exception("Mainboard connection broken")
+            self.handler.send_text("error SUBSYSTEM_ERROR")
             self.stack.exit_task(self)
         except RuntimeError:
             pass

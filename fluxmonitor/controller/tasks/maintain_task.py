@@ -78,7 +78,7 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
             self.mainboard.handle_recv()
 
         except IOError:
-            logger.error("Mainboard connection broken")
+            logger.exception("Mainboard connection broken")
             if self.busying:
                 self.handler.send_text("error SUBSYSTEM_ERROR")
             self.stack.exit_task(self)
@@ -92,7 +92,7 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
         try:
             self.toolhead.handle_recv()
         except IOError:
-            logger.error("Toolhead connection broken")
+            logger.exception("Toolhead connection broken")
             self.stack.exit_task(self)
 
         except (HeadOfflineError, HeadResetError) as e:
