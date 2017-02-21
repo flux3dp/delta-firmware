@@ -430,13 +430,13 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
             logger.info("%s", e)
             tools.toolhead_standby()
             if self._macro:
-                self.on_macro_error(e)
+                self._on_macro_error(e)
             self.toolhead.bootstrap(self.on_toolhead_ready)
 
         except RuntimeError as e:
             logger.info("%s", e)
             if self._macro:
-                self.on_macro_error(e)
+                self._on_macro_error(e)
 
         except SystemError:
             if self.busying:
