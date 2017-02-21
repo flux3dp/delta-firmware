@@ -211,6 +211,15 @@ class Player(ServiceBase):
                         self.send_cmd_response(S, R, "error RESOURCE_BUSY")
                 except (ValueError, IndexError):
                     self.send_cmd_response(S, R, "error BAD_PARAMS")
+            elif cmd == "SET_TOOLHEAD_HEATER":
+                try:
+                    if self.executor.set_toolhead_heater(int(args[1]),
+                                                         float(args[2])):
+                        self.send_cmd_response(S, R, "ok")
+                    else:
+                        self.send_cmd_response(S, R, "error RESOURCE_BUSY")
+                except (ValueError, IndexError):
+                    self.send_cmd_response(S, R, "error BAD_PARAMS")
             elif cmd == "QUIT":
                 if self.executor.status_id in (64, 128):
                     self.send_cmd_response(S, R, "ok")

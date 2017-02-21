@@ -352,6 +352,20 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
         else:
             return False
 
+    # public interface
+    def set_toolhead_heater(self, index, temp):
+        if self.status_id == 48 and self.toolhead.ready:
+         if self._fucking_toolhead_power_management_control_flag is False:  # noqa
+          if self.toolhead.ext:  # noqa
+           if hasattr(self.toolhead.ext, "set_heater"):  # noqa
+            if self.toolhead.sendable():
+                if isinstance(self.macro, ControlHeaterMacro):
+                    self.macro = ControlHeaterMacro(self.macro._on_success_cb,
+                                                    index, temp)
+                self.toolhead.ext.set_heater(index, temp)
+                return True
+        return False
+
     def interrupt_load_filament(self):
         if self.status_id == 48 and isinstance(self.paused_macro,
                                                LoadFilamentMacro):
