@@ -194,6 +194,11 @@ class PlayerManager(object):
             sock.send("UNLOAD_FILAMENT %s" % index)
             return sock.recv(4096)
 
+    def set_toolhead_header(self, index, temp):
+        with self as sock:
+            sock.send("SET_TOOLHEAD_HEATER %i %.1f" % (index, temp))
+            return sock.recv(4096)
+
     def press_button(self):
         with self as sock:
             sock.send("INTERRUPT_LOAD_FILAMENT")

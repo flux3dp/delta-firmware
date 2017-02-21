@@ -317,6 +317,14 @@ class PlayManagerMixIn(object):
             manager = self.__get_manager()
             handler.send_text(manager.unload_filament(index))
 
+    def __set_toolhead_header(self, handler, index, temp):
+        if index != "0":
+            raise RuntimeError(BAD_PARAMS)
+        else:
+            manager = self.__get_manager()
+            handler.send_text(
+                manager.set_toolhead_header(int(index), float(temp)))
+
     def __play_press_button(self, handler):
         manager = self.__get_manager()
         handler.send_text(manager.press_button())
@@ -344,6 +352,8 @@ class PlayManagerMixIn(object):
             self.__play_load_filament(handler, args[0])
         elif cmd == "unload_filament":
             self.__play_unload_filament(handler, args[0])
+        elif cmd == "set_toolhead_header":
+            self.__set_toolhead_header(handler, args[0], args[1])
         elif cmd == "press_button":
             self.__play_press_button(handler)
         elif cmd == "quit":
