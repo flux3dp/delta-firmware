@@ -16,6 +16,7 @@ from .base import (ST_STARTING, ST_RUNNING, ST_RUNNING_PAUSED, ST_COMPLETED,
 
 from ._device_fsm import PyDeviceFSM
 from .macro import (StartupMacro, WaitHeadMacro, CorrectionMacro, ZprobeMacro,
+                    RunCircleMacro,
                     ControlHeaterMacro, ControlToolheadMacro,
                     LoadFilamentMacro, UnloadFilamentMacro)
 
@@ -279,8 +280,13 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
             else:
                 self.fire()
 
-        self.macro = ControlHeaterMacro(toolhead_ready, 0, 170)
-        logging.debug("ControlHeaterMacro start.")
+        def run_circle_ready():
+            self.macro = ControlHeaterMacro(toolhead_ready, 0, 170)
+            logging.debug("ControlHeaterMacro start.")
+            self.macro.start(self)
+
+        self.macro = RunCircleMacro(run_circle_ready)
+        logging.debug("RunCircleMacro start.")
         self.macro.start(self)
 
     def _handle_pause(self):
