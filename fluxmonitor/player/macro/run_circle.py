@@ -33,7 +33,6 @@ class RunCircleMacro(MacroBase):
                     self.r = pi2
                     self.dir = 1
                 elif self.dir == 1:
-                    k.mainboard.send_cmd("G1 X0 Y0")
                     self.dir = 2
 
     def start(self, k):
@@ -42,6 +41,8 @@ class RunCircleMacro(MacroBase):
 
     def on_command_empty(self, k):
         if self.dir == 2:
+            k.mainboard.send_cmd("G1 X0 Y0")
+            k.mainboard.send_cmd("G1 Z50")
             self._on_success_cb()
         else:
             self.feed(k)

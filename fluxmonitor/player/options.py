@@ -104,5 +104,13 @@ class Options(object):
         self.max_y = min(self.max_y, DEVICE_POSITION_LIMIT[1])
         self.max_z = min(self.max_z, DEVICE_POSITION_LIMIT[2])
 
+        try:
+            self.zoffset = float(storage["zoffset"])
+        except Exception:
+            self.zoffset = 0
+
+        self.zprobe_dist = ({"XL": 120, "L": 180, "M": 210}).get(
+            storage["zprobe_dist"], 242)
+
     def __parse_int_from_meta__(self, key, default):
         pass

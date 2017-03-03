@@ -1,4 +1,5 @@
 
+from fluxmonitor.storage import Preference
 from .base import MacroBase
 
 
@@ -10,13 +11,20 @@ class StartupMacro(MacroBase):
 
     def __init__(self, on_success_cb, options=None):
         self._on_success_cb = on_success_cb
+        self.corr = Preference.instance().plate_correction
 
         if options:
+            if options.correction in ("A", "H"):
+                if options.zprobe_dist:
+                    self.corr["H"] = options.zprobe_dist
             self.filament_detect = options.filament_detect == "Y"
             self.backlash_config = options.backlash_config
             self.plus_extrusion = options.plus_extrusion
 
     def start(self, k):
+        # Apply M666
+        k.mainboard.send_cmd(
+            "M666X%(X).4fY%(Y).4fZ%(Z).4fH%(H).4f" % self.corr)
         # Select extruder 0
         k.mainboard.send_cmd("T0")
         # Absolute Positioning

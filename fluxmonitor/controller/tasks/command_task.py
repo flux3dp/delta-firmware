@@ -381,6 +381,14 @@ class ConfigMixIn(object):
         "enable_cloud": {
             "type": str, "enum": ("A", "N"),
             "key": "enable_cloud"},
+        "zoffset": {
+            "type": float, "min": -1.0, "max": 1.0,
+            "key": "zoffset"
+        },
+        "zprobe_dist": {
+            "type": str, "enum": ("D", "M", "L", "XL"),
+            "key": "zprobe_dist"
+        },
         "replay": {
             "type": str, "enum": ("Y", "N"),
             "key": "replay"},

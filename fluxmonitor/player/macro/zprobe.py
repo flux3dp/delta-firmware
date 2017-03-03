@@ -13,11 +13,14 @@ logger = logging.getLogger(__name__)
 class ZprobeMacro(MacroBase):
     name = "CORRECTING"
 
-    def __init__(self, on_success_cb, ttl=5, threshold=0.05, clean=True):
+    def __init__(self, on_success_cb, ttl=5, threshold=0.05, clean=True,
+                 zoffset=0, dist=242):
         self._on_success_cb = on_success_cb
         self._running = False
         self.pref = Preference.instance()
         self.threshold = threshold
+        self.zoffset = zoffset
+        self.zdist = dist
         self.history = []
         self.ttl = ttl
         self.data = None
@@ -31,8 +34,8 @@ class ZprobeMacro(MacroBase):
     def start(self, k):
         self._running = True
         if self.clean:
-            self.pref.plate_correction = {"H": 242}
-            k.mainboard.send_cmd("M666H242")
+            self.pref.plate_correction = {"H": self.zdist}
+            k.mainboard.send_cmd("M666H%.1f" % self.zdist)
         k.mainboard.send_cmd("G30X0Y0")
 
     def giveup(self, k):
@@ -67,6 +70,11 @@ class ZprobeMacro(MacroBase):
                 logger.debug("Corr H: %s", corr_cmd)
 
             if abs(data) < self.threshold:
+                if self.zoffset:
+                    new_h = self.pref.plate_correction["H"] - self.zoffset
+                    k.mainboard.send_cmd(corr_cmd)
+                    logger.debug("Apply z-offset: %f", self.zoffset)
+
                 self.convergence = True
                 k.mainboard.send_cmd("G1F6000Z50")
                 return

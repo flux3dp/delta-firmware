@@ -263,7 +263,9 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
     def do_correction(self):
         def correction_ready():
             logging.debug("ZprobeMacro start.")
-            self.macro = ZprobeMacro(self._clear_macro, clean=True)
+            self.macro = ZprobeMacro(self._clear_macro, clean=True,
+                                     zoffset=self.options.zoffset,
+                                     dist=self.options.zprobe_dist)
             self.macro.start(self)
 
         def toolhead_ready():
@@ -271,11 +273,14 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
             logging.debug("ControlHeaterMacro completed.")
             if self.options.correction == "A":
                 logging.debug("CorrectionMacro start.")
-                self.macro = CorrectionMacro(correction_ready)
+                self.macro = CorrectionMacro(correction_ready,
+                                             dist=self.options.zprobe_dist)
                 self.macro.start(self)
             elif self.options.correction == "H":
                 logging.debug("ZprobeMacro start.")
-                self.macro = ZprobeMacro(self._clear_macro)
+                self.macro = ZprobeMacro(self._clear_macro,
+                                         zoffset=self.options.zoffset,
+                                         dist=self.options.zprobe_dist)
                 self.macro.start(self)
             else:
                 self.fire()

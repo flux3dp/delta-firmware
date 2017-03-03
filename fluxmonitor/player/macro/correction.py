@@ -26,12 +26,13 @@ class CorrectionMacro(MacroBase):
     name = "CORRECTING"
 
     def __init__(self, on_success_cb, clean=False, ttl=6, threshold=0.05,
-                 correct_at_final=False):
+                 dist=242, correct_at_final=False):
         self._on_success_cb = on_success_cb
         self._clean = clean
         self._running = False
         self.correct_at_final = correct_at_final
         self.threshold = threshold
+        self.zdist = dist
         self.pref = Preference.instance()
         self.history = []
         self.data = []
@@ -46,10 +47,11 @@ class CorrectionMacro(MacroBase):
         self._running = True
         self.round = 0
         if self._clean:
-            self.pref.plate_correction = {"X": 0, "Y": 0, "Z": 0, "H": 242}
-            k.mainboard.send_cmd("M666X0Y0Z0H242")
+            self.pref.plate_correction = {"X": 0, "Y": 0, "Z": 0,
+                                          "H": self.zdist}
+            k.mainboard.send_cmd("M666X0Y0Z0H%.1f" % self.zdist)
         else:
-            k.mainboard.send_cmd("M666H242")
+            k.mainboard.send_cmd("M666H%.1f" % self.zdist)
 
     def giveup(self, k):
         if self._running:
