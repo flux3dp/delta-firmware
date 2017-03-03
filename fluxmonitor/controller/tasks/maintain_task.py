@@ -77,7 +77,12 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
         try:
             self.mainboard.handle_recv()
 
-        except IOError:
+        except IOError as e:
+            from errno import EAGAIN
+            if e.errno == EAGAIN:
+                # TODO: There is a recv bug in C code, this is a quit fix to
+                # passthrough it.
+                return
             logger.exception("Mainboard connection broken")
             if self.busying:
                 self.handler.send_text("error SUBSYSTEM_ERROR")
