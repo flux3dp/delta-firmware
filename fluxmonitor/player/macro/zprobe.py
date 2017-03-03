@@ -59,6 +59,10 @@ class ZprobeMacro(MacroBase):
             data = self.data
             self.history.append(data)
 
+            # Prevent toolhead hit plate if Z is changed intensely.
+            if data < -1.2:
+                k.mainboard.send_cmd("G1 Z1.5")
+
             new_h = self.pref.plate_correction["H"] - data
 
             if new_h > 244:
