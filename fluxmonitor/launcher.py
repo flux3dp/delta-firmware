@@ -1,5 +1,6 @@
 
 from __future__ import absolute_import
+import logging.handlers
 import logging.config
 import importlib
 import signal
@@ -32,7 +33,7 @@ def create_logger(options):
         handlers['file'] = {
             'level': log_level,
             'formatter': 'default',
-            'class': 'logging.handlers.RotatingFileHandler',
+            'class': 'fluxmonitor.diagnosis.log_helpers.RotatingFileHandler',
             'filename': options.logfile,
             'maxBytes': 5 * (2 ** 20),  # 10M
             'backupCount': 9
