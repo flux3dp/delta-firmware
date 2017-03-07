@@ -191,11 +191,6 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
         self._macro = macro.CommandMacro(cb, (cmd, ))
         self._macro.start(self)
 
-        while self._macro:
-            rl = select((self._sock_mb, ), (), (), 1.0)[0]
-            if rl:
-                self.on_mainboard_message(self._mb_watcher, 0)
-
     def dispatch_cmd(self, handler, cmd, *args):
         if self._macro or self.busying:
             raise RuntimeError(RESOURCE_BUSY)
@@ -269,7 +264,7 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
             while self._macro:
                 rl = select((self._sock_mb, ), (), (), 1.0)[0]
                 if rl:
-                    self.on_mainboard_message(self._mb_watcher, 0)
+                    self.on_mainboard_message(self._watcher_mb, 0)
 
     def scan_check(self, handler):
         def callback(m):
@@ -354,67 +349,6 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
 
         on_loop()
         self.busying = True
-
-    def calibrate(self, handler):
-        # this is measure by data set
-        table = {8: 60, 7: 51, 6: 40, 5: 32, 4: 26, 3: 19, 2: 11, 1: 6, 0: 1}
-        flag = 0
-
-        self.change_laser(left=False, right=False)
-        while True:
-            if flag > 10:
-                break
-            flag += 1
-            m = self.camera.get_bias()
-            w = float(m.split()[1])
-            logger.info('w = {}'.format(w))
-            thres = 0.2
-            if w == w:  # w is not nan
-                if abs(w) < thres:  # good enough to calibrate
-                    calibrate_parameter = []
-                    for step, l, r in [("O", False, False), ("L", True, False),
-                                       ("R", False, True)]:
-                        self.change_laser(left=l, right=r)
-                        sleep(0.5)
-                        m = self.camera.compute_cab(step)
-                        m = m.split()[1]
-                        calibrate_parameter.append(m)
-
-                    output = ' '.join(calibrate_parameter)
-                    logger.info(output)
-
-                    if 'fail' in calibrate_parameter:
-                        flag = 12
-                    elif all(abs(float(r) - float(calibrate_parameter[0])) < 72
-                             for r in calibrate_parameter[1:]):
-                        # so naive check
-                        s = Storage('camera')
-                        s['calibration'] = ' '.join(
-                            map(lambda x: str(round(float(x))),
-                                calibrate_parameter))
-                        break
-                    else:
-                        flag = 13
-                elif w < 0:
-                    self.make_gcode_cmd(
-                        "G1 F500 E{}".format(table.get(round(abs(w)), 60)))
-                elif w > 0:
-                    self.make_gcode_cmd(
-                        "G1 F500 E-{}".format(table.get(round(abs(w)), 60)))
-                table[round(abs(w))]
-                thres += 0.05
-            else:  # TODO: what about nan
-                pass
-        self.change_laser(left=False, right=False)
-
-        if flag < 10:
-            handler.send_text('ok ' + output)
-        elif flag == 11:
-            handler.send_text('ok fail chess')
-        elif flag == 12:
-            handler.send_text('ok fail laser {}'.format(flag))
-        else:
-            handler.send_text('ok fail laser {}'.format(flag))
 
     def get_cab(self, handler):
         s = Storage('camera')
