@@ -27,7 +27,6 @@ class CloudService(ServiceBase):
     config_ts = -1
     config_enable = None
     cloud_netloc = None
-    metadata = None
     storage = None
 
     _notify_up_required = False
@@ -390,18 +389,18 @@ class CloudService(ServiceBase):
 
             self._notify_retry_counter = 0
         except publishQueueDisabledException:
-            self.metadata.cloud_status = (False, ("SESSION",
-                                                  "CONNECTION_ERROR"))
+            metadata.cloud_status = (False, ("SESSION",
+                                             "CONNECTION_ERROR"))
             self._notify_retry_counter += 1
             logger.debug("publishQueueDisabledException raise in notify")
             if self._notify_retry_counter > 10:
                 self.teardown_session()
         except RuntimeError as e:
             logger.error(e)
-            self.metadata.cloud_status = (False, e.args)
+            metadata.cloud_status = (False, e.args)
         except Exception:
             logger.exception("Unhandle error")
-            self.metadata.cloud_status = (False, ("UNKNOWN_ERROR", ))
+            metadata.cloud_status = (False, ("UNKNOWN_ERROR", ))
 
     def on_shutdown(self):
         pass
