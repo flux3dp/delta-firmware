@@ -26,28 +26,31 @@ def get_cert():
         key = crypto.load_privatekey(crypto.FILETYPE_PEM, pem)
 
     try:
-        cert = crypto.load_certificate(crypto.FILETYPE_PEM, s["cert.pem"])
+        cert = crypto.load_certificate(crypto.FILETYPE_PEM, s["cert2.pem"])
     except (crypto.Error, TypeError):
-        key = crypto.load_privatekey(crypto.FILETYPE_PEM, pkey.export_pem())
+        issuersubj = crypto.X509Name(crypto.X509().get_subject())
+        issuersubj.C = "TW"
+        issuersubj.L = "Taipei"
+        issuersubj.O = "FLUX Inc."
+
         cert = crypto.X509()
         subj = cert.get_subject()
-        subj.C = subj.ST = subj.L = "XX"
-        subj.O = "FLUX3dp"
-        subj.CN = (get_uuid() + ":" + get_serial() + ":")
 
+        subj.O = "FLUX 3D Delta Printer"
+        subj.CN = (get_uuid() + ":" + get_serial() + ":")
         ext = crypto.X509Extension("nsComment", True,
                                    to_base64(get_identify()))
         cert.add_extensions((ext, ))
 
-        cert.set_serial_number(1000)
+        cert.set_serial_number(1001)
         cert.gmtime_adj_notBefore(0)
-        cert.gmtime_adj_notAfter(10 * 365 * 24 * 60 * 60)
+        cert.gmtime_adj_notAfter(60 * 365 * 24 * 60 * 60)
         cert.set_issuer(cert.get_subject())
         cert.set_pubkey(key)
-        cert.sign(key, 'sha1')
-        s["cert.pem"] = crypto.dump_certificate(crypto.FILETYPE_PEM, cert)
+        cert.sign(key, 'sha512')
+        s["cert2.pem"] = crypto.dump_certificate(crypto.FILETYPE_PEM, cert)
 
-    return s.get_path("cert.pem"), s.get_path("sslkey.pem")
+    return s.get_path("cert2.pem"), s.get_path("sslkey.pem")
 
 
 __all__ = ["get_cert", "get_uuid", "get_serial", "get_private_key",
