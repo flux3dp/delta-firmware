@@ -82,24 +82,24 @@ class BaseExecutor(Timer):
         self._mbsock = mainboard_sock
         self._thsock = toolhead_sock
         self.status_id = ST_INIT
-        logger.debug("Initialize (status=%i)", self.status_id)
+        logger.info("Initialize (status=%i)", self.status_id)
 
     def start(self):
         self.status_id = ST_STARTING
-        logger.debug("Starting (status=%i)", self.status_id)
+        logger.info("Starting (status=%i)", self.status_id)
 
     def started(self):
         if self.status_id != 4:
             raise Exception("BAD_LOGIC")
         self.status_id = 16  # status_id = ST_RUNNING
         self.start_timer()
-        logger.debug("Started (status=%i)", self.status_id)
+        logger.info("Started (status=%i)", self.status_id)
 
     def pause(self, symbol=None):
         if self.status_id & 224:
             # Completed/Aborted/Paused or goting to be
-            logger.debug("Pause rejected (error=%s, status=%i)", symbol,
-                         self.status_id)
+            logger.info("Pause rejected (error=%s, status=%i)", symbol,
+                        self.status_id)
 
             if self.error_symbol is None:
                 # Update error label only
@@ -107,8 +107,8 @@ class BaseExecutor(Timer):
             return False
 
         nst = self.status_id | ST_PAUSED | 2
-        logger.debug("Pause (error=%s, status=%i -> %i)",
-                     symbol, self.status_id, nst)
+        logger.info("Pause (error=%s, status=%i -> %i)",
+                    symbol, self.status_id, nst)
         self.status_id = nst
         self.error_symbol = symbol
         return True
@@ -120,7 +120,7 @@ class BaseExecutor(Timer):
             return
 
         nst = (self.status_id | ST_PAUSED) & ~2
-        logger.debug("Paused (status=%i -> %i)", self.status_id, nst)
+        logger.info("Paused (status=%i -> %i)", self.status_id, nst)
         self.status_id = nst
         self.pause_timer()
 
@@ -132,8 +132,7 @@ class BaseExecutor(Timer):
         elif self.status_id & 34 == 32:
             # Paused
             nst = (self.status_id & ~ST_PAUSED) | 2
-            logger.debug("Resumimg (status=%i -> %i)",
-                         self.status_id, nst)
+            logger.info("Resumimg (status=%i -> %i)", self.status_id, nst)
             self.status_id = nst
             self.error_symbol = None
             return True
@@ -148,19 +147,18 @@ class BaseExecutor(Timer):
             return
 
         nst = (self.status_id & ~ST_PAUSED) & ~2
-        logger.debug("Resumed (status=%i -> %3i)",
-                     self.status_id, nst)
+        logger.info("Resumed (status=%i -> %3i)", self.status_id, nst)
         self.status_id = nst
         self.start_timer()
 
     def abort(self, symbol=None):
         if self.status_id & 192:
             # Completed/Aborted or goting to be
-            logger.debug("Abort rejected (status=%i)", self.status_id)
+            logger.info("Abort rejected (status=%i)", self.status_id)
             return False
 
-        logger.debug("Abort (error=%s, status=%i -> %i)",
-                     symbol, self.status_id, ST_ABORTED)
+        logger.info("Abort (error=%s, status=%i -> %i)",
+                    symbol, self.status_id, ST_ABORTED)
         self.status_id = ST_ABORTED
         self.error_symbol = symbol
         self.pause_timer()
