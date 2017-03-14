@@ -11,16 +11,20 @@ logger = logging.getLogger(__name__)
 
 def device_startup():
     _try_clean_head_status()
-    mb = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    mb.settimeout(1.5)
-    try:
-        mb.connect(MAINBOARD_ENDPOINT)
-        mb.send("G28+\n")
-        mb.recv(1024)
-    except socket.timeout:
-        logger.warn("Mainboard I/O timeout")
-    except socket.error:
-        logger.warn("Connect to mainboard timeout")
+
+    for i in range(10):
+        mb = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        mb.settimeout(0.5)
+        try:
+            mb.connect(MAINBOARD_ENDPOINT)
+            mb.send("G28+\n")
+            mb.recv(1024)
+            return
+        except socket.timeout:
+            logger.warn("Mainboard I/O timeout")
+        except socket.error:
+            logger.warn("Connect to mainboard timeout")
+        sleep(0.2)
 
 
 def _try_clean_head_status():
