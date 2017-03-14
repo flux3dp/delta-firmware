@@ -228,7 +228,7 @@ class CloudService(ServiceBase):
                     # update every 90 seconds if device is idle or occupy
                     return
         elif new_st_id in (48, 64, 128):  # paused, completed, aborted
-            self.postback_status()
+            self.postback_status(new_st)
 
         c = self.aws_client.getMQTTConnection()
 
