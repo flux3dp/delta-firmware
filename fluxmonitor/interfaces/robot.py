@@ -3,8 +3,9 @@ from weakref import proxy
 import logging
 
 from fluxmonitor.controller.tasks.command_task import CommandTask
-from .listener import TcpInterface
-from .handler import OldAesServerSideHandler, CloudHandler, TextBinaryProtocol
+from .listener import TcpInterface, SSLInterface
+from .handler import (OldAesServerSideHandler, SSLServerSideHandler,
+                      CloudHandler, TextBinaryProtocol)
 
 __all__ = ["RobotTcpInterface"]
 logger = logging.getLogger(__name__)
@@ -44,6 +45,25 @@ class RobotTcpHandler(RobotProtocol, OldAesServerSideHandler):
     def on_authorized(self):
         self.stack = ServiceStack(self.kernel)
         super(RobotTcpHandler, self).on_authorized()
+        self.on_ready()  # RobotProtocol
+
+
+class RobotSSLInterface(SSLInterface):
+    def __init__(self, kernel, endpoint=("", 23811)):
+        super(RobotSSLInterface, self).__init__(kernel, endpoint)
+
+    def create_handler(self, sock, endpoint):
+        h = RobotSSLHandler(self.kernel, endpoint, sock, server_side=True,
+                            certfile=self.certfile, keyfile=self.keyfile)
+        return h
+
+
+class RobotSSLHandler(RobotProtocol, SSLServerSideHandler):
+    interface = "TCP"
+
+    def on_authorized(self):
+        self.stack = ServiceStack(self.kernel)
+        super(RobotSSLHandler, self).on_authorized()
         self.on_ready()  # RobotProtocol
 
 

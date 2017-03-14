@@ -9,7 +9,8 @@ from fluxmonitor.controller.startup import device_startup
 from fluxmonitor.interfaces.robot_internal import RobotUnixStreamInterface
 from fluxmonitor.interfaces.hal_internal import HalControlClientHandler
 from fluxmonitor.interfaces.usb2pc import USBHandler
-from fluxmonitor.interfaces.robot import RobotTcpInterface, RobotCloudHandler
+from fluxmonitor.interfaces.robot import RobotSSLInterface, RobotCloudHandler
+from fluxmonitor.interfaces.robot import RobotTcpInterface
 from fluxmonitor.services.base import ServiceBase
 from fluxmonitor.misc.systime import systime as time
 from fluxmonitor.err_codes import RESOURCE_BUSY, EXEC_OPERATION_ERROR
@@ -35,7 +36,10 @@ class Robot(ServiceBase):
         ServiceBase.__init__(self, logger, options)
 
         self.internl_interface = RobotUnixStreamInterface(self)
-        self.tcp_interface = RobotTcpInterface(self)
+        if options.debug:
+            self.tcp_interface = RobotSSLInterface(self)
+        else:
+            self.tcp_interface = RobotTcpInterface(self)
         self._hal_reset_timer = self.loop.timer(5, 0, self._connect2hal)
         self._cloud_conn = set()
 
