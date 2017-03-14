@@ -635,7 +635,7 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
                             if self.toolhead.status:
                                 if "rt" in self.toolhead.status:
                                     if self.toolhead.status["rt"]:
-                                        if self.toolhead.status["rt"][0] > 70:
+                                        if self.toolhead.status["rt"][0] > 50:
                                             return
                         if self.status_id == 48:
                             logger.debug("Ohh, the poor 5V is dead")
