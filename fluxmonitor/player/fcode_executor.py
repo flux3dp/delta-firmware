@@ -453,7 +453,8 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
                     self._task_loader.exitcode > 0:
                 raise SystemError(UNKNOWN_ERROR, SUBSYSTEM_ERROR, "TASKLOADER")
 
-            if not self._cmd_queue and self.mainboard.buffered_cmd_size == 0:
+            if not self._cmd_queue and self.mainboard.buffered_cmd_size == 0 \
+                    and self.toolhead.sendable():
                 self.on_completed()
 
         elif self.status_id == ST_RUNNING:
@@ -562,11 +563,11 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
             self.abort(SystemError(SUBSYSTEM_ERROR, "MAINBAORD_ERROR"))
             logger.exception("Mainboard recv error")
         except RuntimeError as er:
-            logger.warn("Mainboard recv error: %s" % repr(er.args))
+            logger.warn("Mainboard recv error: %r", repr(er.args))
             self.pause(er)
         except SystemError as err:
-            self.abort(err)
             logger.exception("Mainboard recv error")
+            self.abort(err)
         except Exception as err:
             logger.exception("Mainboard recv error")
             if allow_god_mode():
@@ -591,7 +592,7 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
             logger.exception("Toolhead recv error")
 
         except RuntimeError as er:
-            logger.warn("Toolhead recv error: %s" % repr(er.args))
+            logger.warn("Toolhead recv error: %r", er.args)
             if self.status_id & 192:
                 logger.warning("Toolhead error in completed/aborted: %s, "
                                "close directly", er)
@@ -608,8 +609,8 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
             self.pause(er)
 
         except SystemError as er:
-            self.abort(er)
             logger.exception("Toolhead recv error")
+            self.abort(er)
 
         except Exception as er:
             logger.exception("Toolhead recv error")
@@ -635,7 +636,7 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
                             if self.toolhead.status:
                                 if "rt" in self.toolhead.status:
                                     if self.toolhead.status["rt"]:
-                                        if self.toolhead.status["rt"][0] > 50:
+                                        if self.toolhead.status["rt"][0] > 46:
                                             return
                         if self.status_id == 48:
                             logger.debug("Ohh, the poor 5V is dead")
@@ -649,6 +650,7 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
                 if self.status_id == ST_RUNNING:
                     raise SystemError("BAD_LOGIC", None, err)
         except SystemError as err:
+            logger.exception("SystemError while processing loop")
             self.abort(err)
         except Exception as err:
             logger.exception("Error while processing loop")
@@ -679,7 +681,7 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
             self._set_toolhead_standby()
             try:
                 if self.toolhead.module_name == "EXTRUDER" and \
-                   self.toolhead.status.get("rt", ())[0] > 70:
+                   self.toolhead.status.get("rt", (0, ))[0] > 70:
                     Metadata.instance().delay_toolhead_poweroff = b"\x01"
             except Exception:
                 logger.exception("Toolhead close verify error")
