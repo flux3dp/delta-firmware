@@ -68,18 +68,17 @@ def reset_mb():
         s.close()
 
 
-def hal_diagnosis():
+def begin_hal_diagnosis():
     s = socket.socket(socket.AF_UNIX)
+    s.setblocking(False)
+    s.connect(HALCONTROL_ENDPOINT)
+    s.send(b'\x92\xaediagnosis_mode\xc2')
+    return s
+
+
+def hal_diagnosis_result(sock):
     try:
-        s.connect(HALCONTROL_ENDPOINT)
-        s.send(b'\x92\xaediagnosis_mode\xc2')
-        rl = select((s, ), (), (), 90.0)[0]
-        if rl:
-            try:
-                payload = msgpack.unpackb(s.recv(4096))
-                return payload[1]
-            except Exception:
-                raise SystemError(SUBSYSTEM_ERROR, "HAL_PROTOCOL_ERROR")
-        return "HAL_TIMEOUT"
-    finally:
-        s.close()
+        payload = msgpack.unpackb(sock.recv(4096))
+        return payload[1]
+    except Exception:
+        return "SUBSYSTEM_ERROR HAL_PROTOCOL_ERROR"

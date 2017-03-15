@@ -1,4 +1,5 @@
 
+from pyev import EV_READ
 from json import dumps
 import logging
 
@@ -173,7 +174,7 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
             self.update_toolhead_fw(handler, *args)
 
         elif cmd == "hal_diagnosis":
-            handler.send_text("ok " + tools.hal_diagnosis())
+            self.do_hal_diagnosis(handler)
 
         elif cmd == "quit":
             self.stack.exit_task(self)
@@ -387,12 +388,50 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
 
         self._macro = macro.ZprobeMacro(on_success_cb, threshold=float("inf"),
                                         clean=False)
-        self._on_macro_error = on_macro_error
         self._on_macro_running = on_macro_running
         self._on_macro_error = on_macro_error
         self.busying = True
         self._macro.start(self)
         handler.send_text("continue")
+
+    def do_hal_diagnosis(self, handler):
+        memory_stack = []
+
+        def on_resp(ret, data):
+            try:
+                io_w, timer_w, sock = data
+                io_w.stop()
+                timer_w.stop()
+                sock.close()
+            finally:
+                handler.send_text("ok %s" % ret)
+                self.busying = False
+                while memory_stack:
+                    memory_stack.pop()
+
+        def on_io(watcher, revent):
+            ret = tools.hal_diagnosis_result(watcher.data[-1])
+            on_resp(ret, watcher.data)
+
+        def on_timeout(watcher, revent):
+            on_resp("HAL_TIMEOUT", watcher.data)
+
+        try:
+            sock = tools.begin_hal_diagnosis()
+            self.busying = True
+
+            io_watcher = self.stack.loop.io(sock, EV_READ, on_io)
+            t_watcher = self.stack.loop.timer(90, 0, on_timeout)
+            memory_stack.append(io_watcher)
+            memory_stack.append(t_watcher)
+            memory_stack.append(sock)
+
+            io_watcher.data = t_watcher.data = (io_watcher, t_watcher, sock)
+            io_watcher.start()
+            t_watcher.start()
+        except Exception:
+            logger.exception("HAL diagnosis error")
+            handler.send_text("error SUBSYSTEM_ERROR")
 
     def head_info(self, handler):
         dataset = self.toolhead.profile.copy()
