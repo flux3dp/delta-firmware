@@ -36,7 +36,8 @@ class Robot(ServiceBase):
         ServiceBase.__init__(self, logger, options)
 
         self.internl_interface = RobotUnixStreamInterface(self)
-        if options.debug:
+
+        if Storage("general", "meta")["bare"] == "Y":
             self.tcp_interface = RobotSSLInterface(self)
         else:
             self.tcp_interface = RobotTcpInterface(self)

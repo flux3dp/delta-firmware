@@ -1,10 +1,11 @@
 
 from itertools import chain
-import uuid as _uuid
+from uuid import UUID
 import binascii
 import logging
 import struct
 import socket
+import os
 
 import pyev
 
@@ -27,12 +28,13 @@ SERIAL_NUMBER = security.get_serial()
 UUID_BYTES = SERIAL_BIN
 MODEL_ID = get_model_id()
 
-GLOBAL_SERIAL = _uuid.UUID(int=0)
+GLOBAL_SERIAL = UUID(int=0)
 
 
 class InterfaceBaseV1(object):
-    __notify_payload = None
-    __touch_payload = None
+    PROTO_VER = 1
+    _notify_payload_buf = None
+    _touch_payload_buf = None
 
     def __init__(self, server):
         self.server = server
@@ -45,12 +47,12 @@ class InterfaceBaseV1(object):
 
     @property
     def _notify_payload(self):
-        if not self.__notify_payload:
+        if not self._notify_payload_buf:
             slave_pkey_ts = self.server.slave_pkey_ts
             main_pubder = self.server.master_key.export_pubkey_der()
             identify = security.get_identify()
 
-            self.__notify_payload = struct.pack(
+            self._notify_payload_buf = struct.pack(
                 "<4sBB16s10sfHH",
                 "FLUX",             # Magic String
                 1,                  # Protocol Version
@@ -61,17 +63,17 @@ class InterfaceBaseV1(object):
                 len(main_pubder),   # Public Key length
                 len(identify),      # Identify length
             ) + main_pubder + identify
-        return self.__notify_payload + self.meta.device_status
+        return self._notify_payload_buf + self.meta.device_status
 
     @property
     def _touch_payload(self):
-        if not self.__touch_payload:
+        if not self._touch_payload_buf:
             temp_ts = self.server.slave_pkey_ts
             temp_pkey_der = self.server.slave_pkey.export_pubkey_der()
             temp_pkey_sign = self.server.master_key.sign(
                 struct.pack("<f", temp_ts) + temp_pkey_der)
 
-            self.__touch_payload = struct.pack(
+            self._touch_payload_buf = struct.pack(
                 "<4sBB16sfHH",
                 "FLUX",              # Magic String
                 1,                   # Protocol Version
@@ -81,7 +83,7 @@ class InterfaceBaseV1(object):
                 len(temp_pkey_der),  # Temp pkey length
                 len(temp_pkey_sign)  # Temp pkey sign
             ) + temp_pkey_der + temp_pkey_sign
-        return self.__touch_payload
+        return self._touch_payload_buf
 
     def send_notify_to(self, endpoint):
         self.sock.sendto(self._notify_payload, endpoint)
@@ -126,7 +128,10 @@ class InterfaceBaseV1(object):
             logger.debug("Recive bad magic num: %s", magic_num)
             return
 
-        if proto_ver != 1 and proto_ver > 0:
+        if proto_ver == 0:
+            return
+
+        if proto_ver != self.PROTO_VER:
             logger.debug("Recive non support proto ver: %s", proto_ver)
             return
 
@@ -151,7 +156,7 @@ class InterfaceBaseV1(object):
 
 
 class BroadcaseNotifyInterface(InterfaceBaseV1):
-    __notify_payload = None
+    _notify_payload_buf = None
     __last_notify = 0
     __period = None
 
@@ -164,14 +169,14 @@ class BroadcaseNotifyInterface(InterfaceBaseV1):
 
     @property
     def _notify_payload(self):
-        if not self.__notify_payload:
-            self.__notify_payload = struct.pack(
+        if not self._notify_payload_buf:
+            self._notify_payload_buf = struct.pack(
                 "<4sBB16s",
                 "FLUX",             # Magic String
                 0,                  # Protocol Version
                 1,                  # Reserved
                 UUID_BYTES)         # Device UUID
-        return self.__notify_payload
+        return self._notify_payload_buf
 
     def send_notify(self):
         now = time()
@@ -203,6 +208,51 @@ class UnicasetInterface(InterfaceBaseV1):
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         self.sock.bind((ipaddr, port))
+
+
+def create_interface_v2(cls):
+    class InterfaceBaseV2Overlay(cls):
+        PROTO_VER = 2
+
+        @property
+        def _notify_payload(self):
+            if not self._notify_payload_buf:
+                self._notify_payload_buf = struct.pack(
+                    "<4sBB16s8s",
+                    "FLUX",             # Magic String
+                    2,                  # Protocol Version
+                    0,                  # Discover Code
+                    UUID_BYTES,         # Device UUID
+                    os.urandom(8)
+                )
+
+            return self._notify_payload_buf + self.meta.device_status
+
+        @property
+        def _touch_payload(self):
+            if not self._touch_payload_buf:
+                pubkey_der = self.server.master_key.export_pubkey_der()
+                identify = security.get_identify()
+                self._touch_payload_buf = struct.pack(
+                    "<4sBB16sHH",
+                    "FLUX",              # Magic String
+                    2,                   # Protocol Version
+                    3,                   # Tocuh Code
+                    UUID_BYTES,          # Device UUID
+                    len(pubkey_der),     # Public Key length
+                    len(identify),       # Identify length
+                ) + pubkey_der + identify
+            return self._touch_payload_buf
+
+        def on_touch(self, endpoint):
+            info = "serial=%s\x00ver=%s\x00model=%s\x00name=%s\x00pwd=%s" % (
+                SERIAL_NUMBER, VERSION, MODEL_ID, self.meta.nickname,
+                "T" if security.has_password() else "F",
+            )
+
+            payload = self._touch_payload + struct.pack("<H", len(info)) + info
+            self.sock.sendto(payload, endpoint)
+    return InterfaceBaseV2Overlay
 
 
 class UpnpService(ServiceBase):
@@ -242,6 +292,8 @@ class UpnpService(ServiceBase):
         ipaddress = list(chain(*nested))
 
         if self.ipaddress != ipaddress:
+            logger.info("IP changed, restart sockets (%s -> %s)",
+                        self.ipaddress, ipaddress)
             self.ipaddress = ipaddress
             if closeorig:
                 self._try_close_upnp_sock()
@@ -253,24 +305,26 @@ class UpnpService(ServiceBase):
 
     def _try_open_upnp_sock(self):
         try:
-            self.logger.debug("Upnp going UP")
+            self.logger.info("Upnp going UP")
 
-            mcst_if = MulticaseNotifyInterface(self)
+            storage = Storage("general", "meta")
+            bare = storage["bare"] == "Y"
+            bcst_config = storage["broadcast"]
+
+            mcst_if =  create_interface_v2(MulticaseNotifyInterface)(self) if bare else MulticaseNotifyInterface(self)  # noqa
             mcst_watcher = self.loop.io(mcst_if, pyev.EV_READ,
                                         mcst_if.on_message)
             mcst_watcher.start()
             self.mcst = (mcst_if, mcst_watcher)
 
-            ucst_if = UnicasetInterface(self)
+            ucst_if = create_interface_v2(UnicasetInterface)(self) if bare else UnicasetInterface(self)  # noqa
             ucst_watcher = self.loop.io(ucst_if, pyev.EV_READ,
                                         ucst_if.on_message)
             ucst_watcher.start()
             self.ucst = (ucst_if, ucst_watcher)
 
-            bcst_config = Storage("general", "meta")["broadcast"]
-
             if bcst_config != "N":
-                bcst_if = BroadcaseNotifyInterface(self, bcst_config)
+                bcst_if = create_interface_v2(BroadcaseNotifyInterface)(self, bcst_config) if bare else BroadcaseNotifyInterface(self, bcst_config)  # noqa
                 bcst_watcher = self.loop.io(bcst_if, pyev.EV_READ,
                                             bcst_if.on_message)
                 self.bcst = (bcst_if, bcst_watcher)
@@ -279,7 +333,7 @@ class UpnpService(ServiceBase):
             self._try_close_upnp_sock()
 
     def _try_close_upnp_sock(self):
-        self.logger.debug("Upnp going DOWN")
+        self.logger.info("Upnp going DOWN")
         if self.ucst:
             ifce, watcher = self.ucst
             watcher.stop()

@@ -404,6 +404,10 @@ class ConfigMixIn(object):
             "type": str, "enum": ("0", "1"),
             "key": "camera_version"
         },
+        "bare": {
+            "type": str, "enum": ("Y", "N"),
+            "key": "bare"
+        },
         "player_postback_url": {
             "type": str, "key": "player_postback_url", "maxlen": 128
         }
