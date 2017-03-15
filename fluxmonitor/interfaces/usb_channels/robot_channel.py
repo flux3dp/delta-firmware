@@ -73,3 +73,5 @@ class RobotChannel(object):
         if self.stack:
             self.stack.on_close(self)
             self.stack = None
+            self.on_payload = lambda obj: self.send_text("error CLOSED")
+            self.on_binary = lambda buf: None
