@@ -149,7 +149,7 @@ cdef class HeadController:
             if self.command_queue.length:
                 self._cmd_callback = callback
 
-                if not self.updating:
+                if not self.updating and self.sendable():
                     cmd_item = pop_command_queue(&(self.command_queue))
                     self.send_command(cmd_item.buffer, cmd_item.length)
                     free(cmd_item)

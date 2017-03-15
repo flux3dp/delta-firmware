@@ -2710,7 +2710,8 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   PyObject *__pyx_t_3 = NULL;
   PyObject *__pyx_t_4 = NULL;
   int __pyx_t_5;
-  PyObject *__pyx_t_6 = NULL;
+  int __pyx_t_6;
+  PyObject *__pyx_t_7 = NULL;
   __Pyx_RefNannySetupContext("standby", 0);
 
   /* "src/player/head_controller.pyx":144
@@ -2807,7 +2808,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  *             if self.command_queue.length:
  *                 self._cmd_callback = callback             # <<<<<<<<<<<<<<
  * 
- *                 if not self.updating:
+ *                 if not self.updating and self.sendable():
  */
       __Pyx_INCREF(__pyx_v_callback);
       __Pyx_GIVEREF(__pyx_v_callback);
@@ -2818,17 +2819,28 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       /* "src/player/head_controller.pyx":152
  *                 self._cmd_callback = callback
  * 
- *                 if not self.updating:             # <<<<<<<<<<<<<<
+ *                 if not self.updating and self.sendable():             # <<<<<<<<<<<<<<
  *                     cmd_item = pop_command_queue(&(self.command_queue))
  *                     self.send_command(cmd_item.buffer, cmd_item.length)
  */
-      __pyx_t_1 = __Pyx_PyObject_IsTrue(((PyObject *)__pyx_v_self->updating)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 152, __pyx_L1_error)
-      __pyx_t_5 = ((!__pyx_t_1) != 0);
-      if (__pyx_t_5) {
+      __pyx_t_5 = __Pyx_PyObject_IsTrue(((PyObject *)__pyx_v_self->updating)); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 152, __pyx_L1_error)
+      __pyx_t_6 = ((!__pyx_t_5) != 0);
+      if (__pyx_t_6) {
+      } else {
+        __pyx_t_1 = __pyx_t_6;
+        goto __pyx_L7_bool_binop_done;
+      }
+      __pyx_t_2 = ((struct __pyx_vtabstruct_11fluxmonitor_6player_16_head_controller_HeadController *)__pyx_v_self->__pyx_vtab)->sendable(__pyx_v_self, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 152, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 152, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __pyx_t_1 = __pyx_t_6;
+      __pyx_L7_bool_binop_done:;
+      if (__pyx_t_1) {
 
         /* "src/player/head_controller.pyx":153
  * 
- *                 if not self.updating:
+ *                 if not self.updating and self.sendable():
  *                     cmd_item = pop_command_queue(&(self.command_queue))             # <<<<<<<<<<<<<<
  *                     self.send_command(cmd_item.buffer, cmd_item.length)
  *                     free(cmd_item)
@@ -2836,7 +2848,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
         __pyx_v_cmd_item = pop_command_queue((&__pyx_v_self->command_queue));
 
         /* "src/player/head_controller.pyx":154
- *                 if not self.updating:
+ *                 if not self.updating and self.sendable():
  *                     cmd_item = pop_command_queue(&(self.command_queue))
  *                     self.send_command(cmd_item.buffer, cmd_item.length)             # <<<<<<<<<<<<<<
  *                     free(cmd_item)
@@ -2856,7 +2868,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
         /* "src/player/head_controller.pyx":152
  *                 self._cmd_callback = callback
  * 
- *                 if not self.updating:             # <<<<<<<<<<<<<<
+ *                 if not self.updating and self.sendable():             # <<<<<<<<<<<<<<
  *                     cmd_item = pop_command_queue(&(self.command_queue))
  *                     self.send_command(cmd_item.buffer, cmd_item.length)
  */
@@ -2898,8 +2910,8 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
  *             callback(self)
  * 
  */
-  __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_v_callback); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 158, __pyx_L1_error)
-  if (__pyx_t_5) {
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_callback); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 158, __pyx_L1_error)
+  if (__pyx_t_1) {
 
     /* "src/player/head_controller.pyx":159
  * 
@@ -2940,15 +2952,15 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
       } else
       #endif
       {
-        __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 159, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_6);
-        __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_4); __pyx_t_4 = NULL;
+        __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 159, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_7);
+        __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_4); __pyx_t_4 = NULL;
         __Pyx_INCREF(((PyObject *)__pyx_v_self));
         __Pyx_GIVEREF(((PyObject *)__pyx_v_self));
-        PyTuple_SET_ITEM(__pyx_t_6, 0+1, ((PyObject *)__pyx_v_self));
-        __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 159, __pyx_L1_error)
+        PyTuple_SET_ITEM(__pyx_t_7, 0+1, ((PyObject *)__pyx_v_self));
+        __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_7, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 159, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
-        __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       }
     }
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -2978,7 +2990,7 @@ static PyObject *__pyx_pf_11fluxmonitor_6player_16_head_controller_14HeadControl
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_XDECREF(__pyx_t_6);
+  __Pyx_XDECREF(__pyx_t_7);
   __Pyx_AddTraceback("fluxmonitor.player._head_controller.HeadController.standby", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
