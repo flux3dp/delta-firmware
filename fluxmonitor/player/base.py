@@ -1,7 +1,9 @@
 
 
 from fluxmonitor.misc.systime import systime as time
+from hashlib import md5
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +47,7 @@ STATUS_MSG = {
 class Timer(object):
     __begin_at = None
     __start_at = None
-    __sum = None
+    __sum = 0
 
     def start_timer(self):
         if self.__begin_at:
@@ -79,9 +81,11 @@ class BaseExecutor(Timer):
     paused_macro = None
 
     def __init__(self, mainboard_sock, toolhead_sock):
+        self.session = md5(os.urandom(64)).hexdigest()[:6]
         self._mbsock = mainboard_sock
         self._thsock = toolhead_sock
         self.status_id = ST_INIT
+        self.start_timer()
         logger.info("Initialize (status=%i)", self.status_id)
 
     def start(self):
@@ -92,7 +96,6 @@ class BaseExecutor(Timer):
         if self.status_id != 4:
             raise Exception("BAD_LOGIC")
         self.status_id = 16  # status_id = ST_RUNNING
-        self.start_timer()
         logger.info("Started (status=%i)", self.status_id)
 
     def pause(self, symbol=None):
@@ -181,11 +184,14 @@ class BaseExecutor(Timer):
     def get_status(self):
         st_id = self.status_id
         return {
+            "session": self.session,
             "st_id": st_id,
             "st_label": self.macro.name if self.macro and st_id == 16
             else self.paused_macro.name if self.paused_macro and st_id == 48
             else STATUS_MSG.get(st_id, "UNKNOW_STATUS"),
-            "error": self.error_symbol.args if self.error_symbol else []
+            "error": self.error_symbol.args if self.error_symbol else [],
+            "time_total": self.total_used_times,
+            "time_running": self.used_times
         }
 
     def terminate(self):
