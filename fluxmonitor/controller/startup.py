@@ -18,7 +18,10 @@ def device_startup():
         try:
             mb.connect(MAINBOARD_ENDPOINT)
             mb.send("G28+\n")
-            mb.recv(1024)
+            try:
+                mb.recv(1024)
+            except Exception:
+                pass
             return
         except socket.timeout:
             logger.warn("Mainboard I/O timeout")
