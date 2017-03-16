@@ -262,15 +262,15 @@ class UpnpService(ServiceBase):
     ucst_watcher = None
     cron_watcher = None
     ipaddress = None
+    mversion = None
 
     def __init__(self, options):
         # Create RSA key if not exist. This will prevent upnp create key during
         # upnp is running (Its takes times and will cause timeout)
         self.master_key = security.get_private_key()
         self.slave_pkey = security.RSAObject(keylength=1024)
-        self.slave_pkey_ts = time()
 
-        self.meta = Metadata()
+        self.meta = Metadata.instance()
         self.meta.shared_der_rsakey = self.slave_pkey.export_der()
         self.meta.update_device_status(0, 0, "OFFLINE", "")
 
@@ -285,27 +285,28 @@ class UpnpService(ServiceBase):
         self.cron_watcher = self.loop.timer(3.0, 3.0, self.on_cron)
         self.cron_watcher.start()
 
-    def update_network_status(self, closeorig=False):
+    def get_last_ipaddr(self):
         status = self.nw_monitor.full_status()
         nested = [st.get('ipaddr', [])
                   for _, st in status.items()]
         ipaddress = list(chain(*nested))
-
-        if self.ipaddress != ipaddress:
-            logger.info("IP changed, restart sockets (%s -> %s)",
-                        self.ipaddress, ipaddress)
-            self.ipaddress = ipaddress
-            if closeorig:
-                self._try_close_upnp_sock()
-            self._try_open_upnp_sock()
+        return ipaddress
 
     def on_network_changed(self, watcher, revent):
         if self.nw_monitor.read():
-            self.update_network_status(closeorig=True)
+            if self.is_ipaddr_changed:
+                ipaddress = self.get_last_ipaddr()
 
-    def _try_open_upnp_sock(self):
+                if self.ipaddress != ipaddress:
+                    logger.info("IP changed (%s -> %s)",
+                                self.ipaddress, ipaddress)
+                    self.ipaddress = ipaddress
+                    self.teardown_upnp_sock()
+                    self.setup_upnp_sock()
+
+    def setup_upnp_sock(self):
         try:
-            self.logger.info("Upnp going UP")
+            logger.info("Upnp going UP")
 
             storage = Storage("general", "meta")
             bare = storage["bare"] == "Y"
@@ -328,12 +329,14 @@ class UpnpService(ServiceBase):
                 bcst_watcher = self.loop.io(bcst_if, pyev.EV_READ,
                                             bcst_if.on_message)
                 self.bcst = (bcst_if, bcst_watcher)
-        except socket.error:
-            self.logger.exception("Error while upnp going UP")
-            self._try_close_upnp_sock()
 
-    def _try_close_upnp_sock(self):
-        self.logger.info("Upnp going DOWN")
+            self.mversion = self.meta.mversion
+        except socket.error:
+            logger.exception("Error while upnp going UP")
+            self.teardown_upnp_sock()
+
+    def teardown_upnp_sock(self):
+        logger.info("Upnp going DOWN")
         if self.ucst:
             ifce, watcher = self.ucst
             watcher.stop()
@@ -353,12 +356,21 @@ class UpnpService(ServiceBase):
             self.bcst = None
 
     def on_start(self):
-        self.update_network_status()
+        self.slave_pkey_ts = time()  # TODO: for version 1 only
+        self.ipaddress = self.get_last_ipaddr()
+        self.mversion = self.meta.mversion
+        self.setup_upnp_sock()
 
     def on_shutdown(self):
-        self._try_close_upnp_sock()
+        self.teardown_upnp_sock()
 
     def on_cron(self, watcher, revent):
+        if self.mversion != self.meta.mversion:
+            logger.info("Metadata changed.")
+            self.slave_pkey_ts = time()  # TODO: for version 1 only
+            self.teardown_upnp_sock()
+            self.setup_upnp_sock()
+
         if self.mcst:
             self.mcst[0].send_notify()
         if self.bcst:
