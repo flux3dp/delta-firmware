@@ -239,10 +239,12 @@ class PlayManagerMixIn(object):
                         self.stack.loop, self._task_file.name,
                         terminated_callback=kernel.release_exclusive)
                     self._last_playing_file = self._task_file
+                    kernel.exclusive(pm)
+                except RuntimeError:
+                    raise
                 except Exception:
                     logger.exception("Launch playmanager failed")
                     raise RuntimeError(SUBSYSTEM_ERROR, HARDWARE_FAILURE)
-                kernel.exclusive(pm)
             handler.send_text("ok")
         else:
             raise RuntimeError(NO_TASK)
