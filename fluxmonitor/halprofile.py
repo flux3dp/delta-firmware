@@ -53,7 +53,7 @@ PROFILES = {
         "headboard_uart": "/dev/ttyAMA0",
         "pc_uart": None,
         "default_h": 242,
-        "default_r": 96.70,
+        "default_r": 96.20,
         "default_movement_test": True,
         "scan_camera_id": 0,
         "scan_camera_model": 2,
