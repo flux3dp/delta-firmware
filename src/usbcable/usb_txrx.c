@@ -202,6 +202,7 @@ int start_usb(struct usb_data *data) {
     data->running = 1;
     ret = pthread_create(&(data->thread_tx), NULL, thread_tx_entry, (void *)data);
     if(ret != 0) {
+        fprintf(stderr, "Fork tx thread error (ret=%i, errno=%i)\n", ret, errno);
         data->running = 0;
         close_usb(data);
         PyErr_Format(PyExc_SystemError, "socketpair: %i", ret);
@@ -209,11 +210,13 @@ int start_usb(struct usb_data *data) {
     }
     ret = pthread_create(&(data->thread_rx), NULL, thread_rx_entry, (void *)data);
     if(ret != 0) {
+        fprintf(stderr, "Fork rx thread error (ret=%i, errno=%i)\n", ret, errno);
         data->running = 0;
         close_usb(data);
         PyErr_Format(PyExc_SystemError, "socketpair: %i", ret);
         return -1;
     }
+    fprintf(stderr, "USB daemon forked\n");
     return 0;
 }
 
@@ -237,14 +240,17 @@ void *thread_tx_entry(void *arg) {
         transfered = recv(data->socket_vector[0], buffer, TX_BUFFER_LEN, 0);
 
         if(transfered == -1) {
-            if(errno == ETIMEDOUT || errno == EAGAIN) {
+            if(errno == ETIMEDOUT || errno == EAGAIN || errno == EINTR) {
                 fprintf(stderr, "TX recv ret=%i errno=%i ignore\n", transfered, errno);
                 continue;
             } else {
                 fprintf(stderr, "TX recv ret=%i errno=%i\n", transfered, errno);
+                data->running = 0;
             }
+        } else if(transfered == 0) {
+            fprintf(stderr, "TX recv ret=0 (connection closed)\n");
+            data->running = 0;
         } else {
-
             ret = libusb_bulk_transfer(handle, endpoint, buffer, transfered, &txtransfered, 500);
             if(transfered != txtransfered) {
                 fprintf(stderr, "TX usb transfered not match (%i!=%i), ret=%i\n", transfered, txtransfered, ret);
@@ -283,10 +289,11 @@ void *thread_rx_entry(void *arg) {
         if(ret == 0) {
             transfered = send(data->socket_vector[0], buffer, transfered, 0);
             if(transfered < 0) {
-                if(errno == ETIMEDOUT || errno == EAGAIN) {
+                if(errno == ETIMEDOUT || errno == EAGAIN || errno == EINTR) {
                     continue;
                 } else {
                     fprintf(stderr, "RX send ret=%i errno=%i\n", ret, errno);
+                    data->running = 0;
                 }
             }
         } else if(ret == LIBUSB_ERROR_TIMEOUT) {
