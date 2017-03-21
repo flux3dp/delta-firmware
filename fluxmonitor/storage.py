@@ -1,13 +1,13 @@
 
 from random import choice
 from shutil import rmtree
-from time import time
 import msgpack
 import struct
 import os
 
 import sysv_ipc
 
+from fluxmonitor.misc.systime import systime as time
 from fluxmonitor.err_codes import NOT_EXIST, BAD_PARAMS
 from fluxmonitor.config import DEFAULT_R
 
@@ -358,6 +358,10 @@ class Metadata(object):
 
     def update_device_status(self, st_id, progress, head_type,
                              err_label=""):
+        if isinstance(head_type, unicode):
+            head_type = head_type.encode()
+        if isinstance(err_label, unicode):
+            err_label = err_label.encode()
         buf = struct.pack("dif16s32s", time(), st_id, progress, head_type,
                           err_label[:32])
         self.shm.write(buf, 3584)

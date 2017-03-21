@@ -1,15 +1,18 @@
 
 from multiprocessing import Process
 from zipfile import crc32
+from shutil import copyfile
 from select import select
 from time import time
 import logging
 import struct
 import socket
+import os
 
 from setproctitle import setproctitle
 
-from fluxmonitor.err_codes import FILE_BROKEN, UNKNOWN_ERROR
+from fluxmonitor.err_codes import FILE_BROKEN, NOT_SUPPORT
+from fluxmonitor.storage import UserSpace
 
 # G0_G1_CMD_PARSER = re.compile("G[0-1]( F(?P<F>[0-9]+))?( X(?P<X>[\-0-9.]+))?"
 #                               "( Y(?P<Y>[\-0-9.]+))?( Z(?P<Z>[\-0-9.]+))?"
@@ -22,6 +25,40 @@ INT_PACKER = struct.Struct("<i")
 UINT_PACKER = struct.Struct("<I")
 
 
+def place_recent_file(filename):
+    space = UserSpace()
+    use_swap = False
+    if not os.path.exists(space.get_path("SD", "Recent")):
+        os.makedirs(space.get_path("SD", "Recent"))
+
+    if os.path.abspath(filename). \
+            startswith(space.get_path("SD", "Recent/recent-")):
+        userspace_filename = "Recent/" + os.path.split(filename)[-1]
+        space.mv("SD", userspace_filename, "Recent/swap.fc")
+        filename = space.get_path("SD", "Recent/swap.fc")
+        use_swap = True
+
+    def place_file(syntax, index):
+        name = syntax % index
+        if space.exist("SD", name):
+            if index >= 5:
+                space.rm("SD", name)
+            else:
+                place_file(syntax, index + 1)
+                space.mv("SD", name, syntax % (index + 1))
+
+    place_file("Recent/recent-%i.fc", 1)
+    if use_swap:
+        space.mv("SD", "Recent/swap.fc", "Recent/recent-1.fc")
+    elif space.in_entry("SD", filename):
+        os.link(filename,
+                space.get_path("SD", "Recent/recent-1.fc"))
+    else:
+        copyfile(filename,
+                 space.get_path("SD", "Recent/recent-1.fc"))
+    os.system("sync")
+
+
 class TaskLoader(Process):
     """
     Useable property:
@@ -32,13 +69,17 @@ class TaskLoader(Process):
         loader.metadata - Dict store metadata in file
     """
 
-    error_symbol = None
-
-    def _check_task(self):
-        t = self.task_file
+    def _check_task(self, task_file):
+        t = task_file
 
         # Check header
-        assert t.read(8) == b"FCx0001\n"
+        magic_num = t.read(8)
+        if magic_num != b"FCx0001\n":
+            if magic_num[:3] != b"FCx" or magic_num[3:].isdigit() is False:
+                raise RuntimeError(FILE_BROKEN)
+            else:
+                ver = int(magic_num[3:])
+                raise RuntimeError(FILE_BROKEN, NOT_SUPPORT, str(ver))
 
         # Check script
         script_size = UINT_PACKER.unpack(t.read(4))[0]
@@ -57,13 +98,15 @@ class TaskLoader(Process):
                 raise RuntimeError(FILE_BROKEN, "LENGTH_ERROR")
 
         req_script_crc32 = INT_PACKER.unpack(t.read(4))[0]
-        assert req_script_crc32 == script_crc32
+        if req_script_crc32 != script_crc32:
+            raise RuntimeError(FILE_BROKEN, "SCRIPT_CRC32")
 
         # Check meta
         meta_size = UINT_PACKER.unpack(t.read(4))[0]
         meta_buf = t.read(meta_size)
         req_metadata_crc32 = INT_PACKER.unpack(t.read(4))[0]
-        assert req_metadata_crc32 == crc32(meta_buf, 0)
+        if req_metadata_crc32 != crc32(meta_buf, 0):
+            raise RuntimeError(FILE_BROKEN, "METADATA_CRC32")
 
         metadata = {}
         for item in meta_buf.split("\x00"):
@@ -75,14 +118,8 @@ class TaskLoader(Process):
         t.seek(self.script_ptr)
 
     def __init__(self, task_file):
+        self._check_task(task_file)
         self.task_file = task_file
-
-        try:
-            self._check_task()
-        except Exception as e:
-            self.error_symbol = e
-            self.metadata = {}
-            return
 
         self.io_in, self.io_out = socket.socketpair()
 
@@ -95,14 +132,6 @@ class TaskLoader(Process):
         # Remember to close after forked !!
         self.io_in.close()
         del self.io_in
-
-    def validate_status(self):
-        if self.error_symbol:
-            es = self.error_symbol
-            if isinstance(es, RuntimeError):
-                raise SystemError(*es.args)
-            else:
-                raise SystemError(UNKNOWN_ERROR, *es.args)
 
     @property
     def io_progress(self):
@@ -161,9 +190,6 @@ class TaskLoader(Process):
         return self.fout.fileno()
 
     def close(self):
-        if self.error_symbol:
-            return
-
         self.io_out.close()
         self.fout.close()
         self.task_file.close()

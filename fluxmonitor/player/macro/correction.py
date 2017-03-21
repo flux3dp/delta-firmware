@@ -51,7 +51,12 @@ class CorrectionMacro(MacroBase):
                                           "H": self.zdist}
             k.mainboard.send_cmd("M666X0Y0Z0H%.1f" % self.zdist)
         else:
-            k.mainboard.send_cmd("M666H%.1f" % self.zdist)
+            tx = self.pref.plate_correction["X"]
+            ty = self.pref.plate_correction["Y"]
+            tz = self.pref.plate_correction["Z"]
+            th = self.pref.plate_correction["H"] = self.zdist
+            k.mainboard.send_cmd("M666X%.2fY%.2fZ%.2fH%.2f" % (
+                                 tx, ty, tz, th))
 
     def giveup(self, k):
         if self._running:

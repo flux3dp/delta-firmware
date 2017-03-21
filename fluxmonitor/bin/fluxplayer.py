@@ -12,7 +12,8 @@ def main(params=None):
     parser = argparse.ArgumentParser(description='flux player')
     add_daemon_arguments("fluxplayer", parser)
     parser.add_argument('-c', '--control', dest='control_endpoint', type=str,
-                        default=None, help='Listen control socket at')
+                        default="/tmp/.player",
+                        help='Listen control socket at')
     parser.add_argument('--task', dest='taskfile', type=str, required=True,
                         help='F-Code to play')
 
