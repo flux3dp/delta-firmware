@@ -229,6 +229,10 @@ class PlayerManager(object):
                 logger.error("Player socket error: %s", e)
                 self.terminate()
                 raise RuntimeError(SUBSYSTEM_ERROR)
+            except Exception:
+                logger.exception("Error while trying quit player")
+                self.terminate()
+                raise RuntimeError(SUBSYSTEM_ERROR)
         else:
             if self.child_watcher and self.child_watcher.data:
                 self.child_watcher.data(self)

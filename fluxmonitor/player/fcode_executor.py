@@ -136,7 +136,7 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
 
     @property
     def toolhead_name(self):
-        return self.executor.toolhead.module_name
+        return self.toolhead.module_name
 
     @property
     def progress(self):
