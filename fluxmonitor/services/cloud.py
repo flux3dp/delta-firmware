@@ -14,7 +14,7 @@ import os
 from fluxmonitor.misc.httpclient import get_connection
 from fluxmonitor.misc.systime import systime as time
 from fluxmonitor.halprofile import get_model_id
-from fluxmonitor.storage import Metadata, Storage
+from fluxmonitor.storage import Storage, metadata
 from fluxmonitor.config import CAMERA_ENDPOINT, ROBOT_ENDPOINT
 from fluxmonitor import security, __version__
 
@@ -27,7 +27,6 @@ class CloudService(ServiceBase):
     config_ts = -1
     config_enable = None
     cloud_netloc = None
-    metadata = None
     storage = None
 
     _notify_up_required = False
@@ -36,6 +35,7 @@ class CloudService(ServiceBase):
     _notify_aggressive = 0
     _notify_retry_counter = 0
     aws_client = None
+    postback_url = None
 
     def __init__(self, options):
         super(CloudService, self).__init__(logger, options)
@@ -48,7 +48,6 @@ class CloudService(ServiceBase):
             mqttlogger.setLevel(logging.WARNING)
 
         self.storage = Storage("cloud")
-        self.metadata = Metadata()
         self.uuidhex = security.get_uuid()
 
         if options.cloud.endswith("/"):
@@ -200,11 +199,19 @@ class CloudService(ServiceBase):
     def notify_up(self, c):
         payload = json.dumps({"state": {"reported": {
             "version": __version__, "token": self.storage["token"],
-            "nickname": self.metadata.nickname}}})
+            "nickname": metadata.nickname}}})
         c.publish(self._notify_topic, payload, 1)
 
+    def postback_status(self, st_id):
+        url = Storage("general", "meta")["player_postback_url"]
+        if '"' in url or '\\' in url:
+            logger.error("Bad url: %r", url)
+        else:
+            url = url % {"st_id", st_id}
+            os.system("curl -s -o /dev/null \"%s\"" % url)
+
     def notify_update(self, new_st, now):
-        if self.metadata.verify_mversion() is False:
+        if metadata.verify_mversion() is False:
             self._notify_up_required = True
 
         new_st_id = new_st["st_id"]
@@ -220,6 +227,8 @@ class CloudService(ServiceBase):
                 if new_st_id <= 0 and now - self._notify_last_ts < 90:
                     # update every 90 seconds if device is idle or occupy
                     return
+        elif new_st_id in (48, 64, 128):  # paused, completed, aborted
+            self.postback_status(new_st)
 
         c = self.aws_client.getMQTTConnection()
 
@@ -258,7 +267,7 @@ class CloudService(ServiceBase):
         try:
             if action == "getchu":
                 try:
-                    current_hash = self.metadata.cloud_hash
+                    current_hash = metadata.cloud_hash
                     access_id, signature = payload.get("validate_message")
                     client_key = security.get_keyobj(access_id=access_id)
                     if client_key.verify(current_hash, a2b_base64(signature)):
@@ -268,7 +277,7 @@ class CloudService(ServiceBase):
                         client.publish(response_topic, json.dumps({
                             "status": "reject", "cmd_index": cmd_index}))
                 finally:
-                    self.metadata.cloud_hash = os.urandom(32)
+                    metadata.cloud_hash = os.urandom(32)
             elif action == "monitor":
                 self._notify_aggressive = time() + 180
                 client.publish(response_topic, json.dumps({
@@ -295,7 +304,7 @@ class CloudService(ServiceBase):
             self.fetch_identify()
 
         self.setup_session()
-        self.metadata.cloud_status = (True, ())
+        metadata.cloud_status = (True, ())
 
     def setup_session(self):
         from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTShadowClient
@@ -331,7 +340,7 @@ class CloudService(ServiceBase):
         self.timer.set(2.2, 2.2)
         self.timer.reset()
         self.timer.start()
-        self.metadata.cloud_hash = os.urandom(32)
+        metadata.cloud_hash = os.urandom(32)
 
     def teardown_session(self):
         if self.aws_client:
@@ -362,15 +371,15 @@ class CloudService(ServiceBase):
 
     def on_timer(self, watcher, revent):
         try:
-            if self.config_ts != self.metadata.mversion:
-                self.config_ts = self.metadata.mversion
-                self.config_enable = (self.metadata.enable_cloud == "A")
+            if self.config_ts != metadata.mversion:
+                self.config_ts = metadata.mversion
+                self.config_enable = (metadata.enable_cloud == "A")
                 if self.config_enable is False:
-                    self.metadata.cloud_status = (False, ("DISABLE", ))
+                    metadata.cloud_status = (False, ("DISABLE", ))
 
             if self.config_enable:
                 if self.aws_client:
-                    self.notify_update(self.metadata.format_device_status,
+                    self.notify_update(metadata.format_device_status,
                                        time())
                 else:
                     self.begin_session()
@@ -380,18 +389,18 @@ class CloudService(ServiceBase):
 
             self._notify_retry_counter = 0
         except publishQueueDisabledException:
-            self.metadata.cloud_status = (False, ("SESSION",
-                                                  "CONNECTION_ERROR"))
+            metadata.cloud_status = (False, ("SESSION",
+                                             "CONNECTION_ERROR"))
             self._notify_retry_counter += 1
             logger.debug("publishQueueDisabledException raise in notify")
             if self._notify_retry_counter > 10:
                 self.teardown_session()
         except RuntimeError as e:
             logger.error(e)
-            self.metadata.cloud_status = (False, e.args)
+            metadata.cloud_status = (False, e.args)
         except Exception:
             logger.exception("Unhandle error")
-            self.metadata.cloud_status = (False, ("UNKNOWN_ERROR", ))
+            metadata.cloud_status = (False, ("UNKNOWN_ERROR", ))
 
     def on_shutdown(self):
         pass

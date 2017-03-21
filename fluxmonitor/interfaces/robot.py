@@ -3,8 +3,9 @@ from weakref import proxy
 import logging
 
 from fluxmonitor.controller.tasks.command_task import CommandTask
-from .listener import TcpInterface
-from .handler import OldAesServerSideHandler, CloudHandler, TextBinaryProtocol
+from .listener import TcpInterface, SSLInterface
+from .handler import (OldAesServerSideHandler, SSLServerSideHandler,
+                      CloudHandler, TextBinaryProtocol)
 
 __all__ = ["RobotTcpInterface"]
 logger = logging.getLogger(__name__)
@@ -39,13 +40,36 @@ class RobotProtocol(TextBinaryProtocol):
 
 
 class RobotTcpHandler(RobotProtocol, OldAesServerSideHandler):
+    interface = "TCP"
+
     def on_authorized(self):
         self.stack = ServiceStack(self.kernel)
         super(RobotTcpHandler, self).on_authorized()
         self.on_ready()  # RobotProtocol
 
 
+class RobotSSLInterface(SSLInterface):
+    def __init__(self, kernel, endpoint=("", 23811)):
+        super(RobotSSLInterface, self).__init__(kernel, endpoint)
+
+    def create_handler(self, sock, endpoint):
+        h = RobotSSLHandler(self.kernel, endpoint, sock, server_side=True,
+                            certfile=self.certfile, keyfile=self.keyfile)
+        return h
+
+
+class RobotSSLHandler(RobotProtocol, SSLServerSideHandler):
+    interface = "TCP"
+
+    def on_authorized(self):
+        self.stack = ServiceStack(self.kernel)
+        super(RobotSSLHandler, self).on_authorized()
+        self.on_ready()  # RobotProtocol
+
+
 class RobotCloudHandler(RobotProtocol, CloudHandler):
+    interface = "TCP"
+
     def on_cloud_connected(self):
         self.stack = ServiceStack(self.kernel)
         super(RobotCloudHandler, self).on_cloud_connected()
@@ -83,17 +107,18 @@ class ServiceStack(object):
         if self.this_task != task:
             raise Exception("Task not match")
 
+        current_task, callback = self.task_callstack.pop()
+
         try:
             task.on_exit()
         except Exception:
-            logger.exception("Exit %s" % self.this_task.__class__.__name__)
+            logger.exception("Exit %s", self.this_task.__class__.__name__)
 
         try:
-            current_task, callback = self.task_callstack.pop()
             callback(*return_args)
-            logger.debug("Exit %s" % self.this_task.__class__.__name__)
+            logger.debug("Exit %s", self.this_task.__class__.__name__)
         except Exception:
-            logger.exception("Exit %s" % self.this_task.__class__.__name__)
+            logger.exception("Exit %s", self.this_task.__class__.__name__)
         finally:
             self.this_task = current_task
 

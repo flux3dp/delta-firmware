@@ -9,6 +9,8 @@
 #include <Python.h>
 #include "usb_txrx.h"
 
+#define TX_BUFFER_LEN 510
+#define RX_BUFFER_LEN 510
 
 int discover_usb(void) {
     // Return number of available usb devices
@@ -200,6 +202,7 @@ int start_usb(struct usb_data *data) {
     data->running = 1;
     ret = pthread_create(&(data->thread_tx), NULL, thread_tx_entry, (void *)data);
     if(ret != 0) {
+        fprintf(stderr, "Fork tx thread error (ret=%i, errno=%i)\n", ret, errno);
         data->running = 0;
         close_usb(data);
         PyErr_Format(PyExc_SystemError, "socketpair: %i", ret);
@@ -207,11 +210,13 @@ int start_usb(struct usb_data *data) {
     }
     ret = pthread_create(&(data->thread_rx), NULL, thread_rx_entry, (void *)data);
     if(ret != 0) {
+        fprintf(stderr, "Fork rx thread error (ret=%i, errno=%i)\n", ret, errno);
         data->running = 0;
         close_usb(data);
         PyErr_Format(PyExc_SystemError, "socketpair: %i", ret);
         return -1;
     }
+    fprintf(stderr, "USB daemon forked\n");
     return 0;
 }
 
@@ -228,20 +233,29 @@ void *thread_tx_entry(void *arg) {
 
     struct libusb_device_handle *handle = data->handle;
     const unsigned char endpoint = data->tx->bEndpointAddress;
-    int ret, transfered;
-    unsigned char buffer[512];
+    int ret, transfered, txtransfered;
+    unsigned char buffer[TX_BUFFER_LEN];
 
     while(data->running) {
-        transfered = recv(data->socket_vector[0], buffer, 512, 0);
+        transfered = recv(data->socket_vector[0], buffer, TX_BUFFER_LEN, 0);
 
         if(transfered == -1) {
-            if(errno == ETIMEDOUT || errno == EAGAIN) {
+            if(errno == ETIMEDOUT || errno == EAGAIN || errno == EINTR) {
+                fprintf(stderr, "TX recv ret=%i errno=%i ignore\n", transfered, errno);
                 continue;
             } else {
                 fprintf(stderr, "TX recv ret=%i errno=%i\n", transfered, errno);
+                data->running = 0;
             }
+        } else if(transfered == 0) {
+            fprintf(stderr, "TX recv ret=0 (connection closed)\n");
+            data->running = 0;
         } else {
-            ret = libusb_bulk_transfer(handle, endpoint, buffer, transfered, &transfered, 500);
+            ret = libusb_bulk_transfer(handle, endpoint, buffer, transfered, &txtransfered, 500);
+            if(transfered != txtransfered) {
+                fprintf(stderr, "TX usb transfered not match (%i!=%i), ret=%i\n", transfered, txtransfered, ret);
+            }
+
             if(ret == 0) {
                 continue;
             } else if(ret == LIBUSB_ERROR_TIMEOUT) {
@@ -268,17 +282,18 @@ void *thread_rx_entry(void *arg) {
     struct libusb_device_handle *handle = data->handle;
     const unsigned char endpoint = data->rx->bEndpointAddress;
     int ret, transfered;
-    unsigned char buffer[512];
+    unsigned char buffer[RX_BUFFER_LEN];
 
     while(data->running) {
-        ret = libusb_bulk_transfer(handle, endpoint, buffer, 512, &transfered, 500);
+        ret = libusb_bulk_transfer(handle, endpoint, buffer, RX_BUFFER_LEN, &transfered, 500);
         if(ret == 0) {
             transfered = send(data->socket_vector[0], buffer, transfered, 0);
             if(transfered < 0) {
-                if(errno == ETIMEDOUT || errno == EAGAIN) {
+                if(errno == ETIMEDOUT || errno == EAGAIN || errno == EINTR) {
                     continue;
                 } else {
                     fprintf(stderr, "RX send ret=%i errno=%i\n", ret, errno);
+                    data->running = 0;
                 }
             }
         } else if(ret == LIBUSB_ERROR_TIMEOUT) {

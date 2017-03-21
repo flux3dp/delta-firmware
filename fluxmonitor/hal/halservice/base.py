@@ -6,7 +6,7 @@ import os
 import pyev
 
 from fluxmonitor.config import MAINBOARD_ENDPOINT, HEADBOARD_ENDPOINT, \
-    PC_ENDPOINT
+    UART_ENDPOINT
 from fluxmonitor.storage import Storage
 
 logger = logging.getLogger("halservice.base")
@@ -27,7 +27,7 @@ class UartHalBase(object):
             loop=kernel.loop, path=HEADBOARD_ENDPOINT,
             callback=self.on_connected_headboard)
         self.pc = self.create_socket(
-            loop=kernel.loop, path=PC_ENDPOINT,
+            loop=kernel.loop, path=UART_ENDPOINT,
             callback=self.on_connected_pc)
 
         self.mainboard_watchers = []

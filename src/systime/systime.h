@@ -11,7 +11,6 @@ extern mach_port_t clock_port;
 
 float inline monotonic_time() {
     #ifdef __MACH__
-        clock_serv_t cclock;
         mach_timespec_t mts;
         if(clock_get_time(clock_port, &mts) != 0) {
             return 0;

@@ -35,8 +35,21 @@ class HalService(ServiceBase):
     def reset_mainboard(self):
         self.hal.reset_mainboard()
 
-    def reset_headboard(self):
-        self.hal.reset_headboard()
+    def toolhead_power_on(self):
+        self.hal.toolhead_power_on()
+
+    def toolhead_power_off(self):
+        self.hal.toolhead_power_off()
+
+    def toolhead_on(self):
+        # 24V
+        self.hal.toolhead_on()
+
+    def toolhead_standby(self):
+        self.hal.toolhead_standby()
+
+    def diagnosis_mode(self):
+        return self.hal.diagnosis_mode()
 
     def update_head_fw(self, callback):
         self.hal.update_head_fw(callback)

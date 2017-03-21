@@ -1,12 +1,43 @@
 
-from libc.stdio cimport snprintf, sscanf
+from libc.stdlib cimport malloc, free
+from libc.stdint cimport uint32_t
 from libc.string cimport strncmp
+from cpython cimport exc
+
+cdef extern from "sys/socket.h":
+    ssize_t send(int socket, const void *buffer, size_t length, int flags);
 
 cdef extern from "../systime/systime.h":
     float monotonic_time()
 
-cdef extern from "misc.c":
-    object create_cmd(int, const char*)
+cdef extern from "main_controller_misc.h":
+    # misc.h
+    const int RECV_BUFFER_SIZE
+    ctypedef struct RecvBuffer:
+        char b[512];
+        const char* begin;
+        const char* end;
+    ctypedef struct CommandQueueItem:
+        char *buffer;
+        size_t length;
+    ctypedef struct CommandQueue:
+        size_t length
+
+    void init_command_queue(CommandQueue *q);
+    void append_command_queue(CommandQueue *q, char *buf, size_t size, uint32_t lineno);
+    CommandQueueItem* pop_command_queue(CommandQueue *q);
+    void clear_command_queue(CommandQueue *q);
+
+    int recvline(int sock_fd, RecvBuffer *buf, const char **endptr)
+    int parse_dict(const char *begin, const char *terminator, object d)
+
+    # main_controller_misc.h
+    const int COMMAND_LENGTH
+    unsigned int build_mainboard_command(char *buf, const char *cmd, size_t cmd_size, uint32_t lineno)
+    unsigned int handle_ln(const char* buf, unsigned int length, CommandQueue *cmd_sent, CommandQueue *cmd_padding)
+    uint32_t handle_ln_mismatch(const char *buf, unsigned int length, int sock_fd, CommandQueue *cmd_sent, CommandQueue *cmd_padding, uint32_t flag);
+    uint32_t handle_checksum_mismatch(const char *buf, unsigned int length, int sock_fd, CommandQueue *cmd_sent, CommandQueue *cmd_padding, uint32_t flag);
+    uint32_t resend(int sock_fd, CommandQueue *cmd_sent, uint32_t flag);
 
 
 from collections import deque
@@ -19,281 +50,232 @@ from fluxmonitor.err_codes import EXEC_OPERATION_ERROR, EXEC_INTERNAL_ERROR,\
 
 cdef object L = logging.getLogger(__name__)
 
+DEF MAX_COMMAND_RETRY = 3
+DEF COMMAND_TIMEOUT = 0.4
 cdef int FLAG_READY = 1
 cdef int FLAG_ERROR = 2
-cdef int FLAG_CLOSED = 4
-
-
-cdef inline object send_cmd(object executor, int lineno, const char* cmd):
-    executor.send_mainboard(create_cmd(lineno, cmd))
-
+cdef int FLAG_CLOSING = 4
+cdef int FLAG_CLOSED = 8
 
 cdef class MainController:
     # Number, from 0
     cdef public int _ln  # current sequence
-    cdef public int _ln_ack  # Mainboard confirmd sequence
+    cdef readonly int _resend_inhibit
 
     # Communicate counter
-    cdef public float _last_recv_ts  # Timestemp: last recive "LN x" message
-    cdef public int _resend_counter  # Resend counter
+    cdef public float send_timestamp
+    cdef public unsigned int send_retry
 
-    cdef public int _flags
+    cdef readonly int _flags
 
-    cdef public int _retry_ttl
+    cdef readonly int bufsize
 
-    # Tuple: (ttl(int), time(float), ln(int))
-    cdef object _inhibit_resend
+    cdef object callback_ready
+    cdef object callback_msg_empty
+    cdef object callback_msg_sendable
+    cdef object callback_ctrl
 
-    cdef int _bufsize
+    cdef int sock_fd
+    cdef RecvBuffer recv_buffer
+    cdef CommandQueue _cmd_sent
+    cdef CommandQueue _cmd_padding
 
-    cdef public object _cmd_sent
-    cdef public object _cmd_padding
+    cdef char *command_buffer
 
-    cdef public object callback_ready
-    cdef public object callback_msg_empty
-    cdef public object callback_msg_sendable
-
-    def __init__(self, executor, bufsize=16, ready_callback=None,
-                 msg_empty_callback=None, msg_sendable_callback=None,
-                 retry_ttl=3):
-        self._retry_ttl = retry_ttl
-        self._last_recv_ts = -1
-        self._resend_counter = 0
+    def __init__(self, int sock_fd, unsigned int bufsize,
+                 empty_callback=None, sendable_callback=None,
+                 ctrl_callback=None):
+        self.send_timestamp = -1
+        self.send_retry = 0
         self._flags = 0
 
-        self._cmd_sent = deque()
-        self._cmd_padding = deque()
-        self.callback_ready = ready_callback
-        self.callback_msg_empty = msg_empty_callback
-        self.callback_msg_sendable = msg_sendable_callback
+        init_command_queue(&(self._cmd_sent))
+        init_command_queue(&(self._cmd_padding))
 
-        self._bufsize = bufsize
+        self.sock_fd = sock_fd
+        self.bufsize = bufsize
+        self.command_buffer = <char*>malloc(COMMAND_LENGTH * bufsize)
 
-        self._last_recv_ts = monotonic_time()
-        executor.send_mainboard("C1O\n")
+        self.callback_msg_empty = empty_callback
+        self.callback_msg_sendable = sendable_callback
+        self.callback_ctrl = ctrl_callback
 
-    @property
-    def ready(self):
-        return self._flags == FLAG_READY
+    def __del__(self):
+        cdef CommandQueueItem *item
+        while self._cmd_sent.length:
+            item = pop_command_queue(&(self._cmd_sent))
+            free(item)
+        while self._cmd_padding.length:
+            item = pop_command_queue(&(self._cmd_padding))
+            free(item)
+        free(self.command_buffer)
 
-    @property
-    def closed(self):
-        return self.is_closed()
+    cdef void send(self, const char *buf, size_t length):
+        if(send(self.sock_fd, buf, length, 0) < 0):
+            exc.PyErr_SetFromErrno(IOError)
 
-    cdef inline int is_closed(self):
-        if self._flags & FLAG_CLOSED > 0:
-            return 1
+    property ready:
+        def __get__(self):
+            return self._flags == FLAG_READY
+
+    property buffered_cmd_size:
+        def __get__(self):
+            return self._cmd_sent.length + self._cmd_padding.length
+
+    property queue_full:
+        def __get__(self):
+            return self.buffered_cmd_size >= self.bufsize
+
+    def bootstrap(self, callback=None):
+        if self._flags:
+            if self._flags < FLAG_CLOSING:
+                self._flags &= ~FLAG_ERROR
+                if callback:
+                    callback(self)
+            else:
+                raise SystemError(EXEC_OPERATION_ERROR)
         else:
-            return 0
+            self.send_timestamp = monotonic_time()
+            self.send("C1O\n", 4);
+            self.callback_ready = callback
 
-    @property
-    def buffered_cmd_size(self):
-        return len(self._cmd_sent) + len(self._cmd_padding)
+    def handle_recv(self):
+        cdef const char* endptr
+        cdef int ret
+        while True:
+            ret = recvline(self.sock_fd, &(self.recv_buffer), &endptr)
 
-    @property
-    def bufsize(self):
-        return self._bufsize
+            if ret == -2:
+                #TODO validate
+                exc.PyErr_SetFromErrno(IOError)
+            elif ret == -1:
+                L.debug("Mainboard buffer full: %r", self.recv_buffer.b[:RECV_BUFFER_SIZE])
+            elif ret == 0:
+                pass
+            elif ret > 0:
+                self.handle_message(self.recv_buffer.b, endptr - self.recv_buffer.b)
+                if ret == 2:
+                    continue
+            else:
+                raise Exception("recvline return unknown ret: %i", ret)
+            return
 
-    @property
-    def queue_full(self):
-        return self.buffered_cmd_size >= self._bufsize
+    cdef void handle_message(self, const char* buf, unsigned int length) except *:
+        cdef char *anchor
+        cdef uint32_t num_of_commands
+        cdef CommandQueueItem *item
 
-    @bufsize.setter
-    def bufsize(self, val):
-        if val < 1:
-            raise ValueError("bufsize must > 0")
-        elif val > 16:
-            raise ValueError("bufsize must <= 16")
-        else:
-            self._bufsize = val
+        if self._flags:
+            if length > 3 and strncmp(buf, "LN ", 3) == 0:
+                num_of_commands = handle_ln(buf, length, &(self._cmd_sent), &(self._cmd_padding))
+                self.send_timestamp = monotonic_time()
+                self._resend_inhibit = 0
 
-    cpdef _process_init(self, const char* msg, object executor):
-        cdef int ln
-        if strncmp("CTRL LINECHECK_ENABLED", msg, 23) == 0:
-            self._ln = 0
-            self._ln_ack = 0
-            self._flags |= FLAG_READY
-            self.callback_ready(self)
+                if num_of_commands + 1 == self.bufsize and self.callback_msg_sendable:
+                    self.callback_msg_sendable(self)
+                if num_of_commands == 0 and self.callback_msg_empty:
+                    self.callback_msg_empty(self)
 
-        elif strncmp("ER MISSING_LINENUMBER ", msg, 22) == 0:
-            L.error("Mainboard linecheck already enabled")
-            # Try re-enbale line check
-            if sscanf(msg + 22, "%d", &ln) == 1:
-                send_cmd(executor, ln, "C1F")
-        elif strncmp("CTRL LINECHECK_DISABLED", msg, 24) == 0:
-            executor.send_mainboard("C1O\n")
-        else:
-            L.debug("Recv unknow msg: '%s'", msg)
+            elif length > 17 and strncmp(buf, "ER LINE_MISMATCH ", 17) == 0:
+                self._resend_inhibit = handle_ln_mismatch(buf, length, self.sock_fd, &(self._cmd_sent), &(self._cmd_padding), self._resend_inhibit)
 
-    def bootstrap(self, executor):
-        L.info("MAIN BOOTSTRAP")
-        if self._flags == FLAG_READY:
-            self.callback_ready(self)
-        elif self._flags == (FLAG_READY + FLAG_ERROR):
-            self._flags = FLAG_READY
-            self.callback_ready(self)
-        else:
-            raise SystemError("BAD_LOGIC", "MBF_%i" % self._flags)
+            elif length > 21 and strncmp(buf, "ER CHECKSUM_MISMATCH ", 21) == 0:
+                self._resend_inhibit = handle_checksum_mismatch(buf, length, self.sock_fd, &(self._cmd_sent), &(self._cmd_padding), self._resend_inhibit)
 
-    def remove_complete_command(self, cmd=None):
-        self._cmd_padding.popleft()
-
-        if self.buffered_cmd_size + 1 == self._bufsize and \
-           self.callback_msg_sendable:
-            self.callback_msg_sendable(self)
-        if self.buffered_cmd_size == 0 and self.callback_msg_empty:
-            self.callback_msg_empty(self)
-
-    def on_message(self, msg, executor):
-        if self._flags & FLAG_READY:
-            if msg.startswith("LN "):
-                recv_ln, cmd_in_queue = (int(x) for x in msg.split(" ", 2)[1:])
-                self._last_recv_ts = monotonic_time()
-                self._resend_counter = 0
-
-                while self._ln_ack < recv_ln:
-                    cmd = self._cmd_sent.popleft()
-                    self._cmd_padding.append(cmd)
-                    self._ln_ack += 1
-
-                while len(self._cmd_padding) > cmd_in_queue:
-                    self.remove_complete_command()
-
-            elif msg.startswith("ER LINE_MISMATCH "):
-                correct_ln, trigger_ln = (int(v) for v in msg[17:].split(" "))
-                if correct_ln < trigger_ln:
-                    ttl = -2
-                    if not self._resend_cmd_from(correct_ln, executor,
-                                                 ttl_offset=ttl):
-                        raise SystemError(EXEC_INTERNAL_ERROR,
-                                          "IMPOSSIBLE_SYNC_LN")
-
-            elif msg.startswith("ER CHECKSUM_MISMATCH "):
-                err_ln, trigger_ln = (int(v) for v in msg[21:].split(" "))
-                ttl = err_ln - trigger_ln
-                if not self._resend_cmd_from(err_ln, executor,
-                                             ttl_offset=ttl):
-                    raise SystemError(EXEC_INTERNAL_ERROR,
-                                      "IMPOSSIBLE_SYNC_LN")
-
-            elif msg.startswith("CTRL FILAMENTRUNOUT "):
+            elif length > 20 and strncmp(buf, "CTRL FILAMENTRUNOUT ", 20) == 0:
                 if self._flags & FLAG_ERROR == 0:
                     self._flags |= FLAG_ERROR
-                    err = RuntimeError(EXEC_FILAMENT_RUNOUT, msg.split(" ")[2])
+                    err = RuntimeError(EXEC_FILAMENT_RUNOUT, buf[20:length])
                     err.hw_error_code = 49
                     raise err
-
-            elif msg == "CTRL LINECHECK_DISABLED":
-                executor.send_mainboard(b"C1O\n")
-
-            elif msg == "CTRL STASH":
-                pass
-
-            elif msg == "CTRL STASH_POP":
-                pass
-
-            elif msg == "ok":
-                pass
-
-            elif msg == "ER G28_FAILED":
+            elif length == 23 and strncmp(buf, "CTRL LINECHECK_DISABLED", 23) == 0:
+                if self._flags & FLAG_CLOSING:
+                    self._flags |= FLAG_CLOSED;
+            elif length > 5 and strncmp(buf, "CTRL ", 5) == 0:
+                if self.callback_ctrl:
+                    self.callback_ctrl(self, buf[5:length])
+            elif length > 5 and strncmp(buf, "DATA ", 5) == 0:
+                if self.callback_ctrl:
+                    self.callback_ctrl(self, buf[:length])
+            elif length > 6 and strncmp(buf, "DEBUG ", 6) == 0:
+                if self.callback_ctrl:
+                    self.callback_ctrl(self, buf[:length])
+            elif length == 13 and strncmp(buf, "ER G28_FAILED", 13) == 0:
                 raise SystemError(HARDWARE_ERROR, EXEC_HOME_FAILED)
-
-            elif msg.startswith("ER FSR"):
+            elif length > 7 and strncmp(buf, "ER FSR ", 7) == 0:
                 raise RuntimeError(HARDWARE_ERROR, EXEC_SENSOR_ERROR, "FSR",
-                                   *(msg.split(" ")[2:]))
-
+                                   *(buf[7:length].split(" ")))
+            elif length > 4 and strncmp(buf, "ER ", 3) == 0:
+                raise SystemError(HARDWARE_ERROR, *(buf[3:length].split(" ")))
+            elif length == 2 and strncmp(buf, "ok", 2) == 0:
+                pass
             else:
-                if msg.startswith("ER "):
-                    raise SystemError(HARDWARE_ERROR, *(msg.split(" ")[1:]))
+                L.debug("Recv unknown mainboard message: %r", buf[:length])
 
-                L.debug("Unhandle MB MSG: %s" % msg)
-        elif not self.closed:
-            self._process_init(msg, executor)
-
-    cpdef object create_cmd(self, int lineno, const char* cmd):
-        return create_cmd(lineno, cmd)
-
-    def _resend_cmd_from(self, lineno, executor, ttl_offset):
-        if lineno < self._ln_ack:
-            return True
-
-        if self._inhibit_resend:
-            ttl, ts, i_ln = self._inhibit_resend
-            if i_ln == lineno and monotonic_time() - ts < 0.3 and ttl > 0:
-                self._inhibit_resend = (ttl - 1, ts, i_ln)
-                return True  # inhibit, quit resend
+        else:
+            if length == 22 and strncmp(buf, "CTRL LINECHECK_ENABLED", 22) == 0:
+                self._ln = 0
+                self._flags |= FLAG_READY
+                cb = self.callback_ready
+                self.callback_ready = None
+                if cb:
+                    cb(self)
+            elif length > 22 and strncmp(buf, "ER MISSING_LINENUMBER ", 22) == 0:
+                L.warning("Mainboard linecheck already enabled")
+                self.send_timestamp = monotonic_time()
+                self.send("@DISABLE_LINECHECK\n", 19)
+            elif length == 23 and strncmp(buf, "CTRL LINECHECK_DISABLED", 23) == 0:
+                self.send_timestamp = monotonic_time()
+                self.send("C1O\n", 4);
             else:
-                # inhibit avoid (timeout)
-                self._inhibit_resend = None
+                L.info("Recv unknown mainboard message: %r", buf[:length])
 
-        while self._cmd_sent:
-            cmdline = self._cmd_sent[0]
-            if cmdline[0] < lineno:
-                self._ln_ack = cmdline[0]
-                self._cmd_sent.popleft()
-                self._cmd_padding.append(cmdline)
-            elif cmdline[0] == lineno:
-                ttl = ttl_offset
+    def send_cmd(self, unsigned char[] command, int raw=0):
+        cdef char *buf
+        cdef unsigned int size
 
-                for cmdline in self._cmd_sent:
-                    send_cmd(executor, cmdline[0], cmdline[1])
-                    ttl += 1
+        if raw:
+            self.send(<const char *>command, len(command))
+            return
 
-                if ttl > 0:
-                    self._inhibit_resend = (ttl, monotonic_time(), lineno)
-
-                return True
-            else:
-                return False
-        return False
-
-    def send_cmd(self, cmd, executor, force=False):
-        if self._flags & FLAG_READY:
-            if self.buffered_cmd_size < self._bufsize or force:
+        if self._flags and self._flags < FLAG_CLOSING:
+            if self.buffered_cmd_size < self.bufsize:
                 self._ln += 1
-                send_cmd(executor, self._ln, cmd)
-                if not self._cmd_sent:
-                    self._last_recv_ts = monotonic_time()
-                self._cmd_sent.append((self._ln, cmd))
+                buf = self.command_buffer + COMMAND_LENGTH * (self._ln % self.bufsize)
+                size = build_mainboard_command(buf, <const char *>command, len(command), self._ln)
+                if size < 0:
+                    raise SystemError(EXEC_OPERATION_ERROR, "COMMAND_OVERFLOW")
+                if not self._cmd_sent.length:
+                    self.send_timestamp = monotonic_time()
+                append_command_queue(&(self._cmd_sent), buf, size, self._ln)
+                self.send(buf, size)
             else:
                 raise RuntimeError(EXEC_OPERATION_ERROR, "BUF_FULL")
         else:
             raise RuntimeError(EXEC_OPERATION_ERROR, "NOT_READY")
 
-    def on_mainboard_dead(self):
-        self._flags &= ~FLAG_READY
-        self._flags |= FLAG_CLOSED
-        raise SystemError(EXEC_MAINBOARD_OFFLINE)
+    def patrol(self):
+        if self._flags and self._flags & (FLAG_CLOSING + FLAG_CLOSED) == 0:
+            if self._cmd_sent.length and monotonic_time() - self.send_timestamp > COMMAND_TIMEOUT:
+                if self.send_retry >= MAX_COMMAND_RETRY:
+                    raise SystemError(EXEC_MAINBOARD_OFFLINE)
+                else:
+                    self.send_timestamp = monotonic_time()
+                    self.send_retry += 1
+                    self._resend_inhibit = resend(self.sock_fd, &(self._cmd_sent), 0)
+        elif self._flags & (FLAG_CLOSING + FLAG_CLOSED):
+            pass
+        else:
+            if monotonic_time() - self.send_timestamp > COMMAND_TIMEOUT:
+                if self.send_retry >= MAX_COMMAND_RETRY:
+                    raise SystemError(EXEC_MAINBOARD_OFFLINE)
+                else:
+                    self.send_timestamp = monotonic_time()
+                    self.send_retry += 1
+                    self.send("C1O\n", 4)
 
-    def close(self, executor):
-        if self._flags & FLAG_READY:
-            executor.send_mainboard("@DISABLE_LINECHECK\n")
-            executor.send_mainboard("G28+\n")
-            executor.send_mainboard("X5S0\n")
-            self._flags &= ~FLAG_READY
-            self._flags |= FLAG_CLOSED
-
-    def patrol(self, executor):
-        if not self._flags & FLAG_READY and not self.is_closed():
-            if monotonic_time() - self._last_recv_ts > 1.0:
-                self._resend_counter += 1
-                if self._resend_counter > self._retry_ttl:
-                    L.error("Mainboard no response, restart it")
-                    self.on_mainboard_dead()
-
-                self._last_recv_ts = monotonic_time()
-                # Resend, let ttl_offset takes no effect
-                executor.send_mainboard("C1O\n")
-
-        if self._cmd_sent:
-            if self._resend_counter >= self._retry_ttl:
-                L.error("Mainboard no response, restart it (%i)",
-                        self._resend_counter)
-                self.on_mainboard_dead()
-
-            if monotonic_time() - self._last_recv_ts > 3.0:
-                self._last_recv_ts = monotonic_time()
-                self._resend_counter += 1
-                # Resend, let ttl_offset takes no effect
-                self._resend_cmd_from(self._ln_ack + 1, executor,
-                                      ttl_offset=-128)
+    def close(self):
+        if self._flags and self._flags < FLAG_CLOSING:
+            send(self.sock_fd, "@DISABLE_LINECHECK\n", 19, 0)
+            send(self.sock_fd, "X5S0\nG28+\nM84\n", 14, 0)
+            self._flags |= FLAG_CLOSING;

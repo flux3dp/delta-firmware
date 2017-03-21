@@ -1,15 +1,19 @@
 
 import logging
+import socket
+import os
 
 from fluxmonitor.config import CAMERA_ENDPOINT
 from .listener import UnixStreamInterface
 from .handler import MsgpackProtocol, UnixHandler
+from .camera import CameraUnixHandler
 
 logger = logging.getLogger(__name__)
 CMD_REQUEST_FRAME = 0x00
 CMD_SCAN_CHECKING = 0x01
 CMD_GET_BIAS = 0x02
 CMD_COMPUTE_CAB = (0x03, 0x04, 0x05)
+CMD_TRANSFER_TO_PUBLIC = 0x79
 CMD_CLOUD_CONNECTION = 0x80
 
 
@@ -45,6 +49,15 @@ class CameraUnixStreamHandler(MsgpackProtocol, UnixHandler):
                 elif cmd in CMD_COMPUTE_CAB:
                     ret = self.kernel.compute_cab(camera_id, cmd)
                     self.send_payload(("ok", ret))
+                elif cmd == CMD_TRANSFER_TO_PUBLIC:
+                    newfd = os.dup(self.sock.fileno())
+                    newsock = socket.fromfd(newfd, self.sock.family,
+                                            self.sock.type)
+                    h = CameraUnixHandler(self.kernel, "INTERNAL",
+                                          sock=newsock)
+                    self.kernel.public_ifce.clients.add(h)
+                    self.kernel.on_connected(h)
+                    self.close()
                 elif cmd == CMD_CLOUD_CONNECTION:
                     endpoint = request[2]
                     token = request[3]

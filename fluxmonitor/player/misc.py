@@ -3,6 +3,7 @@ from multiprocessing import Process
 from zipfile import crc32
 from select import select
 from time import time
+import logging
 import struct
 import socket
 
@@ -16,6 +17,7 @@ from fluxmonitor.err_codes import FILE_BROKEN, UNKNOWN_ERROR
 # G28_PARSER = re.compile("(^G28|\ G28)(\ |$)")
 # T_PARSER = re.compile("(^T\d|\ T\d)(\ |$)")
 
+logger = logging.getLogger("TaskLoader")
 INT_PACKER = struct.Struct("<i")
 UINT_PACKER = struct.Struct("<I")
 
@@ -108,6 +110,7 @@ class TaskLoader(Process):
 
     def __serve_forever(self):
         setproctitle("fluxplayer: TaskLoader")
+        logger.debug("TaskLoader forked")
 
         self.io_out.close()
         del self.io_out
@@ -138,8 +141,12 @@ class TaskLoader(Process):
                     if wl:
                             offset += self.io_in.send(view[offset:l])
 
+            logger.debug("TaskLoader close normally")
         except KeyboardInterrupt:
             pass
+        except Exception:
+            logger.exception("TaskLoader close with error")
+
         finally:
             self.io_in.shutdown(socket.SHUT_WR)
             t = time()

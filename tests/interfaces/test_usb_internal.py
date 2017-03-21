@@ -5,7 +5,7 @@ import struct
 import socket
 import pyev
 
-from fluxmonitor.interfaces.usb_internal import USBProtocol
+from fluxmonitor.interfaces.usb2pc import USBProtocol
 
 
 class USBProtocolImpl(USBProtocol):

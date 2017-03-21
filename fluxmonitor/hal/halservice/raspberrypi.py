@@ -2,12 +2,12 @@
 from pkg_resources import resource_stream
 from serial import Serial, SerialException  # PARITY_EVEN, PARITY_NONE,
 from shutil import copyfileobj
+from select import select
 from time import sleep
 import logging
 import pyev
 
-# from fluxmonitor.misc.systime import systime as time
-from fluxmonitor.halprofile import MODEL_D1
+from fluxmonitor.halprofile import get_model_id, MODEL_D1, MODEL_D1P
 from fluxmonitor.storage import Metadata, Storage
 
 from .raspberry_utils import (
@@ -21,13 +21,13 @@ logger = logging.getLogger("halservice.rasp")
 
 
 class UartHal(UartHalBase, BaseOnSerial):
-    support_hal = [MODEL_D1, ]
+    support_hal = [MODEL_D1, MODEL_D1P]
     mainboard_uart = raspi_uart = None
     mainboard_io = raspi_io = None
 
     def __init__(self, kernel):
         super(UartHal, self).__init__(kernel)
-        self.meta = Metadata()
+        self.meta = Metadata.instance()
         GPIOUtils.setup()
 
     def start(self):
@@ -53,7 +53,7 @@ class UartHal(UartHalBase, BaseOnSerial):
             hwprofile = GPIOUtils.get_hardware_profile()
 
         self.hwprofile = hwprofile
-        if self.hwprofile["HARDWARE_VERSION"] == "1":
+        if get_model_id() == MODEL_D1P:
             self.gpio = PinMappingV1(self.meta)
         else:
             self.gpio = PinMappingV0(self.meta)
@@ -67,16 +67,8 @@ class UartHal(UartHalBase, BaseOnSerial):
     def hal_name(self):
         return "raspberrypi-%s" % self.gpio.version
 
-    def on_recvfrom_raspi_io_hw_v0(self, watcher, revent):
+    def on_recvfrom_raspi_io(self, watcher, revent):
         if self.gpio._head_enabled:
-            self.on_recvfrom_headboard(watcher, revent)
-        else:
-            self.on_recvfrom_pc(watcher, revent)
-
-    def on_recvfrom_raspi_io_hw_v1(self, watcher, revent):
-        if self.gpio._head_enabled:
-            if self.gpio.v24_power is False:
-                self.gpio.v24_power = True
             self.on_recvfrom_headboard(watcher, revent)
         else:
             self.on_recvfrom_pc(watcher, revent)
@@ -102,13 +94,9 @@ class UartHal(UartHalBase, BaseOnSerial):
         self.raspi_uart = Serial(port="/dev/ttyAMA0", baudrate=115200,
                                  stopbits=1, xonxoff=0, rtscts=0, timeout=0)
 
-        if self.gpio.version == 1:
-            callback = self.on_recvfrom_raspi_io_hw_v1
-        else:
-            callback = self.on_recvfrom_raspi_io_hw_v0
-
         self.raspi_io = self.kernel.loop.io(
-            self.raspi_uart, pyev.EV_READ, callback, self.raspi_uart)
+            self.raspi_uart, pyev.EV_READ, self.on_recvfrom_raspi_io,
+            self.raspi_uart)
         self.raspi_io.start()
 
         self.mainboard_uart = Serial(port=GPIOUtils.get_mainboard_port(),
@@ -159,14 +147,21 @@ class UartHal(UartHalBase, BaseOnSerial):
         self.btn_monitor.close()
         GPIOUtils.teardown()
 
+        while True:
+            try:
+                GPIOUtils.get_mainboard_port()
+                break
+            except Exception:
+                sleep(0.02)
+
     def on_loop(self):
         self.gpio.on_timer()
 
     def reset_mainboard(self):
         self.disconnect_uart()
-        sleep(0.3)
+        sleep(0.1)
         GPIOUtils.reset_mainboard()
-        sleep(0.3)
+        sleep(0.75)
         # Ensure mainboard is back
         while True:
             try:
@@ -195,6 +190,75 @@ class UartHal(UartHalBase, BaseOnSerial):
             logger.debug("Complete update toolhead fw")
         finally:
             self.connect_uart()
+
+    def toolhead_power_on(self):
+        if len(self.headboard_watchers) == 0:
+            logger.error("Reject toolhead power on because there is no exist"
+                         " toolhead session.")
+        else:
+            self.gpio.toolhead_power = True
+
+    def toolhead_power_off(self):
+        self.gpio.toolhead_power = False
+
+    def toolhead_on(self):
+        if hasattr(self.gpio, "v24_power"):
+            if self.gpio.v24_power is False:
+                self.gpio.v24_power = True
+
+    def toolhead_standby(self):
+        if hasattr(self.gpio, "v24_power"):
+            if self.gpio.v24_power is True:
+                self.gpio.v24_power = False
+
+    def diagnosis_mode(self):
+        self.gpio.set_toolhead_boot(False)
+        self.gpio.toolhead_power = False
+        if hasattr(self.gpio, "v24_power"):
+            self.gpio.v24_power = False
+        self.mainboard_uart.write("@DISABLE_LINECHECK\nX2O0\n")
+
+        ret = "UNKNOWN"
+        while True:
+            cmd = ""
+            rl = select((self.raspi_uart, ), (), (), 10.)[0]
+            if rl:
+                cmd += self.raspi_uart.read(4 - len(cmd))
+                if len(cmd) == 4:
+                    if cmd.startswith("BT"):
+                        self.gpio.set_toolhead_boot(cmd[2] == "H")
+                        self.raspi_uart.write("BOK\n")
+                    elif cmd.startswith("M2"):
+                        op = "X2O255\n" if cmd[2] == "H" else "X2O0\n"
+                        self.mainboard_uart.write(op)
+                        self.raspi_uart.write("MOK\n")
+                    elif cmd.startswith("5V"):
+                        self.gpio.toolhead_power = cmd[2] == "H"
+                        self.raspi_uart.write("5OK\n")
+                    elif cmd.startswith("24"):
+                        if hasattr(self.gpio, "v24_power"):
+                            self.gpio.v24_power = cmd[2] == "H"
+                        self.raspi_uart.write("POK\n")
+                    elif cmd == "QM1\n":
+                        if self.gpio.mio_1:
+                            self.raspi_uart.write("M1H\n")
+                        else:
+                            self.raspi_uart.write("M1L\n")
+                    else:
+                        ret = "QUIT " + cmd.strip("\n")
+                        break
+
+                    cmd = ""
+            else:
+                ret = "TIMEOUT"
+                break
+
+        self.gpio.set_toolhead_boot(False)
+        self.gpio.toolhead_power = False
+        if hasattr(self.gpio, "v24_power"):
+            self.gpio.v24_power = False
+        self.mainboard_uart.write("X2O0\n")
+        return ret
 
     def send_button_event(self, event_buffer):
         self.kernel.on_button_event(event_buffer.rstrip())

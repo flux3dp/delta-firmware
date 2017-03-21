@@ -5,15 +5,15 @@ import logging
 import socket
 import json
 import os
-import re
 
 import pyev
 
-from fluxmonitor.storage import Metadata, UserSpace
 from fluxmonitor.services.base import ServiceBase
+from fluxmonitor.storage import UserSpace, metadata
+from fluxmonitor.hal import tools
 
 from .fcode_executor import FcodeExecutor
-from .connection import create_mainboard_socket, create_headboard_socket
+from .connection import create_mainboard_socket, create_toolhead_socket
 from .options import Options
 from .misc import TaskLoader
 
@@ -23,14 +23,13 @@ logger = logging.getLogger("")
 
 def parse_float(str_val):
     try:
-        return float(str_val)
+        val = float(str_val)
+        return float("NAN") if val == 0 else val
     except (ValueError, TypeError):
         return float("NAN")
 
 
 class Player(ServiceBase):
-    _mb_swap = _hb_swap = None
-
     def __init__(self, options):
         super(Player, self).__init__(logger)
 
@@ -39,17 +38,17 @@ class Player(ServiceBase):
         except Exception:
             logger.error("Can not renice process to -5")
 
+        tools.toolhead_power_off()
         self.prepare_control_socket(options.control_endpoint)
-        self.meta = Metadata()
 
-        main_sock = create_mainboard_socket()
-        head_sock = create_headboard_socket()
+        m_sock = create_mainboard_socket()
+        t_sock = create_toolhead_socket()
 
-        self.main_watcher = self.loop.io(main_sock, pyev.EV_READ,
-                                         self.on_mainboard_message, main_sock)
+        self.main_watcher = self.loop.io(m_sock, pyev.EV_READ,
+                                         self.on_mainboard_recv, m_sock)
         self.main_watcher.start()
-        self.head_watcher = self.loop.io(head_sock, pyev.EV_READ,
-                                         self.on_headboard_message, head_sock)
+        self.head_watcher = self.loop.io(t_sock, pyev.EV_READ,
+                                         self.on_toolhead_recv, t_sock)
         self.head_watcher.start()
 
         self.timer_watcher = self.loop.timer(0.8, 0.8, self.on_timer)
@@ -74,12 +73,12 @@ class Player(ServiceBase):
             except Exception:
                 logger.exception("Can not place recent file")
 
-        self.executor = FcodeExecutor(main_sock, head_sock, taskloader,
-                                      exec_opt)
+        self.executor = FcodeExecutor(m_sock, t_sock, taskloader, exec_opt)
 
         self.travel_dist = parse_float(taskloader.metadata.get("TRAVEL_DIST"))
+        if self.travel_dist == 0:
+            self.travel_dist = float("NAN")
         self.time_cose = parse_float(taskloader.metadata.get("TIME_COST"))
-        self.avg_speed = self.travel_dist / self.time_cose
 
     def prepare_control_socket(self, endpoint):
         if not endpoint:
@@ -136,55 +135,20 @@ class Player(ServiceBase):
         pass
 
     def on_shutdown(self):
+        self.executor.close()
         self.cmd_watcher.stop()
         self.cmd_watcher.data.close()
         self.cmd_watcher = None
 
-    def on_mainboard_message(self, watcher, revent):
+    def on_mainboard_recv(self, watcher, revent):
         try:
-            buf = watcher.data.recv(4096)
-        except IOError:
-            logger.exception("Mainboard socket I/O error")
-            return
-
-        try:
-            if not buf:
-                logger.error("Mainboard connection broken")
-                self.executor.abort("CONTROL_FAILED", "MB_CONN_BROKEN")
-
-            if self._mb_swap:
-                self._mb_swap += buf.decode("ascii", "ignore")
-            else:
-                self._mb_swap = buf.decode("ascii", "ignore")
-
-            messages = re.split("\r\n|\n", self._mb_swap)
-            self._mb_swap = messages.pop()
-            for msg in messages:
-                self.executor.on_mainboard_message(msg)
+            self.executor.on_mainboard_recv()
         except Exception:
             logger.exception("Process mainboard message error")
 
-    def on_headboard_message(self, watcher, revent):
+    def on_toolhead_recv(self, watcher, revent):
         try:
-            buf = watcher.data.recv(4096)
-        except IOError:
-            logger.exception("Headboard socket I/O error")
-            return
-
-        try:
-            if not buf:
-                logger.error("Headboard connection broken")
-                self.executor.abort("CONTROL_FAILED", "HB_CONN_BROKEN")
-
-            if self._hb_swap:
-                self._hb_swap += buf.decode("ascii", "ignore")
-            else:
-                self._hb_swap = buf.decode("ascii", "ignore")
-
-            messages = re.split("\r\n|\n", self._hb_swap)
-            self._hb_swap = messages.pop()
-            for msg in messages:
-                self.executor.on_headboard_message(msg)
+            self.executor.on_toolhead_recv()
         except Exception:
             logger.exception("Process toolhead message error")
 
@@ -212,25 +176,57 @@ class Player(ServiceBase):
                 else:
                     self.send_cmd_response(S, R, "error RESOURCE_BUSY")
             elif cmd == "ABORT":  # Abort
-                if self.executor.abort():
+                if self.executor.soft_abort():
                     self.send_cmd_response(S, R, "ok")
+                else:
+                    self.send_cmd_response(S, R, "error RESOURCE_BUSY")
+            elif cmd == "SET_TH_OPERATING":
+                if self.executor.set_toolhead_operation():
+                    self.send_cmd_response(S, R, "ok")
+                else:
+                    self.send_cmd_response(S, R, "error RESOURCE_BUSY")
+            elif cmd == "SET_TH_STANDBY":
+                if self.executor.set_toolhead_standby():
+                    self.send_cmd_response(S, R, "ok")
+                else:
+                    self.send_cmd_response(S, R, "error RESOURCE_BUSY")
+            elif cmd == "INTERRUPT_LOAD_FILAMENT":
+                if self.executor.interrupt_load_filament():
+                    return self.send_cmd_response(S, R, "ok")
                 else:
                     self.send_cmd_response(S, R, "error RESOURCE_BUSY")
             elif cmd == "LOAD_FILAMENT":
-                if self.executor.load_filament(int(args[1])):
-                    self.send_cmd_response(S, R, "ok")
-                else:
-                    self.send_cmd_response(S, R, "error RESOURCE_BUSY")
-            elif cmd == "EJECT_FILAMENT":
-                if self.executor.eject_filament(int(args[1])):
-                    self.send_cmd_response(S, R, "ok")
-                else:
-                    self.send_cmd_response(S, R, "error RESOURCE_BUSY")
+                try:
+                    if self.executor.load_filament(int(args[1])):
+                        self.send_cmd_response(S, R, "ok")
+                    else:
+                        self.send_cmd_response(S, R, "error RESOURCE_BUSY")
+                except (ValueError, IndexError):
+                    self.send_cmd_response(S, R, "error BAD_PARAMS")
+            elif cmd == "UNLOAD_FILAMENT":
+                try:
+                    if self.executor.unload_filament(int(args[1])):
+                        self.send_cmd_response(S, R, "ok")
+                    else:
+                        self.send_cmd_response(S, R, "error RESOURCE_BUSY")
+                except (ValueError, IndexError):
+                    self.send_cmd_response(S, R, "error BAD_PARAMS")
+            elif cmd == "SET_TOOLHEAD_HEATER":
+                try:
+                    if self.executor.set_toolhead_heater(int(args[1]),
+                                                         float(args[2])):
+                        self.send_cmd_response(S, R, "ok")
+                    else:
+                        self.send_cmd_response(S, R, "error RESOURCE_BUSY")
+                except (ValueError, IndexError):
+                    self.send_cmd_response(S, R, "error BAD_PARAMS")
             elif cmd == "QUIT":
-                if self.executor.is_closed():
+                if self.executor.status_id in (64, 128):
                     self.send_cmd_response(S, R, "ok")
                     self.shutdown("BYE")
                 else:
+                    logger.warning("Quit request rejected because status id is"
+                                   " %s", self.executor.status_id)
                     self.send_cmd_response(S, R, "error RESOURCE_BUSY")
         except Exception:
             logger.exception("Unhandle error")
@@ -241,7 +237,10 @@ class Player(ServiceBase):
 
     def on_timer(self, watcher, revent):
         try:
-            self.executor.on_loop()
+            if self.executor.closed:
+                watcher.stop()
+            else:
+                self.executor.on_loop()
 
             if self.executor.error_symbol:
                 e = self.executor.error_str
@@ -249,10 +248,11 @@ class Player(ServiceBase):
             else:
                 err = ""
 
-            if self.executor.is_closed():
-                watcher.stop()
             prog = self.executor.traveled / self.travel_dist
-            self.meta.update_device_status(self.executor.status_id, prog,
-                                           self.executor.head_ctrl.module, err)
+
+            metadata.update_device_status(
+                self.executor.status_id, prog,
+                self.executor.toolhead.module_name or "N/A", err)
+
         except Exception:
             logger.exception("Unhandler Error")
