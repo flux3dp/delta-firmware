@@ -476,7 +476,9 @@ class ConfigMixIn(object):
                         v = float(sv)
                         if k in "XYZ" and v <= 0 and v >= -2:
                             d[k] = v
-                        elif k == "H" and v > 100 and v < 244:
+                        elif k in "R" and v <= 101 and v >= 92:
+                            d[k] = v
+                        elif k == "H" and v > 120 and v < 243:
                             d[k] = v
                     except ValueError:
                         pass
@@ -499,7 +501,7 @@ class ConfigMixIn(object):
             return " ".join(
                 "%s:%.4f" % (k, v)
                 for k, v in Preference.instance().plate_correction.items()
-                if k in "XYZH")
+                if k in "XYZRH")
         else:
             raise RuntimeError(BAD_PARAMS)
 
