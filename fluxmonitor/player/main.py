@@ -165,7 +165,7 @@ class Player(ServiceBase):
                 else:
                     handler.sendto("error RESOURCE_BUSY", endpoint)
             elif cmd == "ABORT":  # Abort
-                if self.executor.abort():
+                if self.executor.soft_abort():
                     handler.sendto("ok", endpoint)
                 else:
                     handler.sendto("error RESOURCE_BUSY", endpoint)

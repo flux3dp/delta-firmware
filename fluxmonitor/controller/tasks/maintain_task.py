@@ -321,7 +321,10 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
             handler.send_text("error %s" % " ".join(error.args))
             self.busying = False
 
-        self._macro = macro.CommandMacro(on_success_cb, ["G28+"])
+        cor = Preference.instance().plate_correction
+        self._macro = macro.CommandMacro(on_success_cb, [
+            "M666X%(X).4fY%(Y).4fZ%(Z).4fR%(R).4fD%(D).5fH%(H).4f" % cor,
+            "G28+"])
         self._on_macro_error = on_macro_error
         self.busying = True
         self._macro.start(self)

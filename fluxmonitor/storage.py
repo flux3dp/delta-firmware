@@ -9,6 +9,7 @@ import sysv_ipc
 
 from fluxmonitor.misc.systime import systime as time
 from fluxmonitor.err_codes import NOT_EXIST, BAD_PARAMS
+from fluxmonitor.config import DEFAULT_R
 
 
 class Storage(object):
@@ -137,7 +138,7 @@ class Preference(object):
                     pass
 
         return {"X": 0, "Y": 0, "Z": 0, "A": 0, "B": 0, "C": 0,
-                "I": 0, "J": 0, "K": 0, "R": 96.70, "D": 190, "H": 240}
+                "I": 0, "J": 0, "K": 0, "R": DEFAULT_R, "D": 190, "H": 240}
 
     @plate_correction.setter
     def plate_correction(self, val):

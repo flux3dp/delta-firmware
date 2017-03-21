@@ -64,6 +64,9 @@ def load_model_profile():
 
     general_config["db"] = profile["db"]
 
+    self.DEFAULT_R = profile.get("default_r", 96.70)
+    self.DEFAULT_H = profile.get("default_h", 242)
+    self.DEFAULT_MOVEMENT_TEST = profile.get("default_movement_test", False)
     self.SCAN_CAMERA_ID = profile.get("scan_camera_id")
     self.USERSPACE = profile["userspace"]
     self.PLAY_SWAP = profile.get("playswap", self.PLAY_SWAP)
