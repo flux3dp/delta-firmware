@@ -36,6 +36,8 @@ class ZprobeMacro(MacroBase):
         if self.clean:
             self.pref.plate_correction = {"H": self.zdist}
             k.mainboard.send_cmd("M666H%.1f" % self.zdist)
+        else:
+            k.mainboard.send_cmd("M666H%.1f" % self.pref.plate_correction["H"])
         k.mainboard.send_cmd("G30X0Y0")
 
     def giveup(self, k):
