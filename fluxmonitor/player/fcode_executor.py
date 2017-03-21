@@ -7,8 +7,8 @@ from fluxmonitor.misc.systime import systime as time
 from fluxmonitor.err_codes import (UNKNOWN_ERROR, EXEC_BAD_COMMAND,
                                    SUBSYSTEM_ERROR)
 from fluxmonitor.hal.tools import (toolhead_on, toolhead_standby,
-                                   toolhead_power_on, toolhead_power_off)
-from fluxmonitor.storage import Metadata
+                                   toolhead_power_on, toolhead_power_off,
+                                   delay_toolhead_poweroff)
 
 from .base import BaseExecutor
 from .base import (ST_STARTING, ST_RUNNING, ST_RUNNING_PAUSED, ST_COMPLETED,
@@ -101,7 +101,8 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
     _cmd_queue = None
     _fucking_toolhead_power_management_control_flag = True
 
-    def __init__(self, mainboard_io, headboard_io, task_loader, options):
+    def __init__(self, mainboard_io, headboard_io, task_loader, options,
+                 timecost=float("NAN"), traveldist=float("NAN")):
         super(FcodeExecutor, self).__init__(mainboard_io, headboard_io)
         self._task_loader = task_loader
         self.options = options
@@ -122,15 +123,8 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
         self._fsm = PyDeviceFSM(max_x=self.options.max_x,
                                 max_y=self.options.max_y,
                                 max_z=self.options.max_z)
-
-        try:
-            task_loader.validate_status()
-            self.start()
-            self.closed = False
-
-        except Exception as e:
-            self.abort(e)
-            self.closed = True
+        self.timecost = timecost
+        self.traveldist = traveldist
 
     def __repr__(self):
         return ("<FcodeExecutor status_id=%i, macro=%s, pause_flags=%i, "
@@ -141,16 +135,20 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
                     self._eof))
 
     @property
-    def traveled(self):
-        return self._fsm.get_traveled()
+    def toolhead_name(self):
+        return self.executor.toolhead.module_name
 
     @property
-    def position(self):
-        return self._fsm.get_position()
+    def progress(self):
+        return self._fsm.get_traveled() / self.traveldist
 
     def get_status(self):
         st = self.toolhead.status
         st.update(super(FcodeExecutor, self).get_status())
+        traveled = self._fsm.get_traveled()
+        st["prog"] = traveled / self.traveldist
+        st["traveled"] = traveled
+        st["pos"] = self._fsm.get_position()
         return st
 
     def _on_mainboard_ready(self, mainboard):
@@ -682,7 +680,7 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
             try:
                 if self.toolhead.module_name == "EXTRUDER" and \
                    self.toolhead.status.get("rt", (0, ))[0] > 70:
-                    Metadata.instance().delay_toolhead_poweroff = b"\x01"
+                    delay_toolhead_poweroff()
             except Exception:
                 logger.exception("Toolhead close verify error")
         else:
@@ -693,8 +691,7 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
             self.closed = True
             logger.debug("Closed")
             if self.toolhead.ready and self.toolhead.module_name == "EXTRUDER":
-                from fluxmonitor.storage import metadata
-                metadata.delay_toolhead_poweroff = b"\x01"
+                delay_toolhead_poweroff()
 
             self._mbsock.close()
             self._thsock.close()

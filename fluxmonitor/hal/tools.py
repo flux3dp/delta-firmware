@@ -59,6 +59,11 @@ def toolhead_power_off():
         s.close()
 
 
+def delay_toolhead_poweroff():
+    from fluxmonitor.storage import Metadata
+    Metadata.instance().delay_toolhead_poweroff = b"\x01"
+
+
 def reset_mb():
     s = socket.socket(socket.AF_UNIX)
     try:

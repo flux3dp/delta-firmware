@@ -3,7 +3,6 @@ from subprocess import Popen, PIPE
 from tempfile import mktemp
 from signal import SIGKILL
 from select import select
-from time import time
 import logging
 import socket
 import os
@@ -13,9 +12,10 @@ from fluxmonitor.player.base import (ST_COMPLETED, ST_ABORTED,
                                      ST_PAUSED, ST_RUNNING)
 from fluxmonitor.misc.fcode_file import FCodeFile, FCodeError
 from fluxmonitor.misc.pidfile import load_pid
-from fluxmonitor.err_codes import FILE_BROKEN, NOT_SUPPORT, UNKNOWN_ERROR, \
-    RESOURCE_BUSY, SUBSYSTEM_ERROR
-from fluxmonitor.config import PLAY_ENDPOINT, PLAY_SWAP
+from fluxmonitor.misc.systime import systime as time
+from fluxmonitor.err_codes import FILE_BROKEN, NOT_SUPPORT, RESOURCE_BUSY, \
+    SUBSYSTEM_ERROR
+from fluxmonitor.config import PLAY_ENDPOINT
 from fluxmonitor.storage import Storage, metadata
 
 logger = logging.getLogger("Player")
@@ -35,8 +35,7 @@ class PlayerManager(object):
     alive = True
     _sock = None
 
-    def __init__(self, loop, taskfile, terminated_callback=None,
-                 copyfile=False):
+    def __init__(self, loop, taskfile, terminated_callback=None):
         storage = Storage("run")
         s = create_mainboard_socket()
 
@@ -50,11 +49,6 @@ class PlayerManager(object):
 
         try:
             s.send("\n@DISABLE_LINECHECK\nX5S115\n")
-            if copyfile:
-                ret = os.system("cp " + taskfile + " " + PLAY_SWAP)
-                if ret:
-                    logger.error("Copy file failed (return %i)", )
-                    raise RuntimeError(UNKNOWN_ERROR, "IO_ERROR")
 
             if os.path.exists(PLAY_ENDPOINT):
                 os.unlink(PLAY_ENDPOINT)
@@ -216,7 +210,7 @@ class PlayerManager(object):
             elif st_id in (64, 128):
                 return '{"st_label": "IDLE", "st_id": 0}'
         except SystemError:
-            raise RuntimeError(RESOURCE_BUSY)
+            raise RuntimeError(SUBSYSTEM_ERROR)
         except socket.error as e:
             st = metadata.format_device_status
             if st["st_id"] == 128 and time() - st["timestamp"] < 15:
