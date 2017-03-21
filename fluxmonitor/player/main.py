@@ -176,7 +176,7 @@ class Player(ServiceBase):
                 else:
                     self.send_cmd_response(S, R, "error RESOURCE_BUSY")
             elif cmd == "ABORT":  # Abort
-                if self.executor.abort():
+                if self.executor.soft_abort():
                     self.send_cmd_response(S, R, "ok")
                 else:
                     self.send_cmd_response(S, R, "error RESOURCE_BUSY")

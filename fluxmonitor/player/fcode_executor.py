@@ -16,7 +16,7 @@ from .base import (ST_STARTING, ST_RUNNING, ST_RUNNING_PAUSED, ST_COMPLETED,
 
 from ._device_fsm import PyDeviceFSM
 from .macro import (StartupMacro, WaitHeadMacro, CorrectionMacro, ZprobeMacro,
-                    RunCircleMacro,
+                    RunCircleMacro, SoftAbort,
                     ControlHeaterMacro, ControlToolheadMacro,
                     LoadFilamentMacro, UnloadFilamentMacro)
 
@@ -486,6 +486,7 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
                 else:
                     cmd = self._cmd_queue.popleft()[0]
                     self.mainboard.send_cmd(cmd)
+                    print(cmd)
             elif target == 2:
                 if self.mainboard.buffered_cmd_size == 0:
                     if self.toolhead.sendable():
@@ -509,8 +510,9 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
                 self.pause(RuntimeError("USER_OPERATION", "FROM_CODE"))
                 return
             elif target == 128:
-                self.abort(RuntimeError(self._cmd_queue[0][0]))
-
+                symbol = self._cmd_queue.popleft()[0]
+                self.abort(RuntimeError(symbol))
+                return
             else:
                 raise SystemError(UNKNOWN_ERROR, "TARGET=%i" % target)
 
@@ -559,6 +561,18 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
                 logger.error("Recv 'STASH' at status: %i", self.status_id)
         else:
             logger.debug("ctrl: %s", data)
+
+    def soft_abort(self):
+        if self.status_id == ST_RUNNING and self.macro is None and \
+                self.mainboard.ready and \
+                self.toolhead.module_name == "EXTRUDER" and \
+                self.toolhead.status.get("rt", (0, ))[0] > 189:
+            self.macro = SoftAbort()
+            if self.mainboard.buffered_cmd_size == 0:
+                self.on_command_empty(self)
+            return True
+        else:
+            return self.abort()
 
     def on_mainboard_recv(self):
         try:
@@ -666,6 +680,7 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
 
     def terminate(self):
         logger.debug("Terminated")
+
         self.paused_macro = None
         self.macro = None
         self._task_loader.close()
