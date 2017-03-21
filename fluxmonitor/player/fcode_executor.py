@@ -290,8 +290,12 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
             logging.debug("ControlHeaterMacro start.")
             self.macro.start(self)
 
-        self.macro = RunCircleMacro(run_circle_ready)
-        logging.debug("RunCircleMacro start.")
+        if self.options.movement_test:
+            self.macro = RunCircleMacro(run_circle_ready)
+            logging.debug("RunCircleMacro start.")
+        else:
+            run_circle_ready()
+
         self.macro.start(self)
 
     def _handle_pause(self):

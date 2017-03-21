@@ -372,6 +372,9 @@ class ConfigMixIn(object):
             "key": "filament_detect"},
         "head_error_level": {
             "type": int, "key": "head_error_level"},
+        "movement_test": {
+            "type": str, "enum": ("Y", "N"),
+            "key": "movement_test"},
         "autoresume": {
             "type": str, "enum": ("Y", "N"),
             "key": "autoresume"},
