@@ -1,6 +1,6 @@
 
 from select import select
-from errno import ECONNREFUSED, ENOENT
+from errno import ECONNREFUSED, ENOENT, EAGAIN
 from time import sleep
 from math import isnan
 from io import BytesIO
@@ -69,8 +69,11 @@ class CameraInterface(object):
 
     def async_oneshot(self, callback):
         def overlay(w, r):
-            w.stop()
-            callback(self.end_oneshot())
+            try:
+                w.stop()
+                callback(self.end_oneshot())
+            except Exception:
+                logger.exception("Oneshot error")
 
         self.begin_oneshot()
         self.watcher.callback = overlay
@@ -93,8 +96,11 @@ class CameraInterface(object):
 
     def async_check_camera_position(self, callback):
         def overlay(w, r):
-            w.stop()
-            callback(self.end_check_camera_position())
+            try:
+                w.stop()
+                callback(self.end_check_camera_position())
+            except Exception:
+                logger.exception("Check camera position error")
 
         self.begin_check_camera_position()
         self.watcher.callback = overlay
@@ -108,8 +114,11 @@ class CameraInterface(object):
 
     def async_get_bias(self, callback):
         def overlay(w, r):
-            w.stop()
-            callback(self.end_get_bias())
+            try:
+                w.stop()
+                callback(self.end_get_bias())
+            except Exception:
+                logger.exception("Get bias error")
 
         self.begin_get_bias()
         self.watcher.callback = overlay
@@ -123,8 +132,11 @@ class CameraInterface(object):
 
     def async_compute_cab(self, step, callback):
         def overlay(w, r):
-            w.stop()
-            callback(step, self.end_compute_cab())
+            try:
+                w.stop()
+                callback(step, self.end_compute_cab())
+            except Exception:
+                logger.exception("Compute cab error")
 
         self.begin_compute_cab(step)
         self.watcher.callback = overlay
@@ -281,7 +293,6 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
                            ("R", False, True))
 
         data = {"flag": 0, "thres": 0.2, "calibrate_param": []}
-        self.change_laser(left=False, right=False)
 
         def on_loop(output=None):
             if output:
@@ -289,18 +300,17 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
                 self.busying = False
                 handler.send_text('ok ' + output)
 
-            elif data["flag"] == 11:
-                self.busying = False
-                handler.send_text('ok fail chess')
-            elif data["flag"] == 12:
-                self.busying = False
-                handler.send_text('ok fail laser {}'.format(data["flag"]))
-            elif data["flag"] > 10:
-                self.busying = False
-                handler.send_text('ok fail laser {}'.format(data["flag"]))
-            else:
+            elif data["flag"] < 10:
                 data["flag"] += 1
                 self.camera.async_get_bias(on_get_bias)
+            elif data["flag"] == 11:
+                self.change_laser(left=False, right=False)
+                self.busying = False
+                handler.send_text('ok fail chess')
+            else:
+                self.change_laser(left=False, right=False)
+                self.busying = False
+                handler.send_text('ok fail logic')
 
         def on_compute_cab(step, m):
             m = m.split()[1]
@@ -309,7 +319,8 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
                 begin_compute_cab()
             else:
                 if 'fail' in data["calibrate_param"]:
-                    data["flag"] = 12
+                    output = ' '.join(data["calibrate_param"])
+                    on_loop('fail laser ' + output)
                 elif all(abs(float(r) - float(data["calibrate_param"][0])) < 72
                          for r in data["calibrate_param"][1:]):
                     # so naive check
@@ -320,7 +331,8 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
                     output = ' '.join(data["calibrate_param"])
                     on_loop(output)
                 else:
-                    data["flag"] = 13
+                    output = ' '.join(data["calibrate_param"])
+                    on_loop('fail laser ' + output)
 
         def begin_compute_cab():
             step, l, r = compute_cab_ref[len(data["calibrate_param"])]
@@ -405,7 +417,9 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
     def on_mainboard_message(self, watcher, revent):
         try:
             self.mainboard.handle_recv()
-        except IOError:
+        except IOError as e:
+            if e.errno == EAGAIN:
+                return
             logger.exception("Mainboard connection broken")
             self.handler.send_text("error SUBSYSTEM_ERROR")
             self.stack.exit_task(self)
