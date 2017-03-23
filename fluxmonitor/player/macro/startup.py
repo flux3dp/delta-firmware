@@ -43,10 +43,10 @@ class StartupMacro(MacroBase):
             k.mainboard.send_cmd("M711 A%(A).4f B%(B).4f C%(C).4f" %
                                  self.backlash_config)
         else:
-            k.main_ctrl.send_cmd("M711 J0.5 K0.5 L0.5 A0 B0 C0")
+            k.mainboard.send_cmd("M711 J0.5 K0.5 L0.5 A0 B0 C0")
 
         if self.plus_extrusion:
-            k.main_ctrl.send_cmd("M92E145")
+            k.mainboard.send_cmd("M92E145")
 
     def giveup(self, k):
         pass
