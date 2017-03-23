@@ -303,14 +303,10 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
             elif data["flag"] < 10:
                 data["flag"] += 1
                 self.camera.async_get_bias(on_get_bias)
-            elif data["flag"] == 11:
-                self.change_laser(left=False, right=False)
-                self.busying = False
-                handler.send_text('ok fail chess')
             else:
                 self.change_laser(left=False, right=False)
                 self.busying = False
-                handler.send_text('ok fail logic')
+                handler.send_text('ok fail chess')
 
         def on_compute_cab(step, m):
             m = m.split()[1]
