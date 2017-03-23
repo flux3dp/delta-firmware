@@ -285,6 +285,7 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
 
         def on_loop(output=None):
             if output:
+                self.change_laser(left=False, right=False)
                 self.busying = False
                 handler.send_text('ok ' + output)
 
@@ -305,9 +306,7 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
             m = m.split()[1]
             data["calibrate_param"].append(m)
             if len(data["calibrate_param"]) < 3:
-                step, l, r = compute_cab_ref[0]
-                self.change_laser(left=l, right=r)
-                self.camera.async_compute_cab(step, on_compute_cab)
+                begin_compute_cab()
             else:
                 if 'fail' in data["calibrate_param"]:
                     data["flag"] = 12
@@ -324,7 +323,8 @@ class ScanTask(DeviceOperationMixIn, CommandMixIn):
                     data["flag"] = 13
 
         def begin_compute_cab():
-            step, l, r = compute_cab_ref[0]
+            step, l, r = compute_cab_ref[len(data["calibrate_param"])]
+            logger.debug("calibrate laser step %s", step)
             self.change_laser(left=l, right=r)
             self.camera.async_compute_cab(step, on_compute_cab)
 
