@@ -1,13 +1,13 @@
 
 from fluxmonitor.storage import Storage, Preference
-from fluxmonitor.config import DEVICE_POSITION_LIMIT
+from fluxmonitor.config import DEVICE_POSITION_LIMIT, DEFAULT_MOVEMENT_TEST
 
 __all__ = ["Options"]
 inf = float("INF")
 
 
-def ensure_value(val, default):
-    return val if val else default
+def ensure_value(val, default, func=lambda x: x):
+    return func(val) if val else default
 
 
 def parse_int(val, default):
@@ -91,6 +91,10 @@ class Options(object):
             self.head_error_level or 4095)
 
         self.autoresume = storage["autoresume"] == "Y"
+
+        self.movement_test = ensure_value(storage["movement_test"],
+                                          DEFAULT_MOVEMENT_TEST,
+                                          lambda v: v == "Y")
 
         if self.head != "EXTRUDER":
             # Only EXTRUDER need filament detect

@@ -27,7 +27,7 @@ class UsbService(ServiceBase):
 
     def __init__(self, options):
         super(UsbService, self).__init__(logger)
-        self.timer_watcher = self.loop.timer(0, 30, self.on_timer)
+        self.timer_watcher = self.loop.timer(0, 6.5, self.on_timer)
         self.timer_watcher.start()
 
         self.internal_ifce = UsbConfigInternalInterface(self)
@@ -36,12 +36,16 @@ class UsbService(ServiceBase):
         self.udev_signal.start()
 
         if attached_usb_devices() > 0:
-            self.udev_notify()
+            logger.debug("H2H is already attached, setup.")
+            self._setup_h2h_usbcable()
 
     def udev_notify(self, w=None, r=None):
-        logger.debug("udev changed, launch usb daemon")
+        logger.debug("Udev changed, launch usb daemon")
+        self._setup_h2h_usbcable()
+
+    def _setup_h2h_usbcable(self):
         if self.usbcable:
-            logger.debug("close exist usb instance")
+            logger.debug("Close exist usb instance")
             self.usbcable.close()
             self.usbcable = None
 
@@ -102,11 +106,15 @@ class UsbService(ServiceBase):
                 self.usbcable = usbcable
                 s.close()
                 self.dirty_status = False
+                logger.debug("USB session pass to robot successed.")
                 return
 
+        except socket.error:
+            self.dirty_status = True
+            logger.error("Pass usb session to robot failed. (socket error)")
         except Exception:
             self.dirty_status = True
-            logger.exception("Unknown error")
+            logger.exception("Pass usb session to robot failed.")
 
     def connect_uart(self):
         def connected(*args):
@@ -150,16 +158,17 @@ class UsbService(ServiceBase):
             if self.dirty_status:
                 if attached_usb_devices() > 0:
                     logger.error("Dirty flag marked and need start usb daemon")
-                    self.udev_notify()
+                    self._setup_h2h_usbcable()
                 else:
                     logger.error("Dirty flag marked but no usbcable connected")
                     self.dirty_status = False
 
             if self.usbcable and self.usbcable.is_alive() == 0:
                 if attached_usb_devices():
-                    logger.error("USB daemon dead but still attach cable. "
-                                 "Restart usb")
-                    self.udev_notify()
+                    logger.error("H2H USB daemon is dead, restart.")
+                    self.usbcable.close()
+                    self.usbcable = None
+                    self._setup_h2h_usbcable()
                 else:
                     logger.debug("Clean usb daemon")
                     self.usbcable.close()
