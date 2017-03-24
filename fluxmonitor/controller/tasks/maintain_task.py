@@ -34,11 +34,13 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
     toolhead = None
     busying = False
     toolhead_updating = False
+    _has_zprobe = False
 
     def __init__(self, stack, handler):
         super(MaintainTask, self).__init__(stack, handler)
 
         self.busying = False
+        self._has_zprobe = False
 
         self._macro = None
         self._on_macro_error = None
@@ -143,9 +145,9 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
         elif cmd == "zprobe":
             if len(args) > 0:
                 h = float(args[0])
-                self.do_h_correction(handler, h=h)
+                self.do_zprobe(handler, h=h)
             else:
-                self.do_h_correction(handler)
+                self.do_zprobe(handler)
 
         elif cmd == "load_filament":
             self.do_load_filament(handler, int(args[0]), float(args[1]))
@@ -350,10 +352,23 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
                 handler.send_text("DEBUG " + self._macro.debug_logs.popleft())
             handler.send_text("CTRL POINT %i" % len(self._macro.data))
 
+        opt = Options(head="EXTRUDER")
+
         correct_at_final = True if threshold == float("inf") else False
-        self._macro = macro.CorrectionMacro(on_success_cb, clean=clean,
-                                            threshold=threshold,
-                                            correct_at_final=correct_at_final)
+
+        if self._has_zprobe is False:
+            self._has_zprobe = True
+            print("SET H")
+            opt = Options(head="EXTRUDER")
+            self._macro = macro.CorrectionMacro(
+                on_success_cb, threshold=threshold, clean=clean,
+                dist=opt.zprobe_dist, correct_at_final=correct_at_final)
+        else:
+            print("SET NO H")
+            self._macro = macro.CorrectionMacro(
+                on_success_cb, threshold=threshold, clean=clean,
+                correct_at_final=correct_at_final)
+
         self._on_macro_error = on_macro_error
         self._on_macro_running = on_macro_running
         self._on_macro_error = on_macro_error
@@ -361,18 +376,7 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
         self._macro.start(self)
         handler.send_text("continue")
 
-    def do_h_correction(self, handler, h=None):
-        if h is not None:
-            if h > 245 or h < 238:
-                logger.error("H ERROR: %f" % h)
-                raise ValueError("INPUT_FAILED")
-
-            Preference.instance().plate_correction = {"H": h}
-            self.mainboard.send_cmd("M666H%.4f" % h, self)
-            handler.send_text("continue")
-            handler.send_text("ok 0")
-            return
-
+    def do_zprobe(self, handler, h=None):
         def on_success_cb():
             while self._macro.debug_logs:
                 handler.send_text("DEBUG " + self._macro.debug_logs.popleft())
@@ -389,8 +393,14 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
         def on_macro_running():
             handler.send_text("CTRL ZPROBE")
 
-        self._macro = macro.ZprobeMacro(on_success_cb, threshold=float("inf"),
-                                        clean=False)
+        if self._has_zprobe is False:
+            self._has_zprobe = True
+            opt = Options(head="EXTRUDER")
+            self._macro = macro.ZprobeMacro(
+                on_success_cb, threshold=float("inf"), dist=opt.zprobe_dist)
+        else:
+            self._macro = macro.ZprobeMacro(
+                on_success_cb, threshold=float("inf"))
         self._on_macro_running = on_macro_running
         self._on_macro_error = on_macro_error
         self.busying = True

@@ -2,6 +2,8 @@
 from fluxmonitor.storage import Preference
 from .base import MacroBase
 
+M666_TEMPLATE = "M666X%(X).4fY%(Y).4fZ%(Z).4fR%(R).4fD%(D).5fH%(H).4f"
+
 
 class StartupMacro(MacroBase):
     name = "STARTING"
@@ -23,8 +25,7 @@ class StartupMacro(MacroBase):
 
     def start(self, k):
         # Apply M666
-        k.mainboard.send_cmd(
-            "M666X%(X).4fY%(Y).4fZ%(Z).4fR%(R).4fD%(D).5fH%(H).4f" % self.corr)
+        k.mainboard.send_cmd(M666_TEMPLATE % self.corr)
         # Select extruder 0
         k.mainboard.send_cmd("T0")
         # Absolute Positioning

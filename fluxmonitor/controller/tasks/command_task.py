@@ -20,6 +20,7 @@ from fluxmonitor.err_codes import (UNKNOWN_COMMAND, NOT_EXIST, TOO_LARGE,
 from fluxmonitor.diagnosis.god_mode import allow_god_mode
 from fluxmonitor.hal.misc import get_deviceinfo
 from fluxmonitor.storage import Storage, UserSpace, Preference, metadata
+from fluxmonitor.config import DEFAULT_H
 from fluxmonitor.misc import mimetypes
 
 from .base import CommandMixIn
@@ -391,7 +392,7 @@ class ConfigMixIn(object):
             "key": "zoffset"
         },
         "zprobe_dist": {
-            "type": str, "enum": ("D", "M", "L", "XL"),
+            "type": int, "min": DEFAULT_H - 100, "max": DEFAULT_H,
             "key": "zprobe_dist"
         },
         "replay": {

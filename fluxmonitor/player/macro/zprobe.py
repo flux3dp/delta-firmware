@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 class ZprobeMacro(MacroBase):
     name = "CORRECTING"
 
-    def __init__(self, on_success_cb, ttl=5, threshold=0.05, clean=True,
-                 zoffset=0, dist=242):
+    def __init__(self, on_success_cb, ttl=5, threshold=0.05, zoffset=0,
+                 dist=None):
         self._on_success_cb = on_success_cb
         self._running = False
         self.pref = Preference.instance()
@@ -24,7 +24,6 @@ class ZprobeMacro(MacroBase):
         self.history = []
         self.ttl = ttl
         self.data = None
-        self.clean = clean
 
         self.debug_logs = deque(maxlen=16)
 
@@ -33,7 +32,7 @@ class ZprobeMacro(MacroBase):
 
     def start(self, k):
         self._running = True
-        if self.clean:
+        if self.zdist:
             self.pref.plate_correction = {"H": self.zdist}
             k.mainboard.send_cmd("M666H%.1f" % self.zdist)
         else:
@@ -61,37 +60,32 @@ class ZprobeMacro(MacroBase):
             data = self.data
             self.history.append(data)
 
-            # Prevent toolhead hit plate if Z is changed intensely.
-            if data < -1.2:
-                k.mainboard.send_cmd("G1 Z1.5")
-
             new_h = self.pref.plate_correction["H"] - data
 
             if new_h > 244:
                 logger.error("Correction input failed: %s", data)
+                raise RuntimeError(HARDWARE_ERROR, EXEC_ZPROBE_ERROR)
+            elif abs(data) < self.threshold:
+                self.pref.plate_correction = {"H": new_h - self.zoffset}
+                corr_cmd = "M666H%.4f" % new_h
+                k.mainboard.send_cmd(corr_cmd)
+                logger.debug("Corr H: %s, done.", corr_cmd)
+
+                self.convergence = True
+                k.mainboard.send_cmd("G1F6000Z50")
             else:
                 self.pref.plate_correction = {"H": new_h}
                 corr_cmd = "M666H%.4f" % new_h
                 k.mainboard.send_cmd(corr_cmd)
-                logger.debug("Corr H: %s", corr_cmd)
+                logger.debug("Corr H: %s, continue", corr_cmd)
 
-            if abs(data) < self.threshold:
-                if self.zoffset:
-                    new_h = self.pref.plate_correction["H"] - self.zoffset
-                    k.mainboard.send_cmd(corr_cmd)
-                    logger.debug("Apply z-offset: %f", self.zoffset)
-
-                self.convergence = True
-                k.mainboard.send_cmd("G1F6000Z50")
-                return
-
-            elif self.round >= self.ttl:
-                self.giveup(k)
-                raise RuntimeError(HARDWARE_ERROR, EXEC_CONVERGENCE_FAILED)
-
-        self.round += 1
-        k.mainboard.send_cmd("G30X0Y0")
-        self.data = None
+                if self.round >= self.ttl:
+                    self.giveup(k)
+                    raise RuntimeError(HARDWARE_ERROR, EXEC_CONVERGENCE_FAILED)
+                else:
+                    self.round += 1
+                    k.mainboard.send_cmd("G30X0Y0")
+                    self.data = None
 
     def on_ctrl_message(self, k, data):
         if data.startswith("DATA ZPROBE "):

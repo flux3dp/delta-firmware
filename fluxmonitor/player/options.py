@@ -1,6 +1,7 @@
 
 from fluxmonitor.storage import Storage, Preference
-from fluxmonitor.config import DEVICE_POSITION_LIMIT, DEFAULT_MOVEMENT_TEST
+from fluxmonitor.config import (DEVICE_POSITION_LIMIT, DEFAULT_MOVEMENT_TEST,
+                                DEFAULT_H)
 
 __all__ = ["Options"]
 inf = float("INF")
@@ -113,8 +114,14 @@ class Options(object):
         except Exception:
             self.zoffset = 0
 
-        self.zprobe_dist = ({"XL": 120, "L": 180, "M": 210}).get(
-            storage["zprobe_dist"], 242)
+        szdist = storage["zprobe_dist"]
+        if szdist and szdist.isdigit():
+            zdist = int(szdist)
+            zdist = min(max(DEFAULT_H - 100, zdist), DEFAULT_H)
+        else:
+            zdist = DEFAULT_H
+
+        self.zprobe_dist = zdist
 
     def __parse_int_from_meta__(self, key, default):
         pass

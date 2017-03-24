@@ -261,25 +261,26 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
     def do_correction(self):
         def correction_ready():
             logging.debug("ZprobeMacro start.")
-            self.macro = ZprobeMacro(self._clear_macro, clean=True,
-                                     zoffset=self.options.zoffset,
-                                     dist=self.options.zprobe_dist)
+            self.macro = ZprobeMacro(self._clear_macro,
+                                     zoffset=self.options.zoffset)
+            self.macro.start(self)
+
+        def fast_zprobe_ready():
+            logging.debug("CorrectionMacro start.")
+            self.macro = CorrectionMacro(correction_ready)
             self.macro.start(self)
 
         def toolhead_ready():
             self.mainboard.send_cmd("G1F6000E-10")
             logging.debug("ControlHeaterMacro completed.")
             if self.options.correction == "A":
-                logging.debug("CorrectionMacro start.")
-                self.macro = CorrectionMacro(correction_ready,
-                                             dist=self.options.zprobe_dist)
-                self.macro.start(self)
-            elif self.options.correction == "H":
-                logging.debug("ZprobeMacro start.")
-                self.macro = ZprobeMacro(self._clear_macro,
-                                         zoffset=self.options.zoffset,
+                logging.debug("ZprobeMacro start. (fast)")
+                self.macro = ZprobeMacro(fast_zprobe_ready,
+                                         threshold=float("inf"),
                                          dist=self.options.zprobe_dist)
                 self.macro.start(self)
+            elif self.options.correction == "H":
+                correction_ready()
             else:
                 self.fire()
 
@@ -483,7 +484,6 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
                 else:
                     cmd = self._cmd_queue.popleft()[0]
                     self.mainboard.send_cmd(cmd)
-                    print(cmd)
             elif target == 2:
                 if self.mainboard.buffered_cmd_size == 0:
                     if self.toolhead.sendable():

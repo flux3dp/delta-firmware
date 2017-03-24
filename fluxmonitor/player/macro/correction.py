@@ -6,6 +6,7 @@ from fluxmonitor.err_codes import HARDWARE_ERROR, EXEC_CONVERGENCE_FAILED, \
     EXEC_ZPROBE_ERROR
 from fluxmonitor.storage import Preference
 from fluxmonitor.misc import correction
+from .startup import M666_TEMPLATE
 from .base import MacroBase
 
 logger = logging.getLogger(__name__)
@@ -18,15 +19,16 @@ def do_calibrate(pref, x, y, z):
     new_corr.pop("H")
     pref.plate_correction = new_corr
 
-    logger.debug("Old correction: M666X%(X).4fY%(Y).4fZ%(Z).4f", old_corr)
-    return "M666X%(X).4fY%(Y).4fZ%(Z).4f" % new_corr
+    calib_cmd = M666_TEMPLATE % pref.plate_correction
+    logger.debug("Old correction: %s", calib_cmd)
+    return calib_cmd
 
 
 class CorrectionMacro(MacroBase):
     name = "CORRECTING"
 
     def __init__(self, on_success_cb, clean=False, ttl=6, threshold=0.05,
-                 dist=242, correct_at_final=False):
+                 dist=None, correct_at_final=False):
         self._on_success_cb = on_success_cb
         self._clean = clean
         self._running = False
@@ -46,17 +48,14 @@ class CorrectionMacro(MacroBase):
     def start(self, k):
         self._running = True
         self.round = 0
+
+        zdist = self.zdist if self.zdist else self.pref.plate_correction["H"]
         if self._clean:
-            self.pref.plate_correction = {"X": 0, "Y": 0, "Z": 0,
-                                          "H": self.zdist}
-            k.mainboard.send_cmd("M666X0Y0Z0H%.1f" % self.zdist)
+            self.pref.plate_correction = {"X": 0, "Y": 0, "Z": 0, "H": zdist}
         else:
-            tx = self.pref.plate_correction["X"]
-            ty = self.pref.plate_correction["Y"]
-            tz = self.pref.plate_correction["Z"]
-            th = self.pref.plate_correction["H"] = self.zdist
-            k.mainboard.send_cmd("M666X%.2fY%.2fZ%.2fH%.2f" % (
-                                 tx, ty, tz, th))
+            self.pref.plate_correction = {"H": zdist}
+
+        k.mainboard.send_cmd(M666_TEMPLATE % self.pref.plate_correction)
 
     def giveup(self, k):
         if self._running:
