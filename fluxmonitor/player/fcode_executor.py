@@ -291,10 +291,9 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
         if self.options.movement_test:
             self.macro = RunCircleMacro(run_circle_ready)
             logging.debug("RunCircleMacro start.")
+            self.macro.start(self)
         else:
             run_circle_ready()
-
-        self.macro.start(self)
 
     def _handle_pause(self):
         # Call only when (status_id == 38 or 50) AND mainboard command queue is
