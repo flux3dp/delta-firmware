@@ -128,8 +128,8 @@ class Preference(object):
 
     @property
     def plate_correction(self):
-        if self._storage.exists("adjust"):
-            with self._storage.open("adjust", "r") as f:
+        if self._storage.exists("leveling"):
+            with self._storage.open("leveling", "r") as f:
                 try:
                     vals = tuple((float(v) for v in f.read().split(" ")))
                     return dict(zip("XYZABCIJKRDH", vals))
@@ -147,7 +147,7 @@ class Preference(object):
         v.update(val)
 
         vals = tuple((v[k] for k in "XYZABCIJKRDH"))
-        with self._storage.open("adjust", "w") as f:
+        with self._storage.open("leveling", "w") as f:
             f.write(" ".join("%.4f" % i for i in vals))
 
     @property
