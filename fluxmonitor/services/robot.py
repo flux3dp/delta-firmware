@@ -177,9 +177,7 @@ class Robot(ServiceBase):
                 abspath = us.get_path(*candidate, require_file=True)
                 logger.debug("Autoplay: %s", abspath)
 
-                copyfile = (candidate[0] == "USB")
-                pm = PlayerManager(self.loop, abspath, self.release_exclusive,
-                                   copyfile=copyfile)
+                pm = PlayerManager(self.loop, abspath, self.release_exclusive)
                 self.exclusive(pm)
                 return
             except RuntimeError:

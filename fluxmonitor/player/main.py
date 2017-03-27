@@ -91,7 +91,7 @@ class Player(ServiceBase):
             self.head_watcher.start()
         except Exception:
             logger.exception("Prepare HAL connection error")
-            self.executor = FatalExecutor((SUBSYSTEM_ERROR, ))
+            self.executor = FatalExecutor((SUBSYSTEM_ERROR, "HAL"))
             return
 
         try:
@@ -114,7 +114,7 @@ class Player(ServiceBase):
             return
         except Exception:
             logger.exception("Unknown error while open taskfile")
-            self.executor = FatalExecutor((SUBSYSTEM_ERROR, ))
+            self.executor = FatalExecutor((SUBSYSTEM_ERROR, "TASKLOADER"))
             return
 
         metadata.update_device_status(1, 0, "N/A", err_label="")
