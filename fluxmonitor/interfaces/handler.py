@@ -229,7 +229,6 @@ class SSLHandler(TCPHandler):
 
 MESSAGE_OK = b"OK              "
 MESSAGE_AUTH_ERROR = b"AUTH_ERROR      "
-MESSAGE_UNKNOWN_HOST = b"UNKNOWN_HOST    "
 MESSAGE_PROTOCOL_ERROR = b"PROTOCOL_ERROR  "
 UUID_HEX = get_uuid()
 UUID_BIN = from_hex(UUID_HEX)
@@ -257,7 +256,7 @@ class SSLServerSideHandler(SSLHandler):
                         self.remotekey = get_keyobj(access_id=aid)
                     else:
                         logger.debug("Unknown access id")
-                        self.sock.send(MESSAGE_UNKNOWN_HOST)
+                        self.sock.send(MESSAGE_AUTH_ERROR)
                         self.on_error()
                         return
 
