@@ -15,7 +15,8 @@ logger = logging.getLogger(__name__)
 def do_calibrate(pref, x, y, z):
     old_corr = pref.plate_correction
     new_corr = correction.calculate(
-        old_corr["X"], old_corr["Y"], old_corr["Z"], old_corr["H"], x, y, z, 0)
+        old_corr["X"], old_corr["Y"], old_corr["Z"], old_corr["H"], x, y, z, 0,
+        delta_radious=pref.plate_correction["R"])
     new_corr.pop("H")
     pref.plate_correction = new_corr
 
