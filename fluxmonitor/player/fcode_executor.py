@@ -1,5 +1,6 @@
 
 from collections import deque
+from errno import EAGAIN
 import logging
 
 from fluxmonitor.diagnosis.god_mode import allow_god_mode
@@ -574,9 +575,10 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
     def on_mainboard_recv(self):
         try:
             self.mainboard.handle_recv()
-        except IOError:
-            self.abort(SystemError(SUBSYSTEM_ERROR, "MAINBAORD_ERROR"))
-            logger.exception("Mainboard recv error")
+        except IOError as e:
+            if e.errno != EAGAIN:
+                self.abort(SystemError(SUBSYSTEM_ERROR, "MAINBAORD_ERROR"))
+                logger.exception("Mainboard recv error")
         except RuntimeError as er:
             logger.warn("Mainboard recv error: %r", repr(er.args))
             self.pause(er)
@@ -602,9 +604,10 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
             elif self.status_id == ST_RUNNING_PAUSED and \
                     self._fucking_toolhead_power_management_control_flag:
                 check_toolhead_errno(self.toolhead, self.th_error_flag)
-        except IOError:
-            self.abort(SystemError(SUBSYSTEM_ERROR, "TOOLHEAD_ERROR"))
-            logger.exception("Toolhead recv error")
+        except IOError as e:
+            if e.errno != EAGAIN:
+                self.abort(SystemError(SUBSYSTEM_ERROR, "TOOLHEAD_ERROR"))
+                logger.exception("Toolhead recv error")
 
         except RuntimeError as er:
             logger.warn("Toolhead recv error: %r", er.args)
