@@ -577,7 +577,7 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
             self.mainboard.handle_recv()
         except IOError as e:
             if e.errno != EAGAIN:
-                self.abort(SystemError(SUBSYSTEM_ERROR, "MAINBAORD_ERROR"))
+                self.abort(SystemError(SUBSYSTEM_ERROR, "MAINBOARD_ERROR"))
                 logger.exception("Mainboard recv error")
         except RuntimeError as er:
             logger.warn("Mainboard recv error: %r", repr(er.args))
@@ -590,7 +590,7 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
             if allow_god_mode():
                 self.abort(err)
             else:
-                self.abort(SystemError(UNKNOWN_ERROR, "MAINBAORD_ERROR"))
+                self.abort(SystemError(UNKNOWN_ERROR, "MAINBOARD_ERROR"))
             raise
 
     def on_toolhead_recv(self):
