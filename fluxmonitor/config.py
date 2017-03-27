@@ -32,8 +32,6 @@ uart_config = {
 
 MAX_CORRECTION_ROUND = 10
 
-DEVICE_POSITION_LIMIT = (172, 172, 212)
-
 HEAD_POWER_TIMEOUT = 10
 
 CONFIGURE_ENDPOINT = "/tmp/.configure"
@@ -64,6 +62,7 @@ def load_model_profile():
 
     general_config["db"] = profile["db"]
 
+    self.LIMIT_MAX_R = profile.get("max_r", float("inf"))
     self.DEFAULT_R = profile.get("default_r", 96.70)
     self.DEFAULT_H = profile.get("default_h", 242)
     self.DEFAULT_MOVEMENT_TEST = profile.get("default_movement_test", False)

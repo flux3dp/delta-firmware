@@ -46,6 +46,7 @@ int DeviceController::feed(int fd, command_cb_t callback, void* data) {
   if(cmd & 128) {
     // G1
     float f = 0,
+          r = 0,
           x = NAN,
           y = NAN,
           z = NAN,
@@ -56,21 +57,26 @@ int DeviceController::feed(int fd, command_cb_t callback, void* data) {
     int illegal = 0;
 
     if(cmd & 64) { MACRO_READ(fd, &f, 4) }  // Find F
-    if(cmd & 32) {
+    if(cmd & 32) { // Find X
       MACRO_READ(fd, &x, 4)
-      if(!fsm.absolute_pos) x += fsm.x;
-      if(std::abs(x) > fsm.max_x) illegal = 1;
-    }  // Find X
-    if(cmd & 16) {
+      r = x * x;
+    } else {
+      r = fsm.x * fsm.x;
+    }
+    if(cmd & 16) { // Find Y
       MACRO_READ(fd, &y, 4)
-      if(!fsm.absolute_pos) y += fsm.y;
-      if(std::abs(y) > fsm.max_y) illegal = 1;
-    }  // Find Y
-    if(cmd & 8)  {
+      r = y * y;
+    } else {
+      r = fsm.y * fsm.y;
+    }
+    if(r > fsm.max_r2) { illegal = 1;}
+
+    if(cmd & 8)  {  // Find Z
       MACRO_READ(fd, &z, 4)
       if(!fsm.absolute_pos) z += fsm.z;
-      if(std::abs(z) > fsm.max_z) illegal = 1;
-    }  // Find Z
+
+      if(z > fsm.max_z || z < fsm.min_z) illegal = 1;
+    }
 
     // Find E
     if(cmd & 4) {

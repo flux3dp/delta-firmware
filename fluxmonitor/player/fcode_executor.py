@@ -121,9 +121,8 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
                                        required_module=options.head)
 
         self.th_error_flag = self.options.head_error_level
-        self._fsm = PyDeviceFSM(max_x=self.options.max_x,
-                                max_y=self.options.max_y,
-                                max_z=self.options.max_z)
+        self._fsm = PyDeviceFSM(max_r=self.options.max_r,
+                                min_z=-1.0, max_z=self.options.max_z)
         self.timecost = timecost
         self.traveldist = traveldist
 

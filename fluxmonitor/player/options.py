@@ -1,7 +1,6 @@
 
 from fluxmonitor.storage import Storage, Preference
-from fluxmonitor.config import (DEVICE_POSITION_LIMIT, DEFAULT_MOVEMENT_TEST,
-                                DEFAULT_H)
+from fluxmonitor.config import (DEFAULT_MOVEMENT_TEST, DEFAULT_H, LIMIT_MAX_R)
 
 __all__ = ["Options"]
 inf = float("INF")
@@ -27,9 +26,8 @@ class Options(object):
     play_bufsize = None
     filament_detect = None
     autoresume = False
-    max_x = inf
-    max_y = inf
     max_z = inf
+    max_r = inf
     backlash_config = None
     plus_extrusion = None
 
@@ -72,9 +70,8 @@ class Options(object):
         self.head_error_level = parse_int(
             task_metadata.get("HEAD_ERROR_LEVEL"), None)
 
-        self.max_x = parse_int(task_metadata.get("MAX_X"), inf)
-        self.max_y = parse_int(task_metadata.get("MAX_Y"), inf)
         self.max_z = parse_int(task_metadata.get("MAX_Z"), inf)
+        self.max_r = parse_int(task_metadata.get("MAX_R"), inf)
 
     def __load_form_local__(self, storage):
         self.play_bufsize = 10
@@ -105,9 +102,7 @@ class Options(object):
 
         # TODO: enable hardware error for toolhead pwm issue
         self.head_error_level |= 64
-        self.max_x = min(self.max_x, DEVICE_POSITION_LIMIT[0])
-        self.max_y = min(self.max_y, DEVICE_POSITION_LIMIT[1])
-        self.max_z = min(self.max_z, DEVICE_POSITION_LIMIT[2])
+        self.max_r = min(self.max_r, LIMIT_MAX_R)
 
         try:
             self.zoffset = float(storage["zoffset"])
