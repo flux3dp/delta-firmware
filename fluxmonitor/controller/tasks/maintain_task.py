@@ -358,13 +358,11 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
 
         if self._has_zprobe is False:
             self._has_zprobe = True
-            print("SET H")
             opt = Options(head="EXTRUDER")
             self._macro = macro.CorrectionMacro(
                 on_success_cb, threshold=threshold, clean=clean,
                 dist=opt.zprobe_dist, correct_at_final=correct_at_final)
         else:
-            print("SET NO H")
             self._macro = macro.CorrectionMacro(
                 on_success_cb, threshold=threshold, clean=clean,
                 correct_at_final=correct_at_final)

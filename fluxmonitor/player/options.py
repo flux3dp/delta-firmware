@@ -112,9 +112,9 @@ class Options(object):
         szdist = storage["zprobe_dist"]
         if szdist and szdist.isdigit():
             zdist = int(szdist)
-            zdist = min(max(DEFAULT_H - 100, zdist), DEFAULT_H)
+            zdist = min(max(DEFAULT_H - 100, zdist), DEFAULT_H - 16)
         else:
-            zdist = DEFAULT_H
+            zdist = DEFAULT_H - 16
 
         self.zprobe_dist = zdist
 

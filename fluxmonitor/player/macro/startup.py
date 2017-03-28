@@ -1,5 +1,6 @@
 
 from fluxmonitor.storage import Preference
+from fluxmonitor.config import DEFAULT_H
 from .base import MacroBase
 
 M666_TEMPLATE = "M666X%(X).4fY%(Y).4fZ%(Z).4fR%(R).4fD%(D).5fH%(H).4f"
@@ -13,15 +14,19 @@ class StartupMacro(MacroBase):
 
     def __init__(self, on_success_cb, options=None):
         self._on_success_cb = on_success_cb
-        self.corr = Preference.instance().plate_correction
+        pref = Preference.instance()
 
         if options:
             if options.correction in ("A", "H"):
                 if options.zprobe_dist:
-                    self.corr["H"] = options.zprobe_dist
+                    pref.plate_correction = {"H": options.zprobe_dist}
+            elif options.head == "LASER":
+                pref.plate_correction = {"H": DEFAULT_H}
             self.filament_detect = options.filament_detect == "Y"
             self.backlash_config = options.backlash_config
             self.plus_extrusion = options.plus_extrusion
+
+        self.corr = Preference.instance().plate_correction
 
     def start(self, k):
         # Apply M666
