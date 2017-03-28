@@ -1,7 +1,7 @@
 
 from binascii import b2a_hex as to_hex, a2b_hex as from_hex
 from struct import Struct
-from errno import EINPROGRESS, errorcode
+from errno import EINPROGRESS, EAGAIN, EPIPE, errorcode
 import msgpack
 import logging
 import socket
@@ -57,6 +57,7 @@ class SocketHandler(object):
 
     @T.update_time
     def _on_connecting(self, watcher, revent):
+        # TODO
         try:
             if revent & pyev.EV_READ:
                 logger.debug("Async socket connecting failed")
@@ -217,8 +218,9 @@ class SSLHandler(TCPHandler):
             self.watcher.set(self.sock.fileno(), pyev.EV_WRITE)
             self.watcher.start()
         except IOError as e:
-            logger.debug("SSL handshake error: %r", e)
-            self.on_error()
+            if e.errno != EAGAIN:
+                logger.debug("SSL handshake error: %r", e)
+                self.on_error()
         except Exception:
             logger.exception("SSL handshake error")
             self.on_error()
@@ -279,8 +281,9 @@ class SSLServerSideHandler(SSLHandler):
                 logger.debug("Connection closed")
                 self.close()
         except IOError as e:
-            logger.debug("SSL server handshake error %r", e)
-            self.on_error()
+            if e.errno != EAGAIN:
+                logger.debug("SSL server handshake error %r", e)
+                self.on_error()
         except Exception:
             logger.exception("SSL server handshake error")
             self.on_error()
@@ -324,8 +327,9 @@ class CloudHandler(SSLHandler):
             self.watcher.callback = self._on_complete_cloud_handshake
             self.watcher.start()
         except IOError as e:
-            logger.debug("Cloud send token error: %r", e)
-            self.on_error()
+            if e.errno != EAGAIN:
+                logger.debug("Cloud send token error: %r", e)
+                self.on_error()
         except Exception:
             logger.exception("Cloud send token error")
             self.on_error()
@@ -344,8 +348,9 @@ class CloudHandler(SSLHandler):
                 logger.debug("Cloud connection during handshake")
                 self.on_error()
         except IOError as e:
-            logger.debug("Cloud handshake error %r", e)
-            self.on_error()
+            if e.errno != EAGAIN:
+                logger.debug("Cloud handshake error %r", e)
+                self.on_error()
         except Exception:
             logger.exception("Cloud handshake error")
             self.on_error()
@@ -447,8 +452,9 @@ class MsgpackProtocol(object):
                 logger.debug("Msgpack remote closed")
                 self.on_error()
         except IOError as e:
-            logger.debug("Msgpack recv error %r", e)
-            self.on_error()
+            if e.errno != EAGAIN:
+                logger.debug("Msgpack recv error %r", e)
+                self.on_error()
         except Exception:
             logger.exception("Msgpack send error")
             self.on_error()
@@ -530,11 +536,13 @@ class TextBinaryProtocol(object):
             else:
                 self.close()
         except ssl.SSLError as e:
+            return
             logger.debug("TB over ssl recv error: %r", e)
             self.on_error()
         except IOError as e:
-            logger.warning("TB recv error: %r", e)
-            self.on_error()
+            if e.errno != EAGAIN:
+                logger.warning("TB recv error: %r", e)
+                self.on_error()
         except Exception:
             logger.exception("TB recv error")
             self.on_error()
@@ -616,7 +624,7 @@ class AESSocket(object):
             if s:
                 sl += s
             else:
-                raise IOError("Connection closed")
+                raise IOError(EPIPE, "Connection closed")
         return l
 
     def recv_into(self, view):
@@ -670,8 +678,9 @@ class OldAesServerSideHandler(TCPHandler):
                 self.on_error()
 
         except IOError as e:
-            logger.debug("AES socket auth recv error %r", e)
-            self.on_error()
+            if e.errno != EAGAIN:
+                logger.debug("AES socket auth recv error %r", e)
+                self.on_error()
         except Exception as e:
             logger.exception("AES socket auth recv error")
             self.on_error()
