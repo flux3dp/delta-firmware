@@ -186,7 +186,7 @@ class Player(ServiceBase):
                     handler.sendto("error RESOURCE_BUSY", endpoint)
             elif cmd == "LOAD_FILAMENT":
                 try:
-                    if self.executor.load_filament(int(args[1])):
+                    if self.executor.load_filament(int(args[0])):
                         handler.sendto("ok", endpoint)
                     else:
                         handler.sendto("error RESOURCE_BUSY", endpoint)
@@ -194,7 +194,7 @@ class Player(ServiceBase):
                     handler.sendto("error BAD_PARAMS", endpoint)
             elif cmd == "UNLOAD_FILAMENT":
                 try:
-                    if self.executor.unload_filament(int(args[1])):
+                    if self.executor.unload_filament(int(args[0])):
                         handler.sendto("ok", endpoint)
                     else:
                         handler.sendto("error RESOURCE_BUSY", endpoint)
@@ -202,8 +202,8 @@ class Player(ServiceBase):
                     handler.sendto("error BAD_PARAMS", endpoint)
             elif cmd == "SET_TOOLHEAD_HEATER":
                 try:
-                    if self.executor.set_toolhead_heater(int(args[1]),
-                                                         float(args[2])):
+                    if self.executor.set_toolhead_heater(int(args[0]),
+                                                         float(args[1])):
                         handler.sendto("ok", endpoint)
                     else:
                         handler.sendto("error RESOURCE_BUSY", endpoint)
