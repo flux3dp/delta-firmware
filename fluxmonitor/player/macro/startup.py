@@ -4,33 +4,37 @@ from fluxmonitor.config import DEFAULT_H
 from .base import MacroBase
 
 M666_TEMPLATE = "M666X%(X).4fY%(Y).4fZ%(Z).4fR%(R).4fD%(D).5fH%(H).4f"
+M711_TEMPLATE = "M711 A%(A).4f B%(B).4f C%(C).4f"
 
 
 class StartupMacro(MacroBase):
     name = "STARTING"
 
+    default_h = None
     filament_detect = True
-    backlash_config = None
+    enable_backlash = False
 
     def __init__(self, on_success_cb, options=None):
         self._on_success_cb = on_success_cb
-        pref = Preference.instance()
+
+        self.default_h = DEFAULT_H
 
         if options:
             if options.correction in ("A", "H"):
                 if options.zprobe_dist:
-                    pref.plate_correction = {"H": options.zprobe_dist}
+                    self.default_h = options.zprobe_dist
             elif options.head == "LASER":
-                pref.plate_correction = {"H": DEFAULT_H}
-            self.filament_detect = options.filament_detect == "Y"
-            self.backlash_config = options.backlash_config
+                self.default_h = DEFAULT_H
+            self.filament_detect = options.filament_detect
+            self.enable_backlash = options.enable_backlash
             self.plus_extrusion = options.plus_extrusion
 
-        self.corr = Preference.instance().plate_correction
-
     def start(self, k):
+        pref = Preference.instance()
+        pref.plate_correction = {"H": self.default_h}
+
         # Apply M666
-        k.mainboard.send_cmd(M666_TEMPLATE % self.corr)
+        k.mainboard.send_cmd(M666_TEMPLATE % pref.plate_correction)
         # Select extruder 0
         k.mainboard.send_cmd("T0")
         # Absolute Positioning
@@ -45,9 +49,8 @@ class StartupMacro(MacroBase):
         else:
             k.mainboard.send_cmd("X8F")
 
-        if self.backlash_config:
-            k.mainboard.send_cmd("M711 A%(A).4f B%(B).4f C%(C).4f" %
-                                 self.backlash_config)
+        if self.enable_backlash:
+            k.mainboard.send_cmd(M711_TEMPLATE % pref.backlash)
         else:
             k.mainboard.send_cmd("M711 J0.5 K0.5 L0.5 A0 B0 C0")
 
