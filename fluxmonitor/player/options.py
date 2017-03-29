@@ -3,6 +3,7 @@ from sys import maxint
 
 from fluxmonitor.storage import Storage
 from fluxmonitor.config import (DEFAULT_MOVEMENT_TEST, DEFAULT_H, LIMIT_MAX_R)
+from fluxmonitor.player import macro as macros
 
 __all__ = ["Options"]
 inf = float("INF")
@@ -116,6 +117,21 @@ class PlayerOptions(object):
             self.enable_backlash = device_setting == "Y"
         else:
             self.enable_backlash = metadata.get("BACKLASH", "N") == "Y"
+
+    def get_player_initialize_macros(self):
+        tasks = []
+        tasks.append(macros.StartupMacro(None, options=self))
+        if self.movement_test:
+            tasks.append(macros.RunCircleMacro(None))
+        if self.correction in ("A", "H"):
+            if self.head == "EXTRUDER":
+                tasks.append(macros.ControlHeaterMacro(None, 0, 170))
+            if self.correction == "A":
+                tasks.append(macros.ZprobeMacro(None, threshold=float("inf"),
+                                                dist=self.zprobe_dist))
+                tasks.append(macros.CorrectionMacro(None))
+            tasks.append(macros.ZprobeMacro(None, zoffset=self.zoffset))
+        return tasks
 
 
 Options = PlayerOptions

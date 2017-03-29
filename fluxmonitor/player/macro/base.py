@@ -1,6 +1,10 @@
 
 class MacroBase(object):
     name = "Noname"
+    _on_success_cb = None
+
+    def set_success_callback(self, cb):
+        self._on_success_cb = cb
 
     def start(self, k):
         # Send any commands you want,

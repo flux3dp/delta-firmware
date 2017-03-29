@@ -16,8 +16,7 @@ from .base import (ST_STARTING, ST_RUNNING, ST_RUNNING_PAUSED, ST_COMPLETED,
                    ST_RUNNING_RESUMING, ST_STARTING_RESUMING)
 
 from ._device_fsm import PyDeviceFSM
-from .macro import (StartupMacro, WaitHeadMacro, CorrectionMacro, ZprobeMacro,
-                    RunCircleMacro, SoftAbort,
+from .macro import (WaitHeadMacro, SoftAbort,
                     ControlHeaterMacro, ControlToolheadMacro,
                     LoadFilamentMacro, UnloadFilamentMacro)
 
@@ -243,58 +242,26 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
 
     def started(self):
         super(FcodeExecutor, self).started()
+        self._cmd_queue = deque()
+        self._fsm.set_max_exec_time(0.1)
 
-        def callback():
-            logging.debug("StartupMacro completed.")
+        tasks = self.options.get_player_initialize_macros()
+
+        def task_complete():
+            logger.debug("Macro %s completed", self.macro)
             self.macro = None
-            self._cmd_queue = deque()
-            self._fsm.set_max_exec_time(0.1)
-            if self.options.correction in ("A", "H"):
-                self.do_correction()
+            exec_task()
+
+        def exec_task():
+            if tasks:
+                self.macro = m = tasks.pop(0)
+                m.set_success_callback(task_complete)
+                logging.debug("Start macro %s", m)
+                m.start(self)
             else:
                 self.fire()
 
-        self.macro = StartupMacro(callback, self.options)
-        logging.debug("StartupMacro start.")
-        self.macro.start(self)
-
-    def do_correction(self):
-        def correction_ready():
-            logging.debug("ZprobeMacro start.")
-            self.macro = ZprobeMacro(self._clear_macro,
-                                     zoffset=self.options.zoffset)
-            self.macro.start(self)
-
-        def fast_zprobe_ready():
-            logging.debug("CorrectionMacro start.")
-            self.macro = CorrectionMacro(correction_ready)
-            self.macro.start(self)
-
-        def toolhead_ready():
-            self.mainboard.send_cmd("G1F6000E-10")
-            logging.debug("ControlHeaterMacro completed.")
-            if self.options.correction == "A":
-                logging.debug("ZprobeMacro start. (fast)")
-                self.macro = ZprobeMacro(fast_zprobe_ready,
-                                         threshold=float("inf"),
-                                         dist=self.options.zprobe_dist)
-                self.macro.start(self)
-            elif self.options.correction == "H":
-                correction_ready()
-            else:
-                self.fire()
-
-        def run_circle_ready():
-            self.macro = ControlHeaterMacro(toolhead_ready, 0, 170)
-            logging.debug("ControlHeaterMacro start.")
-            self.macro.start(self)
-
-        if self.options.movement_test:
-            self.macro = RunCircleMacro(run_circle_ready)
-            logging.debug("RunCircleMacro start.")
-            self.macro.start(self)
-        else:
-            run_circle_ready()
+        exec_task()
 
     def _handle_pause(self):
         # Call only when (status_id == 38 or 50) AND mainboard command queue is
