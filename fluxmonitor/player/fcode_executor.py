@@ -382,6 +382,10 @@ class FcodeExecutor(AutoResume, ToolheadPowerManagement, BaseExecutor):
             return False
 
     def pause(self, symbol=None):
+        if self.status_id == ST_RUNNING and \
+                self.macro and self.macro.prevent_pause:
+            return False
+
         if BaseExecutor.pause(self, symbol):
             if not self.toolhead.ready:
                 toolhead_power_off()

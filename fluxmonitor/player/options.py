@@ -31,6 +31,17 @@ def parse_int(val, default):
     return default
 
 
+def parse_points(val):
+    points = []
+    for str_coor in val.split(";"):
+        try:
+            str_x, str_y = str_coor.split(",", 2)
+            points.append((float(str_x), float(str_y)))
+        except (ValueError, TypeError):
+            pass
+    return points
+
+
 class PlayerOptions(object):
     head = None
     correction = None
@@ -42,10 +53,12 @@ class PlayerOptions(object):
     max_r = inf
     enable_backlash = False
     plus_extrusion = None
+    additional_macros = None  # [ (klass1, kwargs), (klass2, kwargs...), ... ]
 
     def __init__(self, taskloader=None, head=None):
         storage = Storage("general", "meta")
         metadata = taskloader.metadata if taskloader else {}
+        self.additional_macros = []
 
         self._setup_toolhead(head, metadata)
         self._setup_leveling(storage, metadata)
@@ -54,6 +67,7 @@ class PlayerOptions(object):
         self._setup_backlash(storage, metadata)
         self._setup_max_xyzr(metadata)
         self._setup_common(storage)
+        self._setup_fcode_special_request(metadata)
 
         # ALL DIRTY THINGS START FROM HERE
         # TODO: enable hardware error for toolhead pwm issue
@@ -118,6 +132,29 @@ class PlayerOptions(object):
         else:
             self.enable_backlash = metadata.get("BACKLASH", "N") == "Y"
 
+    def _setup_fcode_special_request(self, md):
+        if self.head == "LASER":
+            if "PROJECT_ANCHOR" in md and "PROJECT_AT" in md:
+                proj_timeout = parse_int(md.get("PROJECT_TIMEOUT"), 600)
+                proj_at = parse_float(md["PROJECT_AT"], None)
+                proj_points = parse_points(md["PROJECT_ANCHOR"])
+
+                if proj_at is not None and proj_points:
+                    limit_r2 = LIMIT_MAX_R * LIMIT_MAX_R
+                    commands = ["G1 F6000 Z%.4f" % proj_at]
+                    for ptr in proj_points:
+                        if sum((i * i for i in ptr)) > limit_r2:
+                            # Can not move to this point, ignore
+                            continue
+                        commands.append("G1 X%.4f Y%.4f" % ptr)
+                        commands.append("X2 O20")
+                        commands.append("G4 B%i" % proj_timeout)
+                        commands.append("X2 O0")
+                    self.additional_macros.append((
+                        macros.ExecCommandMacro,
+                        {"name": "PROJECTING", "commands": commands,
+                         "prevent_pause": True}))
+
     def get_player_initialize_macros(self):
         tasks = []
         tasks.append(macros.StartupMacro(None, options=self))
@@ -131,6 +168,9 @@ class PlayerOptions(object):
                                                 dist=self.zprobe_dist))
                 tasks.append(macros.CorrectionMacro(None))
             tasks.append(macros.ZprobeMacro(None, zoffset=self.zoffset))
+
+        for klass, kwargs in self.additional_macros:
+            tasks.append(klass(**kwargs))
         return tasks
 
 
