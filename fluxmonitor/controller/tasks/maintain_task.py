@@ -253,6 +253,8 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
                     raise
 
             opt = Options(head="EXTRUDER")
+            if opt.plus_extrusion:
+                self.mainboard.send_cmd("M92E145")
             self._macro = macro.LoadFilamentMacro(on_load_done, index,
                                                   opt.filament_detect != "N",
                                                   on_message)
