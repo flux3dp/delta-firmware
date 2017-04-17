@@ -5,6 +5,7 @@ from binascii import a2b_base64, b2a_base64
 from urlparse import urlparse
 # from OpenSSL import crypto
 from select import select
+from ssl import SSLError
 import msgpack
 import logging
 import socket
@@ -25,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 class CloudService(ServiceBase):
     config_ts = -1
+    error_counter = 0
     config_enable = None
     cloud_netloc = None
     storage = None
@@ -219,13 +221,13 @@ class CloudService(ServiceBase):
         if self._notify_last_st["st_id"] == new_st_id:
             if self._notify_last_ts > self._notify_aggressive:
                 # notify aggressive is invalid
-                if now - self._notify_last_ts < 90:
-                    # update every 90 seconds
+                if now - self._notify_last_ts < 1200:
+                    # update every 1200 seconds
                     return
             else:
                 # notify aggressive is valid
-                if new_st_id <= 0 and now - self._notify_last_ts < 90:
-                    # update every 90 seconds if device is idle or occupy
+                if new_st_id <= 0 and now - self._notify_last_ts < 1200:
+                    # update every 1200 seconds if device is idle or occupy
                     return
         elif new_st_id in (48, 64, 128):  # paused, completed, aborted
             self.postback_status(new_st)
@@ -301,29 +303,50 @@ class CloudService(ServiceBase):
 
     def begin_session(self):
         if not self.storage["certificate.pem"]:
+            metadata.cloud_status = (False, ("INIT", ))
             self.fetch_identify()
 
-        self.setup_session()
-        metadata.cloud_status = (True, ())
+        try:
+            self.setup_session()
+            metadata.cloud_status = (True, ())
+        except SystemError:
+            metadata.cloud_status = (False, ("INIT", ))
+            logger.error("RENEW IDENTIFY")
+            # self.fetch_identify()
 
     def setup_session(self):
         from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTShadowClient
         from AWSIoTPythonSDK.core.protocol.mqttCore import (
             connectTimeoutException)
 
-        ipaddr, port = self.storage["endpoint"].split(":")
+        client_id, token = self.storage["client_id"], self.storage["token"]
+        if not client_id or not token:
+            raise SystemError("client_id or token error")
 
-        client = AWSIoTMQTTShadowClient(self.storage["client_id"])
+        try:
+            ipaddr, port = self.storage["endpoint"].split(":")
+        except (AttributeError, ValueError):
+            raise SystemError("endpoint error")
+
+        cafile = self.storage.get_path("certificate_reqs.pem")
+        cert = self.storage.get_path("certificate.pem")
+        key = self.storage.get_path("key.pem")
+
+        if False in map(lambda p: os.path.exists(p), (cafile, cert, key)):
+            raise SystemError("cafile or cert or key not exist")
+
+        client = AWSIoTMQTTShadowClient(client_id)
         client.configureEndpoint(ipaddr, int(port))
-        client.configureCredentials(
-            self.storage.get_path("certificate_reqs.pem"),
-            self.storage.get_path("key.pem"),
-            self.storage.get_path("certificate.pem"))
+        client.configureCredentials(cafile, key, cert)
         client.configureConnectDisconnectTimeout(10)
         client.configureMQTTOperationTimeout(5)
 
         try:
             client.connect()
+        except SSLError:
+            msg = "cafile or cert or key file broken"
+            logger.exception(msg)
+            raise SystemError(msg)
         except (connectTimeoutException, socket.gaierror, socket.error):
             raise RuntimeError("SESSION", "CONNECTION_ERROR")
 
@@ -332,7 +355,7 @@ class CloudService(ServiceBase):
                        self.aws_on_request_callback)
 
         self.aws_client = client
-        self.aws_token = self.storage["token"]
+        self.aws_token = token
         self._notify_topic = "$aws/things/%s/shadow/update" % (
             self.storage["client_id"])
         self.notify_up(conn)
@@ -344,14 +367,15 @@ class CloudService(ServiceBase):
 
     def teardown_session(self):
         if self.aws_client:
-            conn = self.aws_client.getMQTTConnection()
+            aws_client = self.aws_client
+            self.aws_client = None
+
+            conn = aws_client.getMQTTConnection()
             try:
                 if conn._mqttCore._pahoClient._thread.isAlive():
-                    self.aws_client.disconnect()
-                    self.aws_client = None
+                    aws_client.disconnect()
                 else:
                     logger.error("MQTT thread closed, remove directly")
-                    self.aws_client = None
 
             except Exception:
                 logger.exception("AWS panic while disconnect from aws, "
@@ -373,6 +397,11 @@ class CloudService(ServiceBase):
         try:
             if self.config_ts != metadata.mversion:
                 self.config_ts = metadata.mversion
+
+                if metadata.enable_cloud == "R":
+                    metadata.enable_cloud = "A"
+                    self.config_ts = metadata.mversion
+
                 self.config_enable = (metadata.enable_cloud == "A")
                 if self.config_enable is False:
                     metadata.cloud_status = (False, ("DISABLE", ))
@@ -395,15 +424,27 @@ class CloudService(ServiceBase):
             logger.debug("publishQueueDisabledException raise in notify")
             if self._notify_retry_counter > 10:
                 self.teardown_session()
+            self.set_timer_error()
         except RuntimeError as e:
             logger.error(e)
             metadata.cloud_status = (False, e.args)
+            self.set_timer_error()
         except Exception:
             logger.exception("Unhandle error")
             metadata.cloud_status = (False, ("UNKNOWN_ERROR", ))
+            self.set_timer_error()
 
     def on_shutdown(self):
         pass
+
+    def set_timer_error(self):
+        self.error_counter += 1
+        t = max(self.error_counter * 15.0, 15.0)
+        t = min(t, 600.0)
+        self.timer.stop()
+        self.timer.set(t, t)
+        self.timer.reset()
+        self.timer.start()
 
     def require_camera(self, camera_id, endpoint, token):
         payload = msgpack.packb((0x80, camera_id, endpoint, token))
