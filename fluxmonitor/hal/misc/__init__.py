@@ -2,7 +2,7 @@
 from fluxmonitor.security import get_uuid, get_serial
 from fluxmonitor import halprofile, __version__ as version
 
-if halprofile.CURRENT_MODEL == halprofile.MODEL_D1:
+if halprofile.CURRENT_MODEL in (halprofile.MODEL_D1, halprofile.MODEL_D1P):
     from .raspberry_1 import _get_deviceinfo
 else:
     from .dev import _get_deviceinfo
