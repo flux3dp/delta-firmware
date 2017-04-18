@@ -385,7 +385,7 @@ class ConfigMixIn(object):
             "type": str, "enum": ("L", "A", "N"),
             "key": "broadcast"},
         "enable_cloud": {
-            "type": str, "enum": ("A", "N"),
+            "type": str, "enum": ("A", "N", "R"),
             "key": "enable_cloud"},
         "zoffset": {
             "type": float, "min": -1.0, "max": 1.0,

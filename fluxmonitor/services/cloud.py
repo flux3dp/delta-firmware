@@ -182,15 +182,15 @@ class CloudService(ServiceBase):
         # return crypto.dump_certificate_request(crypto.FILETYPE_PEM, csr)
 
     def fetch_identify(self):
-        logger.debug("Exec identify")
+        logger.info("Fetch identify")
 
         token, subject_list = self.require_identify()
-        logger.debug("require identify return token=%s, subject=%s",
-                     token, subject_list)
+        logger.info("Require identify return token=%s, subject=%s",
+                    token, subject_list)
 
         request_asn1 = self.generate_certificate_request(subject_list)
         doc = self.get_identify(token, request_asn1)
-        logger.debug("get identify return %s", doc)
+        logger.info("Get identify return %s", doc["status"])
 
         self.storage["token"] = token
         self.storage["endpoint"] = doc["endpoint"]
@@ -310,15 +310,11 @@ class CloudService(ServiceBase):
             metadata.cloud_status = (False, ("INIT", ))
             self.fetch_identify()
 
-        try:
-            self.setup_session()
-            metadata.cloud_status = (True, ())
-        except SystemError:
-            metadata.cloud_status = (False, ("INIT", ))
-            logger.error("RENEW IDENTIFY")
-            # self.fetch_identify()
+        self.setup_session()
+        metadata.cloud_status = (True, ())
 
     def setup_session(self):
+        logger.info("Setup session")
         from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTShadowClient
         from AWSIoTPythonSDK.core.protocol.mqttCore import (
             connectTimeoutException)
@@ -347,10 +343,8 @@ class CloudService(ServiceBase):
 
         try:
             client.connect()
-        except SSLError:
-            msg = "cafile or cert or key file broken"
-            logger.exception(msg)
-            raise SystemError(msg)
+        except SSLError as e:
+            raise RuntimeError("SESSION", "TLS_ERROR", "%s" % e.reason)
         except (connectTimeoutException, socket.gaierror, socket.error):
             raise RuntimeError("SESSION", "CONNECTION_ERROR")
 
@@ -368,6 +362,7 @@ class CloudService(ServiceBase):
         self.timer.reset()
         self.timer.start()
         metadata.cloud_hash = os.urandom(32)
+        logger.info("Session ready")
 
     def teardown_session(self):
         if self.aws_client:
@@ -400,12 +395,15 @@ class CloudService(ServiceBase):
     def on_timer(self, watcher, revent):
         try:
             if self.config_ts != metadata.mversion:
-                self.config_ts = metadata.mversion
-
                 if metadata.enable_cloud == "R":
+                    logger.warning("Refetch required")
+                    if self.aws_client:
+                        self.teardown_session()
                     metadata.enable_cloud = "A"
-                    self.config_ts = metadata.mversion
+                    metadata.cloud_status = (False, ("INIT", ))
+                    self.fetch_identify()
 
+                self.config_ts = metadata.mversion
                 self.config_enable = (metadata.enable_cloud == "A")
                 if self.config_enable is False:
                     metadata.cloud_status = (False, ("DISABLE", ))
