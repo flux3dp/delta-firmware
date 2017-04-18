@@ -32,14 +32,12 @@ def parse_int(val, default):
 
 
 def parse_points(val):
-    points = []
     for str_coor in val.split(";"):
         try:
             str_x, str_y = str_coor.split(",", 2)
-            points.append((float(str_x), float(str_y)))
+            yield float(str_x), float(str_y)
         except (ValueError, TypeError):
             pass
-    return points
 
 
 class PlayerOptions(object):
@@ -132,28 +130,41 @@ class PlayerOptions(object):
         else:
             self.enable_backlash = metadata.get("BACKLASH", "N") == "Y"
 
-    def _setup_fcode_special_request(self, md):
-        if self.head == "LASER":
-            if "PROJECT_ANCHOR" in md and "PROJECT_AT" in md:
-                proj_timeout = parse_int(md.get("PROJECT_TIMEOUT"), 600)
-                proj_at = parse_float(md["PROJECT_AT"], None)
-                proj_points = parse_points(md["PROJECT_ANCHOR"])
+    def _proc_project_macro(self, md):
+        if "PROJECT_ANCHOR" not in md or "PROJECT_AT" not in md:
+            return
 
-                if proj_at is not None and proj_points:
-                    limit_r2 = LIMIT_MAX_R * LIMIT_MAX_R
-                    commands = ["G1 F6000 Z%.4f" % proj_at]
-                    for ptr in proj_points:
-                        if sum((i * i for i in ptr)) > limit_r2:
-                            # Can not move to this point, ignore
-                            continue
-                        commands.append("G1 X%.4f Y%.4f" % ptr)
-                        commands.append("X2 O20")
-                        commands.append("G4 B%i" % proj_timeout)
-                        commands.append("X2 O0")
-                    self.additional_macros.append((
-                        macros.ExecCommandMacro,
-                        {"name": "PROJECTING", "commands": commands,
-                         "prevent_pause": True}))
+        proj_timeout = parse_int(md.get("PROJECT_TIMEOUT"), 600)
+        proj_at = parse_float(md["PROJECT_AT"], None)
+        proj_points = parse_points(md["PROJECT_ANCHOR"])
+
+        if proj_at is None:
+            return
+
+        limit_r2 = LIMIT_MAX_R * LIMIT_MAX_R
+        commands = ["G1 F6000 Z%.4f" % proj_at]
+
+        for ptr in proj_points:
+            if sum((i * i for i in ptr)) > limit_r2:
+                # Can not move to this point, ignore
+                continue
+
+            commands.append("G1 X%.4f Y%.4f" % ptr)
+            if self.head == "LASER":
+                commands.append("X2 O20")
+            commands.append("G4 B%i" % proj_timeout)
+            if self.head == "LASER":
+                commands.append("X2 O0")
+
+        if len(commands) > 1:
+            self.additional_macros.append((
+                macros.ExecCommandMacro,
+                {"name": "PROJECTING", "commands": commands,
+                 "prevent_pause": True}))
+
+    def _setup_fcode_special_request(self, md):
+        if self.head in ("LASER", "N/A"):
+            self._proc_project_macro(md)
 
     def get_player_initialize_macros(self):
         tasks = []
