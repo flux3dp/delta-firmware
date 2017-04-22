@@ -1,6 +1,5 @@
 
 from fluxmonitor.storage import Preference
-from fluxmonitor.config import DEFAULT_H
 from .base import MacroBase
 
 M666_TEMPLATE = "M666X%(X).4fY%(Y).4fZ%(Z).4fR%(R).4fD%(D).5fH%(H).4f"
@@ -10,31 +9,27 @@ M711_TEMPLATE = "M711 A%(A).4f B%(B).4f C%(C).4f"
 class StartupMacro(MacroBase):
     name = "STARTING"
 
-    default_h = None
+    init_zheight = None
     filament_detect = True
     enable_backlash = False
 
     def __init__(self, on_success_cb, options=None):
         self._on_success_cb = on_success_cb
 
-        self.default_h = DEFAULT_H
-
         if options:
-            if options.correction in ("A", "H"):
-                if options.zprobe_dist:
-                    self.default_h = options.zprobe_dist
-            elif options.head == "LASER":
-                self.default_h = DEFAULT_H
+            self.init_zheight = options.zprobe_dist
             self.filament_detect = options.filament_detect
             self.enable_backlash = options.enable_backlash
             self.plus_extrusion = options.plus_extrusion
 
     def start(self, k):
         pref = Preference.instance()
-        pref.plate_correction = {"H": self.default_h}
+
+        if self.init_zheight:
+            pref.leveling = {"H": self.init_zheight}
 
         # Apply M666
-        k.mainboard.send_cmd(M666_TEMPLATE % pref.plate_correction)
+        k.mainboard.send_cmd(M666_TEMPLATE % pref.leveling)
         # Select extruder 0
         k.mainboard.send_cmd("T0")
         # Absolute Positioning
