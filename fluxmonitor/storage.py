@@ -136,7 +136,7 @@ class Preference(object):
             f.write(val)
 
     @property
-    def plate_correction(self):
+    def leveling(self):
         if self._storage.exists("leveling"):
             with self._storage.open("leveling", "r") as f:
                 try:
@@ -150,14 +150,16 @@ class Preference(object):
                 "I": 0, "J": 0, "K": 0, "R": DEFAULT_R, "D": 189.75,
                 "H": DEFAULT_H}
 
-    @plate_correction.setter
-    def plate_correction(self, val):
-        v = self.plate_correction
+    @leveling.setter
+    def leveling(self, val):
+        v = self.leveling
         v.update(val)
 
         vals = tuple((v[k] for k in "XYZABCIJKRDH"))
         with self._storage.open("leveling", "w") as f:
             f.write(" ".join("%.4f" % i for i in vals))
+
+    plate_correction = leveling
 
     @property
     def backlash(self):

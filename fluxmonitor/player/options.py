@@ -108,8 +108,8 @@ class PlayerOptions(object):
             self.filament_detect = metadata.get("FILAMENT_DETECT", "Y") == "Y"
 
     def _setup_max_xyzr(self, metadata):
-        self.max_z = parse_float(metadata.get("MAX_Z"), inf)
-        self.max_r = parse_float(metadata.get("MAX_R"), inf)
+        self.max_z = parse_float(metadata.get("MAX_Z"), inf) + 1.0
+        self.max_r = parse_float(metadata.get("MAX_R"), inf) + 1.0
         self.max_r = min(self.max_r, LIMIT_MAX_R)
 
     def _setup_common(self, storage):
@@ -120,8 +120,14 @@ class PlayerOptions(object):
                                           lambda v: v == "Y")
         self.zoffset = parse_float(storage["zoffset"], 0)
 
-        zdist = parse_int(storage["zprobe_dist"], DEFAULT_H - 16)
-        self.zprobe_dist = min(max(zdist, DEFAULT_H - 100), DEFAULT_H - 16)
+        zdist = parse_int(storage["zprobe_dist"], DEFAULT_H)
+
+        if self.head == "EXTRUDER" and self.correction in ("A", "H"):
+            self.zprobe_dist = min(max(zdist, DEFAULT_H - 100), DEFAULT_H)
+        elif self.head == "LASER":
+            self.zprobe_dist = DEFAULT_H
+        else:
+            self.zprobe_dist = None
 
     def _setup_backlash(self, storage, metadata):
         device_setting = storage["enable_backlash"]
@@ -175,8 +181,7 @@ class PlayerOptions(object):
             if self.head == "EXTRUDER":
                 tasks.append(macros.ControlHeaterMacro(None, 0, 170))
             if self.correction == "A":
-                tasks.append(macros.ZprobeMacro(None, threshold=float("inf"),
-                                                dist=self.zprobe_dist))
+                tasks.append(macros.ZprobeMacro(None, threshold=float("inf")))
                 tasks.append(macros.CorrectionMacro(None))
             tasks.append(macros.ZprobeMacro(None, zoffset=self.zoffset))
 
