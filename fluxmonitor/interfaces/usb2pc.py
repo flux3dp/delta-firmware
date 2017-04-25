@@ -187,7 +187,7 @@ class USBProtocol(object):
 
                 response = {"session": self._proto_session}
 
-                if data.get("protocol_level") == 1:
+                if data.get("protocol_level") >= 1:
                     self._enable_padding = True
                     response["protocol_level"] = 1
                     logger.debug("Apply protocol level 1")
