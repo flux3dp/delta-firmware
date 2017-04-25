@@ -65,7 +65,7 @@ class UsbService(ServiceBase):
                 s.connect(ROBOT_ENDPOINT)
                 s.send(payload)
 
-                rl = select((s, ), (), (), 0.1)[0]
+                rl = select((s, ), (), (), 0.2)[0]
                 if rl:
                     ret = s.recv(1)
                 else:
@@ -80,7 +80,7 @@ class UsbService(ServiceBase):
                     sleep(0.05)
                     continue
 
-                wl = select((), (s, ), (), 0.1)[1]
+                wl = select((), (s, ), (), 0.2)[1]
                 if wl:
                     send_handle(s, usbcable.outside_sockfd, 0)
                 else:
@@ -89,16 +89,18 @@ class UsbService(ServiceBase):
                     sleep(0.05)
                     continue
 
-                rl = select((s, ), (), (), 0.05)[0]
+                rl = select((s, ), (), (), 0.2)[0]
                 if rl:
                     ret = s.recv(1)
+
                 else:
                     logger.error("Error: robot endpoint resp usb fin timeout")
                     s.close()
                     sleep(0.05)
+                    continue
 
                 if ret != b"X":
-                    logger.error("Error remote complete return %s", repr(ret))
+                    logger.error("Error remote fin return %r, not X", ret)
                     s.close()
                     continue
 

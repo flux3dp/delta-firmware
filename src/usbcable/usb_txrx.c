@@ -9,8 +9,8 @@
 #include <Python.h>
 #include "usb_txrx.h"
 
-#define TX_BUFFER_LEN 510
-#define RX_BUFFER_LEN 510
+#define TX_BUFFER_LEN 512
+#define RX_BUFFER_LEN 512
 
 int discover_usb(void) {
     // Return number of available usb devices
@@ -233,37 +233,44 @@ void *thread_tx_entry(void *arg) {
 
     struct libusb_device_handle *handle = data->handle;
     const unsigned char endpoint = data->tx->bEndpointAddress;
-    int ret, transfered, txtransfered;
+    int ret, recvlen, sent, txtransfered = 0;
     unsigned char buffer[TX_BUFFER_LEN];
 
     while(data->running) {
-        transfered = recv(data->socket_vector[0], buffer, TX_BUFFER_LEN, 0);
+        recvlen = recv(data->socket_vector[0], buffer, TX_BUFFER_LEN, 0);
 
-        if(transfered == -1) {
+        if(recvlen == -1) {
             if(errno == ETIMEDOUT || errno == EAGAIN || errno == EINTR) {
-                fprintf(stderr, "TX recv ret=%i errno=%i ignore\n", transfered, errno);
+                fprintf(stderr, "TX recv ret=%i errno=%i ignore\n", recvlen, errno);
                 continue;
             } else {
-                fprintf(stderr, "TX recv ret=%i errno=%i\n", transfered, errno);
+                fprintf(stderr, "TX recv ret=%i errno=%i\n", recvlen, errno);
                 data->running = 0;
             }
-        } else if(transfered == 0) {
+        } else if(recvlen == 0) {
             fprintf(stderr, "TX recv ret=0 (connection closed)\n");
             data->running = 0;
         } else {
-            ret = libusb_bulk_transfer(handle, endpoint, buffer, transfered, &txtransfered, 500);
-            if(transfered != txtransfered) {
-                fprintf(stderr, "TX usb transfered not match (%i!=%i), ret=%i\n", transfered, txtransfered, ret);
-            }
+            txtransfered = 0;
+            while(txtransfered < recvlen) {
+                ret = libusb_bulk_transfer(handle, endpoint, buffer + txtransfered, recvlen - txtransfered, &sent, 3000);
 
-            if(ret == 0) {
-                continue;
-            } else if(ret == LIBUSB_ERROR_TIMEOUT) {
-                printf("TX usb ret=TIMEOUT, transfered=%i\n", transfered);
-                continue;
-            } else {
-                fprintf(stderr, "TX usb ret=%i, transfered=%i\n", ret, transfered);
-                data->running = 0;
+                if(ret == 0) {
+                    txtransfered += sent;
+                    continue;
+                } else if(ret == LIBUSB_ERROR_TIMEOUT) {
+                    if(sent) {
+                        txtransfered += sent;
+                        continue;
+                    } else {
+                        printf("TX usb ret=TIMEOUT, recvlen=%i\n", recvlen);
+                        break;
+                    }
+                } else {
+                    fprintf(stderr, "TX usb ret=%i, recvlen=%i\n", ret, recvlen);
+                    data->running = 0;
+                    break;
+                }
             }
         }
     }
@@ -281,25 +288,32 @@ void *thread_rx_entry(void *arg) {
 
     struct libusb_device_handle *handle = data->handle;
     const unsigned char endpoint = data->rx->bEndpointAddress;
-    int ret, transfered;
+    int ret, recvlen;
     unsigned char buffer[RX_BUFFER_LEN];
 
     while(data->running) {
-        ret = libusb_bulk_transfer(handle, endpoint, buffer, RX_BUFFER_LEN, &transfered, 500);
+        ret = libusb_bulk_transfer(handle, endpoint, buffer, RX_BUFFER_LEN, &recvlen, 300);
         if(ret == 0) {
-            transfered = send(data->socket_vector[0], buffer, transfered, 0);
-            if(transfered < 0) {
-                if(errno == ETIMEDOUT || errno == EAGAIN || errno == EINTR) {
-                    continue;
-                } else {
-                    fprintf(stderr, "RX send ret=%i errno=%i\n", ret, errno);
-                    data->running = 0;
+            int transfered = 0;
+            while(transfered < recvlen) {
+                ret = send(data->socket_vector[0], buffer + transfered, recvlen - transfered, 0);
+
+                if(ret > 0) {
+                    transfered += ret;
+                } else if(ret < 0) {
+                    if(errno == ETIMEDOUT || errno == EAGAIN || errno == EINTR) {
+                        continue;
+                    } else {
+                        fprintf(stderr, "RX send ret=%i errno=%i\n", ret, errno);
+                        data->running = 0;
+                        break;
+                    }
                 }
             }
         } else if(ret == LIBUSB_ERROR_TIMEOUT) {
             continue;
         } else {
-            printf("RX usb ret=%i, transfered=%i\n", ret, transfered);
+            printf("RX usb ret=%i, transfered=%i\n", ret, recvlen);
             data->running = 0;
         }
 
