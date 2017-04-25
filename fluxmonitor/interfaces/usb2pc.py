@@ -89,13 +89,16 @@ if __name__ != "__main__":
 
 HEAD_PACKER = Struct("<HB")
 SHORT_PACKER = Struct("<H")
+PAYLOAD_PACKER = Struct("<")
 BUF_SIZE = 1024
 
 
 class USBProtocol(object):
     _buf = None
+    _buffered = 0
     _proto_handshake = False
     _proto_session = None
+    _enable_padding = False
 
     def _on_recv(self, watcher, revent):
         try:
@@ -118,10 +121,18 @@ class USBProtocol(object):
                 if size > BUF_SIZE:
                     if self._proto_handshake:
                         raise USBProtocolError("Message size overflow")
+                    elif size == 0x0500:
+                        self._bufview[0:self._buffered - 1] = \
+                            self._bufview[1:self._buffered]
+                        self._buffered -= 1
+                        continue
                     else:
-                        logger.debug("Recv bad handshake, clean buffer")
+                        logger.debug(
+                            "Recv bad handshake, clean buffer"
+                            " (payload size=%i, %r)", size,
+                            self._buf[:self._buffered])
                         self._buffered = 0
-                if size == 0:
+                elif size == 0:
                     if self._proto_handshake:
                         raise USBProtocolError("Got zero size payload")
                     else:
@@ -132,7 +143,7 @@ class USBProtocol(object):
                         else:
                             self._buffered = 0
                         continue
-                if size > self._buffered:
+                elif size > self._buffered:
                     return
 
                 chl_idx = self._buf[2]
@@ -160,21 +171,28 @@ class USBProtocol(object):
     def _on_handshake(self, chl_idx, buf, fin):
         logger.debug("on_handshake channel=0x%02x, fin=0x%02x", chl_idx, fin)
 
-        if chl_idx == 0xfa:
+        if chl_idx == 0xa0 and fin == 0xff:
+            pass
+        elif chl_idx == 0xfa:
             logger.debug("Recv ping but not handshaked")
-            return
-
-        if fin != 0xb0:
+            pass
+        elif fin != 0xb0:
             logger.debug("Fin error (0x%02x!=0xb0) in handshake", fin)
-            return
-
-        if chl_idx == 0xfe:
+            pass
+        elif chl_idx == 0xfe:
             data = msgpack.unpackb(buf.tobytes())
             if data.get("session") == self._proto_session:
                 self.client_profile = data
                 logger.debug("Client handshake complete: %s", data)
 
-                self.send_payload(0xfd, {"session": self._proto_session})
+                response = {"session": self._proto_session}
+
+                if data.get("protocol_level") == 1:
+                    self._enable_padding = True
+                    response["protocol_level"] = 1
+                    logger.debug("Apply protocol level 1")
+
+                self.send_payload(0xfd, response)
                 self._proto_handshake = True
                 self.on_handshake_complete()
             else:
@@ -195,6 +213,8 @@ class USBProtocol(object):
                 self.on_binary_ack(chl_idx)
             else:
                 raise USBProtocolError("Bad fin 0x%x" % fin)
+        elif chl_idx == 0xa0 and fin == 0xff:
+            pass
         elif chl_idx == 0xf0:
             if fin != 0xb0:
                 raise USBProtocolError("Bad fin for channel 0xf0")
@@ -232,6 +252,10 @@ class USBProtocol(object):
         self.watcher.set(self.sock.fileno(), pyev.EV_READ)
         self.watcher.start()
 
+        if self._buffered:
+            logger.debug("Connection reset...")
+            logger.debug("Data left in buffer: %r", self._buf[:self._buffered])
+
         logger.debug("==== INITIAL SESSION ====")
         self._proto_handshake = False
         self.sock.send(b"\x00" * 16)
@@ -266,24 +290,35 @@ class USBProtocol(object):
     def on_binary_ack(self, chl_idx):
         pass
 
-    def send_payload(self, chl_idx, obj):
-        payload = msgpack.packb(obj)
-        l = len(payload) + 4
-        buf = HEAD_PACKER.pack(l, chl_idx) + payload + b"\xf0"
+    def _send(self, buf):
+        size = len(buf)
+        sent = 0
+        while sent < size:
+            sent += self.sock.send(buf[sent:])
 
-        sl = self.sock.send(buf)
-        if sl != l:
-            logger.error("Socket %s send data failed", self)
-            self.on_error()
+    def send_payload(self, chl_idx, obj):
+        data = msgpack.packb(obj)
+        l = len(data) + 4
+        if l < 508 and self._enable_padding and self._proto_handshake:
+            padding = 512 - l
+            buf = b"".join((
+                HEAD_PACKER.pack(l, chl_idx), data, b"\xf0",
+                HEAD_PACKER.pack(padding, 0xa0), b"\x00" * (padding - 4), b"\xff"))  # noqa
+        else:
+            buf = b"".join((HEAD_PACKER.pack(l, chl_idx), data, b"\xf0"))
+
+        self._send(buf)
 
     def send_binary(self, chl_idx, data):
         l = len(data) + 4
-        buf = HEAD_PACKER.pack(l, chl_idx) + data + b"\xff"
-
-        sl = self.sock.send(buf)
-        if sl != l:
-            logger.error("Socket %s send data failed", self)
-            self.on_error()
+        if l < 508 and self._enable_padding and self._proto_handshake:
+            padding = 512 - l
+            buf = b"".join((
+                HEAD_PACKER.pack(l, chl_idx), data, b"\xff",
+                HEAD_PACKER.pack(padding, 0xa0), b"\x00" * (padding - 4), b"\xff"))  # noqa
+        else:
+            buf = b"".join((HEAD_PACKER.pack(l, chl_idx), data, b"\xff"))
+        self._send(buf)
 
     def send_binary_ack(self, chl_idx):
         buf = HEAD_PACKER.pack(4, chl_idx) + b"\xc0"
