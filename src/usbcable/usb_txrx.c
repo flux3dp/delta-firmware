@@ -9,8 +9,8 @@
 #include <Python.h>
 #include "usb_txrx.h"
 
-#define TX_BUFFER_LEN 512
-#define RX_BUFFER_LEN 512
+#define TX_BUFFER_LEN 510
+#define RX_BUFFER_LEN 510
 
 int discover_usb(void) {
     // Return number of available usb devices

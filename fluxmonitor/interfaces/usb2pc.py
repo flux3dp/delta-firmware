@@ -299,8 +299,8 @@ class USBProtocol(object):
     def send_payload(self, chl_idx, obj):
         data = msgpack.packb(obj)
         l = len(data) + 4
-        if l < 508 and self._enable_padding and self._proto_handshake:
-            padding = 512 - l
+        if l < 506 and self._enable_padding and self._proto_handshake:
+            padding = 510 - l
             buf = b"".join((
                 HEAD_PACKER.pack(l, chl_idx), data, b"\xf0",
                 HEAD_PACKER.pack(padding, 0xa0), b"\x00" * (padding - 4), b"\xff"))  # noqa
@@ -311,8 +311,8 @@ class USBProtocol(object):
 
     def send_binary(self, chl_idx, data):
         l = len(data) + 4
-        if l < 508 and self._enable_padding and self._proto_handshake:
-            padding = 512 - l
+        if l < 506 and self._enable_padding and self._proto_handshake:
+            padding = 510 - l
             buf = b"".join((
                 HEAD_PACKER.pack(l, chl_idx), data, b"\xff",
                 HEAD_PACKER.pack(padding, 0xa0), b"\x00" * (padding - 4), b"\xff"))  # noqa
