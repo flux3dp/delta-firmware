@@ -226,6 +226,10 @@ void sighug_handler(int sig) {
 }
 
 
+void libusb_callback(struct libusb_transfer *xfr)
+{
+}
+
 void *thread_tx_entry(void *arg) {
     signal(SIGUSR1, sighug_handler);
     struct usb_data *data = arg;
@@ -235,8 +239,12 @@ void *thread_tx_entry(void *arg) {
     const unsigned char endpoint = data->tx->bEndpointAddress;
     int ret, recvlen, sent, txtransfered = 0;
     unsigned char buffer[TX_BUFFER_LEN];
+    struct libusb_transfer *xfr;
 
     while(data->running) {
+        // recvlen = recv(data->socket_vector[0], buffer, TX_BUFFER_LEN, 0);
+
+        // ret = libusb_fill_bulk_transfer(xfr, handle, endpoint, buffer, recvlen, libusb_callback, NULL, 500);
         recvlen = recv(data->socket_vector[0], buffer, TX_BUFFER_LEN, 0);
 
         if(recvlen == -1) {
@@ -253,7 +261,9 @@ void *thread_tx_entry(void *arg) {
         } else {
             txtransfered = 0;
             while(txtransfered < recvlen) {
+                pthread_mutex_lock(&(data->usb_mutex));
                 ret = libusb_bulk_transfer(handle, endpoint, buffer + txtransfered, recvlen - txtransfered, &sent, 3000);
+                pthread_mutex_unlock(&(data->usb_mutex));
 
                 if(ret == 0) {
                     txtransfered += sent;
@@ -292,7 +302,9 @@ void *thread_rx_entry(void *arg) {
     unsigned char buffer[RX_BUFFER_LEN];
 
     while(data->running) {
+        pthread_mutex_lock(&(data->usb_mutex));
         ret = libusb_bulk_transfer(handle, endpoint, buffer, RX_BUFFER_LEN, &recvlen, 300);
+        pthread_mutex_unlock(&(data->usb_mutex));
         if(ret == 0) {
             int transfered = 0;
             while(transfered < recvlen) {
