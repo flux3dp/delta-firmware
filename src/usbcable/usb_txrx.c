@@ -226,10 +226,6 @@ void sighug_handler(int sig) {
 }
 
 
-void libusb_callback(struct libusb_transfer *xfr)
-{
-}
-
 void *thread_tx_entry(void *arg) {
     signal(SIGUSR1, sighug_handler);
     struct usb_data *data = arg;
@@ -239,12 +235,8 @@ void *thread_tx_entry(void *arg) {
     const unsigned char endpoint = data->tx->bEndpointAddress;
     int ret, recvlen, sent, txtransfered = 0;
     unsigned char buffer[TX_BUFFER_LEN];
-    struct libusb_transfer *xfr;
 
     while(data->running) {
-        // recvlen = recv(data->socket_vector[0], buffer, TX_BUFFER_LEN, 0);
-
-        // ret = libusb_fill_bulk_transfer(xfr, handle, endpoint, buffer, recvlen, libusb_callback, NULL, 500);
         recvlen = recv(data->socket_vector[0], buffer, TX_BUFFER_LEN, 0);
 
         if(recvlen == -1) {
