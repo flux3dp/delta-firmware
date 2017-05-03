@@ -286,6 +286,7 @@ class CloudService(ServiceBase):
                     metadata.cloud_hash = os.urandom(32)
             elif action == "monitor":
                 self._notify_aggressive = time() + 180
+                self._notify_last_st["st_id"] = None
                 client.publish(response_topic, json.dumps({
                     "status": "ok", "cmd_index": cmd_index}))
             elif action == "camera":
