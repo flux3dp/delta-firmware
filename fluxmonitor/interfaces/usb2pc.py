@@ -191,6 +191,8 @@ class USBProtocol(object):
                     self._enable_padding = True
                     response["protocol_level"] = 1
                     logger.debug("Apply protocol level 1")
+                else:
+                    self._enable_padding = False
 
                 self.send_payload(0xfd, response)
                 self._proto_handshake = True
@@ -303,7 +305,7 @@ class USBProtocol(object):
             padding = 510 - l
             buf = b"".join((
                 HEAD_PACKER.pack(l, chl_idx), data, b"\xf0",
-                HEAD_PACKER.pack(padding, 0xa0), b"\x00" * (padding - 4), b"\xff"))  # noqa
+                HEAD_PACKER.pack(padding, 0xa0), b"\xff" * (padding - 4), b"\xff"))  # noqa
         else:
             buf = b"".join((HEAD_PACKER.pack(l, chl_idx), data, b"\xf0"))
 
