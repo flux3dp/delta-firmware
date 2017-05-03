@@ -175,7 +175,7 @@ class PlayerOptions(object):
     def get_player_initialize_macros(self):
         tasks = []
         tasks.append(macros.StartupMacro(None, options=self))
-        if self.movement_test:
+        if self.head == "EXTRUDER" and self.movement_test:
             tasks.append(macros.RunCircleMacro(None))
         if self.correction in ("A", "H"):
             if self.head == "EXTRUDER":
