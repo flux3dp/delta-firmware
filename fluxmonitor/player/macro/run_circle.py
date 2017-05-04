@@ -36,7 +36,7 @@ class RunCircleMacro(MacroBase):
                     self.dir = 2
 
     def start(self, k):
-        k.mainboard.send_cmd("G1 F6000 X0 Y0 Z3")
+        k.mainboard.send_cmd("G1 F6000 X0 Y0 Z5")
         self.feed(k)
 
     def on_command_empty(self, k):
