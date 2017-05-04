@@ -21,8 +21,6 @@ struct usb_data {
     int running;
 
     short thread_flag[2];
-
-    pthread_mutex_t usb_mutex;
 };
 
 
