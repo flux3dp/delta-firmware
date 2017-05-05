@@ -14,7 +14,7 @@ from fluxmonitor.misc.fcode_file import FCodeFile, FCodeError
 from fluxmonitor.misc.pidfile import load_pid
 from fluxmonitor.misc.systime import systime as time
 from fluxmonitor.err_codes import FILE_BROKEN, NOT_SUPPORT, RESOURCE_BUSY, \
-    SUBSYSTEM_ERROR
+    SUBSYSTEM_ERROR, UNKNOWN_ERROR
 from fluxmonitor.config import PLAY_ENDPOINT
 from fluxmonitor.storage import Storage, metadata
 
@@ -37,7 +37,6 @@ class PlayerManager(object):
 
     def __init__(self, loop, taskfile, terminated_callback=None):
         storage = Storage("run")
-        s = create_mainboard_socket()
 
         oldpid = load_pid(storage.get_path("fluxplayerd.pid"))
         if oldpid is not None:
@@ -47,6 +46,7 @@ class PlayerManager(object):
             except Exception:
                 logger.exception("Error while kill old process: %i", oldpid)
 
+        s = create_mainboard_socket()
         try:
             s.send("\n@DISABLE_LINECHECK\nX5S115\n")
 
@@ -77,6 +77,7 @@ class PlayerManager(object):
             raise RuntimeError(FILE_BROKEN, *e.args)
         except Exception as e:
             s.send("X5S0\n")
+            raise RuntimeError(UNKNOWN_ERROR)
         finally:
             s.close()
 
