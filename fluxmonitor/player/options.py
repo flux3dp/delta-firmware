@@ -183,7 +183,7 @@ class PlayerOptions(object):
             if self.head == "EXTRUDER":
                 tasks.append(macros.ControlHeaterMacro(None, 0, 170))
             if self.correction == "A":
-                tasks.append(macros.ZprobeMacro(None, threshold=float("inf")), dist=self.zprobe_dist)
+                tasks.append(macros.ZprobeMacro(None, threshold=float("inf"), dist=self.zprobe_dist))
                 tasks.append(macros.CorrectionMacro(None))
             tasks.append(macros.ZprobeMacro(None, zoffset=self.zoffset))
 
