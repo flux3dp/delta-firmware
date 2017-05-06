@@ -51,6 +51,8 @@ class PlayerOptions(object):
     max_r = inf
     enable_backlash = False
     plus_extrusion = None
+    zprobe_dist = None
+    init_zheight = None
     additional_macros = None  # [ (klass1, kwargs), (klass2, kwargs...), ... ]
 
     def __init__(self, taskloader=None, head=None):
@@ -76,6 +78,7 @@ class PlayerOptions(object):
             self.filament_detect = False
             # Only EXTRUDER allowed correction
             self.correction = "N"
+            self.movement_test = False
 
     def _setup_toolhead(self, head, metadata):
         if head:
@@ -120,14 +123,13 @@ class PlayerOptions(object):
                                           lambda v: v == "Y")
         self.zoffset = parse_float(storage["zoffset"], 0)
 
-        zdist = parse_int(storage["zprobe_dist"], DEFAULT_H)
-
-        if self.head == "EXTRUDER" and self.correction in ("A", "H"):
-            self.zprobe_dist = min(max(zdist, DEFAULT_H - 100), DEFAULT_H)
-        elif self.head == "LASER":
-            self.zprobe_dist = DEFAULT_H
+        if self.head == "LASER":
+            self.init_zheight = DEFAULT_H
         else:
-            self.zprobe_dist = None
+            self.init_zheight = None
+
+        zdist = parse_int(storage["zprobe_dist"], DEFAULT_H)
+        self.zprobe_dist = min(max(zdist, DEFAULT_H - 100), DEFAULT_H) - 12
 
     def _setup_backlash(self, storage, metadata):
         device_setting = storage["enable_backlash"]
@@ -175,13 +177,13 @@ class PlayerOptions(object):
     def get_player_initialize_macros(self):
         tasks = []
         tasks.append(macros.StartupMacro(None, options=self))
-        if self.head == "EXTRUDER" and self.movement_test:
+        if self.movement_test:
             tasks.append(macros.RunCircleMacro(None))
         if self.correction in ("A", "H"):
             if self.head == "EXTRUDER":
                 tasks.append(macros.ControlHeaterMacro(None, 0, 170))
             if self.correction == "A":
-                tasks.append(macros.ZprobeMacro(None, threshold=float("inf")))
+                tasks.append(macros.ZprobeMacro(None, threshold=float("inf")), dist=self.zprobe_dist)
                 tasks.append(macros.CorrectionMacro(None))
             tasks.append(macros.ZprobeMacro(None, zoffset=self.zoffset))
 

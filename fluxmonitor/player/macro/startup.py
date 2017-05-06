@@ -17,7 +17,7 @@ class StartupMacro(MacroBase):
         self._on_success_cb = on_success_cb
 
         if options:
-            self.init_zheight = options.zprobe_dist
+            self.init_zheight = options.init_zheight
             self.filament_detect = options.filament_detect
             self.enable_backlash = options.enable_backlash
             self.plus_extrusion = options.plus_extrusion
