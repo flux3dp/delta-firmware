@@ -55,7 +55,7 @@ class RobotChannel(object):
                 callback(self)
                 return
 
-            bdata = stream.read(min(length - sent_length, 507))
+            bdata = stream.read(min(length - sent_length, 506))
             self.protocol.send_binary(self.index, bdata)
             sent_length += len(bdata)
             self._binary_data = (length, sent_length, stream, callback)

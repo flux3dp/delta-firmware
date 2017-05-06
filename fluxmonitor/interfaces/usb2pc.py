@@ -69,6 +69,7 @@
 #
 
 
+from collections import deque
 from struct import Struct
 import logging
 import msgpack
@@ -88,17 +89,104 @@ if __name__ != "__main__":
     logger = logging.getLogger(__name__)
 
 HEAD_PACKER = Struct("<HB")
+BYTE_PACKER = Struct("<B")
 SHORT_PACKER = Struct("<H")
-PAYLOAD_PACKER = Struct("<")
+HEAD_V2_PACKER = Struct("<HHBB")
 BUF_SIZE = 1024
 
+SHARED_BUF = bytearray((255 for i in range(128)))
 
-class USBProtocol(object):
+
+class USBHandler(UnixHandler):
     _buf = None
-    _buffered = 0
-    _proto_handshake = False
+    _buffered = None
     _proto_session = None
-    _enable_padding = False
+    protocol = None
+
+    def on_connected(self):
+        super(USBHandler, self).on_connected()
+        self.initial_session()
+
+    def pack_payload(self, chl_idx, data, fin):
+        l = len(data) + 4
+        return b"".join((HEAD_PACKER.pack(l, chl_idx), data, BYTE_PACKER.pack(fin)))
+
+    def _send_handshake(self):
+        handshake_data = get_deviceinfo(metadata)
+        handshake_data["session"] = self._proto_session
+        logger.debug("Send handshake")
+
+        buf = self.pack_payload(0xff, msgpack.packb(handshake_data), 0xf0)
+        self.sock.send(buf)
+
+    def _on_handshake(self, chl_idx, buf, fin):
+        logger.debug("on_handshake channel=0x%02x, fin=0x%02x", chl_idx, fin)
+
+        if chl_idx == 0xa0 and fin == 0xff:
+            pass
+        elif chl_idx == 0xfa:
+            logger.debug("Recv ping but not handshaked")
+            pass
+        elif fin != 0xb0:
+            logger.debug("Fin error (0x%02x!=0xb0) in handshake", fin)
+            pass
+        elif chl_idx == 0xfe:
+            data = msgpack.unpackb(buf.tobytes())
+            if data.get("session") == self._proto_session:
+                self.client_profile = data
+                logger.debug("Client handshake complete: %s", data)
+
+                response = {"session": self._proto_session}
+
+                pl = data.get("protocol_level", 0)
+                if pl <= 1:
+                    response["protocol_level"] = 1
+                    logger.debug("Apply protocol level 1")
+                    self.protocol = USBProtocol1(self)
+                elif pl <= 2:
+                    response["protocol_level"] = 2
+                    logger.debug("Apply protocol level 2")
+                    self.protocol = USBProtocol2(self)
+
+                buf = self.pack_payload(0xfd, msgpack.packb(response), 0xf0)
+                self.sock.send(buf)
+            else:
+                logger.debug("Handshake session error")
+        elif chl_idx == 0xfc:
+            logger.debug("Resend handshake")
+            self._send_handshake()
+        else:
+            logger.debug("Channel error (0x%02x!=0xff) in handshake", chl_idx)
+
+    def initial_session(self):
+        if self.protocol:
+            self.protocol.close()
+            self.protocol = None
+        else:
+            self.watcher.stop()
+            self.watcher.callback = self._on_recv
+            self.watcher.set(self.sock.fileno(), pyev.EV_READ)
+            self.watcher.start()
+
+        if self._buffered:
+            logger.debug("Connection reset...")
+            logger.debug("Data left in buffer: %r", self._buf[:self._buffered])
+
+        logger.debug("==== INITIAL SESSION ====")
+        self._proto_handshake = False
+        self.sock.send(b"\x00" * 16)
+        if self._buf is None:
+            self._buf = bytearray(BUF_SIZE)
+            self._bufview = memoryview(self._buf)
+        self._buffered = 0
+
+        session = random.randint(0, 65536)
+        if self._proto_session == session:
+            self._proto_session = (session + 1) % 65536
+        else:
+            self._proto_session = session
+
+        self._send_handshake()
 
     def _on_recv(self, watcher, revent):
         try:
@@ -133,7 +221,7 @@ class USBProtocol(object):
                             self._buf[:self._buffered])
                         self._buffered = 0
                 elif size == 0:
-                    if self._proto_handshake:
+                    if self.protocol:
                         raise USBProtocolError("Got zero size payload")
                     else:
                         if self._buffered > 2:
@@ -146,13 +234,12 @@ class USBProtocol(object):
                 elif size > self._buffered:
                     return
 
-                chl_idx = self._buf[2]
-                buf = self._bufview[3:size - 1]
-                fin = self._buf[size - 1]
-
-                if self._proto_handshake:
-                    self._on_message(chl_idx, buf, fin)
+                if self.protocol:
+                    self.protocol.on_message(self._buf, self._bufview, size)
                 else:
+                    chl_idx = self._buf[2]
+                    buf = self._bufview[3:size - 1]
+                    fin = self._buf[size - 1]
                     self._on_handshake(chl_idx, buf, fin)
 
                 if self._buffered > size:
@@ -168,175 +255,22 @@ class USBProtocol(object):
             logger.exception("Unhandle error")
             self.initial_session()
 
-    def _on_handshake(self, chl_idx, buf, fin):
-        logger.debug("on_handshake channel=0x%02x, fin=0x%02x", chl_idx, fin)
 
-        if chl_idx == 0xa0 and fin == 0xff:
-            pass
-        elif chl_idx == 0xfa:
-            logger.debug("Recv ping but not handshaked")
-            pass
-        elif fin != 0xb0:
-            logger.debug("Fin error (0x%02x!=0xb0) in handshake", fin)
-            pass
-        elif chl_idx == 0xfe:
-            data = msgpack.unpackb(buf.tobytes())
-            if data.get("session") == self._proto_session:
-                self.client_profile = data
-                logger.debug("Client handshake complete: %s", data)
-
-                response = {"session": self._proto_session}
-
-                if data.get("protocol_level") >= 1:
-                    self._enable_padding = True
-                    response["protocol_level"] = 1
-                    logger.debug("Apply protocol level 1")
-                else:
-                    self._enable_padding = False
-
-                self.send_payload(0xfd, response)
-                self._proto_handshake = True
-                self.on_handshake_complete()
-            else:
-                logger.debug("Handshake session error")
-        elif chl_idx == 0xfc:
-            logger.debug("Resend handshake")
-            self.send_handshake()
-        else:
-            logger.debug("Channel error (0x%02x!=0xff) in handshake", chl_idx)
-
-    def _on_message(self, chl_idx, buf, fin):
-        if chl_idx < 0x80:
-            if fin == 0xb0:
-                self.on_payload(chl_idx, msgpack.unpackb(buf.tobytes()))
-            elif fin == 0xbf:
-                self.on_binary(chl_idx, buf)
-            elif fin == 0x80:
-                self.on_binary_ack(chl_idx)
-            else:
-                raise USBProtocolError("Bad fin 0x%x" % fin)
-        elif chl_idx == 0xa0 and fin == 0xff:
-            pass
-        elif chl_idx == 0xf0:
-            if fin != 0xb0:
-                raise USBProtocolError("Bad fin for channel 0xf0")
-            data = msgpack.unpackb(buf.tobytes())
-            self._control_channel(data.get("channel"), data.get("action"),
-                                  data.get("type", "robot"))
-        elif chl_idx == 0xfa:
-            self._handle_ping(fin)
-        elif chl_idx == 0xfc:
-            raise USBProtocolError("Recv channel 0xfc, reset session")
-        else:
-            raise USBProtocolError("Bad channel 0x%x" % chl_idx)
-
-    def _control_channel(self, chl_idx, action, tp=None):
-        logger.debug("Channel operation: index=%i, action=%s", chl_idx, action)
-        st = None
-        if chl_idx >= 0 and chl_idx < 0x80:
-            if action == "open":
-                st = self.open_channel(chl_idx, tp)
-            elif action == "close":
-                st = self.close_channel(chl_idx)
-        else:
-            st = "error"
-        self.send_payload(0xf1, {"channel": chl_idx, "action": action,
-                                 "status": st})
-
-    def _handle_ping(self, fin):
-        data = metadata.device_status
-        buf = HEAD_PACKER.pack(len(data) + 4, 0xfb) + data + b"\x00"
-        self.sock.send(buf)
-
-    def initial_session(self):
-        self.watcher.stop()
-        self.watcher.callback = self._on_recv
-        self.watcher.set(self.sock.fileno(), pyev.EV_READ)
-        self.watcher.start()
-
-        if self._buffered:
-            logger.debug("Connection reset...")
-            logger.debug("Data left in buffer: %r", self._buf[:self._buffered])
-
-        logger.debug("==== INITIAL SESSION ====")
-        self._proto_handshake = False
-        self.sock.send(b"\x00" * 16)
-        if self._buf is None:
-            self._buf = bytearray(BUF_SIZE)
-            self._bufview = memoryview(self._buf)
-        self._buffered = 0
-
-        session = random.randint(0, 65536)
-        if self._proto_session == session:
-            self._proto_session = (session + 1) % 65536
-        else:
-            self._proto_session = session
-
-        self.send_handshake()
-
-    def send_handshake(self):
-        handshake_data = get_deviceinfo(metadata)
-        handshake_data["session"] = self._proto_session
-        logger.debug("Send handshake")
-        self.send_payload(0xff, handshake_data)
-
-    def on_handshake_complete(self):
-        pass
-
-    def on_payload(self, chl_idx, payload):
-        pass
-
-    def on_binary(self, chl_idx, buf):
-        pass
-
-    def on_binary_ack(self, chl_idx):
-        pass
-
-    def _send(self, buf):
-        size = len(buf)
-        sent = 0
-        while sent < size:
-            sent += self.sock.send(buf[sent:])
-
-    def send_payload(self, chl_idx, obj):
-        data = msgpack.packb(obj)
-        l = len(data) + 4
-        if l < 506 and self._enable_padding and self._proto_handshake:
-            padding = 510 - l
-            buf = b"".join((
-                HEAD_PACKER.pack(l, chl_idx), data, b"\xf0",
-                HEAD_PACKER.pack(padding, 0xa0), b"\xff" * (padding - 4), b"\xff"))  # noqa
-        else:
-            buf = b"".join((HEAD_PACKER.pack(l, chl_idx), data, b"\xf0"))
-
-        self._send(buf)
-
-    def send_binary(self, chl_idx, data):
-        l = len(data) + 4
-        if l < 506 and self._enable_padding and self._proto_handshake:
-            padding = 510 - l
-            buf = b"".join((
-                HEAD_PACKER.pack(l, chl_idx), data, b"\xff",
-                HEAD_PACKER.pack(padding, 0xa0), b"\x00" * (padding - 4), b"\xff"))  # noqa
-        else:
-            buf = b"".join((HEAD_PACKER.pack(l, chl_idx), data, b"\xff"))
-        self._send(buf)
-
-    def send_binary_ack(self, chl_idx):
-        buf = HEAD_PACKER.pack(4, chl_idx) + b"\xc0"
-        self.sock.send(buf)
-
-
-class USBChannelProtocol(USBProtocol):
+class USBChannelManager(object):
     channels = []
     stack = None
 
-    def initial_session(self):
-        super(USBChannelProtocol, self).initial_session()
+    def __init__(self, kernel):
+        self.kernel = kernel
+        self.channels = [null_channel for i in xrange(8)]
 
+    def __del__(self):
+        self.close()
+
+    def close(self):
         for c in self.channels:
             c.close()
-        self.channels = [null_channel for i in xrange(8)]
+        self.channel_idx = []
 
     def open_channel(self, channel_idx, channel_type):
         if channel_idx >= 8:
@@ -381,19 +315,177 @@ class USBChannelProtocol(USBProtocol):
         self.channels[channel_idx].on_payload(payload)
 
     def on_binary(self, channel_idx, buf):
-        self.send_binary_ack(channel_idx)
         self.channels[channel_idx].on_binary(buf)
 
     def on_binary_ack(self, channel_idx):
         self.channels[channel_idx].on_binary_ack()
 
 
-class USBHandler(USBChannelProtocol, UnixHandler):
-    usbcabel = None
+class USBProtocol1(USBChannelManager):
+    def __init__(self, handler):
+        super(USBProtocol1, self).__init__(handler.kernel)
+        self.handler = handler
 
-    def on_connected(self):
-        super(USBHandler, self).on_connected()
-        self.initial_session()
+    def on_message(self, bbuf, view, size):
+        chl_idx = bbuf[2]
+        buf = view[3:size - 1]
+        fin = bbuf[size - 1]
+
+        if chl_idx < 0x80:
+            if fin == 0xb0:
+                self.on_payload(chl_idx, msgpack.unpackb(buf.tobytes()))
+            elif fin == 0xbf:
+                self.on_binary(chl_idx, buf)
+            elif fin == 0x80:
+                self.on_binary_ack(chl_idx)
+            else:
+                raise USBProtocolError("Bad fin 0x%x" % fin)
+        elif chl_idx == 0xa0 and fin == 0xff:
+            pass
+        elif chl_idx == 0xf0 and fin == 0xb0:
+            data = msgpack.unpackb(buf.tobytes())
+            self.on_control_channel(data.get("channel"), data.get("action"),
+                                    data.get("type", "robot"))
+        elif chl_idx == 0xfa:
+            self.on_ping(fin)
+        elif chl_idx == 0xfc:
+            raise USBProtocolError("Recv channel 0xfc, reset session")
+        else:
+            raise USBProtocolError("Bad channel 0x%x" % chl_idx)
+
+    def on_binary(self, channel_idx, buf):
+        self.send_binary_ack(channel_idx)
+        super(USBProtocol1, self).on_binary(channel_idx, buf)
+
+    def on_control_channel(self, chl_idx, action, tp=None):
+        logger.debug("Channel operation: index=%i, action=%s", chl_idx, action)
+        st = None
+        if chl_idx >= 0 and chl_idx < 0x80:
+            if action == "open":
+                st = self.open_channel(chl_idx, tp)
+            elif action == "close":
+                st = self.close_channel(chl_idx)
+        else:
+            st = "error"
+        self.send_payload(0xf1, {"channel": chl_idx, "action": action,
+                                 "status": st})
+
+    def on_ping(self, fin):
+        data = metadata.device_status
+        buf = HEAD_PACKER.pack(len(data) + 4, 0xfb) + data + b"\x00"
+        self.handler.sock.send(buf)
+
+    def send_payload(self, chl_idx, obj):
+        data = msgpack.packb(obj)
+        l = len(data) + 4
+        buf = b"".join((HEAD_PACKER.pack(l, chl_idx), data, b"\xf0"))
+        self.handler.sock.send(buf)
+
+    def send_binary(self, chl_idx, data):
+        l = len(data) + 4
+        buf = b"".join((HEAD_PACKER.pack(l, chl_idx), data, b"\xff"))
+        self.handler.sock.send(buf)
+
+    def send_binary_ack(self, chl_idx):
+        buf = HEAD_PACKER.pack(4, chl_idx) + b"\xc0"
+        self.handler.sock.send(buf)
+
+
+class USBProtocol2(USBChannelManager):
+    _local_idx = None
+    _remote_idx = None
+    _local_queue = None
+
+    def __init__(self, handler):
+        super(USBProtocol2, self).__init__(handler.kernel)
+        self.handler = handler
+        self._local_idx = self._remote_idx = 0
+        self._local_queue = deque()
+
+    def on_message(self, bbuf, view, size):
+        _, seq, chl_idx, fin = HEAD_V2_PACKER.unpack(view[:6])
+        buf = view[6:size]
+
+        if chl_idx == 0xf2:
+            while self._local_queue:
+                if self._local_queue[0][0] <= seq or \
+                        seq < 10000 and self._local_queue[0][0] > 50000:
+                    _, ack, buf = self._local_queue.popleft()
+                    if ack is not None:
+                        self.on_binary_ack(ack)
+                else:
+                    break
+            return
+        elif chl_idx == 0xfc:
+            raise USBProtocolError("Recv channel 0xfc, reset session")
+        elif seq != self._remote_idx:  # index not match
+            logger.debug("Drop %i != %i", seq, self._remote_idx)
+            self._send_ack()
+            return
+        else:
+            self._remote_idx = (self._remote_idx + 1) % 65535
+            self._send_ack()
+
+        if len(self._local_queue) > 4:
+            for i in range(4):
+                self.handler.sock.send(self._local_queue[i][1])
+
+        if chl_idx < 0x80:
+            if fin == 0:
+                self.on_payload(chl_idx, msgpack.unpackb(buf.tobytes()))
+            elif fin == 1:
+                self.on_binary(chl_idx, buf)
+            else:
+                raise USBProtocolError("Bad fin 0x%x" % fin)
+        elif chl_idx == 0xf0:
+            data = msgpack.unpackb(buf.tobytes())
+            self.on_control_channel(data.get("channel"), data.get("action"),
+                                    data.get("type", "robot"))
+        elif chl_idx == 0xfa:
+            self.on_ping(fin)
+        elif chl_idx == 0xfc:
+            raise USBProtocolError("Recv channel 0xfc, reset session")
+        else:
+            raise USBProtocolError("Bad channel 0x%x" % chl_idx)
+
+    def _send_ack(self):
+        if self._remote_idx == 0:
+            HEAD_V2_PACKER.pack_into(SHARED_BUF, 0, 128, 65535, 0xf2, 0)
+        else:
+            HEAD_V2_PACKER.pack_into(SHARED_BUF, 0, 128, self._remote_idx - 1, 0xf2, 0)
+        self.handler.sock.send(SHARED_BUF)
+
+    def _send(self, chl_idx, data, fin):
+        l = len(data) + 6
+        ack = chl_idx if fin == 1 else None
+
+        buf = HEAD_V2_PACKER.pack(l, self._local_idx, chl_idx, fin) + data
+        self._local_queue.append((self._local_idx, ack, buf))
+        self._local_idx = (self._local_idx + 1) % 65536
+        self.handler.sock.send(buf)
+
+    def on_control_channel(self, chl_idx, action, tp=None):
+        logger.debug("Channel operation: index=%i, action=%s", chl_idx, action)
+        st = None
+        if chl_idx >= 0 and chl_idx < 0x80:
+            if action == "open":
+                st = self.open_channel(chl_idx, tp)
+            elif action == "close":
+                st = self.close_channel(chl_idx)
+        else:
+            st = "error"
+        self.send_payload(0xf1, {"channel": chl_idx, "action": action,
+                                 "status": st})
+
+    def on_ping(self, fin):
+        self._send(0xfb, metadata.device_status, 0)
+
+    def send_payload(self, chl_idx, obj):
+        data = msgpack.packb(obj)
+        self._send(chl_idx, data, 0)
+
+    def send_binary(self, chl_idx, data):
+        self._send(chl_idx, data, 1)
 
 
 class NullChannel(object):

@@ -9,8 +9,8 @@
 #include <Python.h>
 #include "usb_txrx.h"
 
-#define TX_BUFFER_LEN 510
-#define RX_BUFFER_LEN 510
+#define TX_BUFFER_LEN 512
+#define RX_BUFFER_LEN 512
 
 int discover_usb(void) {
     // Return number of available usb devices
@@ -49,7 +49,7 @@ int setup_usb(struct usb_data **data) {
 
     *data = calloc(1, sizeof(struct usb_data));
     ret = libusb_init(&((*data)->ctx));
-    // libusb_set_debug((*data)->ctx, 4);
+    libusb_set_debug((*data)->ctx, 3);
 
     if(ret != 0) {
         PyErr_Format(PyExc_SystemError, "libusb_init: %i", ret);
@@ -152,7 +152,7 @@ int setup_usb(struct usb_data **data) {
         }
     }
 
-    ret = socketpair(AF_UNIX, SOCK_STREAM, 0, (int *)(&(*data)->socket_vector));
+    ret = socketpair(AF_UNIX, SOCK_DGRAM, 0, (int *)(&(*data)->socket_vector));
     if(ret != 0) {
         PyErr_Format(PyExc_SystemError, "socketpair: %i", ret);
         close_usb(*data);
