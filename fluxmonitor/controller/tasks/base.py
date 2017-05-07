@@ -84,7 +84,6 @@ class DeviceOperationMixIn(object):
             hs.setblocking(False)
         except socket.error as err:
             logger.exception("Connect to %s failed", MAINBOARD_ENDPOINT)
-            self._disconnect()
 
             if err.args[0] in [ECONNREFUSED, ENOENT]:
                 raise RuntimeError(SUBSYSTEM_ERROR, NO_RESPONSE)
