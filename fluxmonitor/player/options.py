@@ -93,7 +93,7 @@ class PlayerOptions(object):
         if device_setting:
             self.correction = device_setting
         else:
-            self.correction = metadata.get("CORRECTION", "Y")
+            self.correction = metadata.get("CORRECTION", "A")
 
     def _setup_toolhead_error_level(self, storage, metadata):
         device_setting = storage["head_error_level"]
