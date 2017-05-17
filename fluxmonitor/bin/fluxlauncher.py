@@ -160,7 +160,7 @@ def init_rapi():
         os.mkdir("/var/db/fluxmonitord/run")
 
     if not os.path.exists("/var/db/fluxmonitord/boot_ver") or \
-            open("/var/db/fluxmonitord/boot_ver").read() != "3":
+            open("/var/db/fluxmonitord/boot_ver").read() != "4":
 
         udev = resource_string("fluxmonitor", "data/rapi/udev-99-flux.rules")
         with open("/etc/udev/rules.d/99-flux.rules", "w") as f:
@@ -174,6 +174,31 @@ def init_rapi():
         open("/var/db/fluxmonitord/boot_ver", "w").write("3")
         os.system("udevadm control --reload")
         os.system("sync")
+
+        # Resolve log issue
+        rsyslog = resource_string("fluxmonitor", "data/rapi/rsyslog.conf")
+        with open("/etc/logrotate.d/rsyslog", "w") as f:
+            f.write(rsyslog)
+        if os.path.exists("/etc/cron.daily/logrotate"):
+            os.system("mv /etc/cron.daily/logrotate /etc/cron.hourly")
+        os.system("sync")
+        os.system("/etc/cron.hourly/logrotate")
+
+        # Resolve wifi driver issue
+        with open("/etc/modprobe.d/8192cu.conf", "w") as f:
+            f.write("""
+options 8192cu rtw_power_mgnt=0
+options r8188eu rtw_power_mgnt=0
+options 8188eu rtw_power_mgnt=0
+""")
+
+        r8188 = "/lib/modules/4.1.13+/kernel/drivers/staging/rtl8188eu/8188eu.ko"
+        if os.path.exists(r8188) and os.path.getsize(r8188) is not 1305956L:
+            os.system("rmmod 8188eu")
+            r8188bin = resource_string("fluxmonitor", "data/rapi/8188eu.ko")
+            with open(r8188, "wb") as f:
+                f.write(r8188bin)
+            os.system("modprobe 8188eu")
 
 
 def check_running(pidfile):
