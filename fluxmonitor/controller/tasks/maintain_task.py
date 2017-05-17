@@ -308,7 +308,6 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
         self._macro = macro.ControlHeaterMacro(on_heating_done, index, temp)
         self._on_macro_error = on_macro_error
         self._on_macro_running = on_macro_running
-        self._on_macro_error = on_macro_error
         self.busying = True
         self._macro.start(self)
         handler.send_text("continue")
