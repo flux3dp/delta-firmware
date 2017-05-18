@@ -93,5 +93,27 @@ class Monitor(object):
                     addresses.append(addr)
         return addresses
 
+    def get_all_ipaddresses(self):
+        addresses = {}
+        for addr in self.ipr.get_addr():
+            info = dict(addr['attrs'])
+            ifname = info.get("IFA_LABEL")
+            if ifname and ifname != "lo":
+                addr = info.get('IFA_ADDRESS')
+                if addr and addr != "127.0.0.1" and addr != "::1":
+                    addresses[ifname] = addr
+        return addresses
+
+    def get_all_links(self):
+        linkaddr = {}
+        for addr in self.ipr.get_links():
+            info = dict(addr['attrs'])
+            ifname = info.get("IFLA_IFNAME")
+            if ifname and ifname != "lo":
+                addr = info.get('IFLA_ADDRESS')
+                if addr:
+                    linkaddr[ifname] = addr
+        return linkaddr
+
     def close(self):
         self.ipr.close()

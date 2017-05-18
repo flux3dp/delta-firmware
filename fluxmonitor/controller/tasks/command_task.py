@@ -18,6 +18,7 @@ from fluxmonitor.err_codes import (UNKNOWN_COMMAND, NOT_EXIST, TOO_LARGE,
                                    RESOURCE_BUSY, SUBSYSTEM_ERROR,
                                    HARDWARE_FAILURE)
 from fluxmonitor.diagnosis.god_mode import allow_god_mode
+from fluxmonitor.hal.net.monitor import Monitor as NetworkMonitor
 from fluxmonitor.hal.misc import get_deviceinfo
 from fluxmonitor.storage import Storage, UserSpace, Preference, metadata
 from fluxmonitor.config import DEFAULT_H
@@ -645,8 +646,13 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
         handler.send_text("continue")
 
     def deviceinfo(self, handler):
+        dataset = get_deviceinfo(metadata)
+        nm = NetworkMonitor()
+        dataset["macaddr"] = ",".join("%s:%s" % p for p in nm.get_all_links().items())
+        dataset["ipaddr"] = ",".join("%s:%s" % p for p in nm.get_all_ipaddresses().items())
+
         buf = "\n".join(
-            ("%s:%s" % kv for kv in get_deviceinfo(metadata).items()))
+            ("%s:%s" % kv for kv in dataset.items()))
         handler.send_text("ok\n%s" % buf)
 
     def cloud_validation_code(self, handler):
