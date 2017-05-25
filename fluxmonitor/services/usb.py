@@ -108,7 +108,7 @@ class UsbService(ServiceBase):
                 self.usbcable = usbcable
                 s.close()
                 self.dirty_status = False
-                logger.debug("USB session pass to robot successed.")
+                logger.info("USB session pass to robot successed.")
                 return
 
         except socket.error:
