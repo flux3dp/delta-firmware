@@ -56,7 +56,7 @@ PROFILES = {
         "max_r": 87,
         "default_h": 242,
         "default_r": 96.20,
-        "default_movement_test": True,
+        "default_movement_test": False,
         "scan_camera_id": 0,
         "scan_camera_model": 2,
     },
