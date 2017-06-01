@@ -1,5 +1,6 @@
 
 from tempfile import NamedTemporaryFile
+from subprocess import Popen
 import logging
 import socket
 import shutil
@@ -19,6 +20,21 @@ class UpdateFwTask(object):
         self.tmpfile = NamedTemporaryFile()
         self.padding_length = length
         handler.binary_mode = True
+
+    def on_verified(self, watcher, revent):
+        self.subwatcher = None
+        handler, proc = watcher.data
+        ret = proc.poll()
+        logger.info("Firmware verify: %s", ret)
+
+        if ret:
+            handler.send_text("error %s" % FILE_BROKEN)
+            self.stack.exit_task(self, True)
+        else:
+            shutil.copyfile(self.tmpfile.name, FIRMWARE_UPDATE_PATH)
+            handler.send_text("ok")
+            handler.close()
+            os.system("fluxlauncher --update &")
 
     def on_exit(self):
         pass
@@ -49,17 +65,10 @@ class UpdateFwTask(object):
                 s = Storage("update_fw")
                 with s.open("upload.fxfw", "wb") as f:
                     f.write(self.tmpfile.read())
-                ret = os.system("fxupdate.py --dryrun %s" % self.tmpfile.name)
-                logger.info("Firmware verify: %s", ret)
 
-                if ret:
-                    handler.send_text("error %s" % FILE_BROKEN)
-                    self.stack.exit_task(self, True)
-                else:
-                    shutil.copyfile(self.tmpfile.name, FIRMWARE_UPDATE_PATH)
-                    handler.send_text("ok")
-                    handler.close()
-                    os.system("fluxlauncher --update &")
+                proc = Popen(["fxupdate.py", "--dryrun", self.tmpfile.name])
+                self.subwatcher = self.stack.loop.child(proc.pid, False, self.on_verified, (handler, proc))
+                self.subwatcher.start()
 
         except RuntimeError as e:
             handler.send_text(("error %s" % e.args[0]).encode())
