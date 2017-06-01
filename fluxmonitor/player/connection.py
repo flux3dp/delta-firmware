@@ -15,7 +15,7 @@ def create_mainboard_socket():
     return s
 
 
-def create_headboard_socket():
+def create_toolhead_socket():
     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     try:
         s.connect(HEADBOARD_ENDPOINT)

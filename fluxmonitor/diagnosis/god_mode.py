@@ -1,15 +1,14 @@
 
 from hashlib import sha1
-import os
 
 DEBUG_STR = "442c3154f4fc88ec556dc69f0cbce343f0ed7626"
 
 
 def allow_god_mode():
-    from fluxmonitor import _halprofile
+    from fluxmonitor.security._security import is_dev_model
     from fluxmonitor.storage import Storage
 
-    if _halprofile.is_dev_model:
+    if is_dev_model():
         return True
     else:
         s = Storage("general", "meta")

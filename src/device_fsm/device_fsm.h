@@ -13,7 +13,7 @@ typedef void (*command_cb_t)(const char* command, int target, void* data);
 
 struct DeviceFSM {
   double traveled;
-  float max_x, max_y, max_z;
+  float min_z, max_z, max_r2;
   float x, y, z;
   float e[3];
   unsigned short f, t, absolute_pos;

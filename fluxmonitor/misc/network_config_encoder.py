@@ -1,4 +1,9 @@
 
+from select import select
+from errno import errorcode
+import socket
+
+from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT
 
 try:
     unicode
@@ -61,12 +66,14 @@ def validate_options(orig):
     options = {}
 
     if b"ifname" in orig:
-        options["ifname"] = _b2s(orig[b"ifname"])
+        options["ifname"] = ifname = _b2s(orig[b"ifname"])
+        if ifname not in ("wlan0", "wlan1", "len0", "len1"):
+            raise KeyError("ifname")
 
-    method = orig.get(b"method")
-    if method == b"dhcp":
+    method = orig.get("method")
+    if method == "dhcp":
         options["method"] = "dhcp"
-    elif method == b"static":
+    elif method == "static":
         ons = orig[b"ns"]
         if not isinstance(ons, list):
             ns = _b2s(orig[b"ns"]).split(",")
@@ -126,3 +133,25 @@ def _b2s(input):
         return input
     else:
         raise TypeError(input, input.__class__)
+
+
+def build_network_config_request(config):
+    validated_config = validate_options(config)
+    request_data = ("config_network" + "\x00" +
+                    to_bytes(validated_config)).encode()
+    return request_data
+
+
+def send_network_config_request(request_data, before_send_callback=None):
+    sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+    sock.setblocking(False)
+    ret = sock.connect_ex(NETWORK_MANAGE_ENDPOINT)
+    if ret != 0:
+        raise IOError("Async connect to endpoint error: %s" %
+                      errorcode.get(ret))
+    select((), (sock, ), (), 0.05)
+    if before_send_callback:
+        before_send_callback()
+
+    sock.send(request_data)
+    sock.close()

@@ -1,241 +1,236 @@
 
-from time import time
-import os
+from unittest import TestCase
+import socket
 
 from fluxmonitor.player.main_controller import MainController
-from fluxmonitor.config import uart_config
-from .misc import ControlTestBase, UnittestError
+# from fluxmonitor.config import uart_config
+# from .misc import ControlTestBase, UnittestError
 
+MAX_CMD_BUFSIZE = 16
 FLAG_READY = 1
 
 
-class MainboardControlStartupTest(ControlTestBase):
-    def test_startup_simple(self):
-        with self.assertSendMainboard(b"C1O\n") as executor:
-            mc = MainController(executor, ready_callback=self.raiseException)
+class MainboardControlTest(TestCase):
+    callback_log = None
 
-        with self.assertSendMainboard() as executor:
-            self.assertRaises(UnittestError, mc.on_message,
-                              "CTRL LINECHECK_ENABLED", executor)
-
-        self.assertTrue(mc.ready, True)
-
-    def test_startup_no_response(self):
-        with self.assertSendMainboard(b"C1O\n") as executor:
-            mc = MainController(executor, ready_callback=self.raiseException,
-                                retry_ttl=2)
-
-        for i in range(2):
-            mc._last_recv_ts = -1
-            with self.assertSendMainboard(b"C1O\n") as executor:
-                # TTL: 1
-                mc.patrol(executor)
-            with self.assertSendMainboard() as executor:
-                mc.patrol(executor)
-
-        mc._last_recv_ts = -1
-        with self.assertSendMainboard() as executor:
-            # Bomb
-            self.assertRaises(SystemError, mc.patrol, executor)
-
-    def test_startup_with_lineno_enabled(self):
-        with self.assertSendMainboard(b"C1O\n") as executor:
-            mc = MainController(executor, ready_callback=self.raiseException)
-
-        with self.assertSendMainboard(b"C1F N3*105\n") as executor:
-            mc.on_message("ER MISSING_LINENUMBER 3", executor)
-
-        with self.assertSendMainboard(b"C1O\n") as executor:
-            mc.on_message("CTRL LINECHECK_DISABLED", executor)
-
-
-class MainboardControlTest(ControlTestBase):
     def setUp(self):
-        super(MainboardControlTest, self).setUp()
+        def msg_empty_callback(ctrl):
+            self.callback_log.append(("empty", ctrl))
 
-        with self.assertSendMainboard(b"C1O\n") as executor:
-            mc = MainController(executor)
+        def msg_sendable_callback(ctrl):
+            self.callback_log.append(("sendable", ctrl))
 
-        mc._ln = 0
-        mc._flags |= FLAG_READY
-        mc.callback_ready = None
-        self.mc = mc
+        self.callback_log = []
+        self.lsock, self.rsock = socket.socketpair()
+        self.lsock.setblocking(False)
+        self.rsock.setblocking(False)
 
-    def preset(self, cmd_sent=None, cmd_padding=None, ln=0, ln_ack=0,
-               last_recv_ln=None, resend_counter=0, msg_empty_callback=None,
-               msg_sendable_callback=None, last_recv_ts=None):
-        if cmd_padding:
-            for cmdline in cmd_padding:
-                self.mc._cmd_padding.append(cmdline)
-        if cmd_sent:
-            for cmdline in cmd_sent:
-                self.mc._cmd_sent.append(cmdline)
+        self.t = MainController(self.rsock.fileno(), MAX_CMD_BUFSIZE,
+                                msg_empty_callback=msg_empty_callback,
+                                msg_sendable_callback=msg_sendable_callback)
 
-        self.mc._ln = ln
-        self.mc._ln_ack = ln_ack
-        if last_recv_ln:
-            self.mc._last_recv_ts = last_recv_ln
-        if resend_counter:
-            self.mc._resend_counter = resend_counter
-        if last_recv_ts is not None:
-            self.mc._last_recv_ts = last_recv_ts
+    def assertRecv(self, msg):  # noqa
+        buf = self.lsock.recv(4096)
+        self.assertEqual(buf, msg)
 
-        if msg_empty_callback:
-            self.mc.callback_msg_empty = msg_empty_callback
-        if msg_sendable_callback:
-            self.mc.callback_msg_sendable = msg_sendable_callback
+    def assertRecvStartsWith(self, msg):  # noqa
+        buf = self.lsock.recv(4096)
+        self.assertEqual(buf[:len(msg)], msg)
 
-    def test_append_command_from_empty(self):
-        # Send G28 command
-        with self.assertSendMainboard(b"G28 N1*18\n") as executor:
-            self.mc.send_cmd(b"G28", executor)
-        # Compair sent queue
-        self.assertItemsEqual(self.mc._cmd_sent, ((1, b"G28"),))
-        # Compair padding queue
-        self.assertItemsEqual(self.mc._cmd_padding, ())
-        # Check linenumber
-        self.assertEqual(self.mc._ln, 1)
+    def send_and_process(self, buf):
+        self.lsock.send(buf)
+        self.t.handle_recv()
 
-    def test_append_command_from_not_empty(self):
-        # Preset a command already in sent queue
-        self.preset(cmd_sent=((1, b"G28"), ), ln=1)
-        # Send a command
-        with self.assertSendMainboard(b"G1 Z0 N2*96\n") as executor:
-            self.mc.send_cmd(b"G1 Z0", executor)
-        # Compair sent queue
-        self.assertItemsEqual(self.mc._cmd_sent, ((1, b"G28"), (2, b"G1 Z0")))
-        # Compair padding queue
-        self.assertItemsEqual(self.mc._cmd_padding, ())
-        # Check linenumber
-        self.assertEqual(self.mc._ln, 2)
+    def test_bootstrap_simple(self):
+        def callback(ctrl):
+            self.callback_log.append((callback, ctrl))
 
-    def test_append_command_when_full(self):
-        # Preset padding/sent queue with correct linenumber
-        self.preset(cmd_padding=((1, "G"), (2, "G"), (3, "G"), (4, "G"),
-                                 (5, "G"), (6, "G"), (7, "G")),
-                    cmd_sent=((8, "G"), (9, "G"), (10, "G"), (11, "G"),
-                              (12, "G"), (13, "G"), (14, "G"), (15, "G"),
-                              (16, "G")),
-                    ln=16, ln_ack=7)
-        # Send command
-        self.assertRaises(RuntimeError, self.mc.send_cmd, b"G1 Z0", self)
+        self.assertFalse(self.t.ready)
+        self.t.bootstrap(callback)
+        self.assertRecv(b"C1O\n")
+        self.assertFalse(self.t.ready)
+        self.send_and_process("CTRL LINECHECK_ENABLED\n")
+        self.assertTrue(self.t.ready)
+        self.assertEqual(self.callback_log, [(callback, self.t)])
 
-    def test_recv_ln_normal(self):
-        self.preset(cmd_sent=((1, b"G28 N1*18\n"), (2, b"G1 Z0 N2*96\n"),
-                              (3, b"G1 X5 N3*102\n")),
-                    ln=3, ln_ack=0)
+    def test_bootstrap_no_response(self):
+        def callback(ctrl):
+            self.callback_log.append((callback, ctrl))
 
-        self.mc.on_message("LN 1 1", self)
-        self.assertItemsEqual(self.mc._cmd_sent,
-                              ((2, b"G1 Z0 N2*96\n"), (3, b"G1 X5 N3*102\n")))
-        self.assertItemsEqual(self.mc._cmd_padding, ((1, b"G28 N1*18\n"), ))
+        self.assertFalse(self.t.ready)
+        self.t.bootstrap(callback)
+        self.assertRecv(b"C1O\n")
 
-        self.mc.on_message("LN 2 2", self)
-        self.assertItemsEqual(self.mc._cmd_sent, ((3, b"G1 X5 N3*102\n"), ))
-        self.assertItemsEqual(self.mc._cmd_padding,
-                              ((1, b"G28 N1*18\n"), (2, b"G1 Z0 N2*96\n")))
+        for i in range(3):
+            self.t.send_timestamp = 0
+            self.t.patrol()
+            self.assertRecv(b"C1O\n")
 
-    def test_recv_ln_skiped(self):
-        self.preset(cmd_sent=((1, b"G28 N1*18\n"), (2, b"G1 Z0 N2*96\n"),
-                              (3, b"G1 X5 N3*102\n")),
-                    ln=3)
+        self.t.send_timestamp = 0
+        self.assertRaises(SystemError, self.t.patrol)
+        self.assertEqual(self.callback_log, [])
 
-        self.mc.on_message("LN 2 2", self)
-        self.assertItemsEqual(self.mc._cmd_sent, ((3, b"G1 X5 N3*102\n"), ))
-        self.assertItemsEqual(self.mc._cmd_padding,
-                              ((1, b"G28 N1*18\n"), (2, b"G1 Z0 N2*96\n")))
+    def test_bootstrap_with_lineno_enabled(self):
+        def callback(ctrl):
+            self.callback_log.append((callback, ctrl))
 
-    def test_missing_the_second_last_msg(self):
-        self.preset(cmd_sent=((1, b"G28"), (2, b"G1 Z0"), (3, b"G1 X5")),
-                    ln=3)
+        self.assertFalse(self.t.ready)
+        self.t.bootstrap(callback)
+        self.assertRecv(b"C1O\n")
+        self.send_and_process(b"ER MISSING_LINENUMBER 3\n")
+        self.assertRecv(b"@DISABLE_LINECHECK\n")
+        self.send_and_process(b"CTRL LINECHECK_DISABLED\n")
+        self.assertRecv(b"C1O\n")
+        self.send_and_process("CTRL LINECHECK_ENABLED\n")
+        self.assertTrue(self.t.ready)
+        self.assertEqual(self.callback_log, [(callback, self.t)])
 
-        with self.assertSendMainboard(b"G1 Z0 N2*96\n",
-                                      b"G1 X5 N3*102\n") as executor:
-            self.mc.on_message("ER LINE_MISMATCH 2 3", executor)
+    def _bootstrap(self):
+        self.t.bootstrap(None)
+        self.assertRecv(b"C1O\n")
+        self.send_and_process("CTRL LINECHECK_ENABLED\n")
 
-    def test_missing_the_third_last_msg(self):
-        self.preset(cmd_sent=((1, b"G28"), (2, b"G1 Z0"), (3, b"G1 X5"),
-                              (4, b"G1 Y5")),
-                    ln=3)
+    def test_command_full_empty_callback(self):
+        self._bootstrap()
 
-        with self.assertSendMainboard(b"G1 Z0 N2*96\n", b"G1 X5 N3*102\n",
-                                      b"G1 Y5 N4*96\n") as executor:
-            # This ER message trigger by command N3
-            self.mc.on_message("ER LINE_MISMATCH 2 3", executor)
+        self.t.send_cmd(b"G28")
+        self.assertRecv(b"G28 N1*18\n")
 
-        with self.assertSendMainboard() as executor:
-            # This ER message trigger by command N4 and controller will not try
-            # to resend because ER message comes too close
-            self.mc.on_message("ER LINE_MISMATCH 2 3", executor)
+        self.assertEqual(self.t.buffered_cmd_size, 1)
+        self.assertEqual(self.callback_log, [])
 
-    def test_checksumerr_the_second_last_msg(self):
-        self.preset(cmd_sent=((1, b"G28"), (2, b"G1 Z0"), (3, b"G1 X5")),
-                    ln=3)
+        self.send_and_process("LN 1 1\n")
+        self.assertEqual(self.t.buffered_cmd_size, 1)
+        self.assertEqual(self.callback_log, [])
 
-        # This ER message trigger by command N2 self
-        with self.assertSendMainboard(b"G1 Z0 N2*96\n",
-                                      b"G1 X5 N3*102\n") as executor:
-            self.mc.on_message("ER CHECKSUM_MISMATCH 2 3", executor)
+        self.send_and_process("LN 1 0\n")
+        self.assertEqual(self.t.buffered_cmd_size, 0)
+        self.assertEqual(self.callback_log, [("empty", self.t)])
+        self.callback_log = []
 
-        # This ER message trigger by command N3 because N2 got checksum error,
-        # and is fixed before. This ER message comes too close, ignore
-        with self.assertSendMainboard() as executor:
-            self.mc.on_message("ER LINE_MISMATCH 2 3", executor)
+        self.t.send_cmd(b"G28")
+        self.assertRecv(b"G28 N2*17\n")
+        self.send_and_process("LN 2 0\n")
+        self.assertEqual(self.callback_log, [("empty", self.t)])
+        self.callback_log = []
 
-    def test_timeout_and_resend(self):
-        self.preset(cmd_sent=((1, b"G28"), (2, b"G1 Z0"), (3, b"G1 X5")),
-                    ln=3, last_recv_ln=0, last_recv_ts=0)
+        for i in range(MAX_CMD_BUFSIZE):
+            self.t.send_cmd("G1 Z%i" % i)
+            self.assertRecvStartsWith("G1 Z%i N%i" % (i, i + 3))
 
-        with self.assertSendMainboard(b"G28 N1*18\n", b"G1 Z0 N2*96\n",
-                                      b"G1 X5 N3*102\n") as executor:
-            self.mc.patrol(executor)
+        self.send_and_process("LN 18 16\n")
+        self.assertEqual(self.t.buffered_cmd_size, 16)
 
-    def test_mainboard_no_response(self):
-        if os.path.exists(uart_config["control"]):
-            os.unlink(uart_config["control"])
+        self.callback_log = []
+        self.send_and_process("LN 18 15\n")
+        self.assertEqual(self.t.buffered_cmd_size, 15)
+        self.assertEqual(self.callback_log, [("sendable", self.t)])
 
-        # uart_ctrl = socket.socket(socket.AF_UNIX)
-        # uart_ctrl.setblocking(False)
-        # uart_ctrl.bind(uart_config["control"])
-        # uart_ctrl.listen(1)
+        self.callback_log = []
+        self.send_and_process("LN 18 5\n")
+        self.assertEqual(self.t.buffered_cmd_size, 5)
+        self.send_and_process("LN 18 0\n")
+        self.assertEqual(self.callback_log, [("empty", self.t)])
+        self.assertEqual(self.t.buffered_cmd_size, 0)
 
-        self.preset(cmd_sent=((1, b"G28 N1*18\n"), (2, b"G1 Z0 N2*96\n"),
-                              (3, b"G1 X5 N3*102\n")),
-                    ln=3, last_recv_ln=time() - 10, resend_counter=4)
+    def test_send_command_workround(self):
+        self._bootstrap()
+        self.t._ln = 123
 
-        with self.assertSendMainboard() as executor:
-            self.assertRaises(SystemError, self.mc.patrol, executor)
+        for i in range(MAX_CMD_BUFSIZE):
+            self.t.send_cmd("G1 Z%i" % i)
+            self.assertRecvStartsWith("G1 Z%i N%i" % (i, i + 124))
 
-        # Check if reset send
-        # self.assertEqual(uart_ctrl.accept()[0].recv(4096), b"reset_mb")
+        self.assertEqual(self.t.buffered_cmd_size, 16)
+        self.send_and_process("LN 128 1\n")
+        self.assertEqual(self.t.buffered_cmd_size, 12)
 
-        self.assertFalse(self.mc.ready)
+        self.t.send_cmd("G1 Z200")
+        self.assertRecvStartsWith("G1 Z200 N140")
+        self.assertEqual(self.t.buffered_cmd_size, 13)
+        self.send_and_process("LN 138 11\n")
+        self.assertEqual(self.t.buffered_cmd_size, 13)
+        self.send_and_process("LN 140 1\n")
+        self.assertEqual(self.t.buffered_cmd_size, 1)
 
-        with self.assertSendMainboard() as executor:
-            self.assertRaises(RuntimeError, self.mc.send_cmd, b"G1 X0",
-                              executor)
+    def test_msg_full(self):
+        self._bootstrap()
+        self.t._ln = 256
+        for i in range(MAX_CMD_BUFSIZE):
+            self.t.send_cmd("G1 Z%i" % i)
+            self.assertRecvStartsWith("G1 Z%i N%i" % (i, i + 257))
 
-    def test_msg_empty_callback(self):
-        self.preset(cmd_padding=((1, b"G28 N1*18\n"), (2, b"G1 Z0 N2*96\n")),
-                    ln=2, ln_ack=2, msg_empty_callback=self.raiseException)
+        self.assertRaises(RuntimeError, self.t.send_cmd, "G28")
 
-        with self.assertSendMainboard() as executor:
-            self.mc.on_message("LN 2 1", executor)
-        self.assertItemsEqual(self.mc._cmd_padding, ((2, b"G1 Z0 N2*96\n"), ))
+    def test_filament_runout(self):
+        self._bootstrap()
+        self.assertRaises(RuntimeError, self.send_and_process,
+                          "CTRL FILAMENTRUNOUT 1\n")
+        self.send_and_process("CTRL FILAMENTRUNOUT 1\n")
+        self.send_and_process("CTRL FILAMENTRUNOUT 1\n")
 
-        with self.assertSendMainboard() as executor:
-            self.assertRaises(UnittestError, self.mc.on_message, "LN 2 0",
-                              executor)
-        self.assertItemsEqual(self.mc._cmd_padding, ())
+        self.t.bootstrap()
+        self.assertRaises(RuntimeError, self.send_and_process,
+                          "CTRL FILAMENTRUNOUT 1\n")
+        self.send_and_process("CTRL FILAMENTRUNOUT 1\n")
 
-    def test_msg_sendable_callback(self):
-        self.preset(cmd_padding=((1, "G"), (2, "G"), (3, "G"), (4, "G"),
-                                 (5, "G"), (6, "G"), (7, "G")),
-                    cmd_sent=((8, "G"), (9, "G"), (10, "G"), (11, "G"),
-                              (12, "G"), (13, "G"), (14, "G"), (15, "G"),
-                              (16, "G")),
-                    ln=16, ln_ack=7, msg_sendable_callback=self.raiseException)
+    def test_checksum_mismatch(self):
+        self._bootstrap()
+        self.t._ln = 512
 
-        with self.assertSendMainboard() as executor:
-            self.assertRaises(UnittestError, self.mc.on_message, "LN 16 15",
-                              executor)
+        self.t.send_cmd("G1 Z210")
+        self.assertRecv("G1 Z210 N513*102\n")
+        self.send_and_process("ER CHECKSUM_MISMATCH 513\n")
+        self.assertRecv("G1 Z210 N513*102\n")
+
+    def test_checksum_mismatch_multi(self):
+        self._bootstrap()
+        self.t._ln = 515
+
+        self.t.send_cmd("G1 Z210")
+        self.assertRecvStartsWith("G1 Z210 N516")
+        self.t.send_cmd("G1 Z215")
+        self.assertRecvStartsWith("G1 Z215 N517")
+        self.t.send_cmd("G1 Z205")
+        self.assertRecvStartsWith("G1 Z205 N518")
+
+        self.send_and_process("ER CHECKSUM_MISMATCH 516\n")
+        self.assertRecv(
+            "G1 Z210 N516*99\nG1 Z215 N517*103\nG1 Z205 N518*105\n")
+        self.send_and_process("LN 516 517\n")
+        self.send_and_process("LN 516 518\n")
+        self.assertRaises(socket.error, self.lsock.recv, 4096)
+
+    def test_ln_mismatch_multi(self):
+        self._bootstrap()
+        self.t._ln = 601
+
+        self.t.send_cmd("G1 X5")
+        self.assertRecvStartsWith("G1 X5 N602")
+        self.t.send_cmd("G1 X6")
+        self.assertRecvStartsWith("G1 X6 N603")
+        self.t.send_cmd("G1 X7")
+        self.assertRecvStartsWith("G1 X7 N604")
+        self.t.send_cmd("G1 X8")
+        self.assertRecvStartsWith("G1 X8 N605")
+
+        self.send_and_process("LN 602 0\n")
+        self.send_and_process("ER LINE_MISMATCH 603 604\n")
+        self.assertRecv(
+            "G1 X6 N603*99\nG1 X7 N604*101\nG1 X8 N605*107\n")
+        self.send_and_process("ER LINE_MISMATCH 603 605\n")
+        self.assertRaises(socket.error, self.lsock.recv, 4096)
+
+    def test_resp_timeout(self):
+        self._bootstrap()
+        self.t._ln = 610
+        self.t.send_cmd("G1 X8")
+        self.assertRecvStartsWith("G1 X8 N611")
+
+        for i in range(3):
+            self.t.send_timestamp = 0
+            self.t.patrol()
+            self.assertRecvStartsWith("G1 X8 N611")
+
+        self.t.send_timestamp = 0
+        self.assertRaises(SystemError, self.t.patrol)

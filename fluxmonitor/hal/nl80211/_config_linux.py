@@ -67,10 +67,11 @@ def _write_wpa_config(filepath, config):
     elif security == "WEP":
         buf = """network={
             ssid="%(ssid)s"
-            mode=0
-            scan_ssid=%(scan_ssid)s
-            wep_key0="%(wepkey)s"
             key_mgmt=NONE
+            wep_key0=%(wepkey)s
+            scan_ssid=%(scan_ssid)s
+            wep_tx_keyidx=0
+            mode=0
 }""" % config
 
     elif security in ["WPA-PSK", "WPA2-PSK"]:

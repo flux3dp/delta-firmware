@@ -5,6 +5,7 @@ from binascii import a2b_base64, b2a_base64
 from urlparse import urlparse
 # from OpenSSL import crypto
 from select import select
+from ssl import SSLError
 import msgpack
 import logging
 import socket
@@ -14,7 +15,7 @@ import os
 from fluxmonitor.misc.httpclient import get_connection
 from fluxmonitor.misc.systime import systime as time
 from fluxmonitor.halprofile import get_model_id
-from fluxmonitor.storage import Metadata, Storage
+from fluxmonitor.storage import Storage, metadata
 from fluxmonitor.config import CAMERA_ENDPOINT, ROBOT_ENDPOINT
 from fluxmonitor import security, __version__
 
@@ -25,9 +26,9 @@ logger = logging.getLogger(__name__)
 
 class CloudService(ServiceBase):
     config_ts = -1
+    error_counter = 0
     config_enable = None
     cloud_netloc = None
-    metadata = None
     storage = None
 
     _notify_up_required = False
@@ -36,6 +37,7 @@ class CloudService(ServiceBase):
     _notify_aggressive = 0
     _notify_retry_counter = 0
     aws_client = None
+    postback_url = None
 
     def __init__(self, options):
         super(CloudService, self).__init__(logger, options)
@@ -48,7 +50,6 @@ class CloudService(ServiceBase):
             mqttlogger.setLevel(logging.WARNING)
 
         self.storage = Storage("cloud")
-        self.metadata = Metadata()
         self.uuidhex = security.get_uuid()
 
         if options.cloud.endswith("/"):
@@ -181,15 +182,15 @@ class CloudService(ServiceBase):
         # return crypto.dump_certificate_request(crypto.FILETYPE_PEM, csr)
 
     def fetch_identify(self):
-        logger.debug("Exec identify")
+        logger.info("Fetch identify")
 
         token, subject_list = self.require_identify()
-        logger.debug("require identify return token=%s, subject=%s",
-                     token, subject_list)
+        logger.info("Require identify return token=%s, subject=%s",
+                    token, subject_list)
 
         request_asn1 = self.generate_certificate_request(subject_list)
         doc = self.get_identify(token, request_asn1)
-        logger.debug("get identify return %s", doc)
+        logger.info("Get identify return %s", doc["status"])
 
         self.storage["token"] = token
         self.storage["endpoint"] = doc["endpoint"]
@@ -200,11 +201,23 @@ class CloudService(ServiceBase):
     def notify_up(self, c):
         payload = json.dumps({"state": {"reported": {
             "version": __version__, "token": self.storage["token"],
-            "nickname": self.metadata.nickname}}})
+            "nickname": metadata.nickname}}})
         c.publish(self._notify_topic, payload, 1)
 
+    def postback_status(self, st_id):
+        url = Storage("general", "meta")["player_postback_url"]
+        if url:
+            try:
+                if '"' in url or '\\' in url:
+                    logger.error("Bad url: %r", url)
+                else:
+                    url = url % {"st_id", st_id}
+                    os.system("curl -s -o /dev/null \"%s\"" % url)
+            except Exception:
+                logger.exception("Error while post back status")
+
     def notify_update(self, new_st, now):
-        if self.metadata.verify_mversion() is False:
+        if metadata.verify_mversion() is False:
             self._notify_up_required = True
 
         new_st_id = new_st["st_id"]
@@ -212,14 +225,16 @@ class CloudService(ServiceBase):
         if self._notify_last_st["st_id"] == new_st_id:
             if self._notify_last_ts > self._notify_aggressive:
                 # notify aggressive is invalid
-                if now - self._notify_last_ts < 90:
-                    # update every 90 seconds
+                if now - self._notify_last_ts < 1200:
+                    # update every 1200 seconds
                     return
             else:
                 # notify aggressive is valid
-                if new_st_id <= 0 and now - self._notify_last_ts < 90:
-                    # update every 90 seconds if device is idle or occupy
+                if new_st_id <= 0 and now - self._notify_last_ts < 1200:
+                    # update every 1200 seconds if device is idle or occupy
                     return
+        elif new_st_id in (48, 64, 128):  # paused, completed, aborted
+            self.postback_status(new_st)
 
         c = self.aws_client.getMQTTConnection()
 
@@ -258,7 +273,7 @@ class CloudService(ServiceBase):
         try:
             if action == "getchu":
                 try:
-                    current_hash = self.metadata.cloud_hash
+                    current_hash = metadata.cloud_hash
                     access_id, signature = payload.get("validate_message")
                     client_key = security.get_keyobj(access_id=access_id)
                     if client_key.verify(current_hash, a2b_base64(signature)):
@@ -268,9 +283,10 @@ class CloudService(ServiceBase):
                         client.publish(response_topic, json.dumps({
                             "status": "reject", "cmd_index": cmd_index}))
                 finally:
-                    self.metadata.cloud_hash = os.urandom(32)
+                    metadata.cloud_hash = os.urandom(32)
             elif action == "monitor":
                 self._notify_aggressive = time() + 180
+                self._notify_last_st["st_id"] = None
                 client.publish(response_topic, json.dumps({
                     "status": "ok", "cmd_index": cmd_index}))
             elif action == "camera":
@@ -292,29 +308,44 @@ class CloudService(ServiceBase):
 
     def begin_session(self):
         if not self.storage["certificate.pem"]:
+            metadata.cloud_status = (False, ("INIT", ))
             self.fetch_identify()
 
         self.setup_session()
-        self.metadata.cloud_status = (True, ())
+        metadata.cloud_status = (True, ())
 
     def setup_session(self):
+        logger.info("Setup session")
         from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTShadowClient
         from AWSIoTPythonSDK.core.protocol.mqttCore import (
             connectTimeoutException)
 
-        ipaddr, port = self.storage["endpoint"].split(":")
+        client_id, token = self.storage["client_id"], self.storage["token"]
+        if not client_id or not token:
+            raise SystemError("client_id or token error")
 
-        client = AWSIoTMQTTShadowClient(self.storage["client_id"])
+        try:
+            ipaddr, port = self.storage["endpoint"].split(":")
+        except (AttributeError, ValueError):
+            raise SystemError("endpoint error")
+
+        cafile = self.storage.get_path("certificate_reqs.pem")
+        cert = self.storage.get_path("certificate.pem")
+        key = self.storage.get_path("key.pem")
+
+        if False in map(lambda p: os.path.exists(p), (cafile, cert, key)):
+            raise SystemError("cafile or cert or key not exist")
+
+        client = AWSIoTMQTTShadowClient(client_id)
         client.configureEndpoint(ipaddr, int(port))
-        client.configureCredentials(
-            self.storage.get_path("certificate_reqs.pem"),
-            self.storage.get_path("key.pem"),
-            self.storage.get_path("certificate.pem"))
+        client.configureCredentials(cafile, key, cert)
         client.configureConnectDisconnectTimeout(10)
         client.configureMQTTOperationTimeout(5)
 
         try:
             client.connect()
+        except SSLError as e:
+            raise RuntimeError("SESSION", "TLS_ERROR", "%s" % e.reason)
         except (connectTimeoutException, socket.gaierror, socket.error):
             raise RuntimeError("SESSION", "CONNECTION_ERROR")
 
@@ -323,7 +354,7 @@ class CloudService(ServiceBase):
                        self.aws_on_request_callback)
 
         self.aws_client = client
-        self.aws_token = self.storage["token"]
+        self.aws_token = token
         self._notify_topic = "$aws/things/%s/shadow/update" % (
             self.storage["client_id"])
         self.notify_up(conn)
@@ -331,18 +362,20 @@ class CloudService(ServiceBase):
         self.timer.set(2.2, 2.2)
         self.timer.reset()
         self.timer.start()
-        self.metadata.cloud_hash = os.urandom(32)
+        metadata.cloud_hash = os.urandom(32)
+        logger.info("Session ready")
 
     def teardown_session(self):
         if self.aws_client:
-            conn = self.aws_client.getMQTTConnection()
+            aws_client = self.aws_client
+            self.aws_client = None
+
+            conn = aws_client.getMQTTConnection()
             try:
                 if conn._mqttCore._pahoClient._thread.isAlive():
-                    self.aws_client.disconnect()
-                    self.aws_client = None
+                    aws_client.disconnect()
                 else:
                     logger.error("MQTT thread closed, remove directly")
-                    self.aws_client = None
 
             except Exception:
                 logger.exception("AWS panic while disconnect from aws, "
@@ -362,15 +395,23 @@ class CloudService(ServiceBase):
 
     def on_timer(self, watcher, revent):
         try:
-            if self.config_ts != self.metadata.mversion:
-                self.config_ts = self.metadata.mversion
-                self.config_enable = (self.metadata.enable_cloud == "A")
+            if self.config_ts != metadata.mversion:
+                if metadata.enable_cloud == "R":
+                    logger.warning("Refetch required")
+                    if self.aws_client:
+                        self.teardown_session()
+                    metadata.enable_cloud = "A"
+                    metadata.cloud_status = (False, ("INIT", ))
+                    self.fetch_identify()
+
+                self.config_ts = metadata.mversion
+                self.config_enable = (metadata.enable_cloud == "A")
                 if self.config_enable is False:
-                    self.metadata.cloud_status = (False, ("DISABLE", ))
+                    metadata.cloud_status = (False, ("DISABLE", ))
 
             if self.config_enable:
                 if self.aws_client:
-                    self.notify_update(self.metadata.format_device_status,
+                    self.notify_update(metadata.format_device_status,
                                        time())
                 else:
                     self.begin_session()
@@ -380,21 +421,33 @@ class CloudService(ServiceBase):
 
             self._notify_retry_counter = 0
         except publishQueueDisabledException:
-            self.metadata.cloud_status = (False, ("SESSION",
-                                                  "CONNECTION_ERROR"))
+            metadata.cloud_status = (False, ("SESSION",
+                                             "CONNECTION_ERROR"))
             self._notify_retry_counter += 1
             logger.debug("publishQueueDisabledException raise in notify")
             if self._notify_retry_counter > 10:
                 self.teardown_session()
+            self.set_timer_error()
         except RuntimeError as e:
             logger.error(e)
-            self.metadata.cloud_status = (False, e.args)
+            metadata.cloud_status = (False, e.args)
+            self.set_timer_error()
         except Exception:
             logger.exception("Unhandle error")
-            self.metadata.cloud_status = (False, ("UNKNOWN_ERROR", ))
+            metadata.cloud_status = (False, ("UNKNOWN_ERROR", ))
+            self.set_timer_error()
 
     def on_shutdown(self):
         pass
+
+    def set_timer_error(self):
+        self.error_counter += 1
+        t = max(self.error_counter * 15.0, 15.0)
+        t = min(t, 600.0)
+        self.timer.stop()
+        self.timer.set(t, t)
+        self.timer.reset()
+        self.timer.start()
 
     def require_camera(self, camera_id, endpoint, token):
         payload = msgpack.packb((0x80, camera_id, endpoint, token))

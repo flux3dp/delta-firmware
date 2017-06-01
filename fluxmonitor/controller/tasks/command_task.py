@@ -18,8 +18,10 @@ from fluxmonitor.err_codes import (UNKNOWN_COMMAND, NOT_EXIST, TOO_LARGE,
                                    RESOURCE_BUSY, SUBSYSTEM_ERROR,
                                    HARDWARE_FAILURE)
 from fluxmonitor.diagnosis.god_mode import allow_god_mode
+from fluxmonitor.hal.net.monitor import Monitor as NetworkMonitor
 from fluxmonitor.hal.misc import get_deviceinfo
-from fluxmonitor.storage import Storage, UserSpace, metadata
+from fluxmonitor.storage import Storage, UserSpace, Preference, metadata
+from fluxmonitor.config import DEFAULT_H
 from fluxmonitor.misc import mimetypes
 
 from .base import CommandMixIn
@@ -96,7 +98,7 @@ class FileManagerMixIn(object):
             def imagesender(*args):
                 if imagestack:
                     img = imagestack.pop(0)
-                    logger.error("SEND: %i", len(img))
+                    logger.debug("Sending fcode preview size: %i", len(img))
                     handler.async_send_binary("image/png", len(img),
                                               BytesIO(img), imagesender)
                 else:
@@ -239,10 +241,12 @@ class PlayManagerMixIn(object):
                         self.stack.loop, self._task_file.name,
                         terminated_callback=kernel.release_exclusive)
                     self._last_playing_file = self._task_file
+                    kernel.exclusive(pm)
+                except RuntimeError:
+                    raise
                 except Exception:
                     logger.exception("Launch playmanager failed")
                     raise RuntimeError(SUBSYSTEM_ERROR, HARDWARE_FAILURE)
-                kernel.exclusive(pm)
             handler.send_text("ok")
         else:
             raise RuntimeError(NO_TASK)
@@ -295,6 +299,40 @@ class PlayManagerMixIn(object):
         else:
             handler.send_text('{"st_id": 0, "st_label": "IDLE"}')
 
+    def __play_set_toolhead_operating(self, handler):
+        manager = self.__get_manager()
+        handler.send_text(manager.set_toolhead_operating())
+
+    def __play_set_toolhead_standby(self, handler):
+        manager = self.__get_manager()
+        handler.send_text(manager.set_toolhead_standby())
+
+    def __play_load_filament(self, handler, index):
+        if index != "0":
+            raise RuntimeError(BAD_PARAMS)
+        else:
+            manager = self.__get_manager()
+            handler.send_text(manager.load_filament(index))
+
+    def __play_unload_filament(self, handler, index):
+        if index != "0":
+            raise RuntimeError(BAD_PARAMS)
+        else:
+            manager = self.__get_manager()
+            handler.send_text(manager.unload_filament(index))
+
+    def __set_toolhead_header(self, handler, index, temp):
+        if index != "0":
+            raise RuntimeError(BAD_PARAMS)
+        else:
+            manager = self.__get_manager()
+            handler.send_text(
+                manager.set_toolhead_header(int(index), float(temp)))
+
+    def __play_press_button(self, handler):
+        manager = self.__get_manager()
+        handler.send_text(manager.press_button())
+
     def dispatch_playmanage_cmd(self, handler, cmd, *args):
         if cmd == "pause":
             self.__play_pause(handler)
@@ -310,10 +348,18 @@ class PlayManagerMixIn(object):
             self.__play_info(handler)
         elif cmd == "start":
             self.__start(handler)
+        elif cmd == "set_toolhead_operating":
+            self.__play_set_toolhead_operating(handler)
+        elif cmd == "set_toolhead_standby":
+            self.__play_set_toolhead_standby(handler)
         elif cmd == "load_filament":
-            raise RuntimeError(UNKNOWN_COMMAND)
-        elif cmd == "eject_filament":
-            raise RuntimeError(UNKNOWN_COMMAND)
+            self.__play_load_filament(handler, args[0])
+        elif cmd == "unload_filament":
+            self.__play_unload_filament(handler, args[0])
+        elif cmd == "set_toolhead_header":
+            self.__set_toolhead_header(handler, args[0], args[1])
+        elif cmd == "press_button":
+            self.__play_press_button(handler)
         elif cmd == "quit":
             self.__play_quit(handler)
         else:
@@ -330,6 +376,9 @@ class ConfigMixIn(object):
             "key": "filament_detect"},
         "head_error_level": {
             "type": int, "key": "head_error_level"},
+        "movement_test": {
+            "type": str, "enum": ("Y", "N"),
+            "key": "movement_test"},
         "autoresume": {
             "type": str, "enum": ("Y", "N"),
             "key": "autoresume"},
@@ -337,14 +386,37 @@ class ConfigMixIn(object):
             "type": str, "enum": ("L", "A", "N"),
             "key": "broadcast"},
         "enable_cloud": {
-            "type": str, "enum": ("A", "N"),
+            "type": str, "enum": ("A", "N", "R"),
             "key": "enable_cloud"},
+        "zoffset": {
+            "type": float, "min": -1.0, "max": 1.0,
+            "key": "zoffset"
+        },
+        "zprobe_dist": {
+            "type": int, "min": DEFAULT_H - 100, "max": DEFAULT_H,
+            "key": "zprobe_dist"
+        },
         "replay": {
             "type": str, "enum": ("Y", "N"),
             "key": "replay"},
         "enable_backlash": {
             "type": str, "enum": ("Y", "N"),
             "key": "enable_backlash"
+        },
+        "plus_extrusion": {
+            "type": str, "enum": ("Y", "N"),
+            "key": "plus_extrusion"
+        },
+        "camera_version": {
+            "type": str, "enum": ("0", "1"),
+            "key": "camera_version"
+        },
+        "bare": {
+            "type": str, "enum": ("Y", "N"),
+            "key": "bare"
+        },
+        "player_postback_url": {
+            "type": str, "key": "player_postback_url", "maxlen": 128
         }
     }
 
@@ -379,6 +451,8 @@ class ConfigMixIn(object):
                 raise RuntimeError(BAD_PARAMS)
             if "max" in struct and cval > struct["max"]:
                 raise RuntimeError(BAD_PARAMS)
+            if "maxlen" in struct and len(cval) > struct["maxlen"]:
+                raise RuntimeError(BAD_PARAMS)
 
             if hasattr(metadata, struct["key"]):
                 setattr(metadata, struct["key"], val)
@@ -395,7 +469,7 @@ class ConfigMixIn(object):
                             d[k] = v
                     except ValueError:
                         pass
-            metadata.backlash = d
+            Preference.instance().backlash = d
 
         elif key == "leveling":
             d = {}
@@ -406,13 +480,13 @@ class ConfigMixIn(object):
                         v = float(sv)
                         if k in "XYZ" and v <= 0 and v >= -2:
                             d[k] = v
-                        elif k == "H" and v > 100 and v < 244:
+                        elif k in "R" and v <= 101 and v >= 92:
+                            d[k] = v
+                        elif k == "H" and v > 120 and v < 243:
                             d[k] = v
                     except ValueError:
                         pass
-            metadata.plate_correction = d
-        elif key == "nickname":
-            metadata.nickname = val
+            Preference.instance().plate_correction = d
         else:
             raise RuntimeError(BAD_PARAMS)
 
@@ -426,13 +500,12 @@ class ConfigMixIn(object):
                 return storage[struct["key"]]
         elif key == "backlash":
             return " ".join("%s:%.4f" % (k, v)
-                            for k, v in metadata.backlash.items())
+                            for k, v in Preference.instance().backlash.items())
         elif key == "leveling":
-            return " ".join("%s:%.4f" % (k, v)
-                            for k, v in metadata.plate_correction.items()
-                            if k in "XYZH")
-        elif key == "nickname":
-            return metadata.nickname
+            return " ".join(
+                "%s:%.4f" % (k, v)
+                for k, v in Preference.instance().plate_correction.items()
+                if k in "XYZRH")
         else:
             raise RuntimeError(BAD_PARAMS)
 
@@ -456,7 +529,7 @@ class TasksMixIn(object):
             self.__scan(handler)
         elif cmd == "icontrol":
             self.__icontrol(handler)
-        elif cmd == "raw" and allow_god_mode():
+        elif cmd == "raw":
             self.__raw_access(handler)
         else:
             raise RuntimeError(UNKNOWN_COMMAND)
@@ -573,8 +646,13 @@ class CommandTask(CommandMixIn, PlayManagerMixIn, FileManagerMixIn,
         handler.send_text("continue")
 
     def deviceinfo(self, handler):
+        dataset = get_deviceinfo(metadata)
+        nm = NetworkMonitor()
+        dataset["macaddr"] = ",".join("%s:%s" % p for p in nm.get_all_links().items())
+        dataset["ipaddr"] = ",".join("%s:%s" % p for p in nm.get_all_ipaddresses().items())
+
         buf = "\n".join(
-            ("%s:%s" % kv for kv in get_deviceinfo(metadata).items()))
+            ("%s:%s" % kv for kv in dataset.items()))
         handler.send_text("ok\n%s" % buf)
 
     def cloud_validation_code(self, handler):

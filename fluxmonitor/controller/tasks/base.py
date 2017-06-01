@@ -3,12 +3,12 @@ from errno import ECONNREFUSED, ENOENT
 from shlex import split as shlex_split
 import logging
 import socket
-import re
 
 import pyev
 
-from fluxmonitor.config import uart_config, DEBUG
 from fluxmonitor.err_codes import SUBSYSTEM_ERROR, NO_RESPONSE, UNKNOWN_ERROR
+from fluxmonitor.config import MAINBOARD_ENDPOINT, HEADBOARD_ENDPOINT, DEBUG
+from fluxmonitor.hal import tools
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ class CommandMixIn(object):
 
         except IOError as e:
             logger.debug("Connection close: %s" % e)
-            self.close()
+            handler.close()
 
         except Exception as e:
             if DEBUG:
@@ -59,16 +59,52 @@ class DeviceOperationMixIn(object):
     """
 
     _cleaned = False
-    _uart_mb = _uart_hb = None
-    _mb_watcher = _hb_watcher = None
+    _sock_mb = _sock_th = None
+    _watcher_mb = _watcher_th = _watcher_timer = None
 
-    def __init__(self, stack, handler, enable_watcher=True, mb_sock=None,
-                 th_sock=None):
+    def __init__(self, stack, handler):
         kernel = stack.loop.data
         kernel.exclusive(self)
+
+        logger.info("Init %s task", self.__class__)
         self.stack = stack
         self.handler = handler
-        self._connect(enable_watcher, mb_sock, th_sock)
+
+        try:
+            tools.toolhead_power_off()
+
+            logger.debug("Connect to mainboard %s", MAINBOARD_ENDPOINT)
+            ms = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            ms.connect(MAINBOARD_ENDPOINT)
+            ms.setblocking(False)
+
+            logger.debug("Connect to headboard %s", HEADBOARD_ENDPOINT)
+            hs = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            hs.connect(HEADBOARD_ENDPOINT)
+            hs.setblocking(False)
+        except socket.error as err:
+            logger.exception("Connect to %s failed", MAINBOARD_ENDPOINT)
+
+            if err.args[0] in [ECONNREFUSED, ENOENT]:
+                raise RuntimeError(SUBSYSTEM_ERROR, NO_RESPONSE)
+            else:
+                raise
+
+        self._sock_mb = ms
+        self._sock_th = hs
+
+        logger.info("HAL connected")
+
+        self._watcher_mb = self.stack.loop.io(ms, pyev.EV_READ,
+                                              self.on_mainboard_message, ms)
+        self._watcher_mb.start()
+
+        self._watcher_th = self.stack.loop.io(hs, pyev.EV_READ,
+                                              self.on_headboard_message, hs)
+        self._watcher_th.start()
+
+        self._watcher_timer = stack.loop.timer(1, 1, self.on_timer)
+        self._watcher_timer.start()
 
     @property
     def label(self):
@@ -80,6 +116,12 @@ class DeviceOperationMixIn(object):
                 self._cleaned = True
                 self.clean()
 
+                self._watcher_timer.stop()
+                self._watcher_mb.stop()
+                self._sock_mb.close()
+                self._watcher_th.stop()
+                self._sock_th.close()
+
             logger.debug("Clean device operation task")
         except Exception:
             logger.exception("Error while clean task '%s'", self.__class__)
@@ -88,41 +130,6 @@ class DeviceOperationMixIn(object):
         self._clean()
         kernel = self.stack.loop.data
         kernel.release_exclusive(self)
-        self._disconnect()
-
-    def _connect(self, enable_watcher, mb, hb):
-        try:
-            if not mb:
-                mb = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-                logger.info("Connect to mainboard %s",
-                            uart_config["mainboard"])
-                mb.connect(uart_config["mainboard"])
-            self._uart_mb = mb
-
-            if not hb:
-                hb = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-                logger.info("Connect to headboard %s",
-                            uart_config["headboard"])
-                hb.connect(uart_config["headboard"])
-            self._uart_hb = hb
-
-            if enable_watcher:
-                self._mb_watcher = self.stack.loop.io(
-                    mb, pyev.EV_READ, self.on_mainboard_message, mb)
-                self._mb_watcher.start()
-
-                self._hb_watcher = self.stack.loop.io(
-                    hb, pyev.EV_READ, self.on_headboard_message, hb)
-                self._hb_watcher.start()
-
-        except socket.error as err:
-            logger.exception("Connect to %s failed" % uart_config["mainboard"])
-            self._disconnect()
-
-            if err.args[0] in [ECONNREFUSED, ENOENT]:
-                raise RuntimeError(SUBSYSTEM_ERROR, NO_RESPONSE)
-            else:
-                raise
 
     def on_mainboard_message(self, watcher, revent):
         logger.warn("Recive message from mainboard but not handle: %s" %
@@ -132,60 +139,14 @@ class DeviceOperationMixIn(object):
         logger.warn("Recive message from headboard but not handle: %s" %
                     watcher.data.recv(4096).decode("utf8", "ignore"))
 
-    def _disconnect(self):
-        if self._hb_watcher:
-            self._hb_watcher.stop()
-            self._hb_watcher = None
-
-        if self._mb_watcher:
-            self._mb_watcher.stop()
-            self._mb_watcher = None
-
-        if self._uart_mb:
-            logger.info("Disconnect from mainboard")
-            self._uart_mb.close()
-            self._uart_mb = None
-
-        if self._uart_hb:
-            logger.info("Disconnect from headboard")
-            self._uart_hb.close()
-            self._uart_hb = None
-
     def on_dead(self, reason=None):
         self._clean()
-        self._disconnect()
         self.handler.send_text("error KICKED")
         logger.info("%s dead (reason=%s)", self.__class__.__name__, reason)
         self.handler.close()
 
+    def clean(self):
+        pass
 
-class DeviceMessageReceiverMixIn(object):
-    _mb_swap = _hb_swap = None
-
-    def recv_from_mainboard(self, buf):
-        if self._mb_swap:
-            self._mb_swap += buf.decode("ascii", "ignore")
-        else:
-            self._mb_swap = buf.decode("ascii", "ignore")
-
-        messages = re.split("\r\n|\n", self._mb_swap)
-        self._mb_swap = messages.pop()
-
-        for msg in messages:
-            yield msg
-
-    def recv_from_headboard(self, buf):
-        if self._hb_swap:
-            self._hb_swap += buf.decode("ascii", "ignore")
-        else:
-            self._hb_swap = buf.decode("ascii", "ignore")
-
-        messages = re.split("\r\n|\n", self._hb_swap)
-        self._hb_swap = messages.pop()
-
-        for msg in messages:
-            yield msg
-
-
-class ProtocolError(SystemError):
-    pass
+    def on_timer(self, watcher, revent):
+        pass

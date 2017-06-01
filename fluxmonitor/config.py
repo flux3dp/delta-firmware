@@ -32,16 +32,12 @@ uart_config = {
 
 MAX_CORRECTION_ROUND = 10
 
-DEVICE_POSITION_LIMIT = (172, 172, 212)
+HEAD_POWER_TIMEOUT = 10
 
-MAINBOARD_RETRY_TTL = 10
-HEADBOARD_RETRY_TTL = 5
-
-HEAD_POWER_TIMEOUT = 300
-
+CONFIGURE_ENDPOINT = "/tmp/.configure"
 MAINBOARD_ENDPOINT = "/tmp/.mainboard"
 HEADBOARD_ENDPOINT = "/tmp/.headboard"
-PC_ENDPOINT = "/tmp/.pc"
+UART_ENDPOINT = "/tmp/.pc"
 HALCONTROL_ENDPOINT = "/tmp/.halcontrol"
 
 CAMERA_ENDPOINT = "/tmp/.camera"
@@ -66,6 +62,10 @@ def load_model_profile():
 
     general_config["db"] = profile["db"]
 
+    self.LIMIT_MAX_R = profile.get("max_r", float("inf"))
+    self.DEFAULT_R = profile.get("default_r", 96.70)
+    self.DEFAULT_H = profile.get("default_h", 242)
+    self.DEFAULT_MOVEMENT_TEST = profile.get("default_movement_test", False)
     self.SCAN_CAMERA_ID = profile.get("scan_camera_id")
     self.USERSPACE = profile["userspace"]
     self.PLAY_SWAP = profile.get("playswap", self.PLAY_SWAP)

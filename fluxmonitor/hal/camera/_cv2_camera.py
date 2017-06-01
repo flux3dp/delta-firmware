@@ -17,7 +17,7 @@ class CV2Camera(object):
     obj = None
     img_buf = None
 
-    def __init__(self, camera_id):
+    def __init__(self, camera_id, width=None, height=None):
         self.camera_id = camera_id
         self.img_buf = None
         self._img_file = None
