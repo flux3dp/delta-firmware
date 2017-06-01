@@ -8,15 +8,17 @@ from msgpack import Unpacker, packb
 
 from fluxmonitor.player.main_controller import MainController
 from fluxmonitor.player.head_controller import (HeadController,
+                                                check_toolhead_errno,
                                                 HeadError,
                                                 HeadOfflineError,
                                                 HeadResetError,
                                                 HeadTypeError)
 
+
 from fluxmonitor.err_codes import SUBSYSTEM_ERROR
 
 # from fluxmonitor.player import macro
-# from fluxmonitor.storage import Metadata
+from fluxmonitor.storage import Metadata
 
 from .base import DeviceOperationMixIn
 
@@ -227,7 +229,7 @@ class IControlTask(DeviceOperationMixIn):
     handler = None  # Client TCP connection object
     known_position = None  # Is toolhead position is known or not
     mainboard = None  # Mainborad Controller
-    head_ctrl = None  # Headboard Controller
+    toolhead = None  # Headboard Controller
     head_resp_stack = None  # Toolhead raw rasponse stack
 
     def __init__(self, stack, handler):
@@ -235,6 +237,7 @@ class IControlTask(DeviceOperationMixIn):
         self.handler = proxy(handler)
         self.handler.binary_mode = True
         self.cmd_queue = deque()
+        self.meta = Metadata.instance()
 
         self._ready = 0
 
@@ -255,6 +258,7 @@ class IControlTask(DeviceOperationMixIn):
             self._sock_th.fileno(),
             msg_callback=self.toolhead_message_callback)
 
+        self.mainboard.bootstrap(on_mainboard_ready)
         self.unpacker = Unpacker()
 
     def on_toolhead_ready(self, ctrl):
@@ -321,12 +325,6 @@ class IControlTask(DeviceOperationMixIn):
                 else:
                     return
 
-    # def send_mainboard(self, msg):
-    #     self._uart_mb.send(msg)
-
-    # def send_headboard(self, msg):
-    #     self._uart_hb.send(msg)
-
     def on_mainboard_message(self, watcher, revent):
         try:
             self.mainboard.handle_recv()
@@ -340,6 +338,7 @@ class IControlTask(DeviceOperationMixIn):
     def on_headboard_message(self, watcher, revent):
         try:
             self.toolhead.handle_recv()
+            check_toolhead_errno(self.toolhead, self.th_error_flag)
             self.fire()
 
         except IOError:
@@ -428,18 +427,18 @@ class IControlTask(DeviceOperationMixIn):
             self.send_udp1(self.toolhead)
 
         try:
-            self.mainboard.patrol(self)
+            self.mainboard.patrol()
         except RuntimeError as e:
             logger.info("%s", e)
 
         except Exception:
             logger.exception("Mainboard dead")
-            self.handler.send_text(packb(0xff, -1, 0xff, SUBSYSTEM_ERROR))
+            self.handler.send_text(packb((0xff, -1, 0xff, SUBSYSTEM_ERROR)))
             self.on_require_kill(self.handler)
             return
 
         try:
-            self.head_ctrl.patrol(self)
+            self.toolhead.patrol()
         except (HeadOfflineError, HeadResetError) as e:
             logger.debug("Head Offline/Reset: %s", e)
 
@@ -452,12 +451,12 @@ class IControlTask(DeviceOperationMixIn):
 
         except Exception:
             logger.exception("Toolhead dead")
-            self.handler.send_text(packb(0xff, -1, 0xff, SUBSYSTEM_ERROR))
+            self.handler.send_text(packb((0xff, -1, 0xff, SUBSYSTEM_ERROR)))
             self.on_require_kill(self.handler)
             return
 
     def clean(self):
-        self.send_mainboard("@HOME_BUTTON_TRIGGER\n")
+        self.mainboard.send_cmd("@HOME_BUTTON_TRIGGER\n")
 
         if self.toolhead:
             if self.toolhead.ready:
@@ -474,8 +473,7 @@ class IControlTask(DeviceOperationMixIn):
         self.cmd_queue.append((target, cmd))
         self.fire()
 
-    def create_movement_command(self, F=None, X=None, Y=None, Z=None,  # noqa
-                                E0=None, E1=None, E2=None):  # noqa
+    def create_movement_command(self, F=None, X=None, Y=None, Z=None, E0=None, E1=None, E2=None):  # noqa
         target = self.known_position
         yield "G1"
 
@@ -587,7 +585,7 @@ class IControlTask(DeviceOperationMixIn):
         self.append_cmd(TARGET_MAINBOARD, "X87F%i" % flags)
 
     def on_toolhead_profile(self, handler):
-        buf = packb((CMD_THPF, self.head_ctrl.info()))
+        buf = packb((CMD_THPF, self.toolhead.info()))
         self.handler.send(buf)
 
     def on_toolhead_raw_command(self, handler, cmd):
@@ -615,16 +613,18 @@ class IControlTask(DeviceOperationMixIn):
             self.udp_sock = s
 
     def on_require_head(self, handler, head_type):
-        self.head_ctrl = HeadController(executor=self, error_level=0,
-                                        required_module=head_type,
-                                        ready_callback=self.on_toolhead_ready)
+        self.toolhead = HeadController(
+            self._sock_th.fileno(),
+            required_module=head_type,
+            msg_callback=self.toolhead_message_callback)
+
         self.head_resp_stack = [] if head_type == "USER" else None
 
     def on_bootstrap_toolhead(self, handler):
-        self.head_ctrl.bootstrap(self)
+        self.toolhead.bootstrap(self.on_toolhead_ready)
 
     def on_clean_toolhead_error(self, handler):
-        self.head_ctrl.errcode = 0
+        self.toolhead.errcode = 0
 
     def on_require_quit(self, handler):
         if self.buflen:
