@@ -428,7 +428,7 @@ class USBProtocol2(USBChannelManager):
 
         if len(self._local_queue) > 4:
             for i in range(4):
-                self.handler.sock.send(self._local_queue[i][1])
+                self._raw_send(self._local_queue[i][2])
 
         if chl_idx < 0x80:
             if fin == 0:
@@ -448,12 +448,11 @@ class USBProtocol2(USBChannelManager):
         else:
             raise USBProtocolError("Bad channel 0x%x" % chl_idx)
 
-    def _send_ack(self):
-        if self._remote_idx == 0:
-            HEAD_V2_PACKER.pack_into(SHARED_BUF, 0, 128, 65535, 0xf2, 0)
-        else:
-            HEAD_V2_PACKER.pack_into(SHARED_BUF, 0, 128, self._remote_idx - 1, 0xf2, 0)
-        self.handler.sock.send(SHARED_BUF)
+    def _raw_send(self, buf):
+        l = len(buf)
+        sent = 0
+        while sent < l:
+            sent += self.handler.sock.send(buf[sent:sent + 512])
 
     def _send(self, chl_idx, data, fin):
         l = len(data) + 6
@@ -462,7 +461,14 @@ class USBProtocol2(USBChannelManager):
         buf = HEAD_V2_PACKER.pack(l, self._local_idx, chl_idx, fin) + data
         self._local_queue.append((self._local_idx, ack, buf))
         self._local_idx = (self._local_idx + 1) % 65536
-        self.handler.sock.send(buf)
+        self._raw_send(buf)
+
+    def _send_ack(self):
+        if self._remote_idx == 0:
+            HEAD_V2_PACKER.pack_into(SHARED_BUF, 0, 128, 65535, 0xf2, 0)
+        else:
+            HEAD_V2_PACKER.pack_into(SHARED_BUF, 0, 128, self._remote_idx - 1, 0xf2, 0)
+        self._raw_send(SHARED_BUF)
 
     def on_control_channel(self, chl_idx, action, tp=None):
         logger.debug("Channel operation: index=%i, action=%s", chl_idx, action)
