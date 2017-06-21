@@ -205,6 +205,7 @@ class CloudService(ServiceBase):
         c.publish(self._notify_topic, payload, 1)
 
     def postback_status(self, st_id):
+        url = Storage("general", "meta")["player_postback_url"]
         if url:
             try:
                 if '"' in url or '\\' in url:
