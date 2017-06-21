@@ -205,16 +205,15 @@ class CloudService(ServiceBase):
         c.publish(self._notify_topic, payload, 1)
 
     def postback_status(self, st_id):
-        url = Storage("general", "meta")["player_postback_url"]
         if url:
             try:
                 if '"' in url or '\\' in url:
                     logger.error("Bad url: %r", url)
                 else:
-                    url = url % {"st_id", st_id}
+                    url = url % {"st_id": st_id}
                     os.system("curl -s -o /dev/null \"%s\"" % url)
             except Exception:
-                logger.exception("Error while post back status")
+                logger.exception("Error while post back status, url: %s", url)
 
     def notify_update(self, new_st, now):
         if metadata.verify_mversion() is False:
