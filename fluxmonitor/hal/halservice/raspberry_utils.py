@@ -48,6 +48,8 @@ class GPIOUtils(object):
 
     @classmethod
     def teardown(cls):
+        logger.debug("Teardown GPIO, reset mainboard")
+        cls.reset_mainboard()
         GPIO.cleanup()
 
     @classmethod
@@ -108,28 +110,40 @@ class PinMappingShared(object):
     FRONT_BUTTON = 12
     RIO_1 = 3
     RIO_2 = 5
+    MIO_1 = 22
 
     TOOLHEAD_POWER_ON = GPIO.HIGH
     TOOLHEAD_POWER_OFF = GPIO.LOW
+    TOOLHEAD_BOOT_ON = GPIO.HIGH
+    TOOLHEAD_BOOT_OFF = GPIO.LOW
 
     _last_mainboard_sig = GPIO.LOW
     _head_enabled = False
     _head_power_stat = TOOLHEAD_POWER_ON
-    _head_power_timer = 0
+    _head_poweroff_after = 0
 
     def __init__(self, metadata):
         self.meta = metadata
         GPIO.setup(self.TOOLHEAD_BOOT, GPIO.OUT, initial=GPIO.LOW)
         GPIO.setup(self.TOOLHEAD_POWER, GPIO.OUT,
                    initial=self._head_power_stat)
+        GPIO.setup(self.MIO_1, GPIO.IN)
         GPIO.setup(self.RIO_1, GPIO.OUT, initial=GPIO.LOW)
         GPIO.setup(self.RIO_2, GPIO.OUT, initial=GPIO.LOW)
 
         for pin in self.PIN_NOT_DEFINED:
             GPIO.setup(pin, GPIO.IN)
 
-        self._head_power_timer = time()
+        self._head_poweroff_after = time()
         self.on_timer()
+
+    @property
+    def mio_1(self):
+        return GPIO.input(self.MIO_1)
+
+    def set_toolhead_boot(self, o):
+        mode = self.TOOLHEAD_BOOT_ON if o else self.TOOLHEAD_BOOT_OFF
+        GPIO.output(self.TOOLHEAD_BOOT, mode)
 
     @property
     def toolhead_power(self):
@@ -291,8 +305,12 @@ class PinMappingShared(object):
                 GPIO.output(self.RIO_2, GPIO_TOGGLE[_1])
 
         if self._head_enabled is False and self.toolhead_power is True:
-            if time() - self._head_power_timer > HEAD_POWER_TIMEOUT:
+            if time() > self._head_poweroff_after:
                 self.toolhead_power = False
+
+    def close(self):
+        GPIO.output(self.RIO_1, GPIO.LOW)
+        GPIO.output(self.RIO_2, GPIO.LOW)
 
 
 class PinMappingV0(PinMappingShared):
@@ -310,11 +328,11 @@ class PinMappingV0(PinMappingShared):
                    initial=self._usb_serial_stat)
 
     @property
-    def usb_serial_power(self):
+    def uart2pc_power(self):
         return self._usb_serial_stat == self.USB_SERIAL_ON
 
-    @usb_serial_power.setter
-    def usb_serial_power(self, val):
+    @uart2pc_power.setter
+    def uart2pc_power(self, val):
         if val:
             if self._usb_serial_stat != self.USB_SERIAL_ON:
                 self._usb_serial_stat = self.USB_SERIAL_ON
@@ -328,14 +346,14 @@ class PinMappingV0(PinMappingShared):
 
     def update_toolhead_ctrl(self, toolhead_operating):
         if toolhead_operating:
-            if self.usb_serial_power is True:
+            if self.uart2pc_power is True:
                 logger.debug("Headboard ON / USB OFF")
-                self.usb_serial_power = False
+                self.uart2pc_power = False
                 self._head_enabled = True
         else:
-            if self.usb_serial_power is False:
+            if self.uart2pc_power is False:
                 logger.debug("Headboard OFF / USB ON")
-                self.usb_serial_power = True
+                self.uart2pc_power = True
                 self._head_enabled = False
 
         if self._head_enabled:
@@ -343,8 +361,13 @@ class PinMappingV0(PinMappingShared):
                 self.toolhead_power = True
         else:
             if self.toolhead_power is True:
-                logger.debug("Head Power delay turn off")
-                self._head_power_timer = time()
+                if self.meta.delay_toolhead_poweroff == b"\x00":
+                    logger.debug("Head Power delay turn off")
+                    self._head_poweroff_after = time() + HEAD_POWER_TIMEOUT
+                else:
+                    logger.debug("Head Power delay turn off (extend)")
+                    self.meta.delay_toolhead_poweroff = b"\x00"
+                    self._head_poweroff_after = time() + 300
 
 
 class PinMappingV1(PinMappingShared):
@@ -388,7 +411,11 @@ class PinMappingV1(PinMappingShared):
             if self._head_enabled is True:
                 self._head_enabled = False
                 logger.debug("Head Power delay off")
-                self._head_power_timer = time()
+                if self.meta.delay_toolhead_poweroff == b"\x00":
+                    self._head_poweroff_after = time() + HEAD_POWER_TIMEOUT
+                else:
+                    self.meta.delay_toolhead_poweroff = b"\x00"
+                    self._head_poweroff_after = time() + 300
 
 
 class FrontButtonMonitor(object):
@@ -443,9 +470,15 @@ class FrontButtonMonitor(object):
             if buf:
                 if buf == '1':
                     if self._db_click_timer.active:
-                        self.send_db_click(watcher.data)
-                        self._db_click_timer.stop()
+                        if time() - self._db_click_timer.data < 0.08:
+                            # DIRTY_FIX: double click time gap too short,
+                            # assume it is hardware issue
+                            self._db_click_timer.data = time()
+                        else:
+                            self.send_db_click(watcher.data)
+                            self._db_click_timer.stop()
                     else:
+                        self._db_click_timer.data = time()
                         self._db_click_timer.set(GBDC, 0)
                         self._db_click_timer.start()
                 elif buf == '9':

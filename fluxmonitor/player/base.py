@@ -1,10 +1,11 @@
 
 
-from datetime import datetime
-from time import time
+from fluxmonitor.misc.systime import systime as time
+from hashlib import md5
 import logging
+import os
 
-L = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 ST_INIT = 1
 ST_STARTING = 4
@@ -43,36 +44,65 @@ STATUS_MSG = {
 }
 
 
-L = logging.getLogger(__name__)
+class Timer(object):
+    __begin_at = None
+    __start_at = None
+    __sum = 0
+
+    def start_timer(self):
+        if self.__begin_at:
+            self.__start_at = time()
+        else:
+            self.__start_at = self.__begin_at = time()
+
+    def pause_timer(self):
+        if self.__start_at:
+            self.__sum = time() - self.__start_at
+            self.__start_at = None
+
+    @property
+    def total_used_times(self):
+        # Return time from started
+        return time() - self.__begin_at
+
+    @property
+    def used_times(self):
+        # Return time during running status
+        if self.__start_at:
+            return self.__sum + (time() - self.__start_at)
+        else:
+            return self.__sum
 
 
-class BaseExecutor(object):
+class BaseExecutor(Timer):
     status_id = None
     error_symbol = None
-    time_used = 0
     macro = None
-    __start_at = 0
+    paused_macro = None
 
-    def __init__(self, mainboard_io, headboard_io):
-        self.__mbio = mainboard_io
-        self.__hbio = headboard_io
+    def __init__(self, mainboard_sock, toolhead_sock):
+        self.session = md5(os.urandom(64)).hexdigest()[:6]
+        self._mbsock = mainboard_sock
+        self._thsock = toolhead_sock
         self.status_id = ST_INIT
+        self.start_timer()
+        logger.info("Initialize (status=%i)", self.status_id)
 
     def start(self):
         self.status_id = ST_STARTING
-        self.__begin_at = datetime.now().utcnow()
+        logger.info("Starting (status=%i)", self.status_id)
 
     def started(self):
         if self.status_id != 4:
             raise Exception("BAD_LOGIC")
         self.status_id = 16  # status_id = ST_RUNNING
-        L.debug("GO!")
-        self.__start_at = time()
+        logger.info("Started (status=%i)", self.status_id)
 
     def pause(self, symbol=None):
         if self.status_id & 224:
             # Completed/Aborted/Paused or goting to be
-            L.debug("Pause rejected: %s" % symbol)
+            logger.info("Pause rejected (error=%s, status=%i)", symbol,
+                        self.status_id)
 
             if self.error_symbol is None:
                 # Update error label only
@@ -80,60 +110,68 @@ class BaseExecutor(object):
             return False
 
         nst = self.status_id | ST_PAUSED | 2
-        L.debug("ST %3i -> %3i: %s", self.status_id, nst, symbol)
+        logger.info("Pause (error=%s, status=%i -> %i)",
+                    symbol, self.status_id, nst)
         self.status_id = nst
         self.error_symbol = symbol
-
-        if self.__start_at:
-            self.time_used += (time() - self.__start_at)
-        self.__start_at = None
-
         return True
 
     def paused(self):
         if self.status_id & 192:
-            L.error("PAUSED invoke at complete/abort")
+            logger.error("PAUSED invoke at wrong status (status=%i)",
+                         self.status_id)
             return
 
         nst = (self.status_id | ST_PAUSED) & ~2
-        L.debug("ST %3i -> %3i: PAUSED", self.status_id, nst)
+        logger.info("Paused (status=%i -> %i)", self.status_id, nst)
         self.status_id = nst
+        self.pause_timer()
 
     def resume(self):
         if self.status_id & 192:
             # Completed/Aborted or goting to be
-            L.debug("Resume rejected")
+            logger.error("Resume rejected (status=%i)", self.status_id)
             return False
         elif self.status_id & 34 == 32:
             # Paused
             nst = (self.status_id & ~ST_PAUSED) | 2
-            L.debug("ST %3i -> %3i: RESUMING", self.status_id, nst)
+            logger.info("Resumimg (status=%i -> %i)", self.status_id, nst)
             self.status_id = nst
             self.error_symbol = None
             return True
         else:
-            L.debug("Resume rejected at status: %i", self.status_id)
+            logger.error("Resume rejected (status=%i)", self.status_id)
             return False
 
     def resumed(self):
         if self.status_id & 192:
-            L.error("RESUMED invoke at complete/abort")
+            logger.error("RESUMED invoke at wrong status (status=%i)",
+                         self.status_id)
             return
 
         nst = (self.status_id & ~ST_PAUSED) & ~2
-        L.debug("ST %3i -> %3i: RESUMED", self.status_id, nst)
+        logger.info("Resumed (status=%i -> %3i)", self.status_id, nst)
         self.status_id = nst
-        self.__start_at = time()
+        self.start_timer()
 
     def abort(self, symbol=None):
         if self.status_id & 192:
             # Completed/Aborted or goting to be
-            L.debug("Abort rejected")
+            logger.info("Abort rejected (status=%i)", self.status_id)
             return False
 
-        L.debug("Abort: %s" % symbol)
+        logger.info("Abort (error=%s, status=%i -> %i)",
+                    symbol, self.status_id, ST_ABORTED)
         self.status_id = ST_ABORTED
         self.error_symbol = symbol
+        self.pause_timer()
+        self.terminate()
+
+        if symbol:
+            logger.warning("Close player directly because abort with "
+                           "unexpected error")
+            self.close()
+
         return True
 
     @property
@@ -146,22 +184,18 @@ class BaseExecutor(object):
     def get_status(self):
         st_id = self.status_id
         return {
+            "session": self.session,
             "st_id": st_id,
-            "st_label": self.macro.name if self.macro else STATUS_MSG.get(
-                st_id, "UNKNOW_STATUS"),
-            "error": self.error_symbol.args if self.error_symbol else []
+            "st_label": self.macro.name if self.macro and st_id == 16
+            else self.paused_macro.name if self.paused_macro and st_id == 48
+            else STATUS_MSG.get(st_id, "UNKNOW_STATUS"),
+            "error": self.error_symbol.args if self.error_symbol else [],
+            "time_total": self.total_used_times,
+            "time_running": self.used_times
         }
 
-    def is_closed(self):
-        return self.status_id and (self.status_id & ~192) == 0
+    def terminate(self):
+        pass
 
     def close(self):
-        self.__mbio.close()
-        self.__hbio.close()
-
-    def send_mainboard(self, msg):
-        if self.__mbio.send(msg) != len(msg):
-            raise Exception("DIE")
-
-    def send_headboard(self, msg):
-        self.__hbio.send(msg)
+        pass

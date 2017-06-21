@@ -10,7 +10,7 @@ cdef extern from "device_fsm.h":
   struct DeviceFSM:
     double traveled
     float x, y, z, e[3]
-    float max_x, max_y, max_z
+    float max_r2, min_z, max_z
     int f, t
 
   cdef cppclass DeviceController:
@@ -31,6 +31,7 @@ cdef class PyDeviceFSM:
   def __init__(self, int t=0, int f=-1, float x=NAN, float y=NAN,
                float z=NAN, float e1=0, float e2=0, float e3=0,
                float max_x=INFINITY, float max_y=INFINITY,
+               float max_r=INFINITY, float min_z=-INFINITY,
                float max_z=INFINITY):
     self.ptr.fsm.x = x
     self.ptr.fsm.y = y
@@ -40,8 +41,9 @@ cdef class PyDeviceFSM:
     self.ptr.fsm.e[2] = e3
     self.ptr.fsm.t = t
     self.ptr.fsm.f = f
-    self.ptr.fsm.max_x = max_x
-    self.ptr.fsm.max_y = max_y
+
+    self.ptr.fsm.max_r2 = max_r * max_r
+    self.ptr.fsm.min_z = min_z
     self.ptr.fsm.max_z = max_z
 
   def __cinit__(self):
@@ -58,6 +60,9 @@ cdef class PyDeviceFSM:
 
   cpdef unsigned int get_t(self):
     return self.ptr.fsm.t
+
+  cpdef set_max_z(self, float max_z):
+    self.ptr.fsm.max_z = max_z
 
   cpdef set_t(self, unsigned int val):
     self.ptr.fsm.t = val

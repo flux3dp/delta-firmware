@@ -80,5 +80,4 @@ def enable_console():
 def enable_ssh():
     os.system("dpkg-reconfigure openssh-server")
     os.system("systemctl enable ssh.service")
-    os.system("systemctl start ssh.service")
-    return os.system("systemctl start serial-getty@ttyUSB0.service")
+    return os.system("systemctl start ssh.service")

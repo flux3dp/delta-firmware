@@ -5,7 +5,6 @@ import json
 import os
 import re
 
-from fluxmonitor.storage import Storage
 
 _safe_value = lambda val: re.match("^[a-zA-Z0-9]+$", val) is not None  # noqa
 ADMIN_KEY = "A"
@@ -23,6 +22,7 @@ class AccessControl(object):
         return cls._default
 
     def __init__(self, storage=None):
+        from fluxmonitor.storage import Storage
         self.storage = storage if storage else Storage("security", "pub")
 
     def get_keyobj(self, pem=None, der=None, access_id=None):
@@ -53,7 +53,7 @@ class AccessControl(object):
         return sha1(keyobj.export_pubkey_der()).hexdigest()
 
     def add(self, keyobj, **kw):
-        access_id = get_access_id(keyobj=keyobj)
+        access_id = self.get_access_id(keyobj=keyobj)
 
         with self.storage.open(access_id, "w") as f:
             f.write(keyobj.export_pubkey_pem())
@@ -111,25 +111,25 @@ class AccessControl(object):
     def is_rsakey(self, pem=None, der=None):
         return is_rsakey(pem, der)
 
-_access_control = AccessControl()
-
 
 def get_keyobj(pem=None, der=None, access_id=None):
-    return _access_control.get_keyobj(pem=pem, der=der, access_id=access_id)
+    return AccessControl.instance().get_keyobj(
+        pem=pem, der=der, access_id=access_id)
 
 
 def get_access_id(pem=None, der=None, keyobj=None):
-    return _access_control.get_access_id(pem=pem, der=der, keyobj=keyobj)
+    return AccessControl.instance().get_access_id(
+        pem=pem, der=der, keyobj=keyobj)
 
 
 def is_trusted_remote(access_id=None, pem=None, der=None, keyobj=None):
-    return _access_control.is_trusted(
+    return AccessControl.instance().is_trusted(
         access_id=access_id, pem=pem, der=der, keyobj=keyobj)
 
 
 def add_trusted_keyobj(keyobj, label=None):
-    return _access_control.add(keyobj, label=label)
+    return AccessControl.instance().add(keyobj, label=label)
 
 
 def untrust_all():
-    _access_control.remove_all()
+    AccessControl.instance().remove_all()

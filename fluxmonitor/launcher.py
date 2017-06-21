@@ -1,5 +1,6 @@
 
 from __future__ import absolute_import
+import logging.handlers
 import logging.config
 import importlib
 import signal
@@ -32,7 +33,7 @@ def create_logger(options):
         handlers['file'] = {
             'level': log_level,
             'formatter': 'default',
-            'class': 'logging.handlers.RotatingFileHandler',
+            'class': 'fluxmonitor.diagnosis.log_helpers.RotatingFileHandler',
             'filename': options.logfile,
             'maxBytes': 5 * (2 ** 20),  # 10M
             'backupCount': 9
@@ -65,7 +66,7 @@ def create_logger(options):
 
 def lock_pidfile(options):
     try:
-        return _lock_pidfile(options.pidfile, options.debug)
+        return _lock_pidfile(options.pidfile)
     except SystemError as e:
         sys.stderr.write(e.args[1])
         raise FatalException(e.args[0])
@@ -90,7 +91,7 @@ def init_service(klass_name, options):
 
 def bind_signal(server, debug):
     if debug:
-        def sigTerm(sig, frame):
+        def sigTerm(sig, frame):  # noqa
             sys.stderr.write("\n")
             server.shutdown(log="Recive SIGTERM/SIGINT")
 
@@ -99,14 +100,14 @@ def bind_signal(server, debug):
 
         import traceback
 
-        def sigUSR2(sig, frame):
+        def sigUSR2(sig, frame):  # noqa
             for l in traceback.format_stack():
                 server.logger.error(l.rstrip())
 
         signal.signal(signal.SIGUSR2, sigUSR2)
 
     else:
-        def sigTerm(watcher, revent):
+        def sigTerm(watcher, revent):  # noqa
             sys.stderr.write("\n")
             server.shutdown(log="Recive SIGTERM/SIGINT")
 
@@ -207,7 +208,7 @@ def deamon_entry(options, service=None):
 
         server = init_service(service, options)
 
-    def sigTerm(sig, frame):
+    def sigTerm(sig, frame):  # noqa
         sys.stderr.write("\n")
         server.shutdown(log="Recive SIGTERM/SIGINT")
 

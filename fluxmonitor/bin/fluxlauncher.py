@@ -1,7 +1,7 @@
 
 from pkg_resources import load_entry_point, resource_string
 from signal import SIGTERM, SIGKILL
-from time import sleep, time
+from time import sleep
 import argparse
 import fcntl
 import errno
@@ -28,21 +28,21 @@ PID_LIST = (
 )
 
 SERVICE_LIST = (
-    # Syntax: (service entry name", ("service", "startup", "params"))
-    ("fluxnetworkd", ('--pid', PID_FLUXNETWORKD,
-                      '--log', LOG_ROOT + 'fluxnetworkd.log', '--daemon')),
-    ("fluxhald", ('--pid', PID_FLUXHALD,
-                  '--log', LOG_ROOT + 'fluxhald.log', '--daemon')),
-    ("fluxusbd", ('--pid', PID_FLUXUSBD,
-                  '--log', LOG_ROOT + 'fluxusbd.log', '--daemon')),
-    ("fluxupnpd", ('--pid', PID_FLUXUPNPD,
-                   '--log', LOG_ROOT + 'fluxupnpd.log', '--daemon')),
-    ("fluxrobotd", ('--pid', PID_FLUXROBOTD,
-                    '--log', LOG_ROOT + 'fluxrobotd.log', '--daemon')),
-    ("fluxcamerad", ('--pid', PID_FLUXCAMERAD,
-                     '--log', LOG_ROOT + 'fluxcamerad.log', '--daemon')),
-    ("fluxcloudd", ('--pid', PID_FLUXCLOUDD,
-                    '--log', LOG_ROOT + 'fluxcloudd.log', '--daemon')),
+    # Syntax: (service entry name", ("service", "startup", "params"), pid file)
+    ("fluxnetworkd", ('--log', LOG_ROOT + 'fluxnetworkd.log', '--daemon'),
+     PID_FLUXNETWORKD),
+    ("fluxhald", ('--log', LOG_ROOT + 'fluxhald.log', '--daemon'),
+     PID_FLUXHALD),
+    ("fluxusbd", ('--log', LOG_ROOT + 'fluxusbd.log', '--daemon'),
+     PID_FLUXUSBD),
+    ("fluxupnpd", ('--log', LOG_ROOT + 'fluxupnpd.log', '--daemon'),
+     PID_FLUXUPNPD),
+    ("fluxrobotd", ('--log', LOG_ROOT + 'fluxrobotd.log', '--daemon'),
+     PID_FLUXROBOTD),
+    ("fluxcamerad", ('--log', LOG_ROOT + 'fluxcamerad.log', '--daemon'),
+     PID_FLUXCAMERAD),
+    ("fluxcloudd", ('--log', LOG_ROOT + 'fluxcloudd.log', '--daemon'),
+     PID_FLUXCLOUDD),
 )
 
 
@@ -154,25 +154,57 @@ def try_config_network(dryrun=False):
 def init_rapi():
     if not os.path.exists("/var/gcode/userspace"):
         os.mkdir("/var/gcode/userspace")
+    if not os.path.exists("/var/db/fluxmonitord"):
+        os.mkdir("/var/db/fluxmonitord")
     if not os.path.exists("/var/db/fluxmonitord/run"):
         os.mkdir("/var/db/fluxmonitord/run")
 
     if not os.path.exists("/var/db/fluxmonitord/boot_ver") or \
-            open("/var/db/fluxmonitord/boot_ver").read() != "1":
+            open("/var/db/fluxmonitord/boot_ver").read() != "4":
+
         udev = resource_string("fluxmonitor", "data/rapi/udev-99-flux.rules")
         with open("/etc/udev/rules.d/99-flux.rules", "w") as f:
             f.write(udev)
-        open("/var/db/fluxmonitord/boot_ver", "w").write("1")
+        fxupdate = resource_string("fluxmonitor", "data/rapi/fxupdate.pysource")  # noqa
+        with open("/usr/bin/fxupdate.py", "w") as f:
+            f.write(fxupdate)
+        fxlauncher = resource_string("fluxmonitor", "data/rapi/fxlauncher.pysource")  # noqa
+        with open("/usr/bin/fxlauncher.py", "w") as f:
+            f.write(fxlauncher)
+        open("/var/db/fluxmonitord/boot_ver", "w").write("3")
         os.system("udevadm control --reload")
-        os.systen("sync")
+        os.system("sync")
+
+        # Resolve log issue
+        rsyslog = resource_string("fluxmonitor", "data/rapi/rsyslog.conf")
+        with open("/etc/logrotate.d/rsyslog", "w") as f:
+            f.write(rsyslog)
+        if os.path.exists("/etc/cron.daily/logrotate"):
+            os.system("mv /etc/cron.daily/logrotate /etc/cron.hourly")
+        os.system("sync")
+        os.system("/etc/cron.hourly/logrotate")
+
+        # Resolve wifi driver issue
+        with open("/etc/modprobe.d/8192cu.conf", "w") as f:
+            f.write("""
+options 8192cu rtw_power_mgnt=0
+options r8188eu rtw_power_mgnt=0
+options 8188eu rtw_power_mgnt=0
+""")
+
+        r8188 = "/lib/modules/4.1.13+/kernel/drivers/staging/rtl8188eu/8188eu.ko"
+        if os.path.exists(r8188) and os.path.getsize(r8188) is not 1305956L:
+            os.system("rmmod 8188eu")
+            r8188bin = resource_string("fluxmonitor", "data/rapi/8188eu.ko")
+            with open(r8188, "wb") as f:
+                f.write(r8188bin)
+            os.system("modprobe 8188eu")
 
 
-def check_running(service):
+def check_running(pidfile):
     try:
-        service_pic_file = '/var/run/' + service + '.pid'
-        f = os.open(service_pic_file, os.O_RDONLY | os.O_WRONLY, 0o644)
-        pid = open(service_pic_file, 'r').read()  # get process pid
-
+        f = os.open(pidfile, os.O_RDONLY | os.O_WRONLY, 0o644)
+        pid = open(pidfile, 'r').read()  # get process pid
         fcntl.lockf(f, fcntl.LOCK_NB | fcntl.LOCK_EX)
 
     except IOError as e:
@@ -197,9 +229,9 @@ def terminate_proc(pid):
 
     try:
         os.kill(pid, SIGTERM)
-        for i in range(30):
+        for i in range(50):
             os.kill(pid, 0)
-            sleep(0.1)
+            sleep(0.2)
     except OSError:
         return
 
@@ -213,16 +245,22 @@ def main(params=None):
     parser = argparse.ArgumentParser(description='flux launcher')
     parser.add_argument('--dryrun', dest='dryrun', action='store_const',
                         const=True, default=False, help='Connect to smoothie')
+    parser.add_argument('--update', dest='update', action='store_const',
+                        const=True, default=False,
+                        help='Stop all process and invoke fxlauncher for '
+                             'upgrade')
+
     options = parser.parse_args(params)
 
     from fluxmonitor.halprofile import CURRENT_MODEL # noqa
     from fluxmonitor import security  # noqa # init security property
+    from fluxmonitor import __version__
 
     try:
-        if CURRENT_MODEL == 'delta-1':
+        if CURRENT_MODEL in ('delta-1', 'delta-1p'):
             init_rapi()
-    except Exception:
-        pass
+    except Exception as e:
+        print(e)
 
     for pidfile in PID_LIST:
         try:
@@ -239,38 +277,46 @@ def main(params=None):
         except Exception as e:
             print(repr(e))
 
-    for service, startup_params in SERVICE_LIST:
-        ret = check_running(service)
-        if ret:
-            print('%s is already running\n' % service)
-            continue
+    if options.update:
+        os.execl("/usr/bin/python2.7", "python2.7", "/usr/bin/fxlauncher.py")
 
+    debug_mode = "a" in __version__
+    if debug_mode is False:
+        try:
+            open("/etc/flux/debug")
+            debug_mode = True
+        except Exception:
+            pass
+
+    for service, startup_params, pidfile in SERVICE_LIST:
+        startup_params = startup_params + ("--pid", pidfile)
         if options.dryrun:
             print('[Dryrun] Start service: %s (%s)' % (service,
                                                        startup_params))
             continue
 
+        if os.path.exists(pidfile):
+            os.unlink(pidfile)
+
         pid = os.fork()
         if pid == 0:
             # child
             entry = load_entry_point('fluxmonitor', 'console_scripts', service)
-            entry(startup_params)
+            if debug_mode:
+                entry(startup_params + ("--debug", ))
+            else:
+                entry(startup_params)
+
             break
         else:
-            # parent, check whether servie started
-            start_t = time()
             while True:
-                success = check_running(service)
-                if success:
-                    print('start %s success' % service)
+                try:
+                    ret = os.waitpid(pid, os.P_NOWAIT)
+                    print('start %s with %i' % (service, ret[1]))
                     break
-
-                sleep(0.5)  # ?
-                print('waiting %s start' % service)
-                if time() - start_t > 10:
-                    print('%s starting timeout, not running' % service)
-                    success = False
-                    break
+                except OSError:
+                    print('waiting %s start' % service)
+                sleep(0.1)
 
     try_config_network(dryrun=options.dryrun)
 

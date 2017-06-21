@@ -133,9 +133,11 @@ cdef class RSAObject:
             else:
                 self.rsakey = import_pem(pem, len(pem), 0)
 
-        else:
+        elif keylength:
             self.rsakey = create_rsa(keylength)
             self.privatekey = 1
+        else:
+            return
 
         if not self.rsakey:
             raise TypeError("Can not load rsa key.")

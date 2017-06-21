@@ -1,7 +1,5 @@
 from tempfile import TemporaryFile
-# from select import select
 import logging
-# import socket
 
 from fluxmonitor.interfaces.hal_internal import HalControlClientHandler
 from fluxmonitor.err_codes import (PROTOCOL_ERROR,
@@ -9,7 +7,6 @@ from fluxmonitor.err_codes import (PROTOCOL_ERROR,
                                    TIMEOUT,
                                    UNKNOWN_ERROR)
 from fluxmonitor.misc.systime import systime as time
-# from fluxmonitor.config import HALCONTROL_ENDPOINT
 from fluxmonitor.storage import Storage
 
 logger = logging.getLogger(__name__)
@@ -60,8 +57,7 @@ class UpdateHbFwTask(object):
                 logger.info("Head fireware uploaded, start processing")
                 handler.send_text("ok")
                 self.process_update(handler)
-
-                # self.stack.exit_task(self, True)
+                # Note: self.process_update will invoke self.stack.exit_task
         except RuntimeError as e:
             handler.send_text(("error %s" % e.args[0]).encode())
         except Exception:
@@ -73,16 +69,14 @@ class UpdateHbFwTask(object):
 
         def on_timer(watcher, revent):
             if time() - shared_st["ts"] > 15 and shared_st["closed"] is False:
+                shared_st["closed"] is True
                 handler.send_text("er " + TIMEOUT)
                 self.stack.exit_task(self, False)
 
         def on_callback(params, hal_handler):
             shared_st["ts"] = time()
 
-            if params[0] == "ok":
-                handler.send_text("ok")
-                self.stack.exit_task(self, True)
-            elif params[0] == "proc":
+            if params[0] == "proc":
                 if "BHE" in params[1]:
                     logger.debug("STAGE: %s", params[1])
                     handler.send_text("CTRL INIT")
@@ -103,8 +97,10 @@ class UpdateHbFwTask(object):
                 self.stack.exit_task(self, False)
 
         def on_hal_close(*args):
-            handler.send_text("error %s" % SUBSYSTEM_ERROR)
-            self.stack.exit_task(self, True)
+            if shared_st["closed"] is False:
+                shared_st["closed"] is True
+                handler.send_text("error %s" % SUBSYSTEM_ERROR)
+                self.stack.exit_task(self, True)
 
         self.timer_watcher = self.stack.loop.timer(3, 3, on_timer)
         self.timer_watcher.start()

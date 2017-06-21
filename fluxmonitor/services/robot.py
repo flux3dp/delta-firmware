@@ -8,12 +8,13 @@ from fluxmonitor.controller.tasks.play_manager import poweroff_led, clean_led
 from fluxmonitor.controller.startup import device_startup
 from fluxmonitor.interfaces.robot_internal import RobotUnixStreamInterface
 from fluxmonitor.interfaces.hal_internal import HalControlClientHandler
-from fluxmonitor.interfaces.usb_internal import USBHandler
-from fluxmonitor.interfaces.robot import RobotTcpInterface, RobotCloudHandler
+from fluxmonitor.interfaces.usb2pc import USBHandler
+from fluxmonitor.interfaces.robot import RobotSSLInterface, RobotCloudHandler
+from fluxmonitor.interfaces.robot import RobotTcpInterface
 from fluxmonitor.services.base import ServiceBase
 from fluxmonitor.misc.systime import systime as time
 from fluxmonitor.err_codes import RESOURCE_BUSY, EXEC_OPERATION_ERROR
-from fluxmonitor.storage import UserSpace, Metadata, Storage
+from fluxmonitor.storage import UserSpace, Storage, metadata
 from fluxmonitor.config import NETWORK_MANAGE_ENDPOINT
 
 logger = logging.getLogger(__name__)
@@ -34,9 +35,12 @@ class Robot(ServiceBase):
     def __init__(self, options):
         ServiceBase.__init__(self, logger, options)
 
-        self.metadata = Metadata()
         self.internl_interface = RobotUnixStreamInterface(self)
-        self.tcp_interface = RobotTcpInterface(self)
+
+        if Storage("general", "meta")["bare"] == "Y":
+            self.tcp_interface = RobotSSLInterface(self)
+        else:
+            self.tcp_interface = RobotTcpInterface(self)
         self._hal_reset_timer = self.loop.timer(5, 0, self._connect2hal)
         self._cloud_conn = set()
 
@@ -134,17 +138,19 @@ class Robot(ServiceBase):
         if self._hal_control:
             self._hal_control.close()
             self._hal_control = None
+        if isinstance(self._exclusive_component, PlayerManager):
+            self._exclusive_component.terminate()
 
     def power_management(self):
-        if self.metadata.wifi_status & 1:
+        if metadata.wifi_status & 1:
             # Power On
             logger.debug("Power On")
-            self.metadata.wifi_status &= ~1
+            metadata.wifi_status &= ~1
             clean_led()
         else:
             # Power Off
             logger.debug("Power Off")
-            self.metadata.wifi_status |= 1
+            metadata.wifi_status |= 1
             poweroff_led()
 
         try:
@@ -171,9 +177,7 @@ class Robot(ServiceBase):
                 abspath = us.get_path(*candidate, require_file=True)
                 logger.debug("Autoplay: %s", abspath)
 
-                copyfile = (candidate[0] == "USB")
-                pm = PlayerManager(self.loop, abspath, self.release_exclusive,
-                                   copyfile=copyfile)
+                pm = PlayerManager(self.loop, abspath, self.release_exclusive)
                 self.exclusive(pm)
                 return
             except RuntimeError:

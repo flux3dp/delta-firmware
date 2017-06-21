@@ -1,5 +1,6 @@
 
 from tempfile import NamedTemporaryFile
+from subprocess import Popen
 import logging
 import socket
 import shutil
@@ -7,7 +8,7 @@ import os
 
 from fluxmonitor.err_codes import PROTOCOL_ERROR, SUBSYSTEM_ERROR, \
     FILE_BROKEN, UNKNOWN_ERROR
-from fluxmonitor.config import FIRMWARE_UPDATE_PATH, uart_config
+from fluxmonitor.config import FIRMWARE_UPDATE_PATH, HALCONTROL_ENDPOINT
 from fluxmonitor.storage import Storage
 
 logger = logging.getLogger(__name__)
@@ -19,6 +20,21 @@ class UpdateFwTask(object):
         self.tmpfile = NamedTemporaryFile()
         self.padding_length = length
         handler.binary_mode = True
+
+    def on_verified(self, watcher, revent):
+        self.subwatcher = None
+        handler, proc = watcher.data
+        ret = proc.poll()
+        logger.info("Firmware verify: %s", ret)
+
+        if ret:
+            handler.send_text("error %s" % FILE_BROKEN)
+            self.stack.exit_task(self, True)
+        else:
+            shutil.copyfile(self.tmpfile.name, FIRMWARE_UPDATE_PATH)
+            handler.send_text("ok")
+            handler.close()
+            os.system("fluxlauncher --update &")
 
     def on_exit(self):
         pass
@@ -39,25 +55,21 @@ class UpdateFwTask(object):
                     self.tmpfile.write(buf)
                 else:
                     self.tmpfile.write(buf[:self.padding_length])
+                    logger.error("Recv data length error")
+
                 handler.binary_mode = False
 
+                logger.info("New firmware received")
                 self.tmpfile.file.flush()
-                
                 self.tmpfile.seek(0)
                 s = Storage("update_fw")
                 with s.open("upload.fxfw", "wb") as f:
                     f.write(self.tmpfile.read())
-                ret = os.system("fxupdate.py --dryrun %s" % self.tmpfile.name)
 
-                if ret:
-                    handler.send_text("error %s" % FILE_BROKEN)
-                else:
-                    shutil.copyfile(self.tmpfile.name, FIRMWARE_UPDATE_PATH)
-                    handler.send_text("ok")
-                    handler.close()
-                    os.system("reboot")
+                proc = Popen(["fxupdate.py", "--dryrun", self.tmpfile.name])
+                self.subwatcher = self.stack.loop.child(proc.pid, False, self.on_verified, (handler, proc))
+                self.subwatcher.start()
 
-                self.stack.exit_task(self, True)
         except RuntimeError as e:
             handler.send_text(("error %s" % e.args[0]).encode())
         except Exception:
@@ -67,7 +79,7 @@ class UpdateFwTask(object):
     def send_upload_request(self):
         try:
             s = socket.socket(socket.AF_UNIX)
-            s.connect(uart_config["control"])
+            s.connect(HALCONTROL_ENDPOINT)
             s.send("update_fw")
         except socket.error:
             raise RuntimeError(SUBSYSTEM_ERROR)

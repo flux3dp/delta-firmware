@@ -46,7 +46,7 @@ def setup_test():
         os.path.join(tempbase, "mainboard-us")
     config.HEADBOARD_ENDPOINT = config.uart_config["headboard"] = \
         os.path.join(tempbase, "headboard-us")
-    config.PC_ENDPOINT = config.uart_config["pc"] = \
+    config.UART_ENDPOINT = config.uart_config["pc"] = \
         os.path.join(tempbase, "pc-us")
     config.HALCONTROL_ENDPOINT = config.uart_config["control"] = \
         os.path.join(tempbase, "ctrl-us")

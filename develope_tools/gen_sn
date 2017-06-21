@@ -1,65 +1,125 @@
 #!/usr/bin/env python
 
+from hashlib import sha256
+from uuid import UUID
 import argparse
 import binascii
+import struct
 import sys
 import os
 
+from sharelib.sn import gen_key, sign_id
 
-from sharelib.sn import get_sn, get_uuid, gen_key, sign_id
+CHKSUMBASE = "0123456789ABCDEFGHJKLMNPQRSTUVWXYZ"
+
+
+def _get_checksum(digest, length):
+    s = 0
+    size = len(CHKSUMBASE)
+    maxsize = size ** length
+    for c in digest:
+        s += ord(c)
+        if s >= maxsize:
+            s %= maxsize
+    chkstr = []
+    for i in range(length):
+        chkstr.append(CHKSUMBASE[s % size])
+        s //= size
+
+    chkstr.reverse()
+    return "".join(chkstr)
+
+
+def generate_delta_1_id(prefix, index):
+    if index > 25599:
+        raise ValueError("index can not exceed 25599")
+
+    if len(prefix) != 4:
+        raise ValueError("prefix must be 4 chars")
+
+    index_str = "%(INDEX_B)02X%(INDEX_A)02i" % {
+        "INDEX_B": index // 100,
+        "INDEX_A": index % 100
+    }
+
+    eng = sha256()
+    eng.update(b"FLUX")
+    eng.update(prefix.encode())
+    eng.update(index_str.encode())
+    chksum = _get_checksum(eng.digest(), 6 - len(prefix))
+
+    sn = "%s%s%s" % (prefix, chksum, index_str)
+    b = struct.pack(">4sH10s", prefix, index, sha256(sn).digest()[:10])
+    return UUID(bytes=b), sn
+
+
+def generate_delta_1p_id(prefix, index):
+    if index > 65535:
+        raise ValueError("index can not exceed 25599")
+
+    index_str = "%(INDEX_B)02X%(INDEX_A)02i" % {
+        "INDEX_B": index // 100,
+        "INDEX_A": index % 100
+    }
+
+    eng = sha256()
+    eng.update(b"FLUX-DELTA-PLUS")
+    eng.update(prefix.encode())
+    eng.update(index_str.encode())
+    chksum = _get_checksum(eng.digest(), 6 - len(prefix))
+
+    sn = "%s%s%s" % (prefix, chksum, index_str)
+    b = struct.pack(">4s2s2sH6s",
+        "FD1P", sn[:2], sn[2:4], index, sha256(sn).digest()[:6])
+    return UUID(bytes=b), sn
+
+
+def generate_id(model, prefix, index):
+    if model == 0:
+        return generate_delta_1_id(prefix, index)
+    elif model == 1:
+        return generate_delta_1p_id(prefix, index)
+    else:
+        raise RuntimeError("Unknown model")
 
 
 def main():
     parser = argparse.ArgumentParser(description='flux sn gen')
-
-    subparsers = parser.add_subparsers(dest='action')
-
-    # One
-    single_parser = subparsers.add_parser('one')
-    single_parser.add_argument(dest='prefix', type=str, default=None, )
-    single_parser.add_argument(dest='index', type=int, default=None, )
-
-    two_parser = subparsers.add_parser('batch')
-    two_parser.add_argument(dest='prefix', type=str, help="4 chars S/N prefix")
-    two_parser.add_argument(dest='index_from', type=int, help="S/N index from")
-    two_parser.add_argument(dest='index_to', type=int, help="S/N index until")
-    two_parser.add_argument("-pkey", dest='pkey', type=str,
-                            help="ECC private key")
-    two_parser.add_argument("-output", dest='output', type=str,
-                            help="Output dir")
+    parser.add_argument('-openssl', dest='openssl', type=str, help="openssl command location", default="openssl")
+    parser.add_argument('-pkey', dest='pkey', type=str, help="Private key location")
+    parser.add_argument('-o', dest='output', type=str, help="Folder to put serial files")
+    parser.add_argument('-m', dest='model', type=int, help="Model ID, delta-1=0, delta-1p=1")
+    parser.add_argument(dest='serial_prefix', type=str, help="Serial prefix")
+    parser.add_argument(dest='numeric', type=int, help="Number of serials to generate", default=1)
+    parser.add_argument(dest='offset', type=int, help="Serial offset", default=0)
 
     options = parser.parse_args()
+    sys.stdout.write("Generate S/N %s-(%i..%i)\n" % (
+        options.serial_prefix, options.offset,
+        options.offset + options.numeric))
+    sys.stdout.flush()
 
-    if options.action == "one":
-        print(get_sn(options.prefix, options.index))
+    for i in range(options.offset, options.offset + options.numeric):
+        pri_der, pub_der = gen_key()
+        uuid, sn = generate_id(options.model, options.serial_prefix, i)
+        sign = sign_id(options.pkey, sn, pub_der, uuid, options.openssl)
 
-    elif options.action == "batch":
-        sys.stdout.write("Create S/N %s-(%i..%i)\n" % (options.prefix,
-                                                       options.index_from,
-                                                       options.index_to))
-        sys.stdout.flush()
+        print(sn)
+        outputfile = os.path.join(options.output,
+                                  "%04i-%s.flux_sn" % (i, sn))
+        with open(outputfile, "w") as f:
+            f.write(binascii.b2a_hex(struct.pack(">H", options.model)))
+            f.write("\n")
+            f.write(sn)
+            f.write("\n")
+            f.write(uuid.hex)
+            f.write("\n")
+            f.write(binascii.b2a_hex(pri_der))
+            f.write("\n")
+            f.write(binascii.b2a_hex(sign))
 
-        for i in range(options.index_from, options.index_to):
-            sn = get_sn(options.prefix, i)
-            pri_der, pub_der = gen_key()
-            uuid = get_uuid(options.prefix, i, pub_der)
-            sign = sign_id(options.pkey, sn, pub_der, uuid)
-
-            print(sn)
-            outputfile = os.path.join(options.output,
-                                      "%04i-%s.flux_sn" % (i, sn))
-            with open(outputfile, "w") as f:
-                f.write(sn)
-                f.write("\n")
-                f.write(uuid.hex)
-                f.write("\n")
-                f.write(binascii.b2a_hex(pri_der))
-                f.write("\n")
-                f.write(binascii.b2a_hex(sign))
-                f.write("\n")
-
-        sys.stdout.write("\nComplete\n")
-        sys.stdout.flush()
+    sys.stdout.write("\nComplete\n")
+    sys.stdout.flush()
 
 if __name__ == "__main__":
     main()

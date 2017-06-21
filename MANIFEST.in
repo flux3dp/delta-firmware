@@ -1,2 +1,3 @@
 include fluxmonitor/data/*
+include fluxmonitor/data/rapi/*
 prune fluxmonitor/data/test

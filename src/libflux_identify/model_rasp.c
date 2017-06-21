@@ -27,6 +27,7 @@
 int spi_loaded = 0;
 unsigned char uuid_cache[16];
 unsigned char sn_cache[10];
+unsigned char model_cache[2];
 
 
 int inline _min(int a, int b) {
@@ -105,6 +106,7 @@ int load_spi() {
 
     memcpy(uuid_cache, read_rxbuf + 4, 16);
     memcpy(sn_cache, read_rxbuf + 20, 10);
+    memcpy(model_cache, read_rxbuf + 36, 2);
 
     spi_loaded = 1;
     return 0;
@@ -194,6 +196,16 @@ int get_machine_sn(unsigned char *sn_buf[10]) {
 
     memcpy(sn_buf, sn_cache, 16);
     return 0;
+}
+
+const char* get_machine_model() {
+    if(spi_loaded == 0) {
+        if(load_spi() > 1) {
+            return 1;
+        }
+    }
+
+    return model_cache;
 }
 
 int get_machine_identify(unsigned char** buffer) {

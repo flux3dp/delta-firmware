@@ -1,4 +1,5 @@
 
+from pyev import EV_READ
 from json import dumps
 import logging
 
@@ -8,6 +9,7 @@ from fluxmonitor.player.head_controller import (HeadController,
                                                 HeadOfflineError,
                                                 HeadResetError,
                                                 HeadTypeError)
+
 from fluxmonitor.player.options import Options
 from fluxmonitor.hal.tools import reset_mb
 from fluxmonitor.err_codes import (EXEC_HEAD_ERROR,
@@ -15,43 +17,38 @@ from fluxmonitor.err_codes import (EXEC_HEAD_ERROR,
                                    SUBSYSTEM_ERROR,
                                    TOO_LARGE,
                                    UNKNOWN_COMMAND)
-from fluxmonitor.storage import Metadata
+from fluxmonitor.storage import Preference, metadata
 from fluxmonitor.player import macro
+from fluxmonitor.hal import tools
 
 from .base import (CommandMixIn,
-                   DeviceOperationMixIn,
-                   DeviceMessageReceiverMixIn)
+                   DeviceOperationMixIn)
 from .update_hbfw_task import UpdateHbFwTask
 
 logger = logging.getLogger(__name__)
 
 
-class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
-                   CommandMixIn):
+class MaintainTask(DeviceOperationMixIn, CommandMixIn):
     st_id = -1
-    main_ctrl = None
-    head_ctrl = None
+    mainboard = None
+    toolhead = None
+    busying = False
+    toolhead_updating = False
+    _has_zprobe = False
 
     def __init__(self, stack, handler):
         super(MaintainTask, self).__init__(stack, handler)
-        self.meta = Metadata()
 
-        self._ready = 0
-        self._busy = False
+        self.busying = False
+        self._has_zprobe = False
 
         self._macro = None
         self._on_macro_error = None
         self._on_macro_running = None
 
         def on_mainboard_ready(_):
-            self._ready |= 1
+            self.busying = False
             handler.send_text("ok")
-
-        self.main_ctrl = MainController(executor=self, bufsize=14,
-                                        ready_callback=on_mainboard_ready)
-        self.head_ctrl = HeadController(executor=self, error_level=0,
-                                        ready_callback=lambda _: None)
-        self.head_ctrl.bootstrap(self)
 
         def on_mainboard_empty(sender):
             if self._macro:
@@ -61,30 +58,38 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             if self._macro:
                 self._macro.on_command_sendable(self)
 
-        self.main_ctrl.callback_msg_empty = on_mainboard_empty
-        self.main_ctrl.callback_msg_sendable = on_mainboard_sendable
+        def on_mainboard_ctrl(sender, data):
+            if self._macro:
+                self._macro.on_ctrl_message(self, data)
 
-        self.timer_watcher = stack.loop.timer(1, 1, self.on_timer)
-        self.timer_watcher.start()
+        self.mainboard = MainController(
+            self._sock_mb.fileno(), bufsize=14,
+            empty_callback=on_mainboard_empty,
+            sendable_callback=on_mainboard_sendable,
+            ctrl_callback=on_mainboard_ctrl)
+        self.toolhead = HeadController(self._sock_th.fileno())
 
-    def send_mainboard(self, msg):
-        if self._uart_mb.send(msg) != len(msg):
-            raise Exception("DIE")
+        self.mainboard.bootstrap(on_mainboard_ready)
+        self.toolhead.bootstrap(self.on_toolhead_ready)
 
-    def send_headboard(self, msg):
-        self._uart_hb.send(msg)
+    def on_toolhead_ready(self, sender):
+        if sender.module_name and sender.module_name != "N/A":
+            tools.toolhead_on()
 
     def on_mainboard_message(self, watcher, revent):
         try:
-            buf = watcher.data.recv(1024)
-            if not buf:
-                logger.error("Mainboard connection broken")
-                self.stack.exit_task(self)
+            self.mainboard.handle_recv()
 
-            for msg in self.recv_from_mainboard(buf):
-                if self._macro:
-                    self._macro.on_mainboard_message(msg, self)
-                self.main_ctrl.on_message(msg, self)
+        except IOError as e:
+            from errno import EAGAIN
+            if e.errno == EAGAIN:
+                # TODO: There is a recv bug in C code, this is a quit fix to
+                # passthrough it.
+                return
+            logger.exception("Mainboard connection broken")
+            if self.busying:
+                self.handler.send_text("error SUBSYSTEM_ERROR")
+            self.stack.exit_task(self)
         except (RuntimeError, SystemError) as e:
             if self._macro:
                 self._on_macro_error(e)
@@ -93,18 +98,15 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
 
     def on_headboard_message(self, watcher, revent):
         try:
-            buf = watcher.data.recv(1024)
-            if not buf:
-                logger.error("Headboard connection broken")
-                self.stack.exit_task(self)
+            self.toolhead.handle_recv()
+        except IOError:
+            logger.exception("Toolhead connection broken")
+            self.stack.exit_task(self)
 
-            for msg in self.recv_from_headboard(buf):
-                if self._macro:
-                    self._macro.on_headboard_message(msg, self)
-                self.head_ctrl.on_message(msg, self)
         except (HeadOfflineError, HeadResetError) as e:
             logger.debug("Head reset")
-            self.head_ctrl.bootstrap(self)
+            tools.toolhead_standby()
+            self.toolhead.bootstrap(self.on_toolhead_ready)
             if self._macro:
                 self._on_macro_error(e)
 
@@ -121,9 +123,9 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
 
     def dispatch_cmd(self, handler, cmd, *args):
         if cmd == "stop_load_filament":
-            self.send_mainboard("@HOME_BUTTON_TRIGGER\n")
+            self.mainboard.send_cmd("@HOME_BUTTON_TRIGGER\n", raw=1)
             return
-        elif self._busy:
+        elif self.busying:
             raise RuntimeError(RESOURCE_BUSY)
 
         if cmd == "home":
@@ -143,9 +145,9 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         elif cmd == "zprobe":
             if len(args) > 0:
                 h = float(args[0])
-                self.do_h_correction(handler, h=h)
+                self.do_zprobe(handler, h=h)
             else:
-                self.do_h_correction(handler)
+                self.do_zprobe(handler)
 
         elif cmd == "load_filament":
             self.do_load_filament(handler, int(args[0]), float(args[1]))
@@ -167,11 +169,14 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         elif cmd == "extruder_temp":
             self.do_change_extruder_temperature(handler, *args)
 
-        elif cmd == "x78":
-            self.do_x78(handler)
+        elif cmd == "diagnosis_sensor":
+            self.diagnosis_sensor(handler)
 
         elif cmd == "update_head":
             self.update_toolhead_fw(handler, *args)
+
+        elif cmd == "hal_diagnosis":
+            self.do_hal_diagnosis(handler)
 
         elif cmd == "quit":
             self.stack.exit_task(self)
@@ -180,130 +185,130 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             logger.debug("Can not handle: '%s'" % cmd)
             raise RuntimeError(UNKNOWN_COMMAND)
 
-    def do_x78(self, handler):
+    def diagnosis_sensor(self, handler):
         dataset = []
 
         def on_message_cb(msg):
-            if not msg.startswith("LN "):
-                dataset.append(msg)
+            if msg.startswith("DATA "):
+                kv = msg[5:].split(" ", 1)
+                if len(kv) == 2:
+                    dataset.append("%s=%s" % (kv[0], kv[1]))
+                else:
+                    dataset.append(kv)
 
         def on_success_cb():
-            handler.send_text("\n".join(dataset))
-            handler.send_text("ok")
+            handler.send_text("ok " + "\x00".join(dataset))
             self._macro = self._on_macro_error = self._on_macro_running = None
-            self._busy = False
+            self.busying = False
 
         def on_macro_error(error):
-            self._macro.giveup()
+            self._macro.giveup(self)
             self._macro = self._on_macro_error = self._on_macro_running = None
             handler.send_text("error %s" % " ".join(error.args))
-            self._busy = False
+            self.busying = False
 
-        self._macro = macro.CommandMacro(on_success_cb, ["X78"], on_message_cb)
+        self._macro = macro.CommandMacro(on_success_cb, ["M666L1"],
+                                         on_message_cb)
         self._on_macro_error = on_macro_error
-        self._busy = True
+        self.busying = True
         self._macro.start(self)
 
     def do_change_extruder_temperature(self, handler, sindex, stemp):
-        if not self.head_ctrl.ready:
+        if not self.toolhead.ready or not self.toolhead.sendable():
             raise HeadError(EXEC_HEAD_ERROR, RESOURCE_BUSY)
-        module = self.head_ctrl.status()["module"]
+        module = self.toolhead.status["module"]
         if module != "EXTRUDER":
             raise HeadTypeError("EXTRUDER", module)
 
-        self.head_ctrl.send_cmd("H%i%.1f" % (int(sindex), float(stemp)), self)
+        self.toolhead.ext.set_heater(int(sindex), float(stemp))
         handler.send_text("ok")
 
     def do_load_filament(self, handler, index, temp):
-        if not self.head_ctrl.ready:
+        if not self.toolhead.ready or not self.toolhead.sendable():
             raise HeadError(EXEC_HEAD_ERROR, RESOURCE_BUSY)
-        module = self.head_ctrl.status()["module"]
+        module = self.toolhead.status["module"]
         if module != "EXTRUDER":
             raise HeadTypeError("EXTRUDER", module)
 
         def on_load_done():
             handler.send_text("ok")
             self._macro = self._on_macro_error = self._on_macro_running = None
-            self._busy = False
+            self.busying = False
+
+        def on_macro_error(error):
+            self._macro.giveup(self)
+            self._macro = self._on_macro_error = self._on_macro_running = None
+            self.busying = False
+            handler.send_text("error %s" % " ".join(error.args))
 
         def on_heating_done():
             def on_message(msg):
                 try:
-                    if msg == "CTRL FILAMENT+":
+                    if msg == "FILAMENT+":
                         handler.send_text("CTRL LOADING")
-                    elif msg == "CTRL FILAMENT-":
+                    elif msg == "FILAMENT-":
                         handler.send_text("CTRL WAITING")
                 except Exception:
-                    self.send_mainboard("@HOME_BUTTON_TRIGGER\n")
+                    self.mainboard.send_cmd("@HOME_BUTTON_TRIGGER\n")
                     raise
 
             opt = Options(head="EXTRUDER")
-            cmds = (("T%i" % index),
-                    ("C3" if opt.filament_detect == "N" else "C3+"))
-            self._macro = macro.CommandMacro(on_load_done, cmds,
-                                             on_message_cb=on_message)
+            if opt.plus_extrusion:
+                self.mainboard.send_cmd("M92E145")
+            self._macro = macro.LoadFilamentMacro(on_load_done, index,
+                                                  opt.filament_detect,
+                                                  on_message)
             self._macro.start(self)
 
-        def on_macro_error(error):
-            self._macro.giveup()
-            self._macro = self._on_macro_error = self._on_macro_running = None
-            self._busy = False
-            handler.send_text("error %s" % " ".join(error.args))
-
         def on_macro_running():
-            if isinstance(self._macro, macro.WaitHeadMacro):
-                rt = self.head_ctrl.status().get("rt")
+            if isinstance(self._macro, macro.ControlHeaterMacro):
+                rt = self.toolhead.status.get("rt")
                 if rt:
                     try:
                         handler.send_text("CTRL HEATING %.1f" % rt[index])
                     except IndexError:
                         pass
 
-        self._macro = macro.WaitHeadMacro(on_heating_done,
-                                          "H%i%.1f" % (index, temp))
+        self._macro = macro.ControlHeaterMacro(on_heating_done, index, temp)
         self._on_macro_error = on_macro_error
         self._on_macro_running = on_macro_running
-        self._on_macro_error = on_macro_error
-        self._busy = True
+        self.busying = True
         self._macro.start(self)
         handler.send_text("continue")
 
     def do_unload_filament(self, handler, index, temp):
-        if not self.head_ctrl.ready:
+        if not self.toolhead.ready:
             raise HeadError(EXEC_HEAD_ERROR, RESOURCE_BUSY)
-        module = self.head_ctrl.status()["module"]
+        module = self.toolhead.status["module"]
         if module != "EXTRUDER":
             raise HeadTypeError("EXTRUDER", module)
 
         def on_load_done():
             handler.send_text("ok")
             self._macro = self._on_macro_error = self._on_macro_running = None
-            self._busy = False
+            self.busying = False
 
         def on_heating_done():
-            self._macro = macro.CommandMacro(on_load_done, ("T%i" % index,
-                                                            "C4", ))
+            self._macro = macro.UnloadFilamentMacro(on_load_done, index)
             self._macro.start(self)
 
         def on_macro_error(error):
-            self._macro.giveup()
+            self._macro.giveup(self)
             self._macro = self._on_macro_error = self._on_macro_running = None
-            self._busy = False
+            self.busying = False
             handler.send_text("error %s" % " ".join(error.args))
 
         def on_macro_running():
             if isinstance(self._macro, macro.WaitHeadMacro):
-                st = self.head_ctrl.status()
+                st = self.toolhead.status.copy()
                 handler.send_text("CTRL HEATING %.1f" % st.get("rt")[index])
             else:
                 handler.send_text("CTRL UNLOADING")
 
-        self._macro = macro.WaitHeadMacro(on_heating_done,
-                                          "H%i%.1f" % (index, temp))
+        self._macro = macro.ControlHeaterMacro(on_heating_done, index, temp)
         self._on_macro_error = on_macro_error
         self._on_macro_running = on_macro_running
-        self._on_macro_error = on_macro_error
-        self._busy = True
+        self.busying = True
         self._macro.start(self)
         handler.send_text("continue")
 
@@ -311,17 +316,20 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         def on_success_cb():
             handler.send_text("ok")
             self._macro = self._on_macro_error = self._on_macro_running = None
-            self._busy = False
+            self.busying = False
 
         def on_macro_error(error):
-            self._macro.giveup()
+            self._macro.giveup(self)
             self._macro = self._on_macro_error = self._on_macro_running = None
             handler.send_text("error %s" % " ".join(error.args))
-            self._busy = False
+            self.busying = False
 
-        self._macro = macro.CommandMacro(on_success_cb, ["G28+"])
+        cor = Preference.instance().plate_correction
+        self._macro = macro.CommandMacro(on_success_cb, [
+            "M666X%(X).4fY%(Y).4fZ%(Z).4fR%(R).4fD%(D).5fH%(H).4f" % cor,
+            "G28+"])
         self._on_macro_error = on_macro_error
-        self._busy = True
+        self.busying = True
         self._macro.start(self)
 
     def do_calibrate(self, handler, threshold, clean=False):
@@ -332,12 +340,12 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             p1, p2, p3 = self._macro.history[-1]
             handler.send_text("ok %.4f %.4f %.4f" % (p1, p2, p3))
             self._macro = self._on_macro_error = self._on_macro_running = None
-            self._busy = False
+            self.busying = False
 
         def on_macro_error(error):
-            self._macro.giveup()
+            self._macro.giveup(self)
             self._macro = self._on_macro_error = self._on_macro_running = None
-            self._busy = False
+            self.busying = False
             handler.send_text("error %s" % " ".join(error.args))
 
         def on_macro_running():
@@ -345,68 +353,111 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
                 handler.send_text("DEBUG " + self._macro.debug_logs.popleft())
             handler.send_text("CTRL POINT %i" % len(self._macro.data))
 
+        opt = Options(head="EXTRUDER")
+
         correct_at_final = True if threshold == float("inf") else False
-        self._macro = macro.CorrectionMacro(on_success_cb, clean=clean,
-                                            threshold=threshold,
-                                            correct_at_final=correct_at_final)
+
+        if self._has_zprobe is False:
+            self._has_zprobe = True
+            opt = Options(head="EXTRUDER")
+            self._macro = macro.CorrectionMacro(
+                on_success_cb, threshold=threshold, clean=clean,
+                dist=opt.zprobe_dist, correct_at_final=correct_at_final)
+        else:
+            self._macro = macro.CorrectionMacro(
+                on_success_cb, threshold=threshold, clean=clean,
+                correct_at_final=correct_at_final)
+
         self._on_macro_error = on_macro_error
         self._on_macro_running = on_macro_running
         self._on_macro_error = on_macro_error
-        self._busy = True
+        self.busying = True
         self._macro.start(self)
         handler.send_text("continue")
 
-    def do_h_correction(self, handler, h=None):
-        if h is not None:
-            if h > 245 or h < 238:
-                logger.error("H ERROR: %f" % h)
-                raise ValueError("INPUT_FAILED")
-
-            cm = Metadata()
-            cm.plate_correction = {"H": h}
-            self.main_ctrl.send_cmd("M666H%.4f" % h, self)
-            handler.send_text("continue")
-            handler.send_text("ok 0")
-            return
-
+    def do_zprobe(self, handler, h=None):
         def on_success_cb():
             while self._macro.debug_logs:
                 handler.send_text("DEBUG " + self._macro.debug_logs.popleft())
             handler.send_text("ok %.4f" % self._macro.history[0])
             self._macro = self._on_macro_error = self._on_macro_running = None
-            self._busy = False
+            self.busying = False
 
         def on_macro_error(error):
-            self._macro.giveup()
+            self._macro.giveup(self)
             self._macro = self._on_macro_error = self._on_macro_running = None
-            self._busy = False
+            self.busying = False
             handler.send_text("error %s" % " ".join(error.args))
 
         def on_macro_running():
             handler.send_text("CTRL ZPROBE")
 
-        self._macro = macro.ZprobeMacro(on_success_cb, threshold=float("inf"),
-                                        clean=False)
-        self._on_macro_error = on_macro_error
+        if self._has_zprobe is False:
+            self._has_zprobe = True
+            opt = Options(head="EXTRUDER")
+            self._macro = macro.ZprobeMacro(
+                on_success_cb, threshold=float("inf"), dist=opt.zprobe_dist)
+        else:
+            self._macro = macro.ZprobeMacro(
+                on_success_cb, threshold=float("inf"))
         self._on_macro_running = on_macro_running
         self._on_macro_error = on_macro_error
-        self._busy = True
+        self.busying = True
         self._macro.start(self)
         handler.send_text("continue")
 
+    def do_hal_diagnosis(self, handler):
+        memory_stack = []
+
+        def on_resp(ret, data):
+            try:
+                io_w, timer_w, sock = data
+                io_w.stop()
+                timer_w.stop()
+                sock.close()
+            finally:
+                handler.send_text("ok %s" % ret)
+                self.busying = False
+                while memory_stack:
+                    memory_stack.pop()
+
+        def on_io(watcher, revent):
+            ret = tools.hal_diagnosis_result(watcher.data[-1])
+            on_resp(ret, watcher.data)
+
+        def on_timeout(watcher, revent):
+            on_resp("HAL_TIMEOUT", watcher.data)
+
+        try:
+            sock = tools.begin_hal_diagnosis()
+            self.busying = True
+
+            io_watcher = self.stack.loop.io(sock, EV_READ, on_io)
+            t_watcher = self.stack.loop.timer(90, 0, on_timeout)
+            memory_stack.append(io_watcher)
+            memory_stack.append(t_watcher)
+            memory_stack.append(sock)
+
+            io_watcher.data = t_watcher.data = (io_watcher, t_watcher, sock)
+            io_watcher.start()
+            t_watcher.start()
+        except Exception:
+            logger.exception("HAL diagnosis error")
+            handler.send_text("error SUBSYSTEM_ERROR")
+
     def head_info(self, handler):
-        dataset = self.head_ctrl.info().copy()
+        dataset = self.toolhead.profile.copy()
         dataset["version"] = dataset.get("VERSION")
         dataset["module"] = dataset.get("TYPE")
         handler.send_text("ok " + dumps(dataset))
 
     def head_status(self, handler):
-        handler.send_text("ok " + dumps(self.head_ctrl.status()))
+        handler.send_text("ok " + dumps(self.toolhead.status))
 
     def update_toolhead_fw(self, handler, mimetype, sfilesize):
         def ret_callback(success):
             logger.debug("Toolhead update retuen: %s", success)
-            self.timer_watcher.start()
+            self.toolhead_updating = False
 
         filesize = int(sfilesize)
         if filesize > (1024 * 256):
@@ -415,37 +466,42 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
         t = UpdateHbFwTask(self.stack, handler, filesize)
         self.stack.enter_task(t, ret_callback)
         handler.send_text("continue")
-        self.timer_watcher.stop()
+        self.toolhead_updating = True
 
     def on_timer(self, watcher, revent):
-        self.meta.update_device_status(self.st_id, 0, "N/A",
-                                       self.handler.address)
+        metadata.update_device_status(self.st_id, 0, "N/A",
+                                      self.handler.address)
+
+        if self.toolhead_updating:
+            return
 
         try:
-            self.main_ctrl.patrol(self)
-            self.head_ctrl.patrol(self)
+            self.mainboard.patrol()
+            self.toolhead.patrol()
+
             if self._on_macro_running:
                 self._on_macro_running()
 
         except (HeadOfflineError, HeadResetError) as e:
             logger.info("%s", e)
+            tools.toolhead_standby()
             if self._macro:
-                self.on_macro_error(e)
-            self.head_ctrl.bootstrap(self)
+                self._on_macro_error(e)
+            self.toolhead.bootstrap(self.on_toolhead_ready)
 
         except RuntimeError as e:
             logger.info("%s", e)
             if self._macro:
-                self.on_macro_error(e)
+                self._on_macro_error(e)
 
         except SystemError:
-            if self._ready:
+            if self.busying:
+                self.handler.send_text("error %s" % SUBSYSTEM_ERROR)
+                self.stack.exit_task(self)
+            else:
                 logger.exception("Mainboard dead during maintain")
                 self.handler.send_text("error %s" % SUBSYSTEM_ERROR)
                 self.handler.close()
-            else:
-                self.handler.send_text("error %s" % SUBSYSTEM_ERROR)
-                self.stack.exit_task(self)
 
         except IOError:
             logger.warn("Socket IO Error")
@@ -456,24 +512,33 @@ class MaintainTask(DeviceOperationMixIn, DeviceMessageReceiverMixIn,
             self.handler.close()
 
     def clean(self):
-        self.send_mainboard("@HOME_BUTTON_TRIGGER\n")
-
-        if self.timer_watcher:
-            self.timer_watcher.stop()
-            self.timer_watcher = None
-
         try:
-            if self.main_ctrl:
-                self.main_ctrl.close(self)
-                self.main_ctrl = None
+            if self.mainboard:
+                self.mainboard.send_cmd("@HOME_BUTTON_TRIGGER\n", raw=1)
+                self.mainboard.close()
+                self.mainboard = None
         except Exception:
             logger.exception("Mainboard error while quit")
 
         try:
-            if self.head_ctrl:
-                self.head_ctrl.close(self)
-                self.head_ctrl = None
+            if self.toolhead:
+                if self.toolhead.ready:
+                    # > Check should toolhead power deplayoff
+                    if self.toolhead.module_name == "EXTRUDER":
+                        for t in self.toolhead.status.get("rt", ()):
+                            if t > 60:
+                                logger.debug("Set toolhead delay off")
+                                metadata.delay_toolhead_poweroff = b"\x01"
+                                break
+                    # ^
+                    self.toolhead.shutdown()
+                self.toolhead = None
         except Exception:
             logger.exception("Toolhead error while quit")
 
-        self.meta.update_device_status(0, 0, "N/A", "")
+        try:
+            tools.toolhead_standby()
+        except Exception:
+            logger.exception("HAL control error while quit")
+
+        metadata.update_device_status(0, 0, "N/A", "")
