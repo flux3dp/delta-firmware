@@ -211,7 +211,7 @@ class CloudService(ServiceBase):
                 if '"' in url or '\\' in url:
                     logger.error("Bad url: %r", url)
                 else:
-                    url = url % {"st_id": st_id}
+                    url = url.format({"st_id": st_id})
                     os.system("curl -s -o /dev/null \"%s\"" % url)
             except Exception:
                 logger.exception("Error while post back status, url: %s", url)
