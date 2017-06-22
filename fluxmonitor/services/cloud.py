@@ -211,7 +211,7 @@ class CloudService(ServiceBase):
                 if '"' in url or '\\' in url:
                     logger.error("Bad url: %r", url)
                 else:
-                    url = url.format({"st_id": st_id})
+                    url = url % {"st_id": st_id}
                     os.system("curl -s -o /dev/null \"%s\"" % url)
             except Exception:
                 logger.exception("Error while post back status, url: %s", url)
@@ -234,7 +234,7 @@ class CloudService(ServiceBase):
                     # update every 1200 seconds if device is idle or occupy
                     return
         elif new_st_id in (48, 64, 128):  # paused, completed, aborted
-            self.postback_status(new_st)
+            self.postback_status(new_st_id)
 
         c = self.aws_client.getMQTTConnection()
 
