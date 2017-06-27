@@ -21,6 +21,7 @@ from fluxmonitor import security, __version__
 
 from .base import ServiceBase
 
+ERROR_COUNTER_MATCH = [int(2 ** i ** 0.70) - 1 for i in range(32)]
 logger = logging.getLogger(__name__)
 
 
@@ -307,6 +308,7 @@ class CloudService(ServiceBase):
                 "status": "error", "cmd_index": cmd_index}))
 
     def begin_session(self):
+        logger.info("Begin Session")
         if not self.storage["certificate.pem"]:
             metadata.cloud_status = (False, ("INIT", ))
             self.fetch_identify()
@@ -358,10 +360,6 @@ class CloudService(ServiceBase):
         self._notify_topic = "$aws/things/%s/shadow/update" % (
             self.storage["client_id"])
         self.notify_up(conn)
-        self.timer.stop()
-        self.timer.set(2.2, 2.2)
-        self.timer.reset()
-        self.timer.start()
         metadata.cloud_hash = os.urandom(32)
         logger.info("Session ready")
 
@@ -388,14 +386,11 @@ class CloudService(ServiceBase):
                 except Exception:
                     logger.exception("AWS panic ugly bugfix failed")
 
-        self.timer.stop()
-        self.timer.set(5.0, 5.0)
-        self.timer.reset()
-        self.timer.start()
-
     def on_timer(self, watcher, revent):
         try:
             if self.config_ts != metadata.mversion:
+                self.error_counter = 0
+
                 if metadata.enable_cloud == "R":
                     logger.warning("Refetch required")
                     if self.aws_client:
@@ -414,7 +409,14 @@ class CloudService(ServiceBase):
                     self.notify_update(metadata.format_device_status,
                                        time())
                 else:
-                    self.begin_session()
+                    if self.error_counter in ERROR_COUNTER_MATCH:
+                        self.begin_session()
+                        self.error_counter = 0
+                    elif self.error_counter > ERROR_COUNTER_MATCH[-1]:
+                        self.error_counter = ERROR_COUNTER_MATCH[-2]
+                    else:
+                        self.error_counter += 1
+
             else:
                 if self.aws_client:
                     self.teardown_session()
@@ -424,30 +426,21 @@ class CloudService(ServiceBase):
             metadata.cloud_status = (False, ("SESSION",
                                              "CONNECTION_ERROR"))
             self._notify_retry_counter += 1
-            logger.debug("publishQueueDisabledException raise in notify")
+            logger.error("publishQueueDisabledException raise in notify")
             if self._notify_retry_counter > 10:
                 self.teardown_session()
-            self.set_timer_error()
+            self.error_counter += 1
         except RuntimeError as e:
             logger.error(e)
             metadata.cloud_status = (False, e.args)
-            self.set_timer_error()
+            self.error_counter += 1
         except Exception:
             logger.exception("Unhandle error")
             metadata.cloud_status = (False, ("UNKNOWN_ERROR", ))
-            self.set_timer_error()
+            self.error_counter += 1
 
     def on_shutdown(self):
         pass
-
-    def set_timer_error(self):
-        self.error_counter += 1
-        t = max(self.error_counter * 15.0, 15.0)
-        t = min(t, 600.0)
-        self.timer.stop()
-        self.timer.set(t, t)
-        self.timer.reset()
-        self.timer.start()
 
     def require_camera(self, camera_id, endpoint, token):
         payload = msgpack.packb((0x80, camera_id, endpoint, token))
