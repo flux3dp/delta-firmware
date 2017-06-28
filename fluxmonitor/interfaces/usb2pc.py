@@ -71,6 +71,8 @@
 
 from collections import deque
 from struct import Struct
+from select import select
+from errno import EAGAIN
 import logging
 import msgpack
 import random
@@ -401,6 +403,7 @@ class USBProtocol2(USBChannelManager):
         self.handler = handler
         self._local_idx = self._remote_idx = 0
         self._local_queue = deque()
+        self._resend_inhibition = False
 
     def on_message(self, bbuf, view, size):
         _, seq, chl_idx, fin = HEAD_V2_PACKER.unpack(view[:6])
@@ -414,6 +417,11 @@ class USBProtocol2(USBChannelManager):
                     if ack is not None:
                         self.on_binary_ack(ack)
                 else:
+                    if self._resend_inhibition:
+                        self._resend_inhibition = False
+                    else:
+                        for q in self._local_queue:
+                            self._raw_send(q[2])
                     break
             return
         elif chl_idx == 0xfc:
@@ -452,7 +460,13 @@ class USBProtocol2(USBChannelManager):
         l = len(buf)
         sent = 0
         while sent < l:
-            sent += self.handler.sock.send(buf[sent:sent + 512])
+            try:
+                sent += self.handler.sock.send(buf[sent:sent + 512])
+            except IOError as e:
+                if e.errno == EAGAIN:
+                    select((), (self.handler.sock.fileno(), ), (), 0.25)
+                else:
+                    raise
 
     def _send(self, chl_idx, data, fin):
         l = len(data) + 6
@@ -462,6 +476,9 @@ class USBProtocol2(USBChannelManager):
         self._local_queue.append((self._local_idx, ack, buf))
         self._local_idx = (self._local_idx + 1) % 65536
         self._raw_send(buf)
+
+        if len(self._local_queue) > 1:
+            self._resend_inhibition = True
 
     def _send_ack(self):
         if self._remote_idx == 0:
