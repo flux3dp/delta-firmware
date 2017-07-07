@@ -267,12 +267,15 @@ class SSLServerSideHandler(SSLHandler):
                         pass
                     elif len(watcher.data) == length:
                         document = hash_password(UUID_BIN, self.randbytes)
-                        self.remotekey.verify(document,
-                                              watcher.data[24:length])
-                        logger.debug("Connected with access id: %s",
-                                     self.access_id)
-                        self.sock.send(MESSAGE_OK)
-                        self.on_authorized()
+                        if self.remotekey.verify(document,
+                                                 watcher.data[24:length]):
+                            logger.debug("Connected with access id: %s",
+                                         self.access_id)
+                            self.sock.send(MESSAGE_OK)
+                            self.on_authorized()
+                        else:
+                            self.sock.send(AUTH_ERROR)
+                            self.on_error()
                     else:
                         logger.debug("SSL server handshake protocol error")
                         self.sock.send(MESSAGE_PROTOCOL_ERROR)
