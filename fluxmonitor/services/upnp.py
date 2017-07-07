@@ -210,23 +210,28 @@ class UnicasetInterface(InterfaceBaseV1):
         self.sock.bind((ipaddr, port))
 
 
+class _Meta(object):
+    pass
+
+
 def create_interface_v2(cls):
-    class InterfaceBaseV2Overlay(cls):
+    class InterfaceBaseV2Overlay(cls, _Meta):
         PROTO_VER = 2
+
+        def __init__(self, *args, **kw):
+            _Meta._notify_payload_buf = struct.pack(
+                "<4sBB16s8s",
+                "FLUX",             # Magic String
+                2,                  # Protocol Version
+                0,                  # Discover Code
+                UUID_BYTES,         # Device UUID
+                os.urandom(8)
+            )
+            super(InterfaceBaseV2Overlay, self).__init__(*args, **kw)
 
         @property
         def _notify_payload(self):
-            if not self._notify_payload_buf:
-                self._notify_payload_buf = struct.pack(
-                    "<4sBB16s8s",
-                    "FLUX",             # Magic String
-                    2,                  # Protocol Version
-                    0,                  # Discover Code
-                    UUID_BYTES,         # Device UUID
-                    os.urandom(8)
-                )
-
-            return self._notify_payload_buf + self.meta.device_status
+            return _Meta._notify_payload_buf + self.meta.device_status
 
         @property
         def _touch_payload(self):
@@ -294,15 +299,14 @@ class UpnpService(ServiceBase):
 
     def on_network_changed(self, watcher, revent):
         if self.nw_monitor.read():
-            if self.is_ipaddr_changed:
-                ipaddress = self.get_last_ipaddr()
+            ipaddress = self.get_last_ipaddr()
 
-                if self.ipaddress != ipaddress:
-                    logger.info("IP changed (%s -> %s)",
-                                self.ipaddress, ipaddress)
-                    self.ipaddress = ipaddress
-                    self.teardown_upnp_sock()
-                    self.setup_upnp_sock()
+            if self.ipaddress != ipaddress:
+                logger.info("IP changed (%s -> %s)",
+                            self.ipaddress, ipaddress)
+                self.ipaddress = ipaddress
+                self.teardown_upnp_sock()
+                self.setup_upnp_sock()
 
     def setup_upnp_sock(self):
         try:
