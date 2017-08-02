@@ -48,12 +48,6 @@ class CameraService(ServiceBase):
         if not self.live_timer.active:
             self.live_timer.start()
 
-    def on_disconnected(self, handler):
-        if not self.internal_ifce.clients and not self.public_ifce.clients:
-            self.cameras.release()
-            if self.live_timer.active:
-                self.live_timer.stop()
-
     def on_connect2cloud(self, camera_id, endpoint, token):
         if self.cloud_conn:
             self.cloud_conn.close()
@@ -72,6 +66,11 @@ class CameraService(ServiceBase):
             except Exception:
                 h.on_error()
                 logger.exception("Error at next frame in timer")
+
+        if not self.internal_ifce.clients and not self.public_ifce.clients:
+            self.cameras.release()
+            if self.live_timer.active:
+                self.live_timer.stop()
 
     def add_to_live_queue(self, handler):
         if handler not in self.live_queue:

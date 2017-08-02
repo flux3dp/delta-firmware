@@ -87,9 +87,12 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
                 # passthrough it.
                 return
             logger.exception("Mainboard connection broken")
-            if self.busying:
+            if self.mainboard.ready:
                 self.handler.send_text("error SUBSYSTEM_ERROR")
-            self.stack.exit_task(self)
+                self.handler.close()
+            else:
+                self.handler.send_text("error SUBSYSTEM_ERROR")
+                self.stack.exit_task(self)
         except (RuntimeError, SystemError) as e:
             if self._macro:
                 self._on_macro_error(e)

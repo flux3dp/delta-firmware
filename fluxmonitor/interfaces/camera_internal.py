@@ -1,7 +1,6 @@
 
 import logging
 import socket
-import os
 
 from fluxmonitor.config import CAMERA_ENDPOINT
 from .listener import UnixStreamInterface
@@ -50,8 +49,7 @@ class CameraUnixStreamHandler(MsgpackProtocol, UnixHandler):
                     ret = self.kernel.compute_cab(camera_id, cmd)
                     self.send_payload(("ok", ret))
                 elif cmd == CMD_TRANSFER_TO_PUBLIC:
-                    newfd = os.dup(self.sock.fileno())
-                    newsock = socket.fromfd(newfd, self.sock.family,
+                    newsock = socket.fromfd(self.sock.fileno(), self.sock.family,
                                             self.sock.type)
                     h = CameraUnixHandler(self.kernel, "INTERNAL",
                                           sock=newsock)
