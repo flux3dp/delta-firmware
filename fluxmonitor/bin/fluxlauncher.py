@@ -311,9 +311,12 @@ def main(params=None):
         else:
             while True:
                 try:
-                    ret = os.waitpid(pid, os.P_NOWAIT)
-                    print('start %s with %i' % (service, ret[1]))
-                    break
+                    rpid, code = os.waitpid(pid, os.P_NOWAIT)
+                    if rpid:
+                        print('start %s with %i' % (service, code))
+                        break
+                    else:
+                        continue
                 except OSError:
                     print('waiting %s start' % service)
                 sleep(0.1)
