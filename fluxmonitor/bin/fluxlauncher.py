@@ -5,6 +5,7 @@ from time import sleep
 import argparse
 import fcntl
 import errno
+import sys
 import os
 
 LOG_ROOT = '/var/db/fluxmonitord/run/'
@@ -241,6 +242,36 @@ def terminate_proc(pid):
         return
 
 
+def launch_proc(service, startup_params, pidfile, debug_mode):
+    if os.path.exists(pidfile):
+        os.unlink(pidfile)
+
+    pid = os.fork()
+    if pid == 0:
+        # child
+        entry = load_entry_point('fluxmonitor', 'console_scripts', service)
+        try:
+            if debug_mode:
+                entry(startup_params + ("--debug", ))
+            else:
+                entry(startup_params)
+        except Exception:
+            sys.exit(1)
+        sys.exit(1)
+    else:
+        while True:
+            try:
+                rpid, code = os.waitpid(pid, os.P_NOWAIT)
+                if rpid:
+                    print('start %s with %i' % (service, code))
+                    return code
+                else:
+                    continue
+            except OSError:
+                print('waiting %s start' % service)
+            sleep(0.1)
+
+
 def main(params=None):
     parser = argparse.ArgumentParser(description='flux launcher')
     parser.add_argument('--dryrun', dest='dryrun', action='store_const',
@@ -298,31 +329,10 @@ def main(params=None):
                                                        startup_params))
             continue
 
-        if os.path.exists(pidfile):
-            os.unlink(pidfile)
-
-        pid = os.fork()
-        if pid == 0:
-            # child
-            entry = load_entry_point('fluxmonitor', 'console_scripts', service)
-            if debug_mode:
-                entry(startup_params + ("--debug", ))
-            else:
-                entry(startup_params)
-
-            break
-        else:
-            while True:
-                try:
-                    rpid, code = os.waitpid(pid, os.P_NOWAIT)
-                    if rpid:
-                        print('start %s with %i' % (service, code))
-                        break
-                    else:
-                        continue
-                except OSError:
-                    print('waiting %s start' % service)
-                sleep(0.1)
+        ttl = 3
+        while launch_proc(service, startup_params, pidfile, debug_mode) > 0:
+            sleep(1)
+            ttl -= 1
 
     try_config_network(dryrun=options.dryrun)
 
