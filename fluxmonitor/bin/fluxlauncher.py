@@ -309,6 +309,12 @@ def main(params=None):
             print(repr(e))
 
     if options.update:
+        for i in range(3, 1024):
+            try:
+                os.close(i)
+            except Exception:
+                pass
+
         os.execl("/usr/bin/python2.7", "python2.7", "/usr/bin/fxlauncher.py")
 
     debug_mode = "a" in __version__
@@ -330,7 +336,7 @@ def main(params=None):
             continue
 
         ttl = 3
-        while launch_proc(service, startup_params, pidfile, debug_mode) > 0:
+        while ttl and launch_proc(service, startup_params, pidfile, debug_mode) > 0:
             sleep(1)
             ttl -= 1
 
