@@ -160,11 +160,8 @@ def deamon_entry(options, service=None):
                     server = init_service(service, options)
 
                     os.write(wfd, b"\x00")
-                except FatalException as e:
-                    os.write(wfd, chr(e.args[0]))
-                    return e.args[0]
                 except Exception as e:
-                    raise
+                    os.write(wfd, "\x01" + str(e))
                 finally:
                     os.close(wfd)
 
