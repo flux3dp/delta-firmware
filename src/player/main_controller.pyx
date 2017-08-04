@@ -277,5 +277,5 @@ cdef class MainController:
     def close(self):
         if self._flags and self._flags < FLAG_CLOSING:
             send(self.sock_fd, "@DISABLE_LINECHECK\n", 19, 0)
-            send(self.sock_fd, "X5S0\nG28+\nM84\n", 14, 0)
+            send(self.sock_fd, "X5S0\nG28+\n", 10, 0)
             self._flags |= FLAG_CLOSING;
