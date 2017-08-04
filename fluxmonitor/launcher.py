@@ -171,13 +171,13 @@ def deamon_entry(options, service=None):
             elif pid_l > 0:
                 # Second process (fork success, do nothing)
                 os.close(wfd)
-                return 0
+                sys.exit(0)
             else:
                 # Second process (fork failed)
                 sys.stderr.write('Fork failed\n')
                 os.write(wfd, b"\x10")
                 os.close(wfd)
-                return 0x10
+                sys.exit(1)
 
         elif pid_t > 0:
             # Main process
@@ -187,7 +187,7 @@ def deamon_entry(options, service=None):
 
             if flag == '':
                 sys.stderr.write("Daemon no response\n")
-                return 256
+                return 1
 
             else:
                 if len(flag) > 1:
