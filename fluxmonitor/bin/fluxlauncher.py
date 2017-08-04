@@ -37,10 +37,10 @@ SERVICE_LIST = (
      PID_FLUXUSBD),
     ("fluxupnpd", ('--log', LOG_ROOT + 'fluxupnpd.log', '--daemon'),
      PID_FLUXUPNPD),
-    ("fluxrobotd", ('--log', LOG_ROOT + 'fluxrobotd.log', '--daemon'),
-     PID_FLUXROBOTD),
     ("fluxcamerad", ('--log', LOG_ROOT + 'fluxcamerad.log', '--daemon'),
      PID_FLUXCAMERAD),
+    ("fluxrobotd", ('--log', LOG_ROOT + 'fluxrobotd.log', '--daemon'),
+     PID_FLUXROBOTD),
     ("fluxcloudd", ('--log', LOG_ROOT + 'fluxcloudd.log', '--daemon'),
      PID_FLUXCLOUDD),
 )
@@ -287,6 +287,9 @@ def main(params=None):
             debug_mode = True
         except Exception:
             pass
+
+    import fluxmonitor.interfaces.handler  # noqa
+    import fluxmonitor.interfaces.listener  # noqa
 
     for service, startup_params, pidfile in SERVICE_LIST:
         startup_params = startup_params + ("--pid", pidfile)
