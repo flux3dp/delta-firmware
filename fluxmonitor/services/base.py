@@ -6,7 +6,7 @@ import pyev
 
 
 class ServiceBase(object):
-    def __init__(self, logger, options=None):
+    def __init__(self, logger, options=None, loop=None):
         setproctitle("flux: %s" % self.__class__.__name__)
         self.self_test()
 
@@ -18,7 +18,11 @@ class ServiceBase(object):
         else:
             term_debug = False
 
-        self.loop = loop = pyev.default_loop(debug=term_debug)
+        if loop:
+            self.loop = loop
+        else:
+            self.loop = loop = pyev.default_loop(debug=term_debug)
+
         loop.data = weakref.proxy(self)
 
         self.shutdown_signal = loop.async(lambda w, r: w.loop.stop())

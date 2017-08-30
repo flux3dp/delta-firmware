@@ -66,7 +66,7 @@ class FatalExecutor(object):
 
 class Player(ServiceBase):
     def __init__(self, options):
-        super(Player, self).__init__(logger)
+        super(Player, self).__init__(logger, options, pyev.Loop(pyev.EVFLAG_NOSIGMASK))
         self.control_endpoint = options.control_endpoint
         metadata.update_device_status(1, 0, "N/A", err_label="")
 
