@@ -67,7 +67,7 @@ class FatalExecutor(object):
 class Player(ServiceBase):
     def __init__(self, options):
         super(Player, self).__init__(logger, options, pyev.Loop(pyev.EVFLAG_NOSIGMASK))
-        self.control_endpoint = options.control_endpoint
+        self.control_interface = PlayerUdpInterface(self, options.control_endpoint)
         metadata.update_device_status(1, 0, "N/A", err_label="")
 
         try:
@@ -76,8 +76,25 @@ class Player(ServiceBase):
             logger.error("Can not renice process to -5")
 
         self.timer_watcher = self.loop.timer(0.8, 0.8, self.on_timer)
+        self.task_filename = options.taskfile
 
         try:
+            place_recent_file(options.taskfile)
+        except Exception:
+            logger.exception("Can not place recent file")
+
+    def on_start(self):
+        self.setup_job()
+        self.timer_watcher.start()
+        self.executor.start()
+
+    def on_shutdown(self):
+        self.executor.close()
+        self.control_interface.close()
+
+    def setup_job(self, restart=False):
+        try:
+            metadata.update_device_status(1, 0, "N/A", err_label="")
             tools.toolhead_power_off()
 
             m_sock = create_mainboard_socket()
@@ -95,14 +112,10 @@ class Player(ServiceBase):
             return
 
         try:
-            taskfile = open(options.taskfile, "rb")
-            taskloader = TaskLoader(taskfile)
+            metadata.update_device_status(1, 0, "N/A", err_label="")
+            taskfile = open(self.task_filename, "rb")
+            taskloader = TaskLoader(taskfile, not restart)
             exec_opt = Options(taskloader)
-
-            try:
-                place_recent_file(options.taskfile)
-            except Exception:
-                logger.exception("Can not place recent file")
 
         except (IOError, OSError, AssertionError):
             logger.exception("Open task file error")
@@ -126,25 +139,32 @@ class Player(ServiceBase):
         self.executor = FcodeExecutor(m_sock, t_sock, taskloader, exec_opt,
                                       timecost=timecost, traveldist=traveldist)
 
-    def on_start(self):
-        self.control_interface = PlayerUdpInterface(self,
-                                                    self.control_endpoint)
-        self.timer_watcher.start()
-        self.executor.start()
-
-    def on_shutdown(self):
-        self.executor.close()
-        self.control_interface.close()
+    def teardown_job(self):
+        self.main_watcher.data.close()
+        self.head_watcher.data.close()
+        self.main_watcher.stop()
+        self.head_watcher.stop()
+        self.main_watcher = self.head_watcher = None
 
     def on_mainboard_recv(self, watcher, revent):
         try:
             self.executor.on_mainboard_recv()
+        except IOError:
+            if self.executor.closed:
+                watcher.stop()
+            else:
+                logger.exception("Unhandle mainboard recv error")
         except Exception:
             logger.exception("Unhandle mainboard recv error")
 
     def on_toolhead_recv(self, watcher, revent):
         try:
             self.executor.on_toolhead_recv()
+        except IOError:
+            if self.executor.closed:
+                watcher.stop()
+            else:
+                logger.exception("Unhandle toolhead recv error")
         except Exception:
             logger.exception("Unhandle toolhead recv error")
 
@@ -209,6 +229,17 @@ class Player(ServiceBase):
                         handler.sendto("error RESOURCE_BUSY", endpoint)
                 except (ValueError, IndexError):
                     handler.sendto("error BAD_PARAMS", endpoint)
+            elif cmd == "RESTART":
+                if self.executor.status_id in (64, 128):
+                    handler.sendto("ok", endpoint)
+                    if self.timer_watcher.active:
+                        self.teardown_job()
+                    else:
+                        self.timer_watcher.start()
+                    self.setup_job()
+                    self.executor.start()
+                else:
+                    handler.sendto("error RESOURCE_BUSY", endpoint)
             elif cmd == "QUIT":
                 if self.executor.status_id in (64, 128):
                     handler.sendto("ok", endpoint)
@@ -223,6 +254,7 @@ class Player(ServiceBase):
     def on_timer(self, watcher, revent):
         try:
             if self.executor.closed:
+                self.teardown_job()
                 watcher.stop()
             else:
                 self.executor.on_loop()

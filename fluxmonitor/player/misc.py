@@ -69,7 +69,7 @@ class TaskLoader(Process):
         loader.metadata - Dict store metadata in file
     """
 
-    def _check_task(self, task_file):
+    def _load(self, task_file, crc_check):
         t = task_file
 
         # Check header
@@ -83,29 +83,31 @@ class TaskLoader(Process):
 
         # Check script
         script_size = UINT_PACKER.unpack(t.read(4))[0]
-        script_crc32 = 0
-        f_ptr = 0
-
         self.script_ptr = t.tell()
         self.script_size = script_size
 
-        while f_ptr < script_size:
-            buf = t.read(min(script_size - f_ptr, 4096))
-            if buf:
-                f_ptr += len(buf)
-                script_crc32 = crc32(buf, script_crc32)
-            else:
-                raise RuntimeError(FILE_BROKEN, "LENGTH_ERROR")
+        if crc_check:
+            script_crc32 = 0
+            f_ptr = 0
+            while f_ptr < script_size:
+                buf = t.read(min(script_size - f_ptr, 4096))
+                if buf:
+                    f_ptr += len(buf)
+                    script_crc32 = crc32(buf, script_crc32)
+                else:
+                    raise RuntimeError(FILE_BROKEN, "LENGTH_ERROR")
 
-        req_script_crc32 = INT_PACKER.unpack(t.read(4))[0]
-        if req_script_crc32 != script_crc32:
-            raise RuntimeError(FILE_BROKEN, "SCRIPT_CRC32")
+            req_script_crc32 = INT_PACKER.unpack(t.read(4))[0]
+            if req_script_crc32 != script_crc32:
+                raise RuntimeError(FILE_BROKEN, "SCRIPT_CRC32")
+        else:
+            t.seek(script_size + 4, 1)
 
         # Check meta
         meta_size = UINT_PACKER.unpack(t.read(4))[0]
         meta_buf = t.read(meta_size)
         req_metadata_crc32 = INT_PACKER.unpack(t.read(4))[0]
-        if req_metadata_crc32 != crc32(meta_buf, 0):
+        if crc_check and req_metadata_crc32 != crc32(meta_buf, 0):
             raise RuntimeError(FILE_BROKEN, "METADATA_CRC32")
 
         metadata = {}
@@ -117,8 +119,8 @@ class TaskLoader(Process):
 
         t.seek(self.script_ptr)
 
-    def __init__(self, task_file):
-        self._check_task(task_file)
+    def __init__(self, task_file, crc_check=True):
+        self._load(task_file, crc_check)
         self.task_file = task_file
 
         self.io_in, self.io_out = socket.socketpair()
