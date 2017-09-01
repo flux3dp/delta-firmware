@@ -244,7 +244,7 @@ def main():
                 raise RuntimeError("Install %s failed" % package)
 
         for package in extra_eggs_tasks:
-            cmd = "easy_install %s" % package
+            cmd = "easy_install -N %s" % package
             logger.debug("EXEC '%s'", cmd)
             if options.dryrun:
                 eggpackage = zipimporter(package)
@@ -253,7 +253,7 @@ def main():
                 if os.system(cmd) > 0:
                     raise RuntimeError("Install %s failed" % package)
 
-        cmd = "easy_install %s" % egg_task
+        cmd = "easy_install -N %s" % egg_task
         logger.debug("EXEC '%s'", cmd)
         if options.dryrun:
             eggpackage = zipimporter(egg_task)
@@ -261,7 +261,7 @@ def main():
             if fxmodule.__version__.startswith("0"):
                 raise RuntimeError("firmware too old to be processed.")
         else:
-            cmd = "easy_install %s" % egg_task
+            cmd = "easy_install -N %s" % egg_task
         if os.system(cmd) > 0:
             raise RuntimeError("Install %s failed" % egg_task)
 

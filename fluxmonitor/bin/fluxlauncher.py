@@ -161,7 +161,7 @@ def init_rapi():
         os.mkdir("/var/db/fluxmonitord/run")
 
     if not os.path.exists("/var/db/fluxmonitord/boot_ver") or \
-            open("/var/db/fluxmonitord/boot_ver").read() != "4":
+            open("/var/db/fluxmonitord/boot_ver").read() != "5":
 
         udev = resource_string("fluxmonitor", "data/rapi/udev-99-flux.rules")
         with open("/etc/udev/rules.d/99-flux.rules", "w") as f:
