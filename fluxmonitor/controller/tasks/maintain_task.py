@@ -155,6 +155,9 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
         elif cmd == "load_filament":
             self.do_load_filament(handler, int(args[0]), float(args[1]))
 
+        elif cmd == "load_flexible_filament":
+            self.do_load_filament(handler, int(args[0]), float(args[1]), True)
+
         elif cmd == "unload_filament":
             self.do_unload_filament(handler, int(args[0]), float(args[1]))
 
@@ -226,7 +229,7 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
         self.toolhead.ext.set_heater(int(sindex), float(stemp))
         handler.send_text("ok")
 
-    def do_load_filament(self, handler, index, temp):
+    def do_load_filament(self, handler, index, temp, disable_accelerate=False):
         if not self.toolhead.ready or not self.toolhead.sendable():
             raise HeadError(EXEC_HEAD_ERROR, RESOURCE_BUSY)
         module = self.toolhead.status["module"]
@@ -260,6 +263,7 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
                 self.mainboard.send_cmd("M92E145")
             self._macro = macro.LoadFilamentMacro(on_load_done, index,
                                                   opt.filament_detect,
+                                                  disable_accelerate,
                                                   on_message)
             self._macro.start(self)
 

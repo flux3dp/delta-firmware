@@ -5,9 +5,11 @@ from .command import CommandMacro
 class LoadFilamentMacro(CommandMacro):
     name = "LOAD_FILAMENT"
 
-    def __init__(self, success_cb, index, detect, on_message=None):
-        CommandMacro.__init__(self, success_cb, ("T%i" % index,
-                                                 "C3+" if detect else "C3"),
+    def __init__(self, success_cb, index, detect, disable_accelerate=False, on_message=None):
+        cmd = "C5" if "disable_accelerate" else "C3"
+        if detect:
+            cmd += "+"
+        CommandMacro.__init__(self, success_cb, ("T%i" % index, cmd),
                               on_message)
 
     def giveup(self, k):
