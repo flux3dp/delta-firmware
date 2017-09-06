@@ -434,6 +434,8 @@ class CloudService(ServiceBase):
             logger.error(e)
             metadata.cloud_status = (False, e.args)
             self.error_counter += 1
+
+            self.diagnosis()
         except Exception:
             logger.exception("Unhandle error")
             metadata.cloud_status = (False, ("UNKNOWN_ERROR", ))
@@ -463,3 +465,33 @@ class CloudService(ServiceBase):
             logger.debug("Require robot return %s",
                          msgpack.unpackb(s.recv(4096)))
         s.close()
+
+    def diagnosis(self):
+        from fluxmonitor.misc._process import Process
+        from time import time as epoch
+        try:
+            ntp_st, ntp_log = Process.fast_exec(["service", "ntp", "status"])
+            if ntp_st:
+                logger.error("ntp may not running\n%s", ntp_log)
+                os.system("service ntp restart")
+            else:
+                logger.error("ntp log:\n%s", ntp_log)
+
+            actions = 0
+            if epoch() < 1504674640:
+                logger.error("System time error, will try fix.")
+                actions |= 1
+
+            if actions & 1:
+                if os.system("ntp-wait -s 1 -n 1"):
+                    logger.error("ntp sync error")
+                    actions &= 2
+                else:
+                    if epoch() < 1504674640:
+                        logger.error("System time write back failed")
+
+            if actions & 2:
+                if os.system("getent hosts 0.debian.pool.ntp.org"):
+                    logger.error("DNS error")
+        except Exception:
+            logger.exception("cloud diagnosis error")
