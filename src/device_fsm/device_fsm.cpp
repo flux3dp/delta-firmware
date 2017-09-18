@@ -188,7 +188,7 @@ inline int DeviceController::G1(command_cb_t callback, void* data, unsigned shor
 
   strcpy(_proc_buf, "G1 ");
 
-  if(!(isnan(fsm.x) || isnan(fsm.y) || isnan(fsm.z))) {
+  if(!(isnan(fsm.x) && isnan(fsm.y) && isnan(fsm.z))) {
     dx = isnan(x) ? 0 : (x - fsm.x);
     dy = isnan(y) ? 0 : (y - fsm.y);
     dz = isnan(z) ? 0 : (z - fsm.z);
