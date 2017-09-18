@@ -59,7 +59,7 @@ class CloudService(ServiceBase):
             self.cloud_netloc = options.cloud
 
     def on_start(self):
-        logger.info("Cloud service started")
+        logger.info("Cloud service started (version=%s)", __version__)
         if security.get_serial() == "XXXXXXXXXX":
             logger.error("Serial invalid, cloud deamon will be silenced.")
         else:
@@ -478,7 +478,7 @@ class CloudService(ServiceBase):
                 logger.error("ntp log:\n%s", ntp_log)
 
             actions = 0
-            if epoch() < 1504674640:
+            if epoch() < 1505720271:
                 logger.error("System time error, will try fix.")
                 actions |= 1
 
@@ -487,7 +487,7 @@ class CloudService(ServiceBase):
                     logger.error("ntp sync error")
                     actions &= 2
                 else:
-                    if epoch() < 1504674640:
+                    if epoch() < 1505720271:
                         logger.error("System time write back failed")
 
             if actions & 2:
