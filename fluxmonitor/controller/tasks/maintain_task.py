@@ -18,12 +18,14 @@ from fluxmonitor.err_codes import (EXEC_HEAD_ERROR,
                                    TOO_LARGE,
                                    UNKNOWN_COMMAND)
 from fluxmonitor.storage import Preference, metadata
+from fluxmonitor.config import MAINTAIN_MOVEMENT_PARAMS as MOVE_COMMAND
 from fluxmonitor.player import macro
 from fluxmonitor.hal import tools
 
 from .base import (CommandMixIn,
                    DeviceOperationMixIn)
 from .update_hbfw_task import UpdateHbFwTask
+
 
 logger = logging.getLogger(__name__)
 
@@ -134,6 +136,13 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
         if cmd == "home":
             self.do_home(handler)
 
+        elif cmd == "move":
+            try:
+                opt = {k: float(v) for k, v in (arg.split(':', 1) for arg in args)}
+                self.do_move(handler, **opt)
+            except (ValueError, IndexError):
+                raise RuntimeError(UNKNOWN_COMMAND)
+
         elif cmd == "calibration" or cmd == "calibrate":
             try:
                 threshold = float(args[0])
@@ -228,6 +237,29 @@ class MaintainTask(DeviceOperationMixIn, CommandMixIn):
 
         self.toolhead.ext.set_heater(int(sindex), float(stemp))
         handler.send_text("ok")
+
+    def do_move(self, handler, **kw):
+        def on_success_cb():
+            handler.send_text("ok")
+            self._macro = self._on_macro_error = self._on_macro_running = None
+            self.busying = False
+
+        def on_macro_error(error):
+            self._macro.giveup(self)
+            self._macro = self._on_macro_error = self._on_macro_running = None
+            handler.send_text("error %s" % " ".join(error.args))
+            self.busying = False
+
+        subcmd = ''.join(MOVE_COMMAND[k] % v for k, v in kw.items() if k in MOVE_COMMAND)
+        if 'E' in subcmd:
+            cmds = ['T2', 'G92E0', 'G1' + subcmd, 'T0']
+        else:
+            cmds = ['G1' + subcmd]
+
+        self._macro = macro.CommandMacro(on_success_cb, cmds)
+        self._on_macro_error = on_macro_error
+        self._macro.start(self)
+        self.busying = True
 
     def do_load_filament(self, handler, index, temp, disable_accelerate=False):
         if not self.toolhead.ready or not self.toolhead.sendable():
