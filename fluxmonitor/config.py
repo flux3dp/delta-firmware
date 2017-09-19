@@ -53,6 +53,14 @@ PLAY_SWAP = "/tmp/autoplay.swap.fc"
 FIRMWARE_UPDATE_PATH = "/var/autoupdate.fxfw"
 USERSPACE = None
 
+MAINTAIN_MOVEMENT_PARAMS = {
+    'x': 'X%.2f',
+    'y': 'Y%.2f',
+    'z': 'Z%.2f',
+    'e': 'E%.2f',
+    'f': 'F%i',
+}
+
 
 def load_model_profile():
     from fluxmonitor.halprofile import PROFILE
