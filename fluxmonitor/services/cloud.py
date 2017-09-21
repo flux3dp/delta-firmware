@@ -58,6 +58,8 @@ class CloudService(ServiceBase):
         else:
             self.cloud_netloc = options.cloud
 
+        self.diagnosis()
+
     def on_start(self):
         logger.info("Cloud service started (version=%s)", __version__)
         if security.get_serial() == "XXXXXXXXXX":
@@ -408,10 +410,11 @@ class CloudService(ServiceBase):
                 if self.aws_client:
                     self.notify_update(metadata.format_device_status,
                                        time())
+                    self.error_counter = max(self.error_counter - 1, 0)
                 else:
                     if self.error_counter in ERROR_COUNTER_MATCH:
                         self.begin_session()
-                        self.error_counter = 0
+                        self.error_counter = max(self.error_counter - 1, 0)
                     elif self.error_counter > ERROR_COUNTER_MATCH[-1]:
                         self.error_counter = ERROR_COUNTER_MATCH[-2]
                     else:
@@ -426,7 +429,7 @@ class CloudService(ServiceBase):
             metadata.cloud_status = (False, ("SESSION",
                                              "CONNECTION_ERROR"))
             self._notify_retry_counter += 1
-            logger.error("publishQueueDisabledException raise in notify")
+            logger.exception("publishQueueDisabledException raise in notify")
             if self._notify_retry_counter > 10:
                 self.teardown_session()
             self.error_counter += 1
@@ -469,29 +472,30 @@ class CloudService(ServiceBase):
     def diagnosis(self):
         from fluxmonitor.misc._process import Process
         from time import time as epoch
+        logger.info("Diagnosis...")
+
         try:
-            ntp_st, ntp_log = Process.fast_exec(["service", "ntp", "status"])
-            if ntp_st:
-                logger.error("ntp may not running\n%s", ntp_log)
-                os.system("service ntp restart")
-            else:
-                logger.error("ntp log:\n%s", ntp_log)
+            logger.info(
+                'ntp dns testing...\n%s\n%s',
+                Process.call_with_output('getent', 'hosts', '0.debian.pool.ntp.org'),
+                Process.call_with_output('getent', 'hosts', '1.debian.pool.ntp.org'))
+        except Exception:
+            logger.exception('ntp dns testing failed')
 
-            actions = 0
+        try:
+            logger.info(
+                'ntp service status...\n%s',
+                Process.call_with_output('service', 'ntp', 'status'))
+        except Exception:
+            logger.exception('fetch ntp service status failed')
+
+        try:
             if epoch() < 1505720271:
-                logger.error("System time error, will try fix.")
-                actions |= 1
+                logger.error(
+                    "System time error, fixing...\n%s",
+                    Process.call_with_output('ntp-wait', '-s', '1', '-n', '1'))
+                if epoch() < 1505720271:
+                    logger.error("System time sync failed")
 
-            if actions & 1:
-                if os.system("ntp-wait -s 1 -n 1"):
-                    logger.error("ntp sync error")
-                    actions &= 2
-                else:
-                    if epoch() < 1505720271:
-                        logger.error("System time write back failed")
-
-            if actions & 2:
-                if os.system("getent hosts 0.debian.pool.ntp.org"):
-                    logger.error("DNS error")
         except Exception:
             logger.exception("cloud diagnosis error")
