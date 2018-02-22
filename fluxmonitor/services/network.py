@@ -162,9 +162,6 @@ class NetworkService(ServiceBase, NetworkMonitorMixIn):
         self.timer_watcher = self.loop.timer(0, 5, self.on_timer, (5, None))
         self.timer_watcher.start()
 
-        # A hack which can be removed for deprecation of this firmware branch
-        os.system("systemctl enable ssh.service")
-        os.system("systemctl start ssh.service")
 
     def on_start(self):
         self.nms = nms = NetworkManageSocket(self)
