@@ -257,6 +257,7 @@ class NetworkService(ServiceBase, NetworkMonitorMixIn):
 
             if is_network_ready(self.nic_status):
                 self.cm.wifi_status |= 64
+                self.cm.ip_cache = ",".join(self._network_notifier.get_ipaddresses("wlan0"))
             else:
                 self.cm.wifi_status &= ~64
         else:

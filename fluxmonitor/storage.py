@@ -364,9 +364,11 @@ class Metadata(object):
         buf = self.device_status
         timestamp, st_id, progress, head_type, err_label = \
             struct.unpack("dif16s32s", buf[:64])
+        ip_addr = self.ip_cache
         return {"timestamp": timestamp, "st_id": st_id, "progress": progress,
                 "head_type": head_type.rstrip('\x00'),
-                "err_label": err_label.rstrip('\x00')}
+                "err_label": err_label.rstrip('\x00'),
+                "ip_addr": ip_addr}
 
     def update_device_status(self, st_id, progress, head_type,
                              err_label=""):
@@ -377,6 +379,15 @@ class Metadata(object):
         buf = struct.pack("dif16s32s", time(), st_id, progress, head_type,
                           err_label[:32])
         self.shm.write(buf, 3584)
+
+    @property
+    def ip_cache(self):
+        return self.shm.read(64, 3700).decode()
+
+    @ip_cache.setter
+    def ip_cache(self, val):
+        self.shm.write(val[:63], 3700)
+    
 
 
 class UserSpace(object):
