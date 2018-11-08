@@ -44,7 +44,10 @@ def get_model_id(rescue=False):
             return "delta-1p"
         else:
             get_machine_sn(<unsigned char**>&snbuf)
+            py_sn = <bytes> snbuf
             if snbuf[0] == 0 or snbuf[0] == 0xff:
+                return "delta-1p"
+            elif py_sn[:4] == "FDP1":
                 return "delta-1p"
             else:
                 return FLUX_MODEL_ID
