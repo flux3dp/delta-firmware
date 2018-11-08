@@ -53,10 +53,7 @@ class UartHal(UartHalBase, BaseOnSerial):
             hwprofile = GPIOUtils.get_hardware_profile()
 
         self.hwprofile = hwprofile
-        if get_model_id() == MODEL_D1P:
-            self.gpio = PinMappingV1(self.meta)
-        else:
-            self.gpio = PinMappingV0(self.meta)
+        self.gpio = PinMappingV1(self.meta)
 
         self.btn_monitor = FrontButtonMonitor(self.gpio,
                                               self.kernel.loop,

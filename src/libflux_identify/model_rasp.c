@@ -201,7 +201,7 @@ int get_machine_sn(unsigned char *sn_buf[10]) {
 const char* get_machine_model() {
     if(spi_loaded == 0) {
         if(load_spi() > 1) {
-            return 1;
+            return "";
         }
     }
 
