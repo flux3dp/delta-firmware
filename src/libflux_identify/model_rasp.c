@@ -203,6 +203,8 @@ const char* get_machine_model() {
         if(load_spi() > 1) {
             return 1;
         }
+    } else {
+        return "";
     }
 
     return model_cache;
