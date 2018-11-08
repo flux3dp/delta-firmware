@@ -194,7 +194,7 @@ int get_machine_sn(unsigned char *sn_buf[10]) {
         }
     }
 
-    memcpy(sn_buf, sn_cache, 16);
+    memcpy(sn_buf, sn_cache, 10);
     return 0;
 }
 
