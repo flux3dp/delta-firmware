@@ -121,8 +121,6 @@ def get_install_requires():
         sys.stderr.write("\nlibev comes with wrong version it should be 4.X\n")
         sys.exit(1)
     if libev.ev_version_minor() >= 15:
-        packages += ['pyev']
-    else:
         packages += ['pyev==0.8.1-4.04']
 
     return packages

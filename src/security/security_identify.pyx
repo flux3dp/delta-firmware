@@ -40,8 +40,15 @@ def get_serial_number(rescue=False):
 def get_model_id(rescue=False):
     cdef unsigned char[10] snbuf
     if strcmp("delta-1", FLUX_MODEL_ID) == 0:
-        # TODO: FIX WRONG OVERWRITE
-        return "delta-1p"
+        if get_machine_model()[0] == 0 and get_machine_model()[1] == 1:
+            return "delta-1p"
+        else:
+            get_machine_sn(<unsigned char**>&snbuf);
+            delta2018 = snbuf[0] == "F" and snbuf[1] == "D" and snbuf[2] == "1" and snbuf[1] == "P"
+            if snbuf[0] == 0 or snbuf[0] == 0xff or delta2018:
+                return "delta-1p"
+            else:
+                return FLUX_MODEL_ID
     else:
         return FLUX_MODEL_ID
 
