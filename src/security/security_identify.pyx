@@ -44,7 +44,7 @@ def get_model_id(rescue=False):
             return "delta-1p"
         else:
             get_machine_sn(<unsigned char**>&snbuf);
-            delta2018 = snbuf[0] == "F" and snbuf[1] == "D" and snbuf[2] == "1" and snbuf[1] == "P"
+            delta2018 = snbuf[0] == "F" and snbuf[1] == "D" and snbuf[2] == "P" and snbuf[1] == "1"
             if snbuf[0] == 0 or snbuf[0] == 0xff or delta2018:
                 return "delta-1p"
             else:

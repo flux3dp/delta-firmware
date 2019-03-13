@@ -1799,6 +1799,7 @@ static const char __pyx_k_error[] = "error";
 static const char __pyx_k_flags[] = "flags";
 static const char __pyx_k_range[] = "range";
 static const char __pyx_k_shape[] = "shape";
+static const char __pyx_k_snbuf[] = "snbuf";
 static const char __pyx_k_start[] = "start";
 static const char __pyx_k_encode[] = "encode";
 static const char __pyx_k_format[] = "format";
@@ -1827,6 +1828,7 @@ static const char __pyx_k_itemsize[] = "itemsize";
 static const char __pyx_k_pyx_type[] = "__pyx_type";
 static const char __pyx_k_setstate[] = "__setstate__";
 static const char __pyx_k_TypeError[] = "TypeError";
+static const char __pyx_k_delta2018[] = "delta2018";
 static const char __pyx_k_enumerate[] = "enumerate";
 static const char __pyx_k_keylength[] = "keylength";
 static const char __pyx_k_plaintext[] = "plaintext";
@@ -1943,6 +1945,7 @@ static PyObject *__pyx_kp_s_contiguous_and_direct;
 static PyObject *__pyx_kp_s_contiguous_and_indirect;
 static PyObject *__pyx_n_s_decrypt;
 static PyObject *__pyx_n_s_decrypt_into;
+static PyObject *__pyx_n_s_delta2018;
 static PyObject *__pyx_kp_s_delta_1p;
 static PyObject *__pyx_n_s_der;
 static PyObject *__pyx_n_s_dict;
@@ -2020,6 +2023,7 @@ static PyObject *__pyx_n_s_sig;
 static PyObject *__pyx_n_s_sign;
 static PyObject *__pyx_n_s_sign_sha256;
 static PyObject *__pyx_n_s_size;
+static PyObject *__pyx_n_s_snbuf;
 static PyObject *__pyx_kp_s_src_security_security_identify_p;
 static PyObject *__pyx_kp_s_src_security_security_pyx;
 static PyObject *__pyx_n_s_ssid;
@@ -6735,8 +6739,8 @@ static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_2get_serial_number(
  * 
  * 
  * def get_model_id(rescue=False):             # <<<<<<<<<<<<<<
- *     return "delta-1p"
  *     cdef unsigned char[10] snbuf
+ *     if strcmp("delta-1", FLUX_MODEL_ID) == 0:
  */
 
 /* Python wrapper */
@@ -6797,32 +6801,222 @@ static PyObject *__pyx_pw_11fluxmonitor_8security_9_security_5get_model_id(PyObj
 }
 
 static PyObject *__pyx_pf_11fluxmonitor_8security_9_security_4get_model_id(CYTHON_UNUSED PyObject *__pyx_self, CYTHON_UNUSED PyObject *__pyx_v_rescue) {
+  unsigned char __pyx_v_snbuf[10];
+  PyObject *__pyx_v_delta2018 = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  int __pyx_t_2;
+  int __pyx_t_3;
+  PyObject *__pyx_t_4 = NULL;
+  PyObject *__pyx_t_5 = NULL;
   __Pyx_RefNannySetupContext("get_model_id", 0);
 
-  /* "src/security/security_identify.pyx":41
- * 
+  /* "src/security/security_identify.pyx":42
  * def get_model_id(rescue=False):
- *     return "delta-1p"             # <<<<<<<<<<<<<<
+ *     cdef unsigned char[10] snbuf
+ *     if strcmp("delta-1", FLUX_MODEL_ID) == 0:             # <<<<<<<<<<<<<<
+ *         if get_machine_model()[0] == 0 and get_machine_model()[1] == 1:
+ *             return "delta-1p"
+ */
+  __pyx_t_1 = ((strcmp(((char const *)"delta-1"), FLUX_MODEL_ID) == 0) != 0);
+  if (__pyx_t_1) {
+
+    /* "src/security/security_identify.pyx":43
  *     cdef unsigned char[10] snbuf
  *     if strcmp("delta-1", FLUX_MODEL_ID) == 0:
+ *         if get_machine_model()[0] == 0 and get_machine_model()[1] == 1:             # <<<<<<<<<<<<<<
+ *             return "delta-1p"
+ *         else:
  */
-  __Pyx_XDECREF(__pyx_r);
-  __Pyx_INCREF(__pyx_kp_s_delta_1p);
-  __pyx_r = __pyx_kp_s_delta_1p;
-  goto __pyx_L0;
+    __pyx_t_2 = (((get_machine_model()[0]) == 0) != 0);
+    if (__pyx_t_2) {
+    } else {
+      __pyx_t_1 = __pyx_t_2;
+      goto __pyx_L5_bool_binop_done;
+    }
+    __pyx_t_2 = (((get_machine_model()[1]) == 1) != 0);
+    __pyx_t_1 = __pyx_t_2;
+    __pyx_L5_bool_binop_done:;
+    if (__pyx_t_1) {
+
+      /* "src/security/security_identify.pyx":44
+ *     if strcmp("delta-1", FLUX_MODEL_ID) == 0:
+ *         if get_machine_model()[0] == 0 and get_machine_model()[1] == 1:
+ *             return "delta-1p"             # <<<<<<<<<<<<<<
+ *         else:
+ *             get_machine_sn(<unsigned char**>&snbuf);
+ */
+      __Pyx_XDECREF(__pyx_r);
+      __Pyx_INCREF(__pyx_kp_s_delta_1p);
+      __pyx_r = __pyx_kp_s_delta_1p;
+      goto __pyx_L0;
+
+      /* "src/security/security_identify.pyx":43
+ *     cdef unsigned char[10] snbuf
+ *     if strcmp("delta-1", FLUX_MODEL_ID) == 0:
+ *         if get_machine_model()[0] == 0 and get_machine_model()[1] == 1:             # <<<<<<<<<<<<<<
+ *             return "delta-1p"
+ *         else:
+ */
+    }
+
+    /* "src/security/security_identify.pyx":46
+ *             return "delta-1p"
+ *         else:
+ *             get_machine_sn(<unsigned char**>&snbuf);             # <<<<<<<<<<<<<<
+ *             delta2018 = snbuf[0] == "F" and snbuf[1] == "D" and snbuf[2] == "P" and snbuf[1] == "1"
+ *             if snbuf[0] == 0 or snbuf[0] == 0xff or delta2018:
+ */
+    /*else*/ {
+      __pyx_t_3 = get_machine_sn(((unsigned char **)(&__pyx_v_snbuf))); if (unlikely(__pyx_t_3 == ((int)-1))) __PYX_ERR(2, 46, __pyx_L1_error)
+
+      /* "src/security/security_identify.pyx":47
+ *         else:
+ *             get_machine_sn(<unsigned char**>&snbuf);
+ *             delta2018 = snbuf[0] == "F" and snbuf[1] == "D" and snbuf[2] == "P" and snbuf[1] == "1"             # <<<<<<<<<<<<<<
+ *             if snbuf[0] == 0 or snbuf[0] == 0xff or delta2018:
+ *                 return "delta-1p"
+ */
+      __pyx_t_1 = ((__pyx_v_snbuf[0]) == 'F');
+      if (__pyx_t_1) {
+      } else {
+        __pyx_t_5 = __Pyx_PyBool_FromLong(__pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(2, 47, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_5);
+        __pyx_t_4 = __pyx_t_5;
+        __pyx_t_5 = 0;
+        goto __pyx_L7_bool_binop_done;
+      }
+      __pyx_t_1 = ((__pyx_v_snbuf[1]) == 'D');
+      if (__pyx_t_1) {
+      } else {
+        __pyx_t_5 = __Pyx_PyBool_FromLong(__pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(2, 47, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_5);
+        __pyx_t_4 = __pyx_t_5;
+        __pyx_t_5 = 0;
+        goto __pyx_L7_bool_binop_done;
+      }
+      __pyx_t_1 = ((__pyx_v_snbuf[2]) == 'P');
+      if (__pyx_t_1) {
+      } else {
+        __pyx_t_5 = __Pyx_PyBool_FromLong(__pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(2, 47, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_5);
+        __pyx_t_4 = __pyx_t_5;
+        __pyx_t_5 = 0;
+        goto __pyx_L7_bool_binop_done;
+      }
+      __pyx_t_1 = ((__pyx_v_snbuf[1]) == '1');
+      __pyx_t_5 = __Pyx_PyBool_FromLong(__pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(2, 47, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_5);
+      __pyx_t_4 = __pyx_t_5;
+      __pyx_t_5 = 0;
+      __pyx_L7_bool_binop_done:;
+      __pyx_v_delta2018 = __pyx_t_4;
+      __pyx_t_4 = 0;
+
+      /* "src/security/security_identify.pyx":48
+ *             get_machine_sn(<unsigned char**>&snbuf);
+ *             delta2018 = snbuf[0] == "F" and snbuf[1] == "D" and snbuf[2] == "P" and snbuf[1] == "1"
+ *             if snbuf[0] == 0 or snbuf[0] == 0xff or delta2018:             # <<<<<<<<<<<<<<
+ *                 return "delta-1p"
+ *             else:
+ */
+      __pyx_t_2 = (((__pyx_v_snbuf[0]) == 0) != 0);
+      if (!__pyx_t_2) {
+      } else {
+        __pyx_t_1 = __pyx_t_2;
+        goto __pyx_L12_bool_binop_done;
+      }
+      __pyx_t_2 = (((__pyx_v_snbuf[0]) == 0xff) != 0);
+      if (!__pyx_t_2) {
+      } else {
+        __pyx_t_1 = __pyx_t_2;
+        goto __pyx_L12_bool_binop_done;
+      }
+      __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_delta2018); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(2, 48, __pyx_L1_error)
+      __pyx_t_1 = __pyx_t_2;
+      __pyx_L12_bool_binop_done:;
+      if (__pyx_t_1) {
+
+        /* "src/security/security_identify.pyx":49
+ *             delta2018 = snbuf[0] == "F" and snbuf[1] == "D" and snbuf[2] == "P" and snbuf[1] == "1"
+ *             if snbuf[0] == 0 or snbuf[0] == 0xff or delta2018:
+ *                 return "delta-1p"             # <<<<<<<<<<<<<<
+ *             else:
+ *                 return FLUX_MODEL_ID
+ */
+        __Pyx_XDECREF(__pyx_r);
+        __Pyx_INCREF(__pyx_kp_s_delta_1p);
+        __pyx_r = __pyx_kp_s_delta_1p;
+        goto __pyx_L0;
+
+        /* "src/security/security_identify.pyx":48
+ *             get_machine_sn(<unsigned char**>&snbuf);
+ *             delta2018 = snbuf[0] == "F" and snbuf[1] == "D" and snbuf[2] == "P" and snbuf[1] == "1"
+ *             if snbuf[0] == 0 or snbuf[0] == 0xff or delta2018:             # <<<<<<<<<<<<<<
+ *                 return "delta-1p"
+ *             else:
+ */
+      }
+
+      /* "src/security/security_identify.pyx":51
+ *                 return "delta-1p"
+ *             else:
+ *                 return FLUX_MODEL_ID             # <<<<<<<<<<<<<<
+ *     else:
+ *         return FLUX_MODEL_ID
+ */
+      /*else*/ {
+        __Pyx_XDECREF(__pyx_r);
+        __pyx_t_4 = __Pyx_PyBytes_FromString(FLUX_MODEL_ID); if (unlikely(!__pyx_t_4)) __PYX_ERR(2, 51, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        __pyx_r = __pyx_t_4;
+        __pyx_t_4 = 0;
+        goto __pyx_L0;
+      }
+    }
+
+    /* "src/security/security_identify.pyx":42
+ * def get_model_id(rescue=False):
+ *     cdef unsigned char[10] snbuf
+ *     if strcmp("delta-1", FLUX_MODEL_ID) == 0:             # <<<<<<<<<<<<<<
+ *         if get_machine_model()[0] == 0 and get_machine_model()[1] == 1:
+ *             return "delta-1p"
+ */
+  }
+
+  /* "src/security/security_identify.pyx":53
+ *                 return FLUX_MODEL_ID
+ *     else:
+ *         return FLUX_MODEL_ID             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  /*else*/ {
+    __Pyx_XDECREF(__pyx_r);
+    __pyx_t_4 = __Pyx_PyBytes_FromString(FLUX_MODEL_ID); if (unlikely(!__pyx_t_4)) __PYX_ERR(2, 53, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __pyx_r = __pyx_t_4;
+    __pyx_t_4 = 0;
+    goto __pyx_L0;
+  }
 
   /* "src/security/security_identify.pyx":40
  * 
  * 
  * def get_model_id(rescue=False):             # <<<<<<<<<<<<<<
- *     return "delta-1p"
  *     cdef unsigned char[10] snbuf
+ *     if strcmp("delta-1", FLUX_MODEL_ID) == 0:
  */
 
   /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_AddTraceback("fluxmonitor.security._security.get_model_id", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
   __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_delta2018);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
@@ -21536,6 +21730,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_contiguous_and_indirect, __pyx_k_contiguous_and_indirect, sizeof(__pyx_k_contiguous_and_indirect), 0, 0, 1, 0},
   {&__pyx_n_s_decrypt, __pyx_k_decrypt, sizeof(__pyx_k_decrypt), 0, 0, 1, 1},
   {&__pyx_n_s_decrypt_into, __pyx_k_decrypt_into, sizeof(__pyx_k_decrypt_into), 0, 0, 1, 1},
+  {&__pyx_n_s_delta2018, __pyx_k_delta2018, sizeof(__pyx_k_delta2018), 0, 0, 1, 1},
   {&__pyx_kp_s_delta_1p, __pyx_k_delta_1p, sizeof(__pyx_k_delta_1p), 0, 0, 1, 0},
   {&__pyx_n_s_der, __pyx_k_der, sizeof(__pyx_k_der), 0, 0, 1, 1},
   {&__pyx_n_s_dict, __pyx_k_dict, sizeof(__pyx_k_dict), 0, 0, 1, 1},
@@ -21613,6 +21808,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_sign, __pyx_k_sign, sizeof(__pyx_k_sign), 0, 0, 1, 1},
   {&__pyx_n_s_sign_sha256, __pyx_k_sign_sha256, sizeof(__pyx_k_sign_sha256), 0, 0, 1, 1},
   {&__pyx_n_s_size, __pyx_k_size, sizeof(__pyx_k_size), 0, 0, 1, 1},
+  {&__pyx_n_s_snbuf, __pyx_k_snbuf, sizeof(__pyx_k_snbuf), 0, 0, 1, 1},
   {&__pyx_kp_s_src_security_security_identify_p, __pyx_k_src_security_security_identify_p, sizeof(__pyx_k_src_security_security_identify_p), 0, 0, 1, 0},
   {&__pyx_kp_s_src_security_security_pyx, __pyx_k_src_security_security_pyx, sizeof(__pyx_k_src_security_security_pyx), 0, 0, 1, 0},
   {&__pyx_n_s_ssid, __pyx_k_ssid, sizeof(__pyx_k_ssid), 0, 0, 1, 1},
@@ -22010,13 +22206,13 @@ static int __Pyx_InitCachedConstants(void) {
  * 
  * 
  * def get_model_id(rescue=False):             # <<<<<<<<<<<<<<
- *     return "delta-1p"
  *     cdef unsigned char[10] snbuf
+ *     if strcmp("delta-1", FLUX_MODEL_ID) == 0:
  */
-  __pyx_tuple__36 = PyTuple_Pack(1, __pyx_n_s_rescue); if (unlikely(!__pyx_tuple__36)) __PYX_ERR(2, 40, __pyx_L1_error)
+  __pyx_tuple__36 = PyTuple_Pack(3, __pyx_n_s_rescue, __pyx_n_s_snbuf, __pyx_n_s_delta2018); if (unlikely(!__pyx_tuple__36)) __PYX_ERR(2, 40, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__36);
   __Pyx_GIVEREF(__pyx_tuple__36);
-  __pyx_codeobj__37 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__36, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_src_security_security_identify_p, __pyx_n_s_get_model_id, 40, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__37)) __PYX_ERR(2, 40, __pyx_L1_error)
+  __pyx_codeobj__37 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__36, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_src_security_security_identify_p, __pyx_n_s_get_model_id, 40, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__37)) __PYX_ERR(2, 40, __pyx_L1_error)
 
   /* "src/security/security_identify.pyx":56
  * 
@@ -22519,8 +22715,8 @@ if (!__Pyx_RefNanny) {
  * 
  * 
  * def get_model_id(rescue=False):             # <<<<<<<<<<<<<<
- *     return "delta-1p"
  *     cdef unsigned char[10] snbuf
+ *     if strcmp("delta-1", FLUX_MODEL_ID) == 0:
  */
   __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_11fluxmonitor_8security_9_security_5get_model_id, NULL, __pyx_n_s_fluxmonitor_security__security); if (unlikely(!__pyx_t_1)) __PYX_ERR(2, 40, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
