@@ -1,6 +1,10 @@
-# fluxmonitor
+# delta-firmware
 
-In flinuxmonitor, there are two setup scripts:
+The high-level firmware of FLUX Delta Series.
+
+The package was named after "fluxmonitor, so you'll see a lot coding and reference as "fluxmonitor" in this package.
+
+There are two setup scripts here:
 * devsetup.py
 * setup.py
 
