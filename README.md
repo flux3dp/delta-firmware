@@ -4,20 +4,24 @@ FLUX Delta Series Firmware based on Linux System / Python
 
 The package was former named "fluxmonitor, and it reference itself as "fluxmonitor" in the code.
 
+### Installation ###
+
 There are two setup scripts here:
 * devsetup.py
 * setup.py
 
-Some source codes are writen in cython style (\*.pyx in src/). 
-It require Cython to generate C codes from *.pyx.
+#### Compiling Cython ####
+There are some code written in Cython (\*.pyx in src/), we'll need to generate C codes from pyx in our development environment (PC), and then compile the python code and generated C files on Raspberry Pi.
 
 `devsetup.py` will invoke Cython to generate C codes from *.pyx and compile it.
+
+#### Installing into system ####
 
 `setup.py` will compile C codes directly. (You don't need to install Cython)
 NOTE: Usually, everythime cython sources has been modified. C codes generate from Cython should be commit together.
 
 
-#### Raspberrypi Checklist ####
+### Raspberrypi Checklist ###
 
 The following packages should already installed in default environment:
 * wpa_supplicant - A program can manage associate with AP
